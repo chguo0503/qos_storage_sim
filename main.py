@@ -656,6 +656,13 @@ def plot(data):
 def plot_queue_count_comparison():
     """Compare q24 and q256 QoS modes after both sweep caches exist."""
     queue_counts = (24, 256)
+    comparison_modes = (
+        "baseline_qwrr",
+        "batched8_qwrr",
+        "traffic_aware8_qwrr",
+        "batched8_adaptive_qwrr",
+        "traffic_aware8_adaptive_qwrr",
+    )
     datasets = {}
     for queue_count in queue_counts:
         cache_path = os.path.join(
@@ -672,26 +679,18 @@ def plot_queue_count_comparison():
             or data.get("qos_queue_count") != queue_count
             or data.get("batch_dispatch_interval_us") != BATCH_DISPATCH_INTERVAL_US
             or data.get("qos_queue_max_active_flows") != QOS_QUEUE_MAX_ACTIVE_FLOWS
+            or data.get("adaptive_batch_policy_version")
+            != ADAPTIVE_BATCH_POLICY_VERSION
+            or data.get("adaptive_batch_headroom") != ADAPTIVE_BATCH_HEADROOM
         ):
             return
         required_keys = {
-            (ssu, 0.5, mode_name)
-            for ssu in SSU_LIST
-            for mode_name in (
-                "baseline_qwrr",
-                "batched8_qwrr",
-                "traffic_aware8_qwrr",
-            )
+            (ssu, 0.5, mode_name) for ssu in SSU_LIST for mode_name in comparison_modes
         }
         if not required_keys.issubset(data["results"]):
             return
         datasets[queue_count] = data
 
-    comparison_modes = (
-        "baseline_qwrr",
-        "batched8_qwrr",
-        "traffic_aware8_qwrr",
-    )
     fig, ax = plt.subplots(figsize=(13, 8))
     for queue_count in queue_counts:
         data = datasets[queue_count]
