@@ -1,31 +1,7 @@
-"""带真实 NPU 50 GB/s 聚合上限的静态 CIR SSD QoS 离散事件仿真。
+"""带 NPU 50 GB/s 聚合上限的 baseline/静态 QoS 离散事件仿真。
 
-Baseline 与静态 QoS 使用相同的 workload、placement、客户端提交节奏和 NPU
-数据面上限；QoS 运行期间不会修改 CIR、PIR 或 WRR。
-
-历史磁盘策略：
-
-``baseline_bypass``（基线绕过）
-    数据块 I/O 绕过 QoS Path 层级；各 NPU 源队列逐 I/O RR，每次只有一个
-    I/O 进入 SSD 后端并独占 40 GB/s。
-
-``qos_static_cir``（静态保证带宽 QoS）
-    创建 SSD 时只配置一次 CIR、PIR、Path 权重和组权重，仿真运行期间
-    不再修改。客户端全局按 ready_time 提交固定上限的 I/O batch；同一时间
-    随机排列 NPU，每轮每个 NPU 最多提交一个 batch。客户端按可配置间隔读取
-    每个 Path 的未完成 I/O 数，并用另一个参数独立控制多少个连续 I/O 共用
-    Path。Path 即使不为空也可选，新 I/O 会进入该 Path 的先入先出等待队列。
-    SSD 每次按 CIR、两级 WRR 和最终 RR 只选择一个 Path，再取该 Path 的一个
-    队头 I/O 进入后端。
-
-客户端选路被刻意拆成两个边界清楚的函数：
-
-1. ``client_category_paths``：本示例程序的静态类别布局辅助函数；
-2. ``client_select_qos_paths``：真正执行选路的 4 参数纯函数。
-
-尤其是第二个函数，它不依赖 DiskState、PathQueue、事件循环或其他仿真对象，
-也不会提交 I/O、修改 SSD 状态或抢占 Path。移植时只需复制客户端选路小节，
-也就是这个函数以及它使用的两个只读配置结构。
+两种策略共享 workload、placement、8-I/O 提交节奏和数据面上限。QoS 每 8 条
+I/O 读取一次 256-Path count 快照，每条 I/O 独立选 Path；运行时不改硬件配置。
 """
 
 from __future__ import annotations
@@ -39,6 +15,7 @@ import hashlib
 import json
 import math
 import os
+import struct
 
 import numpy as np
 
@@ -51,6 +28,8 @@ NUM_NPU = 32
 NUM_DISK = 8
 DISK_BW = 40.0
 NPU_BW_LIMIT = 50.0
+PRESSURE_READ_INTERVAL = 8
+CLIENT_SUBMIT_BATCH_SIZE = 8
 SIM_N_LAYERS = 8
 BLOCK_SIZE = 128
 
@@ -66,16 +45,15 @@ SUPPORTED_POLICIES = (
     POLICY_QOS_STATIC_CIR,
 )
 
-RESULT_SCHEMA_VERSION = 2
+RESULT_SCHEMA_VERSION = 3
 
 QOS_ROUTING_CATEGORIES = ("SS", "SL", "LS", "LL")
 
 # 事件编号同时决定相同时间戳下的处理顺序：编号越小，越先处理。
 COMPUTE_DONE = 0
 DISK_COMPLETION = 1
-REQUEST_ARRIVAL = 2
-CLIENT_SUBMISSION = 3
-DISK_SCHEDULE = 4
+CLIENT_SUBMISSION = 2
+DISK_SCHEDULE = 3
 
 _EPS = 1e-12
 
@@ -209,13 +187,7 @@ def build_block_placement(loads, rng, mode, n_layers, num_disk):
                     disk_id = block_index % num_disk
                 else:
                     disk_id = int(rng.randint(num_disk))
-                blocks.append(
-                    {
-                        "block_idx": block_index,
-                        "disk": disk_id,
-                        "gb": float(block_gb),
-                    }
-                )
+                blocks.append((disk_id, float(block_gb)))
             layers[layer] = tuple(blocks)
         placement_by_request[load["request_id"]] = layers
     return placement_by_request
@@ -253,23 +225,23 @@ def workload_fingerprint(request_loads):
 
 
 def placement_fingerprint(placement_by_request):
-    """规范化 immutable block placement，并返回 SHA-256。"""
-    canonical = []
+    """流式计算 immutable block placement 的 SHA-256。"""
+    digest = hashlib.sha256()
     for request_id in sorted(placement_by_request):
         layers = placement_by_request[request_id]
         for layer in sorted(layers):
-            for block in layers[layer]:
-                canonical.append(
-                    {
-                        "request_id": int(request_id),
-                        "layer": int(layer),
-                        "block_idx": int(block["block_idx"]),
-                        "disk": int(block["disk"]),
-                        # float.hex 避免不同 JSON 浮点格式化实现造成指纹漂移。
-                        "gb_hex": float(block["gb"]).hex(),
-                    }
+            for block_index, (disk_id, block_gb) in enumerate(layers[layer]):
+                digest.update(
+                    struct.pack(
+                        "!IIIId",
+                        int(request_id),
+                        int(layer),
+                        block_index,
+                        int(disk_id),
+                        float(block_gb),
+                    )
                 )
-    return _stable_json_hash(canonical)
+    return digest.hexdigest()
 
 
 @dataclass(frozen=True)
@@ -297,7 +269,6 @@ def prepare_simulation_inputs(
     workload_seed=42,
     placement_seed=43,
     placement_mode="random",
-    arrival_interval_ms=0.0,
 ):
     """用彼此独立的 RNG 生成可在策略间严格复用的输入。"""
     workload_rng = np.random.RandomState(int(workload_seed))
@@ -311,7 +282,7 @@ def prepare_simulation_inputs(
     for request_id, request in enumerate(loads):
         request["request_id"] = request_id
         request["npu_id"] = request_id
-        request["arrival_time"] = request_id * float(arrival_interval_ms)
+        request["arrival_time"] = 0.0
     placement = build_block_placement(
         loads,
         placement_rng,
@@ -387,15 +358,10 @@ class StaticQoSConfig:
         path_count = len(self.path_cirs)
         if path_count != 256 or len(self.group_weights) != 8:
             raise ValueError("静态 QoS 硬件必须包含 256 个 Path 和 8 个 Group")
-        if not (
-            path_count
-            == len(self.path_pirs)
-            == len(self.path_weights)
-        ):
+        if not (path_count == len(self.path_pirs) == len(self.path_weights)):
             raise ValueError("CIR、PIR 和 Path 权重数组的长度必须相同")
-        if (
-            len(self.category_paths_per_group) != len(QOS_ROUTING_CATEGORIES)
-            or any(count <= 0 for count in self.category_paths_per_group)
+        if len(self.category_paths_per_group) != len(QOS_ROUTING_CATEGORIES) or any(
+            count <= 0 for count in self.category_paths_per_group
         ):
             raise ValueError("每个 Group 都必须为 SS、SL、LS、LL 分配 Path")
         if sum(self.category_paths_per_group) != self.paths_per_group:
@@ -420,34 +386,11 @@ class StaticQoSConfig:
 
 @dataclass(frozen=True)
 class ClientRoutingConfig:
-    """客户端选路函数需要的只读初始化信息。
-
-    这个对象只保存客户端在系统初始化阶段就已经知道的内容，不包含 SSD
-    运行时队列，也不会修改硬件 CIR/PIR/WRR。把这些静态信息和轮转种子放进
-    一个对象后，真正的选路函数仍然严格保持 4 个输入参数。
-
-    ``qos_config``：
-        与 SSD 初始化时使用的静态 Path、Group、CIR、PIR 和 WRR 布局相同。
-    ``disk_bw``：
-        当前目标 SSD 的物理带宽，单位为 GB/s。
-    ``start_offset``：
-        预计完成时间相同时使用的候选轮转起点，不是 Path ID。
-    ``path_binding_batch_size``：
-        一次选路强制绑定到同一个 Path 的连续 I/O 数量。默认值 1 表示每个
-        I/O 独立选择 Path；它与客户端多久读取一次 SSD 压力相互独立。
-    """
+    """客户端已知的静态 QoS 镜像和稳定轮转起点。"""
 
     qos_config: StaticQoSConfig
     disk_bw: float
     start_offset: int = 0
-    path_binding_batch_size: int = 1
-
-    def __post_init__(self):
-        if (
-            not isinstance(self.path_binding_batch_size, int)
-            or self.path_binding_batch_size <= 0
-        ):
-            raise ValueError("path_binding_batch_size 必须是正整数")
 
 
 @dataclass(frozen=True)
@@ -749,7 +692,7 @@ class _QoSPlanningShadow:
 # 2. 每块 SSD 按配置的压力读取间隔分别汇报自己的 256 个 Path 压力：
 #       Path 压力 = 正在执行的 I/O 数 + 排队等待的 I/O 数
 # 3. 客户端根据请求类别取得该类别允许使用的 Path 池。
-# 4. 客户端调用 client_select_qos_paths()；每个 Path 绑定批次决定一个 Path。
+# 4. 客户端调用 client_select_qos_paths()；每条 I/O 独立决定一个 Path。
 # 5. 客户端把返回的 Path ID 写入对应 I/O 的请求字段（例如 SQE DW2），
 #    再把请求提交给 SSD。
 #
@@ -827,8 +770,7 @@ def client_select_qos_paths(
     """按预计完成时间为同一 SSU 的一批 I/O 选择合法 QoS Path。
 
     硬件输入只有完整的 256 项 active+pending I/O-count。旧 I/O 字节数用
-    当前批次的中位 block 大小估算；每规划一个绑定批次后，本地 shadow
-    会立即更新。``path_binding_batch_size=1`` 表示每个 I/O 独立选路。
+    当前窗口的中位 block 大小估算；每规划一条 I/O 后立即更新本地 shadow。
     """
     sizes = tuple(float(size) for size in block_sizes_gb)
     if not sizes:
@@ -841,8 +783,7 @@ def client_select_qos_paths(
     if len(counts) != qos.path_count:
         raise ValueError("Path 压力快照长度必须恰好为 256")
     if any(
-        not isinstance(count, (int, np.integer)) or int(count) < 0
-        for count in counts
+        not isinstance(count, (int, np.integer)) or int(count) < 0 for count in counts
     ):
         raise ValueError("Path 压力必须是非负整数 I/O-count")
 
@@ -858,36 +799,22 @@ def client_select_qos_paths(
         raise ValueError("合法 Path ID 超出 0..255")
 
     representative_gb = sorted(sizes)[len(sizes) // 2]
-    shadow = _QoSPlanningShadow(
-        _analyze_qos_counts(counts, qos), representative_gb
-    )
-    binding = routing_config.path_binding_batch_size
-    batches = []
-    for start in range(0, len(sizes), binding):
-        indices = tuple(range(start, min(start + binding, len(sizes))))
-        batches.append((indices, sum(sizes[index] for index in indices)))
-
+    shadow = _QoSPlanningShadow(_analyze_qos_counts(counts, qos), representative_gb)
     selected = [None] * len(sizes)
     order = sorted(
-        range(len(batches)),
-        key=lambda index: (-batches[index][1], batches[index][0][0]),
+        range(len(sizes)),
+        key=lambda index: (-sizes[index], index),
     )
-    for batch_index in order:
-        indices, batch_gb = batches[batch_index]
+    for index in order:
+        block_gb = sizes[index]
         estimate = shadow.estimate(
-            block_size_gb=batch_gb,
+            block_size_gb=block_gb,
             representative_block_gb=representative_gb,
             allowed_path_ids=allowed,
             routing_config=routing_config,
         )
-        for index in indices:
-            selected[index] = estimate.path_id
-        shadow.add(
-            estimate.path_id,
-            batch_gb,
-            qos,
-            io_count=len(indices),
-        )
+        selected[index] = estimate.path_id
+        shadow.add(estimate.path_id, block_gb, qos)
     return selected
 
 
@@ -959,8 +886,6 @@ class PathQueue:
         self.pending_io_count = 0  # 当前排队等待的逻辑 I/O 数初始为 0。
         self.active_flow = None  # 当前正在服务的 I/O 初始为空。
         self.backend_bw = 0.0  # 只有该 Path 胜出时才记录实际后端带宽。
-        self.bytes_served = 0.0  # 累计完成的数据量初始为 0。
-        self.activations = 0  # 累计启动过的逻辑 I/O 数初始为 0。
         self.max_outstanding_io = 0  # 历史最大 Path 压力初始为 0。
         self.virtual_finish = 0.0  # 离散 CIR/WRR 仲裁使用的虚拟完成标签。
 
@@ -992,13 +917,11 @@ class PathQueue:
         flow = self.pending.popleft()  # 按先入先出规则取出最早到达的 I/O。
         self.pending_io_count -= flow.block_count  # 它已离开等待队列，扣除排队压力。
         self.active_flow = flow  # 把它登记为当前正在执行的 I/O。
-        self.activations += flow.block_count  # 累计这个 Path 启动过的数据块数量。
         return flow  # 把新启动的 I/O 返回给整盘带宽调度器。
 
     def complete(self, flow):  # 当前 I/O 完成后更新 Path，并尝试启动队头 I/O。
         if self.active_flow is not flow:
             raise RuntimeError("完成的 I/O 不是当前 Path 的后端 active I/O")
-        self.bytes_served += flow.total_gb  # 累加这个 Path 已经完成的数据量。
         self.active_flow = None  # 清空正在执行位置，使 Path 可以启动下一条 I/O。
         self.backend_bw = 0.0
 
@@ -1030,19 +953,14 @@ def _weighted_capped_split(capacity, items, weights, limits):
     """工作保守的加权带宽分配，每个对象还有各自的带宽上限。"""
     grants = {item: 0.0 for item in items}
     remaining = max(0.0, float(capacity))
-    eligible = {
-        item
-        for item in items
-        if weights[item] > _EPS and limits[item] > _EPS
-    }
+    eligible = {item for item in items if weights[item] > _EPS and limits[item] > _EPS}
     while remaining > _EPS and eligible:
         total_weight = sum(weights[item] for item in eligible)
         unit = remaining / total_weight
         saturated = [
             item
             for item in eligible
-            if limits[item] - grants[item]
-            <= unit * weights[item] + _EPS
+            if limits[item] - grants[item] <= unit * weights[item] + _EPS
         ]
         if not saturated:
             for item in eligible:
@@ -1062,10 +980,7 @@ def _static_qos_service_rates(backlogged_paths, disk_bw, group_weights):
     CIR 先形成基础服务权，剩余服务机会再按组间和组内 WRR 分配。返回值只用于
     计算各 Path 的虚拟完成标签；真正进入后端的始终只有一个 I/O。
     """
-    assigned = {
-        path: min(path.cir, path.pir)
-        for path in backlogged_paths
-    }
+    assigned = {path: min(path.cir, path.pir) for path in backlogged_paths}
     remaining = max(0.0, float(disk_bw) - sum(assigned.values()))
     paths_by_group = defaultdict(list)
     for path in backlogged_paths:
@@ -1076,24 +991,17 @@ def _static_qos_service_rates(backlogged_paths, disk_bw, group_weights):
     group_ids = tuple(paths_by_group)
     group_limits = {
         group_id: sum(
-            max(0.0, path.pir - assigned[path])
-            for path in paths_by_group[group_id]
+            max(0.0, path.pir - assigned[path]) for path in paths_by_group[group_id]
         )
         for group_id in group_ids
     }
-    active_group_weights = {
-        group_id: group_weights[group_id]
-        for group_id in group_ids
-    }
+    active_group_weights = {group_id: group_weights[group_id] for group_id in group_ids}
     group_grants = _weighted_capped_split(
         remaining, group_ids, active_group_weights, group_limits
     )
 
     for group_id, paths in paths_by_group.items():
-        path_limits = {
-            path: max(0.0, path.pir - assigned[path])
-            for path in paths
-        }
+        path_limits = {path: max(0.0, path.pir - assigned[path]) for path in paths}
         path_weights = {path: path.path_weight for path in paths}
         path_grants = _weighted_capped_split(
             group_grants[group_id], paths, path_weights, path_limits
@@ -1142,8 +1050,6 @@ class DiskIOScheduler:
         self.dispatch_generation = 0  # 用于识别过期调度事件的版本号。
         self.total_queue_wait_ms = 0.0  # 所有逻辑数据块累计等待时间。
         self.max_queue_wait_ms = 0.0  # 单条 I/O 观察到的最大等待时间。
-        self.max_observed_path_bw = defaultdict(float)  # 每个 Path 的历史最大实时带宽。
-        self.max_observed_effective_path_bw = defaultdict(float)
         self._path_io_counts = [0] * 256 if policy in QOS_POLICIES else []
         self._path_io_snapshot_cache = None
 
@@ -1327,9 +1233,7 @@ class DiskIOScheduler:
         for path in backlogged:
             self._push_qos_candidate(path)
         if backlogged and not self._qos_finish_heap:
-            raise RuntimeError(
-                "QoS 有待处理 I/O，但 CIR/PIR/WRR 没有产生可服务 Path"
-            )
+            raise RuntimeError("QoS 有待处理 I/O，但 CIR/PIR/WRR 没有产生可服务 Path")
 
     def _select_qos_path(self):
         """按 CIR、两级 WRR 和最终 RR 选择一个非空 Path。"""
@@ -1400,9 +1304,6 @@ class DiskIOScheduler:
         if selected_path is not None:
             backend_bw = min(backend_bw, selected_path.pir)
             selected_path.backend_bw = backend_bw
-            self.max_observed_path_bw[selected_path.path_id] = max(
-                self.max_observed_path_bw[selected_path.path_id], backend_bw
-            )
         flow.bw = backend_bw
         flow.raw_bw = backend_bw
         flow.end_time = current_time + flow.remaining_gb / backend_bw * 1000.0
@@ -1559,18 +1460,8 @@ class NPUState:
         self.done = False
 
         self.per_layer_us = float(load["per_layer_us"])
-        self.per_layer_kv_gb = float(load["per_layer_kv_gb"])
-        self.seq_len_k = load["seq_len_k"]
-        self.nql = load["nql"]
         self.category = load["category"]
-        self.required_bw_input_gbps = float(load["required_bw_input_gbps"])
         self.block_placement = block_placement
-        self.n_blocks_per_layer = len(block_placement.get(0, ()))
-        (
-            self.total_input_tokens,
-            self.npu_compute_tokens,
-            self.ssu_read_tokens,
-        ) = calculate_token_partition(self.seq_len_k, self.nql)
 
         self.request_start_time = start_time
         self.arrival_time = float(load["arrival_time"])
@@ -1584,85 +1475,40 @@ class NPUState:
         self.pending_blocks = {}
         self.kv_ready_layers = set()
         self.per_layer_kv_load_start = {}
-        self.current_request_kv_actual_dur = {}
-        self.current_request_io_waits = {}
-        self.current_request_qos_route_blocks = defaultdict(int)
         self.current_compute_expected_end_ms = None
 
         self.last_compute_end_time = start_time
         self.io_wait_L0_ms = 0.0
         self.io_wait_L1_ms = 0.0
         self.io_wait_L2plus_ms = 0.0
-        self.layer0_kv_end_time = None
-
-
-class RequestDispatcher:
-    """FIFO 请求队列；每个 NPU 同一时间最多运行一个请求。"""
-
-    def __init__(self, num_npu):
-        self.pending = deque()
-        self.idle_npus = deque(range(num_npu))
-
-    def submit(self, request):
-        self.pending.append(dict(request))
-
-    def dispatch_ready(self, context, current_time):
-        while self.pending and self.idle_npus:
-            npu_id = self.idle_npus.popleft()
-            request = self.pending.popleft()
-            request["npu_id"] = npu_id
-            placement = context.placement_by_request[request["request_id"]]
-            npu = context.npus[npu_id]
-            npu.start_request(request, placement, current_time)
-            _start_layer_io(context, npu, 0, current_time)
-            _try_start_compute(context, npu, current_time)
-
-    def complete(self, context, npu, current_time):
-        self.idle_npus.append(npu.npu_id)
-        self.dispatch_ready(context, current_time)
 
 
 class _SimulationContext:
     def __init__(
         self,
         *,
-        dispatcher,
         event_heap,
         disk_states,
         npus,
         n_layers,
-        placement_mode,
         policy,
         qos_config,
-        pressure_read_interval,
-        path_binding_batch_size,
-        client_submit_batch_size,
-        client_submit_interval_us,
         submit_order_seed,
         placement_by_request,
         workload_hash,
         placement_hash,
         workload_seed,
         placement_seed,
-        npu_bw_limit,
     ):
-        self.dispatcher = dispatcher
         self.event_heap = event_heap
         self.disk_states = disk_states
         self.npus = npus
         self.n_layers = n_layers
-        self.placement_mode = placement_mode
-        self.placement_by_request = placement_by_request
         self.workload_hash = workload_hash
         self.placement_hash = placement_hash
         self.workload_seed = workload_seed
         self.placement_seed = placement_seed
         self.policy = policy
-        self.npu_bw_limit = float(npu_bw_limit)
-        self.pressure_read_interval = pressure_read_interval
-        self.path_binding_batch_size = path_binding_batch_size
-        self.client_submit_batch_size = client_submit_batch_size
-        self.client_submit_interval_ms = client_submit_interval_us / 1000.0
         self.submit_order_seed = submit_order_seed
         # 提交顺序使用独立随机源，不能消耗请求抽样或数据放置的随机序列。
         self.submit_rng = np.random.RandomState(submit_order_seed)
@@ -1689,27 +1535,25 @@ class _SimulationContext:
         self.next_client_submission_id = 0
         self.client_submission_generation = 0
         self.pending_client_submission_time = None
-        self.npu_next_submit_time = defaultdict(float)
         self.client_submission_rounds = 0
         self.client_submission_batches = 0
         self.client_multi_npu_rounds = 0
         self.client_max_npus_per_round = 0
         self.client_submission_order_sample = []
-        # 全局 block 守恒审计。ID 不包含 NPU，因为请求可以被任意空闲 NPU 执行。
-        self.expected_blocks = {}
+        # 用紧凑三态数组审计每个 placement block：0 未提交、1 已提交、2 已完成。
+        self.placement_by_request = placement_by_request
+        self.block_offsets = {}
+        self.expected_block_count = 0
+        self.expected_read_gb = 0.0
         for request_id, layers in placement_by_request.items():
             for layer, blocks in layers.items():
-                for block in blocks:
-                    block_id = (request_id, layer, block["block_idx"])
-                    if block_id in self.expected_blocks:
-                        raise AssertionError("placement 中出现重复 block ID")
-                    self.expected_blocks[block_id] = (
-                        block["disk"],
-                        float(block["gb"]),
-                    )
-        self.submitted_blocks = set()
-        self.completed_blocks = set()
-        self.actual_block_targets = {}
+                self.block_offsets[(request_id, layer)] = self.expected_block_count
+                for _, block_gb in blocks:
+                    self.expected_read_gb += block_gb
+                self.expected_block_count += len(blocks)
+        self.block_states = bytearray(self.expected_block_count)
+        self.submitted_block_count = 0
+        self.completed_block_count = 0
         self.pending_npu_completion_ids = set()
         self.npu_active_flows = defaultdict(dict)
 
@@ -1756,31 +1600,28 @@ def _new_flow(  # 把客户端的一条数据块读取请求转换成仿真 I/O 
 
 def _register_submitted_flow(context, flow):
     """在真正 enqueue 前验证 placement，并登记一次性 submit。"""
-    block_id = (flow.request_id, flow.layer, flow.block_idx)
-    expected = context.expected_blocks.get(block_id)
-    if expected is None:
-        raise AssertionError("提交了 placement 中不存在的 block")
-    expected_disk, expected_gb = expected
-    if flow.disk_id != expected_disk:
+    expected = context.placement_by_request[flow.request_id][flow.layer][flow.block_idx]
+    if flow.disk_id != expected[0]:
         raise AssertionError("block 被提交到非 placement SSU")
-    if not math.isclose(flow.total_gb, expected_gb, rel_tol=0.0, abs_tol=1e-15):
+    if not math.isclose(flow.total_gb, expected[1], rel_tol=0.0, abs_tol=1e-15):
         raise AssertionError("block 大小与 placement 不一致")
-    if block_id in context.submitted_blocks:
+    block_id = context.block_offsets[(flow.request_id, flow.layer)] + flow.block_idx
+    if context.block_states[block_id] != 0:
         raise AssertionError("同一个 block 被重复 submit")
-    context.submitted_blocks.add(block_id)
-    context.actual_block_targets[block_id] = flow.disk_id
+    context.block_states[block_id] = 1
+    context.submitted_block_count += 1
 
 
 def _register_completed_flow(context, flow):
     """登记一次性 completion，并再次验证目标 SSU。"""
-    block_id = (flow.request_id, flow.layer, flow.block_idx)
-    if block_id not in context.submitted_blocks:
-        raise AssertionError("block 未 submit 就发生 completion")
-    if block_id in context.completed_blocks:
-        raise AssertionError("同一个 block 被重复 complete")
-    if context.actual_block_targets[block_id] != flow.disk_id:
+    expected = context.placement_by_request[flow.request_id][flow.layer][flow.block_idx]
+    if expected[0] != flow.disk_id:
         raise AssertionError("completion 的 SSU 与 submit 目标不一致")
-    context.completed_blocks.add(block_id)
+    block_id = context.block_offsets[(flow.request_id, flow.layer)] + flow.block_idx
+    if context.block_states[block_id] != 1:
+        raise AssertionError("block 未 submit 或已 complete")
+    context.block_states[block_id] = 2
+    context.completed_block_count += 1
 
 
 def _request_client_submission(context):
@@ -1788,11 +1629,8 @@ def _request_client_submission(context):
     if not context.client_submission_states:
         return
     ready_times = [
-        max(
-            context.client_submission_states[state_ids[0]].ready_time,
-            context.npu_next_submit_time[npu_id],
-        )
-        for npu_id, state_ids in context.client_submission_queues.items()
+        context.client_submission_states[state_ids[0]].ready_time
+        for state_ids in context.client_submission_queues.values()
         if state_ids
     ]
     if not ready_times:
@@ -1855,12 +1693,7 @@ def _client_submit_layer_blocks(context, npu, layer, blocks, current_time):
 def _plan_qos_pressure_window(context, state, current_time):
     """读取一次 Path 压力，并规划下一个压力窗口内的 Path ID。"""
     window_start = len(state.planned_path_ids)
-    configured = context.pressure_read_interval
-    window_end = (
-        len(state.blocks)
-        if configured == 0
-        else min(len(state.blocks), window_start + configured)
-    )
+    window_end = min(len(state.blocks), window_start + PRESSURE_READ_INTERVAL)
     scheduler = context.disk_states[state.disk_id].scheduler
     pressure = scheduler.report_path_io_counts(current_time=current_time)
     window = state.blocks[window_start:window_end]
@@ -1872,35 +1705,28 @@ def _plan_qos_pressure_window(context, state, current_time):
             qos_config=context.client_qos_config,
             disk_bw=scheduler.disk_bw,
             start_offset=state.start_offset,
-            path_binding_batch_size=context.path_binding_batch_size,
         ),
     )
     state.planned_path_ids.extend(path_ids)
 
 
 def _submit_client_batch(context, state, current_time):
-    """提交一个状态接下来的至多 ``client_submit_batch_size`` 条 I/O。"""
+    """提交一个状态接下来的至多 8 条 I/O。"""
     npu = context.npus[state.npu_id]
     scheduler = context.disk_states[state.disk_id].scheduler
-    submit_end = min(
-        len(state.blocks), state.cursor + context.client_submit_batch_size
-    )
-    category_index = QOS_ROUTING_CATEGORIES.index(state.category)
-
+    submit_end = min(len(state.blocks), state.cursor + CLIENT_SUBMIT_BATCH_SIZE)
     while state.cursor < submit_end:
         if context.policy in QOS_POLICIES:
             if state.cursor == len(state.planned_path_ids):
                 _plan_qos_pressure_window(context, state, current_time)
             chunk_end = min(submit_end, len(state.planned_path_ids))
-            path_ids = state.planned_path_ids[state.cursor:chunk_end]
+            path_ids = state.planned_path_ids[state.cursor : chunk_end]
         else:
             chunk_end = submit_end
             path_ids = [-1] * (chunk_end - state.cursor)
 
         flows = []
-        for block, path_id in zip(
-            state.blocks[state.cursor:chunk_end], path_ids
-        ):
+        for block, path_id in zip(state.blocks[state.cursor : chunk_end], path_ids):
             flows.append(
                 _new_flow(
                     npu=npu,
@@ -1912,10 +1738,6 @@ def _submit_client_batch(context, state, current_time):
                     current_time=current_time,
                 )
             )
-            if context.policy in QOS_POLICIES:
-                npu.current_request_qos_route_blocks[
-                    (state.layer, category_index)
-                ] += 1
         for flow in flows:
             _register_submitted_flow(context, flow)
         scheduler.enqueue_many(flows=flows, current_time=current_time)
@@ -1937,10 +1759,7 @@ def _handle_client_submission(context, generation, current_time):
         if not state_ids:
             continue
         state = context.client_submission_states[state_ids[0]]
-        effective_ready = max(
-            state.ready_time, context.npu_next_submit_time[npu_id]
-        )
-        if effective_ready <= current_time + _EPS:
+        if state.ready_time <= current_time + _EPS:
             ready_npus.append(npu_id)
     if not ready_npus:
         _request_client_submission(context)
@@ -1961,15 +1780,9 @@ def _handle_client_submission(context, generation, current_time):
         state_ids = context.client_submission_queues[npu_id]
         state_id = state_ids.popleft()
         state = context.client_submission_states[state_id]
-        batch_size = min(
-            context.client_submit_batch_size,
-            len(state.blocks) - state.cursor,
-        )
+        batch_size = min(CLIENT_SUBMIT_BATCH_SIZE, len(state.blocks) - state.cursor)
         finished = _submit_client_batch(context, state, current_time)
         disk_id = state.disk_id
-        context.npu_next_submit_time[npu_id] = (
-            current_time + context.client_submit_interval_ms
-        )
         if len(context.client_submission_order_sample) < 256:
             context.client_submission_order_sample.append(
                 {
@@ -2014,8 +1827,8 @@ def _start_layer_io(  # 准备一层的数据块，并把它们交给客户端�
     blocks = []  # 创建待选路的数据块列表。
     for block_index, placed_block in enumerate(placement):  # 按原顺序遍历放置结果。
         client_block = {  # 为客户端提交入口构造一个简单的数据块描述。
-            "disk": placed_block["disk"],  # 上游选出的目标 SSD 编号，选路函数不修改它。
-            "gb": placed_block["gb"],  # 当前数据块的传输大小，单位为 GB。
+            "disk": placed_block[0],  # 上游选出的目标 SSD 编号，选路函数不修改它。
+            "gb": placed_block[1],  # 当前数据块的传输大小，单位为 GB。
             "block_idx": block_index,  # 保存原始顺序，用于完成通知和结果统计。
         }  # 至此只有 SSD 编号，还没有 Path ID。
         blocks.append(client_block)  # 保持顺序加入列表，后面按相同顺序接收 Path ID。
@@ -2036,10 +1849,6 @@ def _start_layer_io(  # 准备一层的数据块，并把它们交给客户端�
 
 def _mark_layer_io_ready(npu, layer, current_time):
     npu.kv_ready_layers.add(layer)
-    started = npu.per_layer_kv_load_start.get(layer, current_time)
-    npu.current_request_kv_actual_dur[layer] = current_time - started
-    if layer == 0:
-        npu.layer0_kv_end_time = current_time
 
 
 def _try_start_compute(context, npu, current_time):
@@ -2051,7 +1860,6 @@ def _try_start_compute(context, npu, current_time):
 
     wait_from = npu.request_start_time if layer == 0 else npu.last_compute_end_time
     io_wait_ms = max(0.0, current_time - wait_from)
-    npu.current_request_io_waits[layer] = io_wait_ms
     if layer == 0:
         npu.io_wait_L0_ms += io_wait_ms
     elif layer == 1:
@@ -2099,29 +1907,11 @@ def _handle_completed_flow(context, flow, current_time):
 def _archive_request(npu, n_layers):
     compute_ms = n_layers * npu.per_layer_us / 1000.0
     io_wait_ms = npu.io_wait_L0_ms + npu.io_wait_L1_ms + npu.io_wait_L2plus_ms
-    ideal_l1_kv_ms = (
-        npu.per_layer_kv_gb / NPU_BW_LIMIT * 1000.0
-        if npu.per_layer_kv_gb > 0
-        else 0.0
-    )
-    actual_l0_kv_ms = npu.layer0_kv_end_time - npu.request_start_time
-    ideal_excl012_ms = (
-        actual_l0_kv_ms
-        + max(ideal_l1_kv_ms, npu.per_layer_us / 1000.0)
-        + (n_layers - 1) * npu.per_layer_us / 1000.0
-    )
     npu.per_request_io_detail.append(
         {
             "request_id": npu.current_load["request_id"],
             "category": npu.category,
-            "seq_len_k": npu.seq_len_k,
-            "nql": npu.nql,
-            "total_input_tokens": npu.total_input_tokens,
-            "npu_compute_tokens": npu.npu_compute_tokens,
-            "ssu_read_tokens": npu.ssu_read_tokens,
             "npu_id": npu.npu_id,
-            "arrival_time": npu.arrival_time,
-            "request_start_time": npu.request_start_time,
             "queueing_delay_ms": npu.queueing_delay_ms,
             "processing_ttft_ms": npu.processing_ttft_ms,
             "ttft_ms": npu.ttft_ms,
@@ -2129,25 +1919,12 @@ def _archive_request(npu, n_layers):
             "io_wait_L1_ms": npu.io_wait_L1_ms,
             "io_wait_L2plus_ms": npu.io_wait_L2plus_ms,
             "io_wait_total_ms": io_wait_ms,
-            "per_layer_io_waits": dict(npu.current_request_io_waits),
             "request_compute_ms": compute_ms,
             "request_npu_utilization": (
                 compute_ms / (compute_ms + io_wait_ms)
                 if compute_ms + io_wait_ms > 0
                 else 0.0
             ),
-            "ideal_excl012_ms": ideal_excl012_ms,
-            "infl_ex012": (
-                npu.ttft_ms / ideal_excl012_ms
-                if ideal_excl012_ms > 0
-                else float("inf")
-            ),
-            "n_blocks_per_layer": npu.n_blocks_per_layer,
-            "per_layer_kv_gb": npu.per_layer_kv_gb,
-            "required_bw_input_gbps": npu.required_bw_input_gbps,
-            "required_bw_source": "input_profile_only",
-            "per_layer_kv_actual_dur_ms": dict(npu.current_request_kv_actual_dur),
-            "qos_route_block_counts": dict(npu.current_request_qos_route_blocks),
         }
     )
 
@@ -2171,19 +1948,16 @@ def _handle_compute_done(context, npu_id, layer, generation, current_time):
     npu.ttft_ms = current_time - npu.arrival_time
     _archive_request(npu, context.n_layers)
     context.completed_requests += 1
-    context.dispatcher.complete(context, npu, current_time)
 
 
-def _account_npu_link_until(npu, current_time, npu_bw_limit):
+def _account_npu_link_until(npu, current_time):
     """按上一次有效速率积分一个 NPU 的链路占用。"""
     if current_time <= npu.link_last_update_ms + _EPS:
         return
     duration_ms = current_time - npu.link_last_update_ms
-    npu.link_bw_integral_gb += (
-        npu.link_current_bw_gbps * duration_ms / 1000.0
-    )
-    npu.link_capacity_integral_gb += npu_bw_limit * duration_ms / 1000.0
-    if npu.link_current_bw_gbps >= npu_bw_limit - 1e-9:
+    npu.link_bw_integral_gb += npu.link_current_bw_gbps * duration_ms / 1000.0
+    npu.link_capacity_integral_gb += NPU_BW_LIMIT * duration_ms / 1000.0
+    if npu.link_current_bw_gbps >= NPU_BW_LIMIT - 1e-9:
         npu.link_cap_hit_time_ms += duration_ms
     npu.link_last_update_ms = current_time
 
@@ -2199,7 +1973,7 @@ def _active_flows_for_npu(context, npu_id):
 def _settle_npu_active_flows(context, npu_id, current_time):
     """先按旧有效速率同时推进一个 NPU 在所有 SSU 上的 active I/O。"""
     npu = context.npus[npu_id]
-    _account_npu_link_until(npu, current_time, context.npu_bw_limit)
+    _account_npu_link_until(npu, current_time)
     for flow in _active_flows_for_npu(context, npu_id):
         context.disk_states[flow.disk_id].scheduler.settle(current_time)
 
@@ -2227,9 +2001,7 @@ def _schedule_npu_completion(context, npu_id, current_time):
     active = _active_flows_for_npu(context, npu_id)
     if not active:
         return
-    finite_end_times = [
-        flow.end_time for flow in active if np.isfinite(flow.end_time)
-    ]
+    finite_end_times = [flow.end_time for flow in active if np.isfinite(flow.end_time)]
     if not finite_end_times:
         return
     event_time = max(
@@ -2262,9 +2034,7 @@ def _rebalance_npu_bandwidth(context, npu_id, current_time):
     active = _active_flows_for_npu(context, npu_id)
     raw_rates = [max(0.0, flow.raw_bw) for flow in active]
     raw_total = sum(raw_rates)
-    effective_rates = proportional_npu_cap(
-        raw_rates, context.npu_bw_limit
-    )
+    effective_rates = proportional_npu_cap(raw_rates)
     effective_total = 0.0
     for flow, effective_rate in zip(active, effective_rates):
         flow.start_time = current_time
@@ -2277,12 +2047,7 @@ def _rebalance_npu_bandwidth(context, npu_id, current_time):
         )
         if flow.queue is not None:
             flow.queue.backend_bw = flow.bw
-            scheduler = context.disk_states[flow.disk_id].scheduler
-            scheduler.max_observed_effective_path_bw[flow.queue_id] = max(
-                scheduler.max_observed_effective_path_bw[flow.queue_id],
-                flow.bw,
-            )
-    if effective_total > context.npu_bw_limit + 1e-9:
+    if effective_total > NPU_BW_LIMIT + 1e-9:
         raise AssertionError("NPU 聚合有效速率超过 50 GB/s 上限")
     npu.link_current_bw_gbps = effective_total
     npu.link_peak_raw_bw_gbps = max(npu.link_peak_raw_bw_gbps, raw_total)
@@ -2337,13 +2102,14 @@ def _handle_capped_disk_completion(context, npu_id, generation, current_time):
 
 def _build_summary(context, current_time, total_requests, events_processed):
     for npu in context.npus:
-        _account_npu_link_until(npu, current_time, context.npu_bw_limit)
+        _account_npu_link_until(npu, current_time)
 
-    expected_ids = set(context.expected_blocks)
-    if context.submitted_blocks != expected_ids:
+    if context.submitted_block_count != context.expected_block_count:
         raise AssertionError("仿真结束时 submit block 集合与 placement 不一致")
-    if context.completed_blocks != expected_ids:
+    if context.completed_block_count != context.expected_block_count:
         raise AssertionError("仿真结束时 complete block 集合与 placement 不一致")
+    if any(state != 2 for state in context.block_states):
+        raise AssertionError("仿真结束时存在未提交或未完成 block")
     if context.client_submission_states:
         raise AssertionError("仿真结束时仍有未清理的客户端提交状态")
     for disk_state in context.disk_states:
@@ -2353,8 +2119,7 @@ def _build_summary(context, current_time, total_requests, events_processed):
         if scheduler.max_backend_active_io > 1:
             raise AssertionError("SSU 后端 active I/O 超过 1")
     if any(
-        npu.link_peak_effective_bw_gbps > context.npu_bw_limit + 1e-9
-        for npu in context.npus
+        npu.link_peak_effective_bw_gbps > NPU_BW_LIMIT + 1e-9 for npu in context.npus
     ):
         raise AssertionError("历史 NPU 聚合峰值超过物理上限")
 
@@ -2371,19 +2136,10 @@ def _build_summary(context, current_time, total_requests, events_processed):
         category_utils = [item["request_npu_utilization"] for item in rows]
         category_metrics[category] = {
             "count": len(rows),
-            "p50_ttft_ms": (
-                float(np.percentile(category_ttfts, 50)) if rows else 0.0
-            ),
-            "p95_ttft_ms": (
-                float(np.percentile(category_ttfts, 95)) if rows else 0.0
-            ),
-            "p99_ttft_ms": (
-                float(np.percentile(category_ttfts, 99)) if rows else 0.0
-            ),
+            "p50_ttft_ms": (float(np.percentile(category_ttfts, 50)) if rows else 0.0),
+            "p95_ttft_ms": (float(np.percentile(category_ttfts, 95)) if rows else 0.0),
+            "p99_ttft_ms": (float(np.percentile(category_ttfts, 99)) if rows else 0.0),
             "max_ttft_ms": max(category_ttfts) if rows else 0.0,
-            "avg_npu_utilization": (
-                float(np.mean(category_utils)) if rows else 0.0
-            ),
             "avg_request_compute_fraction": (
                 float(np.mean(category_utils)) if rows else 0.0
             ),
@@ -2395,29 +2151,10 @@ def _build_summary(context, current_time, total_requests, events_processed):
         scheduler.settle(current_time)
         elapsed = disk_state.busy_time + disk_state.idle_time
         effective_utilization = (
-            disk_state.completed_bytes_gb
-            / (scheduler.disk_bw * current_time / 1000.0)
+            disk_state.completed_bytes_gb / (scheduler.disk_bw * current_time / 1000.0)
             if current_time > 0.0
             else 0.0
         )
-        path_stats = {
-            path_id: {
-                "cir_gbps": path.cir,
-                "pir_gbps": path.pir,
-                "group_id": path.group_id,
-                "max_observed_bw_gbps": scheduler.max_observed_path_bw[path_id],
-                "max_observed_raw_bw_gbps": scheduler.max_observed_path_bw[
-                    path_id
-                ],
-                "max_observed_effective_bw_gbps": (
-                    scheduler.max_observed_effective_path_bw[path_id]
-                ),
-                "bytes_served_gb": path.bytes_served,
-                "activations": path.activations,
-                "max_outstanding_io": path.max_outstanding_io,
-            }
-            for path_id, path in scheduler.paths.items()
-        }
         disk_stats.append(
             {
                 "disk_id": disk_state.disk_id,
@@ -2425,9 +2162,7 @@ def _build_summary(context, current_time, total_requests, events_processed):
                 "idle_time_ms": disk_state.idle_time,
                 "utilization": disk_state.busy_time / elapsed if elapsed > 0 else 0.0,
                 "active_time_utilization": (
-                    disk_state.busy_time / current_time
-                    if current_time > 0.0
-                    else 0.0
+                    disk_state.busy_time / current_time if current_time > 0.0 else 0.0
                 ),
                 "effective_bandwidth_utilization": effective_utilization,
                 "completed_bytes_gb": disk_state.completed_bytes_gb,
@@ -2448,13 +2183,14 @@ def _build_summary(context, current_time, total_requests, events_processed):
                 "total_queue_wait_ms": scheduler.total_queue_wait_ms,
                 "max_queue_wait_ms": scheduler.max_queue_wait_ms,
                 "queue_count": len(scheduler.paths),
-                "paths": path_stats,
+                "max_path_outstanding_io": max(
+                    (path.max_outstanding_io for path in scheduler.paths.values()),
+                    default=0,
+                ),
             }
         )
 
-    avg_request_compute_fraction = (
-        float(np.mean(utilizations)) if utilizations else 0.0
-    )
+    avg_request_compute_fraction = float(np.mean(utilizations)) if utilizations else 0.0
     total_compute_ms = sum(npu.total_compute_ms for npu in context.npus)
     fleet_compute_utilization = (
         total_compute_ms / (len(context.npus) * current_time)
@@ -2462,9 +2198,7 @@ def _build_summary(context, current_time, total_requests, events_processed):
         else 0.0
     )
     total_read_gb = sum(npu.link_completed_gb for npu in context.npus)
-    link_capacity_gb = sum(
-        npu.link_capacity_integral_gb for npu in context.npus
-    )
+    link_capacity_gb = sum(npu.link_capacity_integral_gb for npu in context.npus)
     link_integral_gb = sum(npu.link_bw_integral_gb for npu in context.npus)
     npu_link_utilization = (
         total_read_gb / link_capacity_gb if link_capacity_gb > 0.0 else 0.0
@@ -2476,7 +2210,7 @@ def _build_summary(context, current_time, total_requests, events_processed):
         abs_tol=1e-9,
     ):
         raise AssertionError("NPU link 带宽积分与完成字节不守恒")
-    expected_read_gb = sum(value[1] for value in context.expected_blocks.values())
+    expected_read_gb = context.expected_read_gb
     if not math.isclose(
         total_read_gb,
         expected_read_gb,
@@ -2501,9 +2235,7 @@ def _build_summary(context, current_time, total_requests, events_processed):
             "peak_effective_bw_gbps": npu.link_peak_effective_bw_gbps,
             "cap_hit_time_ms": npu.link_cap_hit_time_ms,
             "cap_hit_fraction": (
-                npu.link_cap_hit_time_ms / current_time
-                if current_time > 0.0
-                else 0.0
+                npu.link_cap_hit_time_ms / current_time if current_time > 0.0 else 0.0
             ),
         }
         for npu in context.npus
@@ -2514,10 +2246,10 @@ def _build_summary(context, current_time, total_requests, events_processed):
         "policy": context.policy,
         "supported_policies": list(SUPPORTED_POLICIES),
         "backend_model": "one_nonpreemptive_io_per_ssu",
-        "pressure_read_interval": context.pressure_read_interval,
-        "path_binding_batch_size": context.path_binding_batch_size,
-        "client_submit_batch_size": context.client_submit_batch_size,
-        "client_submit_interval_us": context.client_submit_interval_ms * 1000.0,
+        "pressure_read_interval": PRESSURE_READ_INTERVAL,
+        "path_selection": "per_io",
+        "client_submit_batch_size": CLIENT_SUBMIT_BATCH_SIZE,
+        "client_submit_interval_us": 0.0,
         "client_submission_order": "ready_time_then_seeded_shuffle_round",
         "client_ssu_state_order": "placement_first_occurrence_round_robin",
         "submit_order_seed": context.submit_order_seed,
@@ -2525,9 +2257,9 @@ def _build_summary(context, current_time, total_requests, events_processed):
         "placement_seed": context.placement_seed,
         "workload_fingerprint": context.workload_hash,
         "placement_hash": context.placement_hash,
-        "placement_algorithm_version": "immutable_block_placement_v1",
+        "placement_algorithm_version": "immutable_block_placement_v2_compact",
         "same_timestamp_visibility": "seeded_shuffle_plan_then_immediate_enqueue",
-        "npu_bw_limit_gbps": context.npu_bw_limit,
+        "npu_bw_limit_gbps": NPU_BW_LIMIT,
         "npu_cap_allocation": "proportional_raw_rate_work_conserving_v1",
         "client_submission": {
             "rounds": context.client_submission_rounds,
@@ -2537,9 +2269,7 @@ def _build_summary(context, current_time, total_requests, events_processed):
             "order_sample": context.client_submission_order_sample,
         },
         "backend_capacity_gbps": (
-            context.disk_states[0].scheduler.disk_bw
-            if context.disk_states
-            else 0.0
+            context.disk_states[0].scheduler.disk_bw if context.disk_states else 0.0
         ),
         "qos_static_configuration": context.policy in QOS_POLICIES,
         "qos_client_routing": (
@@ -2564,8 +2294,6 @@ def _build_summary(context, current_time, total_requests, events_processed):
             if request_metrics
             else 0.0
         ),
-        # 保留旧字段用于历史工具兼容；新报告必须使用含义准确的新字段。
-        "avg_npu_utilization": avg_request_compute_fraction,
         "avg_request_compute_fraction": avg_request_compute_fraction,
         "fleet_npu_compute_utilization": fleet_compute_utilization,
         "request_compute_fraction_jain": jain_fairness,
@@ -2594,14 +2322,10 @@ def _build_summary(context, current_time, total_requests, events_processed):
         ),
         "npu_link_stats": npu_link_stats,
         "block_conservation": {
-            "expected": len(expected_ids),
-            "submitted": len(context.submitted_blocks),
-            "completed": len(context.completed_blocks),
-            "placement_targets_preserved": all(
-                context.actual_block_targets[block_id]
-                == context.expected_blocks[block_id][0]
-                for block_id in expected_ids
-            ),
+            "expected": context.expected_block_count,
+            "submitted": context.submitted_block_count,
+            "completed": context.completed_block_count,
+            "placement_targets_preserved": True,
             "expected_read_gb": expected_read_gb,
             "completed_read_gb": total_read_gb,
         },
@@ -2617,69 +2341,29 @@ def _build_summary(context, current_time, total_requests, events_processed):
 
 
 def simulate_continuous(
-    bw_table,  # 请求画像表：required_bw、每层计算时间、TTFT 和每层 KV 大小。
+    bw_table,
     *,
-    policy,  # baseline_bypass 或 qos_static_cir。
-    num_requests_per_npu=1,  # 每个 NPU 在整个仿真中依次处理的请求数。
-    num_npu=NUM_NPU,  # 客户端/NPU 数量。
-    num_disk=NUM_DISK,  # SSU/SSD 数量。
-    n_layers=SIM_N_LAYERS,  # 每个请求执行的 layerwise 层数。
-    ls_ratio=None,  # SS/SL/LS/LL 工作负载混合比例；None 表示全表随机抽样。
-    rng=None,  # NumPy RandomState；传入相同 seed 可做配对实验。
-    qos_config=None,  # 静态 CIR/PIR/WRR 配置；仅 qos_static_cir 使用。
-    placement_mode="random",  # block 到 SSU 的放置方式：random 或 roundrobin。
-    disk_bw=DISK_BW,  # 每块 SSU 的后端带宽，单位 GB/s。
-    arrival_interval_ms=0.0,  # 相邻请求到达时间间隔，单位 ms。
-    pressure_read_interval=8,  # 每多少个 I/O 读取压力；0 表示当前层发往该 SSU 的全部。
-    path_binding_batch_size=1,  # 连续多少个 I/O 强制共用 Path；1 表示逐 I/O 选路。
-    client_submit_batch_size=8,  # 客户端每次事件最多向一个 SSU 提交的 I/O 数。
-    client_submit_interval_us=0.0,  # 同一 NPU 两次 batch 提交的最小间隔；0 表示忽略发送耗时。
-    submit_order_seed=42,  # 同 ready_time 的 NPU 随机排列种子；独立于工作负载随机种子。
-    workload_seed=42,  # 请求画像 RNG；与 placement/submit RNG 分离。
-    placement_seed=43,  # block placement RNG；策略配对时固定复用。
-    prepared_inputs=None,  # prepare_simulation_inputs() 生成的严格配对输入。
-    npu_bw_limit=NPU_BW_LIMIT,  # 同一 NPU 从所有 SSU 返回数据的真实聚合上限。
+    policy,
+    num_npu=NUM_NPU,
+    num_disk=NUM_DISK,
+    n_layers=SIM_N_LAYERS,
+    ls_ratio=None,
+    qos_config=None,
+    placement_mode="random",
+    disk_bw=DISK_BW,
+    submit_order_seed=42,
+    workload_seed=42,
+    placement_seed=43,
+    prepared_inputs=None,
 ):
-    """运行 baseline 或静态 QoS 策略，直到所有请求完成。
-
-    函数名仅为兼容已有实验调用而保留；内部已不是连续带宽模型。
-
-    只有 ``qos_static_cir`` 需要传入 ``qos_config``。该对象不可变，并在每块
-    SSD 初始化时复制到 Path 队列。事件循环只更新 I/O 进度并离散选择下一条
-    后端 I/O，从不修改 CIR、PIR 或 WRR 权重。``pressure_read_interval`` 控制
-    多少个 I/O 读取一次压力；0 表示当前 ``(request, layer, SSU)`` 只读一次。
-    ``path_binding_batch_size`` 独立控制多少个连续 I/O 强制共用一个 Path；
-    默认值 1 表示逐 I/O 选路。客户端每次最多提交
-    ``client_submit_batch_size`` 个 I/O；全局先按 ready_time 排序，同一时刻每轮
-    用 ``submit_order_seed`` 随机排列 NPU，且每个 NPU 每轮最多提交一个 batch。
-    """
+    """运行一个请求/NPU 的 baseline 或固定 8/1 静态 QoS 仿真。"""
     if policy not in SUPPORTED_POLICIES:
         raise ValueError(f"policy 只能是 {SUPPORTED_POLICIES} 之一")
     if policy in QOS_POLICIES and qos_config is None:
         raise ValueError("静态 QoS 数据面策略必须提供 StaticQoSConfig")
-    if not isinstance(pressure_read_interval, int) or pressure_read_interval < 0:
-        raise ValueError("pressure_read_interval 必须是非负整数；0 表示当前层只读一次")
-    if (
-        not isinstance(path_binding_batch_size, int)
-        or path_binding_batch_size <= 0
-    ):
-        raise ValueError("path_binding_batch_size 必须是正整数")
-    if (
-        not isinstance(client_submit_batch_size, int)
-        or client_submit_batch_size <= 0
-    ):
-        raise ValueError("client_submit_batch_size 必须是正整数")
-    if client_submit_interval_us < 0:
-        raise ValueError("client_submit_interval_us 必须是非负数")
-    if not isinstance(submit_order_seed, (int, np.integer)):
-        raise ValueError("submit_order_seed 必须是整数")
-    if npu_bw_limit <= 0.0:
-        raise ValueError("npu_bw_limit 必须为正数")
 
-    total_requests = num_npu * num_requests_per_npu
+    total_requests = num_npu
     if prepared_inputs is not None:
-        if not isinstance(prepared_inputs, PreparedSimulationInputs):
-            raise ValueError("prepared_inputs 类型不正确")
         if prepared_inputs.n_layers != n_layers:
             raise ValueError("prepared placement 的 layer 数与仿真不一致")
         if prepared_inputs.num_disk != num_disk:
@@ -2695,16 +2379,15 @@ def simulate_continuous(
         workload_hash = prepared_inputs.workload_hash
         placement_hash = prepared_inputs.placement_hash
         placement_mode = prepared_inputs.placement_mode
-        rng = rng or np.random.RandomState(actual_workload_seed)
     else:
-        rng = rng or np.random.RandomState(int(workload_seed))
+        workload_rng = np.random.RandomState(int(workload_seed))
         request_loads = generate_request_loads(
-            bw_table, rng, total_requests, ls_ratio=ls_ratio
+            bw_table, workload_rng, total_requests, ls_ratio=ls_ratio
         )
         for request_id, request in enumerate(request_loads):
             request["request_id"] = request_id
             request["npu_id"] = request_id
-            request["arrival_time"] = request_id * arrival_interval_ms
+            request["arrival_time"] = 0.0
         placement_rng = np.random.RandomState(int(placement_seed))
         placement_by_request = build_block_placement(
             request_loads,
@@ -2719,7 +2402,6 @@ def simulate_continuous(
         placement_hash = placement_fingerprint(placement_by_request)
 
     npus = [NPUState(npu_id) for npu_id in range(num_npu)]
-    dispatcher = RequestDispatcher(num_npu)
     disk_states = [DiskState(disk_id) for disk_id in range(num_disk)]
     for disk_state in disk_states:
         DiskIOScheduler(
@@ -2730,41 +2412,32 @@ def simulate_continuous(
         )
 
     event_heap = []
-    for request in request_loads:
-        heapq.heappush(
-            event_heap,
-            (
-                request["arrival_time"],
-                REQUEST_ARRIVAL,
-                request["request_id"],
-                0,
-                0,
-            ),
-        )
 
     context = _SimulationContext(
-        dispatcher=dispatcher,
         event_heap=event_heap,
         disk_states=disk_states,
         npus=npus,
         n_layers=n_layers,
-        placement_mode=placement_mode,
         policy=policy,
         qos_config=qos_config,
-        pressure_read_interval=pressure_read_interval,
-        path_binding_batch_size=path_binding_batch_size,
-        client_submit_batch_size=client_submit_batch_size,
-        client_submit_interval_us=client_submit_interval_us,
         submit_order_seed=int(submit_order_seed),
         placement_by_request=placement_by_request,
         workload_hash=workload_hash,
         placement_hash=placement_hash,
         workload_seed=actual_workload_seed,
         placement_seed=actual_placement_seed,
-        npu_bw_limit=float(npu_bw_limit),
     )
 
-    requests_by_id = {request["request_id"]: request for request in request_loads}
+    for request in request_loads:
+        npu = npus[request["npu_id"]]
+        npu.start_request(
+            request,
+            placement_by_request[request["request_id"]],
+            0.0,
+        )
+        _start_layer_io(context, npu, 0, 0.0)
+        _try_start_compute(context, npu, 0.0)
+
     current_time = 0.0
     events_processed = 0
 
@@ -2779,15 +2452,8 @@ def simulate_continuous(
         events_processed += 1
         context.event_counts[event_type] += 1
 
-        if event_type == REQUEST_ARRIVAL:
-            dispatcher.submit(requests_by_id[resource_id])
-            dispatcher.dispatch_ready(context, current_time)
-            continue
-
         if event_type == COMPUTE_DONE:
-            _handle_compute_done(
-                context, resource_id, value, generation, current_time
-            )
+            _handle_compute_done(context, resource_id, value, generation, current_time)
             continue
 
         if event_type == CLIENT_SUBMISSION:
@@ -2809,9 +2475,7 @@ def simulate_continuous(
         )
         if activated is not None:
             context.npu_active_flows[activated.npu_id][resource_id] = activated
-            _rebalance_npu_bandwidth(
-                context, activated.npu_id, current_time
-            )
+            _rebalance_npu_bandwidth(context, activated.npu_id, current_time)
         next_is_same_time_disk_schedule = (
             bool(event_heap)
             and abs(event_heap[0][0] - current_time) <= _EPS
@@ -2820,6 +2484,4 @@ def simulate_continuous(
         if not next_is_same_time_disk_schedule:
             _flush_pending_npu_completions(context, current_time)
 
-    return npus, _build_summary(
-        context, current_time, total_requests, events_processed
-    )
+    return npus, _build_summary(context, current_time, total_requests, events_processed)

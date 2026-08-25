@@ -1,0 +1,383 @@
+{
+  "schema_version": 4,
+  "experiment": {
+    "schema_version": 4,
+    "code_fingerprint": "8e797949f37340adbb073286857aa9128e1673120f3c99374fad87aa4bc73bc3",
+    "data_fingerprint": "b8646eb9a27b62dcd7eec8521aa7b10f58856cd54bf18f5dd1641660cdd6c302",
+    "num_npu": 128,
+    "num_ssu": [
+      40,
+      56
+    ],
+    "n_layers": 16,
+    "ls_ratio": 0.5,
+    "seeds": {
+      "workload": 42,
+      "placement": 1000045,
+      "submit_order": 2000045
+    },
+    "disk_bw_gbps": 40.0,
+    "npu_cap_gbps": 50.0,
+    "backend": "one_nonpreemptive_io_per_ssu",
+    "qos": {
+      "paths": 256,
+      "groups": 8,
+      "category_order": [
+        "SS",
+        "SL",
+        "LS",
+        "LL"
+      ],
+      "category_cir_gbps": [
+        20.0,
+        4.0,
+        12.0,
+        4.0
+      ],
+      "category_paths_per_group": [
+        12,
+        4,
+        12,
+        4
+      ],
+      "pir": "uncapped",
+      "pressure_read_interval": 8,
+      "path_selection": "per_io",
+      "client_submit_batch_size": 8
+    }
+  },
+  "results": [
+    {
+      "num_ssu": 40,
+      "seeds": {
+        "workload": 42,
+        "placement": 1000045,
+        "submit_order": 2000045
+      },
+      "baseline": {
+        "policy": "baseline_bypass",
+        "avg_request_compute_fraction": 0.6176031574096444,
+        "fleet_npu_compute_utilization": 0.14527874808348787,
+        "request_compute_fraction_jain": 0.768177509744499,
+        "makespan_ms": 2201.507108173662,
+        "throughput_requests_per_s": 58.14198806116367,
+        "category_metrics": {
+          "SS": {
+            "count": 32,
+            "p50_ttft_ms": 127.47235964820206,
+            "p95_ttft_ms": 151.27130502478855,
+            "p99_ttft_ms": 152.95899075555994,
+            "max_ttft_ms": 153.3299591603874,
+            "avg_request_compute_fraction": 0.2672706574804926
+          },
+          "SL": {
+            "count": 32,
+            "p50_ttft_ms": 324.8948691364651,
+            "p95_ttft_ms": 984.3918536041938,
+            "p99_ttft_ms": 985.6776645984949,
+            "max_ttft_ms": 986.1505184261345,
+            "avg_request_compute_fraction": 0.9289273070263948
+          },
+          "LS": {
+            "count": 32,
+            "p50_ttft_ms": 228.64846804310432,
+            "p95_ttft_ms": 259.2270143386703,
+            "p99_ttft_ms": 261.44204237806247,
+            "max_ttft_ms": 261.97046255476204,
+            "avg_request_compute_fraction": 0.3273091066928136
+          },
+          "LL": {
+            "count": 32,
+            "p50_ttft_ms": 582.8285865971161,
+            "p95_ttft_ms": 2008.8670059788171,
+            "p99_ttft_ms": 2200.7222272313775,
+            "max_ttft_ms": 2201.507108173662,
+            "avg_request_compute_fraction": 0.9469055584388766
+          }
+        },
+        "npu_link_utilization": 0.020307457564196576,
+        "npu_link_peak_raw_bw_gbps": 1600.0,
+        "npu_link_peak_effective_bw_gbps": 50.000000000000036,
+        "npu_link_cap_hit_fraction": 0.010927573203899615,
+        "ssu_active_time_utilization": 0.3549339249996799,
+        "ssu_effective_bandwidth_utilization": 0.08122983025678612,
+        "avg_queue_wait_ms_per_block": 4.402540275149076,
+        "max_queue_wait_ms": 46.3594339523641,
+        "max_path_outstanding_io": 0,
+        "pressure_reports": 0,
+        "backend_dispatches": 1704832,
+        "blocks_enqueued": 1704832,
+        "workload_fingerprint": "adc1352e8124cbf84197ceb2f9e742f84f65819237953ae5fe4b1ba7484be331",
+        "placement_hash": "f018b848612a8cfa8a3ffef68d78b4964f5a560521a1b052be3bea733adf2427",
+        "block_conservation": {
+          "expected": 1704832,
+          "submitted": 1704832,
+          "completed": 1704832,
+          "placement_targets_preserved": true,
+          "expected_read_gb": 286.1248779296875,
+          "completed_read_gb": 286.1248779296875
+        },
+        "invariants": {
+          "requests_completed": true,
+          "blocks_conserved": true,
+          "placement_preserved": true,
+          "bytes_conserved": true,
+          "npu_cap_respected": true,
+          "single_backend_io": true,
+          "queues_drained": true
+        }
+      },
+      "qos": {
+        "policy": "qos_static_cir",
+        "avg_request_compute_fraction": 0.2907341375176366,
+        "fleet_npu_compute_utilization": 0.12177514605945457,
+        "request_compute_fraction_jain": 0.5965926587276731,
+        "makespan_ms": 2626.4160374418016,
+        "throughput_requests_per_s": 48.73561468375565,
+        "category_metrics": {
+          "SS": {
+            "count": 32,
+            "p50_ttft_ms": 380.4314304371443,
+            "p95_ttft_ms": 434.2414270699321,
+            "p99_ttft_ms": 447.440153700433,
+            "max_ttft_ms": 452.8671635007978,
+            "avg_request_compute_fraction": 0.08806049093662081
+          },
+          "SL": {
+            "count": 32,
+            "p50_ttft_ms": 724.279783751268,
+            "p95_ttft_ms": 1352.5211831342854,
+            "p99_ttft_ms": 1355.5547042605153,
+            "max_ttft_ms": 1356.7933502518758,
+            "avg_request_compute_fraction": 0.432443413978555
+          },
+          "LS": {
+            "count": 32,
+            "p50_ttft_ms": 708.6613666343501,
+            "p95_ttft_ms": 718.9009330229143,
+            "p99_ttft_ms": 722.0498110412148,
+            "max_ttft_ms": 723.1599435549804,
+            "avg_request_compute_fraction": 0.10521932158851974
+          },
+          "LL": {
+            "count": 32,
+            "p50_ttft_ms": 1055.0626925522101,
+            "p95_ttft_ms": 2437.2229185516667,
+            "p99_ttft_ms": 2626.346860966093,
+            "max_ttft_ms": 2626.4160374418016,
+            "avg_request_compute_fraction": 0.5372133235668509
+          }
+        },
+        "npu_link_utilization": 0.01702206030544171,
+        "npu_link_peak_raw_bw_gbps": 1600.0,
+        "npu_link_peak_effective_bw_gbps": 50.000000000000036,
+        "npu_link_cap_hit_fraction": 0.009403251748146177,
+        "ssu_active_time_utilization": 0.4731570130932542,
+        "ssu_effective_bandwidth_utilization": 0.06808824122176696,
+        "avg_queue_wait_ms_per_block": 16.701734367651508,
+        "max_queue_wait_ms": 451.770519132883,
+        "max_path_outstanding_io": 43,
+        "pressure_reports": 248710,
+        "backend_dispatches": 1704832,
+        "blocks_enqueued": 1704832,
+        "workload_fingerprint": "adc1352e8124cbf84197ceb2f9e742f84f65819237953ae5fe4b1ba7484be331",
+        "placement_hash": "f018b848612a8cfa8a3ffef68d78b4964f5a560521a1b052be3bea733adf2427",
+        "block_conservation": {
+          "expected": 1704832,
+          "submitted": 1704832,
+          "completed": 1704832,
+          "placement_targets_preserved": true,
+          "expected_read_gb": 286.1248779296875,
+          "completed_read_gb": 286.1248779296875
+        },
+        "invariants": {
+          "requests_completed": true,
+          "blocks_conserved": true,
+          "placement_preserved": true,
+          "bytes_conserved": true,
+          "npu_cap_respected": true,
+          "single_backend_io": true,
+          "queues_drained": true
+        },
+        "comparison_vs_baseline": {
+          "request_compute_fraction_delta_pp": -32.686901989200784,
+          "fleet_compute_utilization_delta_pp": -2.3503602024033303,
+          "p95_delta_ms": {
+            "SS": 282.97012204514357,
+            "SL": 368.1293295300916,
+            "LS": 459.673918684244,
+            "LL": 428.35591257284955
+          },
+          "p95_pass": false,
+          "fairness_pass": false
+        }
+      }
+    },
+    {
+      "num_ssu": 56,
+      "seeds": {
+        "workload": 42,
+        "placement": 1000045,
+        "submit_order": 2000045
+      },
+      "baseline": {
+        "policy": "baseline_bypass",
+        "avg_request_compute_fraction": 0.6465261247339149,
+        "fleet_npu_compute_utilization": 0.14570660336836902,
+        "request_compute_fraction_jain": 0.7934714733661734,
+        "makespan_ms": 2195.0425662163275,
+        "throughput_requests_per_s": 58.313219966680705,
+        "category_metrics": {
+          "SS": {
+            "count": 32,
+            "p50_ttft_ms": 110.30323144489552,
+            "p95_ttft_ms": 131.6461416606459,
+            "p99_ttft_ms": 134.4383171684059,
+            "max_ttft_ms": 135.59133090623456,
+            "avg_request_compute_fraction": 0.30579721573542634
+          },
+          "SL": {
+            "count": 32,
+            "p50_ttft_ms": 322.63264750227427,
+            "p95_ttft_ms": 983.003579041293,
+            "p99_ttft_ms": 983.1895312481472,
+            "max_ttft_ms": 983.2352535631823,
+            "avg_request_compute_fraction": 0.9524536477701763
+          },
+          "LS": {
+            "count": 32,
+            "p50_ttft_ms": 197.7879251520555,
+            "p95_ttft_ms": 230.31138424667563,
+            "p99_ttft_ms": 236.55796783258205,
+            "max_ttft_ms": 239.1769108309349,
+            "avg_request_compute_fraction": 0.37012434928827875
+          },
+          "LL": {
+            "count": 32,
+            "p50_ttft_ms": 568.1895652331375,
+            "p95_ttft_ms": 2004.7709109180423,
+            "p99_ttft_ms": 2195.0118302333694,
+            "max_ttft_ms": 2195.0425662163275,
+            "avg_request_compute_fraction": 0.957729286141778
+          }
+        },
+        "npu_link_utilization": 0.020367264336735285,
+        "npu_link_peak_raw_bw_gbps": 2240.0,
+        "npu_link_peak_effective_bw_gbps": 50.00000000000005,
+        "npu_link_cap_hit_fraction": 0.012324358060885419,
+        "ssu_active_time_utilization": 0.340709229549767,
+        "ssu_effective_bandwidth_utilization": 0.058192183819243626,
+        "avg_queue_wait_ms_per_block": 3.8545500251791815,
+        "max_queue_wait_ms": 37.707955135498764,
+        "max_path_outstanding_io": 0,
+        "pressure_reports": 0,
+        "backend_dispatches": 1704832,
+        "blocks_enqueued": 1704832,
+        "workload_fingerprint": "adc1352e8124cbf84197ceb2f9e742f84f65819237953ae5fe4b1ba7484be331",
+        "placement_hash": "ed365a16a0fd02f23196301c2149c9b5bbe4c12bfa1461eb07591a85b2628690",
+        "block_conservation": {
+          "expected": 1704832,
+          "submitted": 1704832,
+          "completed": 1704832,
+          "placement_targets_preserved": true,
+          "expected_read_gb": 286.1248779296875,
+          "completed_read_gb": 286.1248779296875
+        },
+        "invariants": {
+          "requests_completed": true,
+          "blocks_conserved": true,
+          "placement_preserved": true,
+          "bytes_conserved": true,
+          "npu_cap_respected": true,
+          "single_backend_io": true,
+          "queues_drained": true
+        }
+      },
+      "qos": {
+        "policy": "qos_static_cir",
+        "avg_request_compute_fraction": 0.3034909182025256,
+        "fleet_npu_compute_utilization": 0.12398908178133265,
+        "request_compute_fraction_jain": 0.594949813768591,
+        "makespan_ms": 2579.519034881038,
+        "throughput_requests_per_s": 49.62165359865355,
+        "category_metrics": {
+          "SS": {
+            "count": 32,
+            "p50_ttft_ms": 360.0737270568343,
+            "p95_ttft_ms": 410.90944552690263,
+            "p99_ttft_ms": 421.74656238382676,
+            "max_ttft_ms": 425.38378633142156,
+            "avg_request_compute_fraction": 0.09478223243366088
+          },
+          "SL": {
+            "count": 32,
+            "p50_ttft_ms": 678.3319626081193,
+            "p95_ttft_ms": 1271.3037765369259,
+            "p99_ttft_ms": 1285.6467978668502,
+            "max_ttft_ms": 1289.3996132475354,
+            "avg_request_compute_fraction": 0.4574671960507901
+          },
+          "LS": {
+            "count": 32,
+            "p50_ttft_ms": 682.9556133513531,
+            "p95_ttft_ms": 701.6211344974995,
+            "p99_ttft_ms": 702.754957051003,
+            "max_ttft_ms": 702.9883076562184,
+            "avg_request_compute_fraction": 0.10885592187201021
+          },
+          "LL": {
+            "count": 32,
+            "p50_ttft_ms": 1046.7469223353723,
+            "p95_ttft_ms": 2369.544729170413,
+            "p99_ttft_ms": 2577.9040456685566,
+            "max_ttft_ms": 2579.519034881038,
+            "avg_request_compute_fraction": 0.5528583224536411
+          }
+        },
+        "npu_link_utilization": 0.017331530247294873,
+        "npu_link_peak_raw_bw_gbps": 2240.0,
+        "npu_link_peak_effective_bw_gbps": 50.00000000000005,
+        "npu_link_cap_hit_fraction": 0.009826953159336457,
+        "ssu_active_time_utilization": 0.4705693847350413,
+        "ssu_effective_bandwidth_utilization": 0.049518657849414026,
+        "avg_queue_wait_ms_per_block": 13.025057600973215,
+        "max_queue_wait_ms": 404.0457395907501,
+        "max_path_outstanding_io": 36,
+        "pressure_reports": 263222,
+        "backend_dispatches": 1704832,
+        "blocks_enqueued": 1704832,
+        "workload_fingerprint": "adc1352e8124cbf84197ceb2f9e742f84f65819237953ae5fe4b1ba7484be331",
+        "placement_hash": "ed365a16a0fd02f23196301c2149c9b5bbe4c12bfa1461eb07591a85b2628690",
+        "block_conservation": {
+          "expected": 1704832,
+          "submitted": 1704832,
+          "completed": 1704832,
+          "placement_targets_preserved": true,
+          "expected_read_gb": 286.1248779296875,
+          "completed_read_gb": 286.1248779296875
+        },
+        "invariants": {
+          "requests_completed": true,
+          "blocks_conserved": true,
+          "placement_preserved": true,
+          "bytes_conserved": true,
+          "npu_cap_respected": true,
+          "single_backend_io": true,
+          "queues_drained": true
+        },
+        "comparison_vs_baseline": {
+          "request_compute_fraction_delta_pp": -34.30352065313893,
+          "fleet_compute_utilization_delta_pp": -2.1717521587036366,
+          "p95_delta_ms": {
+            "SS": 279.2633038662567,
+            "SL": 288.3001974956328,
+            "LS": 471.30975025082387,
+            "LL": 364.7738182523708
+          },
+          "p95_pass": false,
+          "fairness_pass": false
+        }
+      }
+    }
+  ]
+}
