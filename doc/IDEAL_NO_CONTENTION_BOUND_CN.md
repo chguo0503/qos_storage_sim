@@ -229,11 +229,16 @@ U_actual(i) <= U_bound(i)
 
 ## 9. 正式 128 NPU / 16 层结果诊断
 
-正式输入中，每个 SSU 数量都有 `128 × 16 = 2048` 个 request-layer。逐层检查发现：
+seed 42 的正式输入中，每个 SSU 数量都有 `128 × 16 = 2048` 个 request-layer。逐层检查发现：
 
 - 40、56、80 SSU 的所有 2048 层，`B(i,l)/50` 都严格大于 `max_d B(i,l,d)/40`；
 - 因而每一层的 fluid 下界都由单 NPU 50 GB/s link 工作量决定；
 - 三个 SSU 数量的正式 bound 都是 `91.231809%`。
+
+有限发行四策略复验又加入 seed 43。该 seed 的三个 SSU bound 都是
+`92.451995%`；两个 seed 等权均值为 `91.841902%`。上界不模拟客户端命令
+提交事件，所以 batch1/0.1 us 不会改变同一 seed 的 bound；seed 间差异来自
+workload 本身。
 
 这只说明当前这个很宽松的上界已经进入 per-NPU-link-bound，不说明真实系统增加 SSU 没有价值。真实策略仍会受到 SSD 队列、block 命令顺序和 transient hotspot 影响。
 

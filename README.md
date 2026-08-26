@@ -256,11 +256,43 @@ python analysis_experiment.py --quick --workers 2 \
 python path_pressure_concurrency_probe.py --seed 42 --workers 10
 python path_pressure_concurrency_probe.py --seed 43 --workers 10
 python analyze_path_pressure_concurrency.py --seeds 42 43
+
+# 最终限定的四策略有限发行矩阵：双 seed × 三个 SSU × 四策略
+python four_strategy_concurrency_experiment.py --workers 10 --rerun
+python analyze_four_strategy_concurrency.py
 ```
 
 `analysis_experiment.py` 会按 `(SSU, strategy)` 分解为独立任务并行运行，
 定期 checkpoint `results.json`。缓存 spec 包含代码、数据、参数、seed 和
 placement 指纹；它们变化时不会复用旧数字。
+
+`four_strategy_concurrency_experiment.py` 同样使用多进程和逐案例 checkpoint；
+固定只允许 Baseline、Static 优化前、Static 优化后和 fluid bound 四个方案，
+避免分析器意外把其他策略画入最终曲线。
+
+## 双 seed 有限发行四策略结果
+
+最终敏感性矩阵使用 batch=1、每条 I/O 0.1 us 发行间隔，使其他 NPU 和
+设备事件可以在同一 NPU 的相邻命令之间插入。0.1 us 尚未由目标硬件标定，
+因此用于检查历史 atomic-8 结论是否稳健，不应解读为硬件时延预测。
+
+每格为 `avg_request_compute_fraction / fleet_npu_compute_utilization`；fluid
+bound 没有联合 makespan，所以 fleet 为 N/A。数值是 seed 42/43 均值。
+
+| SSU | Baseline | Static before `20/4/12/4` | Static after `20/6/8/6` | Fluid bound |
+|---:|---:|---:|---:|---:|
+| 40 | 73.420% / 15.293% | 81.289% / 15.207% | 81.363% / 15.250% | 91.842% / N/A |
+| 56 | 81.806% / 15.339% | 86.791% / 15.274% | 87.400% / 15.306% | 91.842% / N/A |
+| 80 | 88.645% / 15.354% | 89.156% / 15.329% | 89.721% / 15.346% | 91.842% / N/A |
+
+Static after 相对 before 的跨 SSU request 增益为 **+0.416 pp**，fleet
+提高 **+0.031 pp**，makespan 平均缩短 **4.538 ms**。相对 baseline，
+request 提高 **+4.871 pp**，但 fleet 仍低 **0.028 pp**；这个 fleet 差异
+由 seed 42 的 LL 尾请求主导，在 seed 43 上方向相反，不能视为稳定退化。
+
+严格四曲线图片、逐类输入和尾部归因见
+`results/four_strategy_concurrency/`；四个后续问题的完整解释见
+`doc/FOUR_STRATEGY_FOLLOWUP_CN.md`。
 
 ## 正式 16 层结果
 
@@ -385,16 +417,23 @@ upper bound 和分析管线。
 - `path_pressure_concurrency_probe.py`：atomic-8、batch1/零耗时、有限发行和
   no-telemetry Path 轮转的配对消融。
 - `analyze_path_pressure_concurrency.py`：提交交错证据、逐请求配对和消融图。
+- `four_strategy_concurrency_experiment.py`：最终限定四策略的双 seed、有限发行
+  正式矩阵，多进程运行并逐案例 checkpoint。
+- `analyze_four_strategy_concurrency.py`：严格四曲线、双 seed 聚合、类别与尾部
+  归因，以及历史零发行模型配对比较。
 - `doc/IDEAL_NO_CONTENTION_BOUND_CN.md`：可运行理想化 heuristic 与不可运行
   fluid 无竞争上界的数学定义、约束和正确解读。
+- `doc/FOUR_STRATEGY_FOLLOWUP_CN.md`：fleet/makespan、客户端原子性、无状态
+  Path 选路、低 SSU 利用率和 CIR/Path 合理性的集中回答。
 - `tests/`：语义、守恒、策略和管线测试。
 
 ## 模型限制
 
 - QoS 256-count 遥测被视为零延迟且无丢失；count 在 SSD 命令完成时
   减一，不等待 NPU link 完成。
-- 正式主矩阵的客户端命令发行时间为 0；有限发行探针使用 0.1 us/命令，
-  只用于判断并发插入是否改变结论，尚未用实测硬件发行/遥测延迟标定。
+- 历史完整主矩阵的客户端命令发行时间为 0；最终四策略矩阵和有限发行探针
+  使用 0.1 us/命令，只用于判断并发插入是否改变结论，尚未用实测硬件
+  发行/遥测延迟标定。
 - 中间 buffer 无限，没有反压；尚未建模固定命令/NAND 延迟、QD 曲线、
   channel/die 并行、流式传输或 PCIe/网络协议开销。
 - packetized-WFQ 是对 CIR/WRR 服务机会的命令级近似，不能声称复刻
