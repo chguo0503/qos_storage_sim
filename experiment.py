@@ -1,4 +1,4 @@
-"""比较统一受 NPU 50 GB/s 限速的 baseline 与静态 QoS 8/1 路由。"""
+"""比较共用 SSD→NPU 两级数据面的 baseline 与静态 QoS 8/1。"""
 
 from __future__ import annotations
 
@@ -15,6 +15,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from sim import (
+    ARRIVAL_DELAY_MAX_MS,
     CLIENT_SUBMIT_BATCH_SIZE,
     DISK_BW,
     NPU_BW_LIMIT,
@@ -22,45 +23,36 @@ from sim import (
     POLICY_QOS_STATIC_CIR,
     QOS_ROUTING_CATEGORIES,
     PRESSURE_READ_INTERVAL,
-    StaticQoSConfig,
     load_bw_table_cache,
     prepare_simulation_inputs,
     simulate_continuous,
 )
+from strategy_profiles import CURRENT_STATIC
 
 
 NUM_NPU = 128
-SSU_LIST = (40, 56)
+SSU_LIST = (40, 56, 80)
 LS_RATIO = 0.5
 DEFAULT_LAYERS = 16
 WORKLOAD_SEED = 42
 PLACEMENT_SEED_OFFSET = 1_000_003
 SUBMIT_ORDER_SEED_OFFSET = 2_000_003
+ARRIVAL_DELAY_SEED_OFFSET = 3_000_003
 
 PATH_COUNT = 256
 GROUP_COUNT = 8
-CATEGORY_CIR_GBPS = (20.0, 4.0, 12.0, 4.0)
-CATEGORY_PATHS_PER_GROUP = (12, 4, 12, 4)
-SCHEMA_VERSION = 4
+CATEGORY_CIR_GBPS = CURRENT_STATIC.category_cir_gbps
+CATEGORY_PATHS_PER_GROUP = CURRENT_STATIC.category_paths_per_group
+SCHEMA_VERSION = 6
 
 
 def category_path_cirs():
     """把四类全盘 CIR 均匀展开到 8 组、256 个 Path。"""
-    cirs = []
-    for _ in range(GROUP_COUNT):
-        for budget, count in zip(CATEGORY_CIR_GBPS, CATEGORY_PATHS_PER_GROUP):
-            cirs.extend([budget / (GROUP_COUNT * count)] * count)
-    return tuple(cirs)
+    return CURRENT_STATIC.path_cirs()
 
 
 def qos_config():
-    return StaticQoSConfig(
-        path_cirs=category_path_cirs(),
-        path_pirs=(float("inf"),) * PATH_COUNT,
-        path_weights=(1.0,) * PATH_COUNT,
-        group_weights=(1.0,) * GROUP_COUNT,
-        category_paths_per_group=CATEGORY_PATHS_PER_GROUP,
-    )
+    return CURRENT_STATIC.hardware_config()
 
 
 def _sha256_files(*names):
@@ -82,22 +74,36 @@ def _seeds(seed):
         "workload": seed,
         "placement": seed + PLACEMENT_SEED_OFFSET,
         "submit_order": seed + SUBMIT_ORDER_SEED_OFFSET,
+        "arrival_delay": seed + ARRIVAL_DELAY_SEED_OFFSET,
     }
 
 
 def routing_comparison_spec(table, ssu_list, n_layers, seed):
     return {
         "schema_version": SCHEMA_VERSION,
-        "code_fingerprint": _sha256_files("sim.py", "experiment.py"),
+        "code_fingerprint": _sha256_files(
+            "sim.py",
+            "advanced_policies.py",
+            "strategy_profiles.py",
+            "experiment.py",
+        ),
         "data_fingerprint": _data_fingerprint(table),
         "num_npu": NUM_NPU,
         "num_ssu": list(ssu_list),
         "n_layers": n_layers,
         "ls_ratio": LS_RATIO,
         "seeds": _seeds(seed),
+        "arrival_delay_ms": [0.0, ARRIVAL_DELAY_MAX_MS],
         "disk_bw_gbps": DISK_BW,
         "npu_cap_gbps": NPU_BW_LIMIT,
-        "backend": "one_nonpreemptive_io_per_ssu",
+        "backend": {
+            "model": "shared_two_stage_ssd40_then_npu50_single_server_v1",
+            "ssd_service": "io_size_gb / disk_bw_gbps",
+            "ssd_max_active_io": 1,
+            "npu_service": "io_size_gb / npu_cap_gbps",
+            "npu_max_active_io": 1,
+            "block_visible_after": "npu_link_completion",
+        },
         "qos": {
             "paths": PATH_COUNT,
             "groups": GROUP_COUNT,
@@ -118,8 +124,13 @@ def _mean(values):
 
 def _summary(full):
     disks = full["disk_stats"]
+    links = full["npu_link_stats"]
     blocks = sum(disk["blocks_enqueued"] for disk in disks)
     queue_wait = sum(disk["total_queue_wait_ms"] for disk in disks)
+    link_dispatches = sum(link["dispatches"] for link in links)
+    link_queue_wait = sum(
+        link["avg_queue_wait_ms"] * link["dispatches"] for link in links
+    )
     conservation = full["block_conservation"]
     invariants = {
         "requests_completed": full["completed_requests"] == full["total_requests"],
@@ -128,6 +139,12 @@ def _summary(full):
         == conservation["completed"],
         "placement_preserved": conservation["placement_targets_preserved"],
         "bytes_conserved": math.isclose(
+            conservation["expected_read_gb"],
+            conservation["ssd_completed_read_gb"],
+            rel_tol=1e-10,
+            abs_tol=1e-9,
+        )
+        and math.isclose(
             conservation["expected_read_gb"],
             conservation["completed_read_gb"],
             rel_tol=1e-10,
@@ -139,10 +156,19 @@ def _summary(full):
             (disk["max_backend_active_io"] for disk in disks), default=0
         )
         <= 1,
-        "queues_drained": all(disk["outstanding_blocks"] == 0 for disk in disks),
+        "single_npu_link_io": max(
+            (link["max_active_io"] for link in links), default=0
+        )
+        <= 1,
+        "queues_drained": all(disk["outstanding_blocks"] == 0 for disk in disks)
+        and all(link["outstanding_io"] == 0 for link in links),
     }
     return {
         "policy": full["policy"],
+        "backend_model": full["backend_model"],
+        "data_plane_stages": full["data_plane_stages"],
+        "backend_capacity_gbps": full["backend_capacity_gbps"],
+        "npu_bw_limit_gbps": full["npu_bw_limit_gbps"],
         "avg_request_compute_fraction": full["avg_request_compute_fraction"],
         "fleet_npu_compute_utilization": full["fleet_npu_compute_utilization"],
         "request_compute_fraction_jain": full["request_compute_fraction_jain"],
@@ -153,6 +179,16 @@ def _summary(full):
         "npu_link_peak_raw_bw_gbps": full["npu_link_peak_raw_bw_gbps"],
         "npu_link_peak_effective_bw_gbps": full["npu_link_peak_effective_bw_gbps"],
         "npu_link_cap_hit_fraction": full["npu_link_cap_hit_fraction"],
+        "npu_link_busy_fraction": full["npu_link_busy_fraction"],
+        "avg_npu_link_queue_wait_ms": (
+            link_queue_wait / link_dispatches if link_dispatches else 0.0
+        ),
+        "max_npu_link_queue_wait_ms": max(
+            (link["max_queue_wait_ms"] for link in links), default=0.0
+        ),
+        "max_npu_link_outstanding_io": max(
+            (link["max_outstanding_io"] for link in links), default=0
+        ),
         "ssu_active_time_utilization": _mean(
             [disk["active_time_utilization"] for disk in disks]
         ),
@@ -167,12 +203,19 @@ def _summary(full):
             (disk["max_path_outstanding_io"] for disk in disks), default=0
         ),
         "pressure_reports": sum(disk["pressure_reports"] for disk in disks),
+        "pressure_telemetry_mb": sum(
+            disk["pressure_reports"] for disk in disks
+        )
+        * 256
+        * 4
+        / 1_000_000,
         "backend_dispatches": sum(disk["backend_dispatches"] for disk in disks),
         "blocks_enqueued": blocks,
         "workload_fingerprint": full["workload_fingerprint"],
         "placement_hash": full["placement_hash"],
         "block_conservation": conservation,
         "invariants": invariants,
+        "request_metrics": full["request_metrics"],
     }
 
 
@@ -212,6 +255,8 @@ def run_routing_comparison_case(
         ls_ratio=LS_RATIO,
         workload_seed=seeds["workload"],
         placement_seed=seeds["placement"],
+        arrival_delay_seed=seeds["arrival_delay"],
+        arrival_delay_max_ms=ARRIVAL_DELAY_MAX_MS,
     )
     common = dict(
         num_npu=NUM_NPU,
@@ -233,6 +278,10 @@ def run_routing_comparison_case(
     qos = _summary(qos_full)
     assert baseline["workload_fingerprint"] == qos["workload_fingerprint"]
     assert baseline["placement_hash"] == qos["placement_hash"]
+    assert baseline["backend_model"] == qos["backend_model"]
+    assert baseline["data_plane_stages"] == qos["data_plane_stages"]
+    assert baseline["backend_capacity_gbps"] == qos["backend_capacity_gbps"]
+    assert baseline["npu_bw_limit_gbps"] == qos["npu_bw_limit_gbps"]
     assert all(baseline["invariants"].values())
     assert all(qos["invariants"].values())
     qos["comparison_vs_baseline"] = _comparison(baseline, qos)
@@ -320,8 +369,8 @@ def plot_results(data, output_path):
         xticks=ssus,
         ylim=(0, 100),
         title=(
-            f"{data['experiment']['n_layers']}-layer routing with "
-            f"{NPU_BW_LIMIT:g} GB/s NPU cap"
+            f"{data['experiment']['n_layers']}-layer routing on shared "
+            f"SSD→NPU data plane"
         ),
     )
     axis.grid(alpha=0.3)

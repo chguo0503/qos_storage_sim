@@ -23,10 +23,14 @@ class ExperimentTests(unittest.TestCase):
         self.assertEqual(set(row), {"num_ssu", "seeds", "baseline", "qos"})
         self.assertAlmostEqual(
             row["baseline"]["avg_request_compute_fraction"],
-            0.7017543859649124,
+            0.6914681803149234,
         )
         self.assertEqual(
             row["baseline"]["placement_hash"], row["qos"]["placement_hash"]
+        )
+        self.assertEqual(
+            row["baseline"]["data_plane_stages"],
+            row["qos"]["data_plane_stages"],
         )
         self.assertTrue(all(row["baseline"]["invariants"].values()))
         self.assertTrue(all(row["qos"]["invariants"].values()))
@@ -39,6 +43,10 @@ class ExperimentTests(unittest.TestCase):
         self.assertEqual(spec["qos"]["pressure_read_interval"], 8)
         self.assertEqual(spec["qos"]["path_selection"], "per_io")
         self.assertEqual(spec["qos"]["client_submit_batch_size"], 8)
+        self.assertEqual(
+            spec["backend"]["model"],
+            "shared_two_stage_ssd40_then_npu50_single_server_v1",
+        )
 
     def test_cached_parallel_sweep_does_not_create_zero_worker_pool(self):
         with TemporaryDirectory() as directory:
