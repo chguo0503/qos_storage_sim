@@ -4,7 +4,7 @@ import unittest
 from collections import defaultdict
 
 import sim
-from strategy_profiles import CURRENT_STATIC
+from strategy_profiles import FINAL_STATIC
 
 
 def reference_uncapped_rates(paths, disk_bw, group_weights):
@@ -85,7 +85,7 @@ class OptimizationEquivalenceTests(unittest.TestCase):
             sim.DiskState(0),
             sim.POLICY_QOS_STATIC_CIR,
             sim.DISK_BW,
-            CURRENT_STATIC.hardware_config(),
+            FINAL_STATIC.hardware_config(),
         )
         paths = list(scheduler.paths.values())
         for _ in range(200):
@@ -113,14 +113,14 @@ class OptimizationEquivalenceTests(unittest.TestCase):
             sim.DiskState(0),
             sim.POLICY_QOS_STATIC_CIR,
             sim.DISK_BW,
-            CURRENT_STATIC.hardware_config(),
+            FINAL_STATIC.hardware_config(),
         )
         for index, path_id in enumerate((0, 33, 66, 99, 132, 165, 198, 231)):
             scheduler.enqueue_many([flow(path_id, index)], 0.0)
             incremental = scheduler.report_path_pressure_analysis(0.0)
             scanned = sim._analyze_qos_counts(
                 tuple(path.io_count() for path in scheduler.paths.values()),
-                CURRENT_STATIC.hardware_config(),
+                FINAL_STATIC.hardware_config(),
             )
             self.assert_analysis_equal(incremental, scanned)
 
@@ -134,7 +134,7 @@ class OptimizationEquivalenceTests(unittest.TestCase):
             incremental = scheduler.report_path_pressure_analysis(current_time)
             scanned = sim._analyze_qos_counts(
                 tuple(path.io_count() for path in scheduler.paths.values()),
-                CURRENT_STATIC.hardware_config(),
+                FINAL_STATIC.hardware_config(),
             )
             self.assert_analysis_equal(incremental, scanned)
             expected_floor = min(

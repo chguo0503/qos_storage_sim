@@ -73,6 +73,9 @@ SUPPORTED_POLICIES = (
 RESULT_SCHEMA_VERSION = 5
 
 QOS_ROUTING_CATEGORIES = ("SS", "SL", "LS", "LL")
+PATH_SELECTION_PRESSURE_AWARE = "pressure_aware"
+PATH_SELECTION_STATELESS_RR = "stateless_round_robin"
+PATH_SELECTION_FIXED_PATH_ZERO = "fixed_path_zero"
 
 # 事件编号同时决定相同时间戳下的处理顺序：编号越小，越先处理。
 COMPUTE_DONE = 0
@@ -93,6 +96,7 @@ class ClientIOConfig:
     submit_batch_size: int = CLIENT_SUBMIT_BATCH_SIZE
     path_pool_mode: str = "category_shared"
     issue_interval_us: float = 0.0
+    path_selection_mode: str = PATH_SELECTION_PRESSURE_AWARE
 
 
 DYNAMIC_CIR_DEMAND_PROPORTIONAL = "demand_proportional"
@@ -1521,6 +1525,7 @@ class DiskIOScheduler:
         self.total_queue_wait_ms = 0.0  # 所有逻辑数据块累计等待时间。
         self.max_queue_wait_ms = 0.0  # 单条 I/O 观察到的最大等待时间。
         self._path_io_counts = [0] * 256 if policy in PATH_QOS_POLICIES else []
+        self.enqueued_path_ids = set()
         self._path_io_snapshot_cache = None
         self._group_io_counts = [0] * 8 if policy in PATH_QOS_POLICIES else []
         self._active_paths_per_group = [0] * 8 if policy in PATH_QOS_POLICIES else []
@@ -2026,6 +2031,7 @@ class DiskIOScheduler:
                 was_empty = not selected_path.has_work()
                 pending_was_empty = not selected_path.pending
                 selected_path.enqueue(flow)  # 非空 Path 也照常接收并排队。
+                self.enqueued_path_ids.add(flow.queue_id)
                 if self.policy == POLICY_QOS_DYNAMIC_JOINT_CIR:
                     self._dynamic_pending_path_ids.add(flow.queue_id)
                 self._change_path_io_count(flow.queue_id, flow.block_count)
@@ -2509,6 +2515,24 @@ def _client_submit_layer_blocks(context, npu, layer, blocks, current_time):
 def _plan_qos_pressure_window(context, state, current_time):
     """读取一次 Path 压力，并规划下一个压力窗口内的 Path ID。"""
     window_start = len(state.planned_path_ids)
+    if (
+        context.client_io_config.path_selection_mode
+        == PATH_SELECTION_FIXED_PATH_ZERO
+    ):
+        state.planned_path_ids.extend(
+            0 for _ in range(window_start, len(state.blocks))
+        )
+        return
+    if (
+        context.client_io_config.path_selection_mode
+        == PATH_SELECTION_STATELESS_RR
+    ):
+        allowed = state.allowed_path_ids
+        state.planned_path_ids.extend(
+            allowed[(state.start_offset + index) % len(allowed)]
+            for index in range(window_start, len(state.blocks))
+        )
+        return
     pressure_window_io = context.client_io_config.pressure_window_io
     window_end = (
         len(state.blocks)
@@ -3085,6 +3109,7 @@ def _build_summary(context, current_time, total_requests, events_processed):
                 "total_queue_wait_ms": scheduler.total_queue_wait_ms,
                 "max_queue_wait_ms": scheduler.max_queue_wait_ms,
                 "queue_count": len(scheduler.paths),
+                "enqueued_path_ids": sorted(scheduler.enqueued_path_ids),
                 "max_path_outstanding_io": max(
                     (path.max_outstanding_io for path in scheduler.paths.values()),
                     default=0,
@@ -3202,7 +3227,14 @@ def _build_summary(context, current_time, total_requests, events_processed):
             else "none"
         ),
         "path_selection": (
-            "per_io" if context.policy in PATH_QOS_POLICIES else "none"
+            (
+                "per_io"
+                if context.client_io_config.path_selection_mode
+                == PATH_SELECTION_PRESSURE_AWARE
+                else context.client_io_config.path_selection_mode
+            )
+            if context.policy in PATH_QOS_POLICIES
+            else "none"
         ),
         "path_pool_mode": (
             "exclusive_two_per_npu"
@@ -3243,7 +3275,17 @@ def _build_summary(context, current_time, total_requests, events_processed):
             context.policy == POLICY_QOS_DYNAMIC_JOINT_CIR
         ),
         "qos_client_routing": (
-            "strict_category_group_aware_sed_nonexclusive"
+            {
+                PATH_SELECTION_PRESSURE_AWARE: (
+                    "strict_category_group_aware_sed_nonexclusive"
+                ),
+                PATH_SELECTION_STATELESS_RR: (
+                    "strict_category_stateless_round_robin_nonexclusive"
+                ),
+                PATH_SELECTION_FIXED_PATH_ZERO: (
+                    "all_npus_all_io_fixed_to_path_zero"
+                ),
+            }[context.client_io_config.path_selection_mode]
             if context.policy in QOS_POLICIES
             else (
                 "per_npu_exclusive_two_path_least_projected_work"
