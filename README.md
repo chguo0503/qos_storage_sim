@@ -170,7 +170,8 @@ python analyze_scheme_b_cold_start.py
 # 对完整 12 策略结果做 cohort、分层、尾部和控制开销分析
 python analyze_causal_full_matrix.py
 
-# 均衡六请求 batch=1：3 策略 × 7 SSU × 4 层数
+# 均衡六请求 batch=1：3 策略 × 3 SSU × 4 层数
+# SSU = 16/24/56
 # 截止于最快 NPU 完成第 6 次推理；TTFT SLO 固定统计前 5 次
 python six_request_experiment.py --workers 8
 python analyze_six_request.py
