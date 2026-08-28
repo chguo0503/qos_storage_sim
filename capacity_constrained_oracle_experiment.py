@@ -18,7 +18,7 @@ from pathlib import Path
 import time
 
 import sim
-from experiment import _summary
+from experiment import compact_summary
 import routing_refresh_concurrency_experiment as routing
 
 
@@ -81,7 +81,9 @@ def experiment_spec(table, runtime):
             "remain unavailable until the original prefetch release event"
         ),
         "physical_constraints": {
-            "placement": "original immutable block_to_ssd mapping",
+            "placement": (
+                "immutable ring-hash block_to_ssd mapping, reused by every layer"
+            ),
             "ssd": "one nonpreemptive command at 40 GB/s per SSD",
             "npu_link": "one FCFS command at 50 GB/s per NPU",
             "visibility": "after NPU-link completion",
@@ -118,7 +120,7 @@ def run_case(table, runtime, seed, num_ssu, prepared=None):
     finally:
         sim.omniscient_edf_key = original_priority
 
-    compact = _summary(full)
+    compact = compact_summary(full)
     request_metrics = compact.pop("request_metrics")
     compact["client_submit_batch_size"] = full["client_submit_batch_size"]
     compact["client_submit_interval_us"] = full["client_submit_interval_us"]

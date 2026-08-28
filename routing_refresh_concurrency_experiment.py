@@ -1,48 +1,97 @@
-"""Run the final finite-issue baseline and Path-routing comparison.
-
-Every realizable strategy uses the same optimized static QoS hardware and
-differs only in the Path IDs chosen by the NPU:
-
-* all I/Os use Path 0 (the final baseline);
-* category-legal Paths are selected by stateless round-robin;
-* once for each ``(request, layer, SSU)`` submission state;
-* once every eight I/Os; or
-* once for every I/O.
-
-All simulations submit one command every 0.1 us so other NPUs and device
-events can interleave between consecutive commands.
-"""
+"""Run the five retained Path-routing strategies on ring-hash placement."""
 
 from __future__ import annotations
 
 import argparse
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 import hashlib
 import json
 import os
 from pathlib import Path
 import time
 
+from experiment import compact_summary
 import sim
-from experiment import _summary
 from strategy_profiles import FINAL_STATIC
 
-
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 5
 NUM_NPU = 128
 N_LAYERS = 16
 LS_RATIO = 0.5
 SEEDS = (42, 43)
+SSU_LIST = (8, 16, 28, 40, 56, 80, 112)
 PLACEMENT_SEED_OFFSET = 1_000_003
 SUBMIT_ORDER_SEED_OFFSET = 2_000_003
 ARRIVAL_DELAY_SEED_OFFSET = 3_000_003
 ARRIVAL_DELAY_MAX_MS = 5.0
-SSU_LIST = (8, 16, 28, 40, 56, 80, 112)
 ISSUE_INTERVAL_US = 0.1
 SUBMIT_BATCH_SIZE = 1
 DEFAULT_OUTPUT_DIR = Path("results/routing_refresh_concurrency")
 STATIC_PROFILE = FINAL_STATIC
+
+
+@dataclass(frozen=True)
+class StrategySpec:
+    name: str
+    description: str
+    path_selection_mode: str
+    pressure_window_io: int | None
+
+    def client_config(self):
+        return sim.ClientIOConfig(
+            name=f"{self.name}_batch1_issue0p1us",
+            pressure_window_io=self.pressure_window_io,
+            submit_batch_size=SUBMIT_BATCH_SIZE,
+            issue_interval_us=ISSUE_INTERVAL_US,
+            path_selection_mode=self.path_selection_mode,
+        )
+
+    def metadata(self):
+        return {
+            "name": self.name,
+            "description": self.description,
+            "policy": sim.POLICY_QOS_STATIC_CIR,
+            "path_selection_mode": self.path_selection_mode,
+            "pressure_window_io": self.pressure_window_io,
+            "submit_batch_size": SUBMIT_BATCH_SIZE,
+            "issue_interval_us": ISSUE_INTERVAL_US,
+        }
+
+
+def strategy_specs():
+    return (
+        StrategySpec(
+            "baseline",
+            "All I/Os use Path 0; no pressure reads",
+            sim.PATH_SELECTION_FIXED_PATH_ZERO,
+            None,
+        ),
+        StrategySpec(
+            "path_rr",
+            "Category-legal deterministic Path round-robin; no pressure reads",
+            sim.PATH_SELECTION_STATELESS_RR,
+            None,
+        ),
+        StrategySpec(
+            "layer_once",
+            "Read pressure once per request-layer-SSU submission state",
+            sim.PATH_SELECTION_PRESSURE_AWARE,
+            None,
+        ),
+        StrategySpec(
+            "refresh8",
+            "Read pressure once every eight planned I/Os",
+            sim.PATH_SELECTION_PRESSURE_AWARE,
+            8,
+        ),
+        StrategySpec(
+            "refresh1",
+            "Read live pressure before every planned I/O",
+            sim.PATH_SELECTION_PRESSURE_AWARE,
+            1,
+        ),
+    )
 
 
 def seed_bundle(seed):
@@ -54,106 +103,17 @@ def seed_bundle(seed):
     }
 
 
-def _table_fingerprint(table):
-    payload = [
-        [list(key), list(table[key])]
-        for key in sorted(table)
-    ]
-    encoded = json.dumps(payload, separators=(",", ":")).encode()
-    return hashlib.sha256(encoded).hexdigest()
-
-
-@dataclass(frozen=True)
-class StrategySpec:
-    name: str
-    description: str
-    path_selection_mode: str
-    pressure_window_io: int | None = None
-
-    @property
-    def policy(self):
-        return sim.POLICY_QOS_STATIC_CIR
-
-    def client_config(self):
-        return sim.ClientIOConfig(
-            name=f"{self.name}_batch1_issue0p1us",
-            pressure_window_io=self.pressure_window_io,
-            submit_batch_size=SUBMIT_BATCH_SIZE,
-            issue_interval_us=ISSUE_INTERVAL_US,
-            path_selection_mode=self.path_selection_mode,
-        )
-
-    def config(self):
-        result = {
-            "name": self.name,
-            "kind": "simulation",
-            "policy": self.policy,
-            "description": self.description,
-        }
-        client_config = self.client_config()
-        result["client_io"] = asdict(client_config)
-        result.update(
-            {
-                "profile_name": STATIC_PROFILE.name,
-                "category_cir_gbps": list(
-                    STATIC_PROFILE.category_cir_gbps
-                ),
-                "category_paths_per_group": list(
-                    STATIC_PROFILE.category_paths_per_group
-                ),
-                "path_pir": "uncapped",
-            }
-        )
-        return result
-
-
-def strategy_specs():
-    return (
-        StrategySpec(
-            "baseline",
-            "Final baseline: every NPU sends every I/O to Path 0",
-            sim.PATH_SELECTION_FIXED_PATH_ZERO,
-        ),
-        StrategySpec(
-            "path_rr_baseline",
-            "Zero-telemetry category-legal Path round-robin baseline",
-            sim.PATH_SELECTION_STATELESS_RR,
-        ),
-        StrategySpec(
-            "refresh1",
-            "Read live Path pressure before every planned I/O",
-            sim.PATH_SELECTION_PRESSURE_AWARE,
-            1,
-        ),
-        StrategySpec(
-            "refresh8",
-            "Read Path pressure once every eight planned I/Os",
-            sim.PATH_SELECTION_PRESSURE_AWARE,
-            8,
-        ),
-        StrategySpec(
-            "layer_once",
-            "Read once per request-layer-SSU submission state",
-            sim.PATH_SELECTION_PRESSURE_AWARE,
-        ),
-    )
-
-
 def runtime_config():
     return {
-        "mode": "formal",
         "num_npu": NUM_NPU,
         "n_layers": N_LAYERS,
         "ssu_list": list(SSU_LIST),
         "seeds": list(SEEDS),
         "seed_bundles": {str(seed): seed_bundle(seed) for seed in SEEDS},
-        "seed_offsets": {
-            "placement": PLACEMENT_SEED_OFFSET,
-            "submit_order": SUBMIT_ORDER_SEED_OFFSET,
-            "arrival_delay": ARRIVAL_DELAY_SEED_OFFSET,
-        },
         "ls_ratio": LS_RATIO,
         "arrival_delay_ms": [0.0, ARRIVAL_DELAY_MAX_MS],
+        "placement_mode": sim.PLACEMENT_BLOCK_RING_HASH,
+        "ring_virtual_nodes": sim.BLOCK_RING_VIRTUAL_NODES,
         "disk_bw_gbps": sim.DISK_BW,
         "npu_bw_limit_gbps": sim.NPU_BW_LIMIT,
         "client_submit_batch_size": SUBMIT_BATCH_SIZE,
@@ -161,12 +121,18 @@ def runtime_config():
     }
 
 
+def _table_fingerprint(table):
+    payload = [[list(key), list(table[key])] for key in sorted(table)]
+    return hashlib.sha256(
+        json.dumps(payload, separators=(",", ":")).encode()
+    ).hexdigest()
+
+
 def _code_fingerprint():
     root = Path(__file__).resolve().parent
     digest = hashlib.sha256()
     for name in (
         "sim.py",
-        "advanced_policies.py",
         "experiment.py",
         "strategy_profiles.py",
         "routing_refresh_concurrency_experiment.py",
@@ -176,43 +142,33 @@ def _code_fingerprint():
     return digest.hexdigest()
 
 
-def experiment_spec(table, runtime):
+def experiment_spec(table, runtime, selected):
+    profile = STATIC_PROFILE
     return {
         "schema_version": SCHEMA_VERSION,
         "code_fingerprint": _code_fingerprint(),
         "data_fingerprint": _table_fingerprint(table),
         "runtime": runtime,
-        "formal_contract": {
-            "num_npu": NUM_NPU,
-            "n_layers": N_LAYERS,
-            "ssu_list": list(SSU_LIST),
-            "seeds": list(SEEDS),
+        "placement": {
+            "mode": sim.PLACEMENT_BLOCK_RING_HASH,
+            "block_key": ["request_id", "block_index"],
+            "virtual_node_key": ["disk_id", "virtual_node"],
+            "virtual_nodes_per_ssu": sim.BLOCK_RING_VIRTUAL_NODES,
+            "hash_version": "sha256_u64_pair_v1",
+            "cross_layer_ssu_reuse": True,
         },
-        "controlled_comparison": {
-            "simulation_submit_batch_size": SUBMIT_BATCH_SIZE,
-            "simulation_issue_interval_us": ISSUE_INTERVAL_US,
-            "static_profile": STATIC_PROFILE.name,
-            "static_category_cir_gbps": list(
-                STATIC_PROFILE.category_cir_gbps
-            ),
-            "static_path_allocation_per_group": list(
-                STATIC_PROFILE.category_paths_per_group
-            ),
-            "shared_simulation_policy": sim.POLICY_QOS_STATIC_CIR,
-            "isolated_difference": "NPU Path-ID selection",
-            "final_baseline_path": 0,
+        "static_qos": {
+            "profile": profile.name,
+            "category_labels": list(sim.QOS_ROUTING_CATEGORIES),
+            "category_cir_gbps": list(profile.category_cir_gbps),
+            "category_paths_per_group": list(profile.category_paths_per_group),
         },
         "backend": {
-            "model": "shared_two_stage_ssd40_then_npu50_single_server_v1",
-            "ssd_service": "io_size_gb / 40 GB/s",
-            "ssd_max_active_io": 1,
-            "npu_service": "io_size_gb / 50 GB/s",
-            "npu_max_active_io": 1,
+            "ssd": "one nonpreemptive command at 40 GB/s",
+            "npu_link": "one FCFS command at 50 GB/s per NPU",
             "block_visible_after": "npu_link_completion",
         },
-        "available_strategies": [
-            strategy.config() for strategy in strategy_specs()
-        ],
+        "strategies": [strategy.metadata() for strategy in selected],
     }
 
 
@@ -228,17 +184,17 @@ def prepare(table, runtime, seed, num_ssu):
         placement_seed=seeds["placement"],
         arrival_delay_seed=seeds["arrival_delay"],
         arrival_delay_max_ms=runtime["arrival_delay_ms"][1],
+        placement_mode=sim.PLACEMENT_BLOCK_RING_HASH,
     )
 
 
 def run_strategy_case(table, runtime, seed, num_ssu, strategy, prepared=None):
     started = time.perf_counter()
-    if prepared is None:
-        prepared = prepare(table, runtime, seed, num_ssu)
+    prepared = prepared or prepare(table, runtime, seed, num_ssu)
     seeds = runtime["seed_bundles"][str(seed)]
     _, full = sim.simulate_continuous(
         table,
-        policy=strategy.policy,
+        policy=sim.POLICY_QOS_STATIC_CIR,
         num_npu=runtime["num_npu"],
         num_disk=num_ssu,
         n_layers=runtime["n_layers"],
@@ -248,45 +204,47 @@ def run_strategy_case(table, runtime, seed, num_ssu, strategy, prepared=None):
         submit_order_seed=seeds["submit_order"],
         prepared_inputs=prepared,
     )
-    compact = _summary(full)
-    request_metrics = compact.pop("request_metrics")
-    compact["client_submit_batch_size"] = full["client_submit_batch_size"]
-    compact["client_submit_interval_us"] = full["client_submit_interval_us"]
-    compact["pressure_read_interval"] = full["pressure_read_interval"]
-    compact["path_selection"] = full["path_selection"]
-    compact["qos_client_routing"] = full["qos_client_routing"]
-    compact["client_submission"] = full["client_submission"]
-
-    assert all(compact["invariants"].values())
-    assert compact["workload_fingerprint"] == prepared.workload_hash
-    assert compact["placement_hash"] == prepared.placement_hash
-    assert compact["client_submit_batch_size"] == SUBMIT_BATCH_SIZE
-    assert compact["client_submit_interval_us"] == ISSUE_INTERVAL_US
-    expected_reported_path_selection = (
-        "per_io"
-        if strategy.path_selection_mode == sim.PATH_SELECTION_PRESSURE_AWARE
-        else strategy.path_selection_mode
+    summary = compact_summary(full)
+    request_metrics = summary.pop("request_metrics")
+    summary.update(
+        {
+            "placement_mode": full["placement_mode"],
+            "placement_ring_virtual_nodes": full[
+                "placement_ring_virtual_nodes"
+            ],
+            "placement_ring_hash_version": full[
+                "placement_ring_hash_version"
+            ],
+            "client_submit_batch_size": full["client_submit_batch_size"],
+            "client_submit_interval_us": full["client_submit_interval_us"],
+            "pressure_read_interval": full["pressure_read_interval"],
+            "path_selection": full["path_selection"],
+            "qos_client_routing": full["qos_client_routing"],
+        }
     )
-    assert compact["path_selection"] == expected_reported_path_selection
+    assert all(summary["invariants"].values())
+    assert summary["workload_fingerprint"] == prepared.workload_hash
+    assert summary["placement_hash"] == prepared.placement_hash
+    assert summary["placement_mode"] == sim.PLACEMENT_BLOCK_RING_HASH
     if strategy.path_selection_mode == sim.PATH_SELECTION_PRESSURE_AWARE:
-        assert compact["pressure_read_interval"] == strategy.pressure_window_io
-        assert compact["pressure_reports"] > 0
+        assert summary["pressure_reports"] > 0
+        assert summary["pressure_read_interval"] == strategy.pressure_window_io
     else:
-        assert compact["pressure_read_interval"] is None
-        assert compact["pressure_reports"] == 0
+        assert summary["pressure_reports"] == 0
+        assert summary["pressure_read_interval"] is None
     if strategy.path_selection_mode == sim.PATH_SELECTION_FIXED_PATH_ZERO:
-        assert compact["enqueued_path_ids"] == [0]
-
+        assert summary["enqueued_path_ids"] == [0]
     return {
         "seed": seed,
         "num_ssu": num_ssu,
         "strategy": strategy.name,
         "kind": "simulation",
-        "config": strategy.config(),
+        "config": strategy.metadata(),
         "seeds": seeds,
+        "placement_mode": sim.PLACEMENT_BLOCK_RING_HASH,
         "workload_fingerprint": prepared.workload_hash,
         "placement_hash": prepared.placement_hash,
-        "summary": compact,
+        "summary": summary,
         "request_metrics": request_metrics,
         "wall_time_s": time.perf_counter() - started,
     }
@@ -308,9 +266,9 @@ def _init_worker(table, runtime, selected):
 
 def _worker(task):
     seed, num_ssu, strategy_name = task
-    key = (seed, num_ssu)
-    if key not in _WORKER_PREPARED:
-        _WORKER_PREPARED[key] = prepare(
+    pair = (seed, num_ssu)
+    if pair not in _WORKER_PREPARED:
+        _WORKER_PREPARED[pair] = prepare(
             _WORKER_TABLE, _WORKER_RUNTIME, seed, num_ssu
         )
     return run_strategy_case(
@@ -319,47 +277,41 @@ def _worker(task):
         seed,
         num_ssu,
         _WORKER_STRATEGIES[strategy_name],
-        _WORKER_PREPARED[key],
+        _WORKER_PREPARED[pair],
     )
 
 
-def _write_json(path, value):
+def _key(seed, num_ssu, strategy):
+    return f"{seed}:{num_ssu}:{strategy}"
+
+
+def _write_json(path, payload):
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_suffix(path.suffix + ".tmp")
     temporary.write_text(
-        json.dumps(
-            value,
-            ensure_ascii=False,
-            separators=(",", ":"),
-            allow_nan=False,
-        )
+        json.dumps(payload, ensure_ascii=False, separators=(",", ":"), allow_nan=False)
         + "\n"
     )
     temporary.replace(path)
 
 
-def _result_key(seed, num_ssu, strategy_name):
-    return f"{seed}:{num_ssu}:{strategy_name}"
-
-
-def _ordered_results(rows, runtime, selected):
+def _ordered(rows, runtime, selected):
     return [
-        rows[_result_key(seed, num_ssu, strategy.name)]
+        rows[_key(seed, ssu, strategy.name)]
         for seed in runtime["seeds"]
-        for num_ssu in runtime["ssu_list"]
+        for ssu in runtime["ssu_list"]
         for strategy in selected
-        if _result_key(seed, num_ssu, strategy.name) in rows
+        if _key(seed, ssu, strategy.name) in rows
     ]
 
 
-def _validate_paired_inputs(results, runtime, selected):
+def _validate_pairing(rows, runtime, selected):
     expected = {strategy.name for strategy in selected}
     for seed in runtime["seeds"]:
-        for num_ssu in runtime["ssu_list"]:
+        for ssu in runtime["ssu_list"]:
             group = [
-                row
-                for row in results
-                if row["seed"] == seed and row["num_ssu"] == num_ssu
+                row for row in rows
+                if row["seed"] == seed and row["num_ssu"] == ssu
             ]
             assert {row["strategy"] for row in group} == expected
             assert len(
@@ -370,64 +322,62 @@ def _validate_paired_inputs(results, runtime, selected):
             ) == 1
 
 
-def run_matrix(result_path, *, workers, rerun=False):
+def run_matrix(result_path, *, workers, rerun=False, strategy_names=None):
     table = sim.load_bw_table_cache(num_npu=NUM_NPU)
     runtime = runtime_config()
-    selected = strategy_specs()
-    experiment = experiment_spec(table, runtime)
+    all_strategies = strategy_specs()
+    if strategy_names is None:
+        selected = all_strategies
+    else:
+        by_name = {strategy.name: strategy for strategy in all_strategies}
+        selected = tuple(by_name[name] for name in strategy_names)
+    experiment = experiment_spec(table, runtime, selected)
     rows = {}
     if result_path.exists() and not rerun:
         cached = json.loads(result_path.read_text())
         if cached.get("experiment") == experiment:
             rows = {
-                _result_key(row["seed"], row["num_ssu"], row["strategy"]): row
+                _key(row["seed"], row["num_ssu"], row["strategy"]): row
                 for row in cached["results"]
             }
 
+    pending = [
+        (seed, ssu, strategy.name)
+        for seed in runtime["seeds"]
+        for ssu in runtime["ssu_list"]
+        for strategy in selected
+        if _key(seed, ssu, strategy.name) not in rows
+    ]
+
     def checkpoint():
-        ordered = _ordered_results(rows, runtime, selected)
+        ordered = _ordered(rows, runtime, selected)
         _write_json(
             result_path,
             {
                 "schema_version": SCHEMA_VERSION,
                 "complete": len(ordered)
-                == len(SEEDS) * len(SSU_LIST) * len(selected),
+                == len(runtime["seeds"])
+                * len(runtime["ssu_list"])
+                * len(selected),
                 "experiment": experiment,
-                "selected_strategies": [
-                    strategy.name for strategy in selected
-                ],
+                "selected_strategies": [s.name for s in selected],
                 "results": ordered,
             },
         )
 
-    pending = [
-        (seed, num_ssu, strategy.name)
-        for seed in runtime["seeds"]
-        for num_ssu in runtime["ssu_list"]
-        for strategy in selected
-        if _result_key(seed, num_ssu, strategy.name) not in rows
-    ]
-
     if pending and workers == 1:
         prepared_cache = {}
-        for seed, num_ssu, strategy_name in pending:
-            key = (seed, num_ssu)
-            if key not in prepared_cache:
-                prepared_cache[key] = prepare(table, runtime, seed, num_ssu)
-            strategy = next(
-                item for item in selected if item.name == strategy_name
+        by_name = {strategy.name: strategy for strategy in selected}
+        for seed, ssu, name in pending:
+            prepared_cache.setdefault(
+                (seed, ssu), prepare(table, runtime, seed, ssu)
             )
-            result = run_strategy_case(
-                table,
-                runtime,
-                seed,
-                num_ssu,
-                strategy,
-                prepared_cache[key],
+            row = run_strategy_case(
+                table, runtime, seed, ssu, by_name[name], prepared_cache[(seed, ssu)]
             )
-            rows[_result_key(seed, num_ssu, strategy_name)] = result
+            rows[_key(seed, ssu, name)] = row
             checkpoint()
-            _print_completed(result)
+            _print_row(row)
     elif pending:
         with ProcessPoolExecutor(
             max_workers=min(max(1, workers), len(pending)),
@@ -436,27 +386,21 @@ def run_matrix(result_path, *, workers, rerun=False):
         ) as pool:
             futures = {pool.submit(_worker, task): task for task in pending}
             for future in as_completed(futures):
-                result = future.result()
-                rows[
-                    _result_key(
-                        result["seed"],
-                        result["num_ssu"],
-                        result["strategy"],
-                    )
-                ] = result
+                row = future.result()
+                rows[_key(row["seed"], row["num_ssu"], row["strategy"])] = row
                 checkpoint()
-                _print_completed(result)
+                _print_row(row)
 
-    ordered = _ordered_results(rows, runtime, selected)
-    _validate_paired_inputs(ordered, runtime, selected)
+    ordered = _ordered(rows, runtime, selected)
+    _validate_pairing(ordered, runtime, selected)
     checkpoint()
     return json.loads(result_path.read_text())
 
 
-def _print_completed(row):
+def _print_row(row):
     summary = row["summary"]
     print(
-        "seed=%d SSU=%3d %-26s request=%7.3f%% fleet=%7.3f%% reads=%7d wall=%6.1fs"
+        "seed=%d SSU=%3d %-10s request=%7.3f%% fleet=%7.3f%% reads=%7d wall=%6.1fs"
         % (
             row["seed"],
             row["num_ssu"],
@@ -473,15 +417,22 @@ def _print_completed(row):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
+    parser.add_argument("--output", type=Path)
     parser.add_argument(
         "--workers", type=int, default=min(10, os.cpu_count() or 1)
+    )
+    parser.add_argument(
+        "--strategies",
+        nargs="+",
+        choices=[strategy.name for strategy in strategy_specs()],
     )
     parser.add_argument("--rerun", action="store_true")
     args = parser.parse_args()
     result = run_matrix(
-        args.output_dir / "results.json",
+        args.output or args.output_dir / "results.json",
         workers=args.workers,
         rerun=args.rerun,
+        strategy_names=args.strategies,
     )
     print("complete:", result["complete"])
     print("rows:", len(result["results"]))

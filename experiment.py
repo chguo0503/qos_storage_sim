@@ -4,24 +4,7 @@ from __future__ import annotations
 
 import math
 
-import matplotlib
-
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-
 import sim
-from strategy_profiles import FINAL_STATIC
-
-
-CATEGORY_CIR_GBPS = FINAL_STATIC.category_cir_gbps
-
-
-def category_path_cirs():
-    return FINAL_STATIC.path_cirs()
-
-
-def qos_config():
-    return FINAL_STATIC.hardware_config()
 
 
 def _mean(values):
@@ -149,13 +132,13 @@ def compact_summary(full):
         "request_metrics": full["request_metrics"],
     }
 
-
-# Existing experiment files import this name; keep one implementation only.
-_summary = compact_summary
-
-
 def plot_results(data, output_path):
     """Plot one or more SSU utilization series with the original style."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
     ssus = data["ssus"]
     figure, axis = plt.subplots(figsize=(10, 6))
     for series in data["series"]:
@@ -176,7 +159,22 @@ def plot_results(data, output_path):
         ),
     )
     axis.grid(alpha=0.3)
-    axis.legend()
+    legend = dict(data.get("legend", {}))
+    if legend.pop("row_major", False):
+        handles, labels = axis.get_legend_handles_labels()
+        columns = legend.get("ncol", 1)
+        rows = math.ceil(len(handles) / columns)
+        order = [
+            row * columns + column
+            for column in range(columns)
+            for row in range(rows)
+            if row * columns + column < len(handles)
+        ]
+        handles = [handles[index] for index in order]
+        labels = [labels[index] for index in order]
+        axis.legend(handles, labels, **legend)
+    else:
+        axis.legend(**legend)
     figure.tight_layout()
     output_path.parent.mkdir(parents=True, exist_ok=True)
     figure.savefig(output_path, dpi=180)

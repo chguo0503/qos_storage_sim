@@ -1,146 +1,219 @@
 # QoS + SSD 路由仿真
 
-这是一个聚焦于 **NPU Path 选路频率** 的离散事件仿真项目。项目只保留
-最终实验链路：五种可执行路由策略，以及一个保留全部物理容量约束的
-best-feasible 参考策略。
+这个仓库保留 Path 路由刷新频率实验、Scheme B one-shot CIR 分配，以及一个保持物理约束的最优参考候选。
 
-## 物理模型
+## 保留的策略
 
-每条 I/O 都经过同一个两级数据面：
+前五个策略共用同一套 Static QoS、CIR、Path 布局和 SSD→NPU 数据面；唯一差异是 NPU 如何选择 Path：
+
+| 策略 | Path 选择 | 读取 pressure |
+|---|---|---:|
+| `baseline` | 所有 I/O 固定进入 Path 0 | 0 |
+| `path_rr` | 在请求类别允许的 Path 内确定性轮转 | 0 |
+| `layer_once` | 每个 `(request, layer, SSU)` 读取一次后完成该层选路 | 每层一次 |
+| `refresh8` | 每规划 8 条 I/O 刷新一次 | 每 8 条 I/O |
+| `refresh1` | 每规划一条 I/O 前刷新一次 | 每条 I/O |
+
+`capacity_constrained_oracle` 使用相同 workload、block placement、到达时间、层依赖、SSD 40 GB/s 和 NPU 50 GB/s 上限，以可见请求的全局信息调度。
+
+`scheme_b_prefill` 把一次 admission batch 的 128 个请求 manifest 视为启动前已知，按 ring placement 计算 `NPU × SSU` demand，求满足每盘 40 GB/s、每 NPU 50 GB/s 的等权 max-min grant。每个 NPU 在每块 SSU 上使用一条专属 Path，CIR 只配置一次并复用 16 层；原配对实验中的 0–5 ms 到达时间保留为 NPU launch jitter。该策略不读取 Path pressure，SSD 和 NPU 数据面与前五个策略相同。
+
+主图中的 `Best feasible` 是每个 `(seed, SSU)` 上，五个路由策略、Scheme B 与 oracle 候选中实测最好的结果；它是可执行参考，不是带数学证明的精确理论上界。
+
+## Block placement
+
+每个 token block 用 `(request_id, block_index)` 做 consistent ring hash：
+
+- 同一 token block 的 16 层始终位于同一个 SSU；
+- 不同 token block 独立落在 ring 上，允许落到同一个 SSU；
+- ring 映射是确定性的，placement seed 只保留为配对结果元数据，不参与映射；
+- 所有策略复用完全相同的 placement，便于严格配对比较。
+
+## 数据面
 
 ```text
-NPU 选择 Path ID
-        ↓
-SSD 仲裁：单命令、不可抢占，服务时间 = size / 40 GB/s
-        ↓ SSD 完成立即释放槽位
-目标 NPU 的独立 FCFS 接收队列，服务时间 = size / 50 GB/s
-        ↓
+NPU 选择 Path
+    ↓
+Static QoS/CIR 仲裁
+    ↓
+SSD 单命令、不可抢占：t = size / 40 GB/s
+    ↓
+目标 NPU 的独立 FCFS 接收队列：t = size / 50 GB/s
+    ↓
 block 对计算侧可见
 ```
 
-- 每块 SSD 同时最多服务一条命令。
-- CIR 只控制命令获得服务的长期机会；获胜命令仍以完整 40 GB/s 执行。
-- 每个 NPU 有独立的 50 GB/s 单服务器接收队列，多 SSD 同时完成会形成
-  incast 排队。
-- SSD 完成后不等待 NPU 接收，因此模型假设中间 buffer 足够大、无反压。
-- block→SSD placement、工作负载、到达延迟和提交顺序在策略间严格配对。
+CIR 决定命令获得 SSD 服务的机会，不把一条已选中的命令限速为 CIR；获胜命令仍使用 SSD 的 40 GB/s 单命令服务能力。多个 SSD 同时向同一 NPU 返回时，会在该 NPU 的 50 GB/s 接收队列中形成 incast 排队。
 
-## 固定实验配置
+## 正式配置与结果
 
-| 参数 | 值 |
-|---|---|
-| NPU | 128 |
-| 层数 | 16 |
-| SSU | 8, 16, 28, 40, 56, 80, 112 |
-| Seed | 42, 43 |
-| NPU 到达延迟 | 每个 NPU 独立从 `[0, 5 ms)` 抽样 |
-| SSD 带宽 | 40 GB/s/盘 |
-| NPU 接收带宽 | 50 GB/s/NPU |
-| I/O 发行 | batch=1，间隔 0.1 µs |
-| Static CIR（SS/SL/LS/LL） | 20/6/8/6 GB/s |
-| 每组 Path（SS/SL/LS/LL） | 12/4/12/4，共 8 组、256 Path |
+- 128 NPU，16 层
+- SSU：`8, 16, 28, 40, 56, 80, 112`
+- seed：`42, 43`
+- 每个 NPU 独立的 `0–5 ms` 到达延迟
+- I/O batch 为 1，相邻发行间隔为 `0.1 µs`
+- SS/SL/LS/LL 的 CIR 为 `20/6/8/6 GB/s`
+- 每组 Path 数为 `12/4/12/4`，共 8 组
 
-## 对比策略
-
-五个普通策略全部调用相同的 `qos_static_cir` 实现，SSD/NPU 数据面、CIR、
-Path 布局完全相同，唯一变量是 NPU 写入命令的 Path ID：
-
-1. `baseline`：所有 NPU 的所有 I/O 固定进入 Path 0，不读取 Path 状态。
-2. `path_rr_baseline`：不读状态，在类别合法 Path 内逐 I/O round-robin。
-3. `refresh1`：每规划一条 I/O 前读取一次 Path pressure。
-4. `refresh8`：每规划 8 条 I/O 读取一次。
-5. `layer_once`：每个 `(request, layer, SSD)` 只读取一次。
-
-如果 baseline 与 Static QoS 被强制产生完全相同的 Path-ID 序列，两者的
-request、SSD、NPU link、makespan 和利用率结果必须逐项相同；测试会验证
-这个合同。
-
-第六条曲线 `capacity_constrained_oracle` 是每个 `(seed, SSU)` 上，从五个
-普通策略和 demand-weighted SJF 候选中选择出的最佳可行结果。它保留原始
-placement、SSD40、NPU50、到达时间和层依赖，但没有数学最优性证明，不能
-称为 exact optimum 或理论上界。
-
-## 当前结果
-
-表中数值为两个 seed 的平均 `avg_request_compute_fraction`：
-
-| SSU | Path0 | No-state RR | Refresh1 | Refresh8 | Layer once | Best feasible |
-|---:|---:|---:|---:|---:|---:|---:|
-| 8 | 31.219% | 34.517% | 35.342% | 35.338% | 35.336% | 48.202% |
-| 16 | 46.376% | 50.302% | 52.796% | 52.578% | 52.757% | 65.097% |
-| 28 | 60.294% | 63.971% | 71.123% | 72.623% | 72.610% | 77.513% |
-| 40 | 70.265% | 72.652% | 82.811% | 81.363% | 81.684% | 83.871% |
-| 56 | 80.329% | 80.404% | 87.852% | 87.400% | 87.231% | 87.943% |
-| 80 | 88.274% | 87.666% | 90.562% | 89.721% | 89.716% | 90.964% |
-| 112 | 91.343% | 90.791% | 90.998% | 90.507% | 90.795% | 91.763% |
-
-最终图片：
-
-![最终路由策略曲线](results/routing_refresh_concurrency/01_routing_refresh_finite_issue.png)
-
-## 指标
-
-`avg_request_compute_fraction` 先计算每个请求的：
+主图纵轴是每个请求的
 
 ```text
-16 层计算时间 / (16 层计算时间 + 该请求暴露的 I/O stall)
+16 层计算时间 / (16 层计算时间 + 暴露的 I/O stall)
 ```
 
-再对 128 个请求等权平均。主图将它显示为 `Average NPU Utilization (%)`。
-0–5 ms release delay 发生在请求开始前，不进入这个分母。
+再对 128 个请求等权平均。它不等于包含全局 makespan 的 fleet utilization。
 
-`fleet_npu_compute_utilization` 为：
+| 策略 | SSU 8 | SSU 16 | SSU 28 | SSU 40 | SSU 56 | SSU 80 | SSU 112 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Baseline: Path 0 | 29.885% | 44.646% | 56.561% | 65.701% | 74.872% | 84.999% | 91.017% |
+| No-refresh Path RR | 33.610% | 49.279% | 61.485% | 70.397% | 78.662% | 86.106% | 90.141% |
+| Layer once | 34.063% | 50.883% | 68.203% | 79.220% | 85.758% | 88.993% | 90.756% |
+| Refresh every 8 I/Os | 34.065% | 50.887% | 69.925% | 79.126% | 85.714% | 88.937% | 90.584% |
+| Refresh every I/O | 34.068% | 50.905% | 67.916% | 80.702% | 86.585% | 89.842% | 90.699% |
+| Scheme B (one-shot) | 36.032% | 50.422% | 62.817% | 72.048% | 80.591% | 88.199% | 90.994% |
+| Best feasible | 47.646% | 64.225% | 75.737% | 82.171% | 86.947% | 90.125% | 91.687% |
 
-```text
-全部 NPU 计算时间 / (128 × 全局 makespan)
-```
+![正式结果](results/routing_refresh_concurrency/01_routing_refresh_finite_issue.png)
 
-它包含 release 错峰、I/O stall 和已完成 NPU 的空闲时间，因此会被最慢请求
-主导。它与主图指标不是同一个量。
+## Full-prefill microbatch 端到端实验
+
+`continuous_prefill_experiment.py` 现在使用固定成员、逐层同步的 Full-prefill
+microbatch，而不是把 batch 解释成 8 个可独立推进的 resident slot：
+
+- 同一 NPU 在空闲时从 FIFO 冻结最多 8 个请求；有未来请求时等待凑满，trace 尾部允许唯一 final partial batch；
+- batch 的第 k 层只有在所有成员第 k 层数据均通过 SSD40 和 NPU50 后才能开始；
+- 第 k 层只产生一个 joint batch compute 事件，并在开始时为所有成员预取第 k+1 层；
+- 第 15 层结束时所有成员同刻完成，整批释放；运行中到达的新请求不能插入当前 batch；
+- batch 层计算时间默认是成员 singleton 层耗时之和，保证计算工作守恒，不假设未经测量的 batch 加速；
+- 所有策略共用同一 microbatch membership、ring placement、单命令 SSD40 和每 NPU 独立 NPU50 数据面。
+
+正式 trace 是 128 NPU、batch 8、16 层、28 SSU：每个 NPU 初始 8 个请求，另有
+1 个请求随机到达。因此会形成 128 个初始 batch8 和 128 个尾部 singleton；这是有限
+Full-prefill trace，不代表长期稳定的 continuous batching。
+
+Scheme B 在 microbatch membership 改变时重新计算 `NPU × SSU` demand-capped
+max-min grant；周期版本另外在每 8/4/2/1 个真实 completed batch-layer equivalent
+后评估。sticky placement 和固定成员使稳态各层需求相同，因此没有 membership/shape
+变化时，更高更新频率通常只增加评估而不改变目标 CIR。
+
+Layer 0 没有上一层计算窗口，是单独的 cold-start burst；仿真让它在真实命令队列中排队，
+不会用 `layer bytes / layer compute` 把它伪装成可隐藏的稳态需求。
+
+新结果写入 [`results/full_prefill_microbatch/`](results/full_prefill_microbatch/)，分析器会
+拒绝没有 `full_prefill_layer_synchronous_microbatch_v1` 标签的旧 JSON。
+
+| 策略 | Fleet NPU 利用率 | Active-window 利用率 | Makespan | P99 latency |
+|---|---:|---:|---:|---:|
+| Baseline / Path 0 | 44.943% | 94.322% | 6453.774 ms | 5317.867 ms |
+| Path RR | 44.901% | 92.821% | 6459.771 ms | 5391.892 ms |
+| Layer once | 44.826% | 93.066% | 6470.581 ms | 5392.078 ms |
+| Refresh 8 | 44.921% | 93.240% | 6456.891 ms | 5382.161 ms |
+| Refresh 1 | 44.926% | 93.232% | 6456.145 ms | 5382.090 ms |
+| Scheme B（所有更新频率） | 43.553% | 93.236% | 6659.748 ms | 5570.189 ms |
+| Causal Layer 0 Path0 → Scheme B | 44.943% | 92.648% | 6453.774 ms | 5510.491 ms |
+| Full-info EDF reference | 44.773% | 95.679% | 6478.293 ms | 5339.606 ms |
+
+Compute-only fleet 上界是 45.138%；baseline 已达到该上界的 99.567%。原 Scheme B
+把稳态 CIR 用于 layer-0 cold start，关键 NPU 119 的首层 barrier 从
+22.911 ms 增至 226.243 ms。严格因果混合方案的 Layer 0 固定使用 Path0；每个 NPU
+完成自己的上一层 I/O 后，只上报该层实际 bytes-by-SSU，控制器再为下一层计算
+max-min CIR。控制输入不含仿真时钟、未来 placement、Path pressure 或 SSD 队列，也没有
+global cold fence。它将关键 NPU 119 的 Layer-0 等待恢复到 22.911 ms，因此
+fleet 利用率和 makespan 与 baseline 相同；但初始满 batch 的平均 Layer-0 等待为
+215.910 ms，因此 P99 仍比 baseline 高 192.624 ms。原因是 baseline 中 Path0 虽只配置
+0.208333 GB/s CIR，但作为唯一活跃 Path 可以获得全部 work-conserving 剩余带宽；混合
+方案激活 warm 专属 Path 后，这些 Path 的 max-min CIR 接近占满每盘 40 GB/s，尚未完成
+Layer 0 的公共 Path0 失去剩余带宽。完整矩阵、cohort、逐层、实际最后完成者和控制开销见
+[`report.md`](results/full_prefill_microbatch/report.md) 和
+[`causal_full_matrix_report.md`](results/full_prefill_microbatch/causal_full_matrix_report.md)。
+
+![Full-prefill microbatch 结果](results/full_prefill_microbatch/01_full_prefill_microbatch_strategies.png)
+
+`results/continuous_prefill/`、`results/continuous_prefill_capacity_scan/` 和
+`results/continuous_batch_control/` 是旧 request-interleaved/slot-replacement 模型的
+历史产物，只能用于追溯，不能再作为 Full-prefill microbatch 的硬件结论。
 
 ## 运行
-
-需要 Python 3.9+：
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 
-# 五个路由策略：2 seed × 7 SSU × 5 策略，共 70 个 case
+# 五个路由策略：2 seed × 7 SSU × 5 策略
 python routing_refresh_concurrency_experiment.py --workers 10 --rerun
 
-# 容量约束参考候选：2 seed × 7 SSU，共 14 个 case
+# 受约束 oracle 候选：2 seed × 7 SSU
 python capacity_constrained_oracle_experiment.py --workers 10
 
-# 校验配对结果、生成报告和图片
+# Scheme B one-shot：2 seed × 7 SSU
+python scheme_b_prefill_experiment.py --workers 10
+
+# 严格校验配对数据并生成 JSON、Markdown 和主图
 python analyze_routing_refresh_concurrency.py
 
-# 快速测试，不运行正式大矩阵
-python -m unittest discover -s tests -v
+# Scheme-B continuous-batch 控制面：40 个严格配对 case
+python continuous_batch_experiment.py --workers 10 --rerun
+python analyze_continuous_batch.py
+
+# Full-prefill microbatch：5 个路由策略、5 个 Scheme-B 频率和 full-info reference
+python continuous_prefill_experiment.py --workers 8
+python analyze_continuous_prefill.py
+
+# 配对比较 baseline、原 Scheme B 与 Layer-0 Path0 混合方案
+python continuous_prefill_experiment.py \
+  --output results/full_prefill_microbatch/causal_layer0_comparison_results.json \
+  --workers 3 --case baseline --case scheme_b_once \
+  --case scheme_b_after_l0 --rerun
+python analyze_scheme_b_cold_start.py
+
+# 对完整 12 策略结果做 cohort、分层、尾部和控制开销分析
+python analyze_causal_full_matrix.py
+
+# 均衡六请求 batch=1：3 策略 × 7 SSU × 4 层数
+# 截止于最快 NPU 完成第 6 次推理；TTFT SLO 固定统计前 5 次
+python six_request_experiment.py --workers 8
+python analyze_six_request.py
 ```
 
-正式仿真耗时较长。runner 会逐 case checkpoint；不传 `--rerun` 时，只有
-代码、数据和配置指纹完全一致才会复用缓存。原始 JSON 被保留在最终结果
-目录中，方便只修改分析或绘图时避免重跑。
+runner 会逐 case checkpoint；不带 `--rerun` 时，只在代码、数据和配置指纹完全一致时复用缓存。
 
-## 项目结构
+## 文件
 
-- `sim.py`：离散事件引擎、Static QoS 仲裁、SSD→NPU 两级数据面。
-- `advanced_policies.py`：容量约束候选所需的调度优先级函数。
-- `strategy_profiles.py`：唯一的最终 Static CIR/Path 配置。
+- `sim.py`：精简离散事件引擎、ring-hash placement、Static QoS 与两级数据面。
+- `strategy_profiles.py`：唯一保留的 Static CIR/Path 配置。
 - `experiment.py`：结果压缩和原始 Matplotlib 画图函数。
-- `routing_refresh_concurrency_experiment.py`：五策略正式矩阵和多进程 checkpoint。
-- `capacity_constrained_oracle_experiment.py`：可行的容量约束参考候选。
-- `analyze_routing_refresh_concurrency.py`：严格校验、双 seed 聚合、报告和绘图。
-- `results/routing_refresh_concurrency/`：原始结果、聚合结果、报告和图片。
-- `tests/`：物理数据面、路由合同、Oracle 和分析管线测试。
+- `routing_refresh_concurrency_experiment.py`：五策略正式矩阵。
+- `capacity_constrained_oracle_experiment.py`：保持容量约束的 oracle 候选。
+- `analyze_routing_refresh_concurrency.py`：配对校验、聚合、报告和主图。
+- `continuous_batch_control.py`：方案 B 的容量受限 grant 与原子 CIR 提交控制器。
+- `scheme_b_prefill.py`：batch=1 one-shot demand、max-min grant 和 per-SSU CIR 计划。
+- `scheme_b_prefill_experiment.py`：Scheme B 的 14 个端到端配对 case。
+- `test_scheme_b_prefill.py`：grant、Path 映射、旧接口等价和数据面约束测试。
+- `continuous_batch_experiment.py`：稳态 continuous-batch、batch-size 和 KV 增长 trace。
+- `analyze_continuous_batch.py`：控制面覆盖、提交频率、写入量和尾部保护分析。
+- `continuous_prefill_workload.py`：batch8、随机尾部请求、NPU jitter 与 sticky ring placement。
+- `continuous_prefill_client.py`：五个旧客户端配置和 Scheme B grant/CIR 生成。
+- `continuous_batch_sim.py`：固定 Full-prefill microbatch、层 barrier、联合 compute、SSD40、NPU50 的端到端 DES。
+- `continuous_prefill_experiment.py`：28 SSU 单点策略矩阵与真实 batch-layer 更新频率扫描。
+- `analyze_continuous_prefill.py`：执行模型/配对/守恒校验、compute-only 上界、报告和结果图。
+- `analyze_scheme_b_cold_start.py`：分解 Layer 0 与后 15 层等待，输出三策略 cold-start 配对报告。
+- `analyze_causal_full_matrix.py`：校验并分解完整 12 策略 Full-prefill 矩阵。
+- `six_request_workload.py`：为 128 个 NPU 构造计算量和 KV 量误差低于 0.1% 的六请求均衡压力输入。
+- `six_request_experiment.py`：比较 baseline、因果 Scheme B 和 Full-info EDF，并在最快第 6 次完成处裁剪全系统利用率。
+- `analyze_six_request.py`：严格检查前五请求 SLO cohort，生成 16/24/56/80 层对比图和报告。
+- `test_continuous_batch_sim.py`：动态 max-min 一致性、wall-clock 更新与端到端守恒测试。
+- `test_full_prefill_microbatch_sim.py`：固定成员、层 barrier、整批预取/完成和计算工作守恒测试。
+- `data`：请求画像输入。
+- `requirements.txt`：运行依赖。
+- `results/routing_refresh_concurrency/`：正式原始结果与生成物。
 
-## 模型限制
+## 模型边界
 
-- Path pressure 读取被视为零延迟、无丢失。
-- 0.1 µs 是用于允许真实事件插入的因果参数，不是特定 NPU 的实测时延。
-- 未建模固定 NAND/协议延迟、QD 吞吐曲线、channel/die 并行和 buffer 反压。
-- packetized WFQ 是 CIR/WRR 服务机会的命令级近似，不对应某款 SSD 的完整
-  token-bucket 微架构。
-- 容量约束参考是 best observed feasible schedule，不是带最优性证书的上界。
+- Path pressure 读取视为零延迟且无丢失。
+- 未建模固定 NAND/协议延迟、channel/die 并行、QD 吞吐曲线和 buffer 反压。
+- QoS 使用命令级 CIR/WRR 近似，不对应某款 SSD 的完整微架构。
+- Full-prefill 实验固定 batch 成员，未建模 chunked prefill 或 decode iteration-level continuous batching。
+- batch compute 使用 singleton 工作量相加的代理；仓库没有真实 batch kernel 的硬件测量。
+- 画像 KV 字段实际按 GiB 计算，但为保持历史配对暂未转换为十进制 GB；绝对容量需按该单位假设解读。
+- 动态 CIR 原子影响后续命令仲裁，不抢占正在服务的 SSD 命令；没有逐 token 模拟 bucket depth、credit/debt 或配置传播延迟。
