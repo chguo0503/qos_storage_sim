@@ -132,22 +132,19 @@ def compact_summary(full):
         "request_metrics": full["request_metrics"],
     }
 
-def plot_results(data, output_path):
-    """Plot one or more SSU utilization series with the original style."""
-    import matplotlib
 
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-
+def plot_axis(axis, data):
+    """Plot SSU series on one axis with the original experiment style."""
     ssus = data["ssus"]
-    figure, axis = plt.subplots(figsize=(10, 6))
     for series in data["series"]:
+        plot_kwargs = dict(series.get("plot_kwargs", {}))
         axis.plot(
             ssus,
             series["values"],
             series.get("style", "o-"),
             linewidth=2.2,
             label=series["label"],
+            **plot_kwargs,
         )
     axis.set(
         xlabel="Number of SSUs",
@@ -175,6 +172,17 @@ def plot_results(data, output_path):
         axis.legend(handles, labels, **legend)
     else:
         axis.legend(**legend)
+
+
+def plot_results(data, output_path):
+    """Plot one or more SSU utilization series with the original style."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    figure, axis = plt.subplots(figsize=(10, 6))
+    plot_axis(axis, data)
     figure.tight_layout()
     output_path.parent.mkdir(parents=True, exist_ok=True)
     figure.savefig(output_path, dpi=180)

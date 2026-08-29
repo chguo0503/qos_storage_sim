@@ -26,6 +26,13 @@ LABELS = {
     "modified_scheme_b": "Scheme B + manifest/CIR prefetch",
     "modified_best_feasible": "Best feasible reference + L0 prefetch",
 }
+PLOT_LABELS = {
+    "modified_baseline": "Baseline",
+    "modified_layer_once": "Read once/layer",
+    "modified_refresh8": "Refresh8",
+    "modified_scheme_b": "Scheme B",
+    "modified_best_feasible": "Best feasible",
+}
 COLORS = {
     "modified_baseline": "#4C78A8",
     "modified_layer_once": "#59A14F",
@@ -604,20 +611,28 @@ def write_layer16_plot(path, analysis):
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
+    from experiment import plot_axis
+
     n_layers = 16
     ssus = analysis["ssu_list"]
     if n_layers not in analysis["layer_list"]:
         raise ValueError("16-layer results are missing from the analysis")
 
-    figure, axes = plt.subplots(1, 2, figsize=(15.5, 6.2), sharex=True)
+    figure, axes = plt.subplots(1, 2, figsize=(20, 6), sharex=True)
     metric_specs = (
         (
             "mean_npu_utilization",
+            "16-layer mean per-NPU utilization",
             "Mean per-NPU utilization (%)",
         ),
-        ("ttft_slo", f"TTFT SLO attainment @ {PLOT_ALPHA:g}x (%)"),
+        (
+            "ttft_slo",
+            f"16-layer TTFT processing SLO @ {PLOT_ALPHA:g}x",
+            f"TTFT SLO attainment @ {PLOT_ALPHA:g}x (%)",
+        ),
     )
-    for axis, (metric_name, ylabel) in zip(axes, metric_specs):
+    for axis, (metric_name, title, ylabel) in zip(axes, metric_specs):
+        series = []
         for strategy in analysis["strategies"]:
             for cohort, linestyle in (("cold", "-"), ("warm", "--")):
                 values = []
@@ -631,34 +646,31 @@ def write_layer16_plot(path, analysis):
                         else point[metric_name][_alpha_key(PLOT_ALPHA)]["attainment"]
                     )
                     values.append(100.0 * value)
-                axis.plot(
-                    ssus,
-                    values,
-                    color=COLORS[strategy],
-                    marker=MARKERS[strategy],
-                    linestyle=linestyle,
-                    linewidth=2.2,
-                    markersize=6.5,
-                    label=f"{LABELS[strategy]} — {cohort}",
+                series.append(
+                    {
+                        "label": f"{PLOT_LABELS[strategy]} — {cohort}",
+                        "style": f"{MARKERS[strategy]}{linestyle}",
+                        "values": values,
+                        "plot_kwargs": {"color": COLORS[strategy]},
+                    }
                 )
-        axis.set_xlabel("Number of SSUs")
-        axis.set_ylabel(ylabel)
-        axis.set_xticks(ssus)
-        axis.set_ylim(0.0, 100.0)
-        axis.grid(alpha=0.25)
+        plot_axis(
+            axis,
+            {
+                "ssus": ssus,
+                "series": series,
+                "title": title,
+                "ylabel": ylabel,
+                "legend": {
+                    "loc": "lower right",
+                    "ncol": 2,
+                    "row_major": True,
+                },
+            },
+        )
 
-    handles, labels = axes[0].get_legend_handles_labels()
-    figure.legend(
-        handles,
-        labels,
-        loc="upper center",
-        ncol=len(analysis["strategies"]),
-        frameon=False,
-        bbox_to_anchor=(0.5, 1.01),
-    )
-    figure.suptitle("16 layers: cold and warm requests", y=0.91)
-    figure.tight_layout(rect=(0.0, 0.0, 1.0, 0.86))
-    figure.savefig(path, dpi=180, bbox_inches="tight")
+    figure.tight_layout()
+    figure.savefig(path, dpi=180)
     plt.close(figure)
 
 
