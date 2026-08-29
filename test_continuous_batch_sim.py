@@ -6,6 +6,8 @@ from continuous_batch_sim import (
     ContinuousBatchRequest,
     ControlRequestView,
     MaxMinSchemeBController,
+    SteadyStateConfig,
+    _steady_block_bounds,
     simulate_continuous_batch,
 )
 from continuous_prefill_client import static_qos_config
@@ -13,7 +15,7 @@ from policy_logic import ManifestDemand, plan_scheme_b
 from scheme_b_prefill import PATH_COUNT, dedicated_path_id
 
 
-def request(request_id, npu_id, arrival_ms=0.0, layers=3):
+def request(request_id, npu_id, arrival_ms=0.0, layers=3, sequence=0):
     return ContinuousBatchRequest(
         request_id=request_id,
         npu_id=npu_id,
@@ -21,6 +23,7 @@ def request(request_id, npu_id, arrival_ms=0.0, layers=3):
         load={
             "request_id": request_id,
             "npu_id": npu_id,
+            "stream_id": sequence,
             "category": "SS",
             "per_layer_us": 100_000.0,
             "initial": arrival_ms == 0.0,
@@ -30,6 +33,15 @@ def request(request_id, npu_id, arrival_ms=0.0, layers=3):
 
 
 class ContinuousBatchSimTest(unittest.TestCase):
+    def test_steady_blocks_ignore_floating_point_window_drift(self):
+        start_ms = 19_403.123456789
+        end_ms = start_ms + 2_000.0
+        blocks = _steady_block_bounds(start_ms, end_ms, 2_000.0, 500.0)
+
+        self.assertEqual(len(blocks), 4)
+        self.assertEqual([duration for _, _, duration in blocks], [500.0] * 4)
+        self.assertEqual(blocks[-1][1], end_ms)
+
     def test_sticky_manifest_preserves_layer_order_float_accumulation(self):
         sticky = ContinuousBatchRequest(
             request_id=0,
@@ -97,6 +109,34 @@ class ContinuousBatchSimTest(unittest.TestCase):
         self.assertTrue(all(summary["invariants"].values()))
         self.assertEqual(summary["request_count"], 2)
         self.assertEqual(summary["submitted_blocks"], 6)
+
+    def test_steady_state_uses_common_window_and_drains_tagged_requests(self):
+        requests = tuple(
+            request(sequence * 2 + npu_id, npu_id, sequence=sequence)
+            for sequence in range(8)
+            for npu_id in range(2)
+        )
+        summary = simulate_continuous_batch(
+            requests,
+            num_npu=2,
+            num_ssu=1,
+            n_layers=3,
+            batch_size=1,
+            qos_config=static_qos_config(),
+            cross_request_layer0_prefetch=True,
+            steady_state=SteadyStateConfig(
+                warmup_requests_per_npu=1,
+                settle_ms=0.0,
+                measurement_ms=300.0,
+                block_ms=100.0,
+            ),
+        )
+        self.assertEqual(summary["mode"], "steady_state_full_load")
+        self.assertEqual(summary["measurement_duration_ms"], 300.0)
+        self.assertTrue(all(summary["invariants"].values()))
+        self.assertGreaterEqual(min(summary["request_counts_by_npu"]), 1)
+        self.assertFalse(summary["all_input_requests_completed"])
+        self.assertGreaterEqual(summary["drain_stop_ms"], summary["measurement_end_ms"])
 
 
 if __name__ == "__main__":

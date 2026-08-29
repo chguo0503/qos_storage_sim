@@ -31,6 +31,8 @@ from policy_logic import (
 
 REQUEST_ARRIVAL = -1
 BATCH_DISPATCH = -0.5
+STEADY_MEASUREMENT_START = -2.0
+STEADY_MEASUREMENT_END = -1.5
 CIR_CONTROL = 2.5
 COMPUTE_SCHEDULE = 2.75
 CAUSAL_LAYER_CONTROL = 2.875
@@ -223,6 +225,17 @@ CausalLayerControlCallback = Callable[
 @dataclass(frozen=True)
 class CausalLayerControlConfig:
     callback: CausalLayerControlCallback
+
+
+@dataclass(frozen=True)
+class SteadyStateConfig:
+    """Measure one common full-load window after a finite warm-up."""
+
+    warmup_requests_per_npu: int = 4
+    settle_ms: float = 500.0
+    measurement_ms: float = 2_000.0
+    slo_alpha: float = 2.0
+    block_ms: float = 500.0
 
 
 class MaxMinSchemeBController:
@@ -509,6 +522,7 @@ class _Context:
         client_io_config: sim.ClientIOConfig,
         control: Optional[CIRControlConfig],
         causal_control: Optional[CausalLayerControlConfig],
+        steady_state: Optional[SteadyStateConfig],
         disk_bw_gbps: float,
         npu_bw_gbps: float,
         submit_order_seed: int,
@@ -526,6 +540,7 @@ class _Context:
         self.client_io_config = client_io_config
         self.control = control
         self.causal_control = causal_control
+        self.steady_state = steady_state
         self.disk_bw_gbps = disk_bw_gbps
         self.npu_bw_gbps = npu_bw_gbps
         self.submit_rng = np.random.RandomState(int(submit_order_seed))
@@ -601,6 +616,15 @@ class _Context:
         self.cir_commits = 0
         self.cir_path_writes = 0
         self.max_cir_sum_gbps = 0.0
+        self.completed_by_npu = [0] * num_npu
+        self.steady_warmup_reached_ms: Optional[float] = None
+        self.measurement_start_ms: Optional[float] = None
+        self.measurement_end_ms: Optional[float] = None
+        self.measurement_open = False
+        self.measurement_ended = False
+        self.measurement_request_ids: set[int] = set()
+        self.measurement_completed_ids: set[int] = set()
+        self.steady_backlog_exhausted = False
 
         self.microbatches: list[_MicrobatchState] = []
         self.next_batch_id = 0
@@ -1063,6 +1087,11 @@ def _handle_batch_dispatch(
         request.admission_time_ms = current_time_ms
         request.batch_id = batch.batch_id
         request.batch_size = len(member_ids)
+        if (
+            context.measurement_open
+            and current_time_ms < context.measurement_end_ms
+        ):
+            context.measurement_request_ids.add(request_id)
     if len(member_ids) == 1:
         request = context.requests[member_ids[0]]
         if request.io_started[0]:
@@ -1210,6 +1239,35 @@ def _schedule_control_if_due(context: _Context, current_time_ms: float):
         _queue_control_event(context, current_time_ms, "fleet_layer")
 
 
+def _handle_steady_measurement_start(context: _Context, current_time_ms: float):
+    context.measurement_start_ms = current_time_ms
+    context.measurement_end_ms = current_time_ms + context.steady_state.measurement_ms
+    context.measurement_open = True
+    context.measurement_request_ids.update(
+        request.manifest.request_id
+        for request in context.requests.values()
+        if request.admitted
+        and abs(request.admission_time_ms - current_time_ms) <= _EPS
+    )
+    if any(
+        npu.active_batch is None
+        and not npu.batch_dispatch_pending
+        and not npu.admission_queue
+        for npu in context.npus
+    ):
+        context.steady_backlog_exhausted = True
+    context.push_event(
+        context.measurement_end_ms,
+        STEADY_MEASUREMENT_END,
+        0,
+    )
+
+
+def _handle_steady_measurement_end(context: _Context):
+    context.measurement_open = False
+    context.measurement_ended = True
+
+
 def _complete_microbatch(
     context: _Context,
     npu: _NPUState,
@@ -1224,11 +1282,34 @@ def _complete_microbatch(
         request.placement_groups = None
         request.completed_gb_by_layer_ssu = []
     context.completed_requests += len(batch.member_request_ids)
+    context.completed_by_npu[npu.npu_id] += len(batch.member_request_ids)
+    context.measurement_completed_ids.update(
+        request_id
+        for request_id in batch.member_request_ids
+        if request_id in context.measurement_request_ids
+    )
     npu.last_completion_ms = current_time_ms
     npu.active_batch = None
+    if (
+        context.steady_state is not None
+        and context.steady_warmup_reached_ms is None
+        and min(context.completed_by_npu)
+        >= context.steady_state.warmup_requests_per_npu
+    ):
+        context.steady_warmup_reached_ms = current_time_ms
+        context.push_event(
+            current_time_ms + context.steady_state.settle_ms,
+            STEADY_MEASUREMENT_START,
+            0,
+        )
     _queue_control_event(context, current_time_ms, "batch_boundary")
     _queue_causal_control_event(context, current_time_ms)
     _schedule_batch_dispatch(context, npu, current_time_ms)
+    if (
+        context.steady_warmup_reached_ms is not None
+        and not npu.admission_queue
+    ):
+        context.steady_backlog_exhausted = True
 
 
 def _handle_compute_done(
@@ -1574,6 +1655,203 @@ def _input_fingerprint(requests: Sequence[ContinuousBatchRequest]):
 
 def _percentile(values, percentile):
     return float(np.percentile(values, percentile)) if values else 0.0
+
+
+def _window_overlap_ms(start_ms, end_ms, window_start_ms, window_end_ms):
+    return max(
+        0.0,
+        min(end_ms, window_end_ms) - max(start_ms, window_start_ms),
+    )
+
+
+def _steady_block_bounds(window_start_ms, window_end_ms, measurement_ms, block_ms):
+    """Build positive blocks from configured durations, not float subtraction."""
+    block_count = int(math.ceil(measurement_ms / block_ms))
+    bounds = []
+    for block in range(block_count):
+        offset_ms = block * block_ms
+        duration_ms = min(block_ms, measurement_ms - offset_ms)
+        block_start_ms = window_start_ms + offset_ms
+        block_end_ms = (
+            window_end_ms
+            if block + 1 == block_count
+            else block_start_ms + duration_ms
+        )
+        bounds.append((block_start_ms, block_end_ms, duration_ms))
+    return tuple(bounds)
+
+
+def _build_steady_state_summary(context: _Context, current_time_ms, events_processed):
+    config = context.steady_state
+    window_start_ms = context.measurement_start_ms
+    window_end_ms = context.measurement_end_ms
+    duration_ms = config.measurement_ms
+    compute_ms_by_npu = [0.0] * context.num_npu
+    block_bounds = _steady_block_bounds(
+        window_start_ms,
+        window_end_ms,
+        config.measurement_ms,
+        config.block_ms,
+    )
+    block_compute_ms = [0.0] * len(block_bounds)
+    for batch in context.microbatches:
+        for metric in batch.layer_metrics:
+            if not (
+                math.isfinite(metric.compute_start_ms)
+                and math.isfinite(metric.compute_end_ms)
+            ):
+                continue
+            overlap_ms = _window_overlap_ms(
+                metric.compute_start_ms,
+                metric.compute_end_ms,
+                window_start_ms,
+                window_end_ms,
+            )
+            compute_ms_by_npu[batch.npu_id] += overlap_ms
+            for block, (block_start_ms, block_end_ms, _) in enumerate(
+                block_bounds
+            ):
+                block_compute_ms[block] += _window_overlap_ms(
+                    metric.compute_start_ms,
+                    metric.compute_end_ms,
+                    block_start_ms,
+                    block_end_ms,
+                )
+
+    request_rows = []
+    outcomes_by_npu = [[] for _ in range(context.num_npu)]
+    for request_id in sorted(context.measurement_request_ids):
+        request = context.requests[request_id]
+        ideal_ttft_ms = context.n_layers * request.per_layer_compute_ms
+        ttft_ms = request.completion_time_ms - request.admission_time_ms
+        slo_met = ttft_ms <= config.slo_alpha * ideal_ttft_ms + _EPS
+        outcomes_by_npu[request.manifest.npu_id].append(slo_met)
+        request_rows.append(
+            {
+                "request_id": request_id,
+                "npu_id": request.manifest.npu_id,
+                "sequence": int(request.manifest.load["stream_id"]),
+                "category": request.category,
+                "admission_time_ms": request.admission_time_ms,
+                "completion_time_ms": request.completion_time_ms,
+                "ttft_ms": ttft_ms,
+                "ideal_ttft_ms": ideal_ttft_ms,
+                "slo_met": bool(slo_met),
+            }
+        )
+
+    request_counts_by_npu = [len(rows) for rows in outcomes_by_npu]
+    all_npus_sampled = all(request_counts_by_npu)
+    exact_measurement_request_ids = {
+        request.manifest.request_id
+        for request in context.requests.values()
+        if request.admitted
+        and window_start_ms <= request.admission_time_ms < window_end_ms
+    }
+    per_npu_slo = [float(np.mean(rows)) for rows in outcomes_by_npu if rows]
+    npu_utilizations = [busy_ms / duration_ms for busy_ms in compute_ms_by_npu]
+    block_rows = []
+    for block, (compute_ms, bounds) in enumerate(
+        zip(block_compute_ms, block_bounds)
+    ):
+        block_start_ms, block_end_ms, block_duration_ms = bounds
+        admitted = [
+            row
+            for row in request_rows
+            if block_start_ms <= row["admission_time_ms"] < block_end_ms
+        ]
+        block_rows.append(
+            {
+                "block": block,
+                "start_ms": block_start_ms,
+                "end_ms": block_end_ms,
+                "npu_utilization": compute_ms
+                / (context.num_npu * block_duration_ms),
+                "request_count": len(admitted),
+                "request_weighted_slo_attainment": float(
+                    np.mean([row["slo_met"] for row in admitted])
+                )
+                if admitted
+                else None,
+            }
+        )
+
+    invariants = {
+        "warmup_reached_all_npus": min(context.completed_by_npu)
+        >= config.warmup_requests_per_npu,
+        "measurement_window_closed": context.measurement_ended,
+        "measurement_duration_exact": math.isclose(
+            window_end_ms - window_start_ms,
+            config.measurement_ms,
+            rel_tol=0.0,
+            abs_tol=1e-9,
+        ),
+        "all_npus_sampled_for_slo": all_npus_sampled,
+        "all_tagged_requests_completed": (
+            context.measurement_completed_ids == context.measurement_request_ids
+        ),
+        "tagged_admissions_inside_window": all(
+            window_start_ms <= row["admission_time_ms"] < window_end_ms
+            for row in request_rows
+        ),
+        "all_window_admissions_tagged": context.measurement_request_ids
+        == exact_measurement_request_ids,
+        "no_backlog_exhaustion": not context.steady_backlog_exhausted,
+        "compute_overlap_bounds": all(
+            -_EPS <= busy_ms <= duration_ms + _EPS
+            for busy_ms in compute_ms_by_npu
+        ),
+        "one_command_per_ssd": all(
+            disk.scheduler.max_backend_active_io <= 1 for disk in context.disks
+        ),
+        "cir_capacity": context.max_cir_sum_gbps
+        <= context.disk_bw_gbps + 1e-9,
+    }
+    if not all(invariants.values()):
+        raise AssertionError(f"steady-state invariant failed: {invariants}")
+
+    ttfts = [row["ttft_ms"] for row in request_rows]
+    return {
+        "schema_version": 1,
+        "mode": "steady_state_full_load",
+        "num_npu": context.num_npu,
+        "num_ssu": context.num_ssu,
+        "n_layers": context.n_layers,
+        "batch_size": context.batch_size,
+        "warmup_requests_per_npu": config.warmup_requests_per_npu,
+        "warmup_reached_ms": context.steady_warmup_reached_ms,
+        "settle_ms": config.settle_ms,
+        "measurement_start_ms": window_start_ms,
+        "measurement_end_ms": window_end_ms,
+        "measurement_duration_ms": duration_ms,
+        "drain_stop_ms": current_time_ms,
+        "tail_drain_ms": current_time_ms - window_end_ms,
+        "slo_alpha": config.slo_alpha,
+        "mean_npu_utilization": float(np.mean(npu_utilizations)),
+        "npu_utilizations": npu_utilizations,
+        "compute_ms_by_npu": compute_ms_by_npu,
+        "ttft_slo_attainment": float(np.mean(per_npu_slo)),
+        "request_weighted_slo_attainment": float(
+            np.mean([row["slo_met"] for row in request_rows])
+        ),
+        "mean_ttft_ms": float(np.mean(ttfts)),
+        "p99_ttft_ms": _percentile(ttfts, 99),
+        "measurement_request_count": len(request_rows),
+        "request_counts_by_npu": request_counts_by_npu,
+        "request_rows": request_rows,
+        "measurement_blocks": block_rows,
+        "completed_by_npu_at_stop": context.completed_by_npu,
+        "all_input_requests_completed": context.completed_requests
+        == len(context.requests),
+        "events_processed": events_processed,
+        "pressure_reports": sum(
+            disk.scheduler.pressure_reports for disk in context.disks
+        ),
+        "control_evaluations": context.control_evaluations,
+        "cir_commits": context.cir_commits,
+        "cir_path_writes": context.cir_path_writes,
+        "invariants": invariants,
+    }
 
 
 def _build_summary(context: _Context, requests, current_time_ms, events_processed):
@@ -1929,6 +2207,7 @@ def simulate_continuous_batch(
     client_io_config: sim.ClientIOConfig = sim.DEFAULT_CLIENT_IO_CONFIG,
     control: Optional[CIRControlConfig] = None,
     causal_control: Optional[CausalLayerControlConfig] = None,
+    steady_state: Optional[SteadyStateConfig] = None,
     disk_bw_gbps: float = sim.DISK_BW,
     npu_bw_gbps: float = sim.NPU_BW_LIMIT,
     submit_order_seed: int = 42,
@@ -1952,6 +2231,15 @@ def simulate_continuous_batch(
         raise ValueError("simulation dimensions must be positive")
     if cross_request_layer0_prefetch and batch_size != 1:
         raise ValueError("cross-request Layer-0 prefetch requires batch_size=1")
+    if steady_state is not None and (
+        batch_size != 1
+        or steady_state.warmup_requests_per_npu <= 0
+        or steady_state.settle_ms < 0.0
+        or steady_state.measurement_ms <= 0.0
+        or steady_state.slo_alpha <= 0.0
+        or steady_state.block_ms <= 0.0
+    ):
+        raise ValueError("steady-state measurement configuration is invalid")
     if policy not in sim.SUPPORTED_POLICIES:
         raise ValueError(f"unsupported policy: {policy}")
     if len({request.request_id for request in requests}) != len(requests):
@@ -2045,6 +2333,7 @@ def simulate_continuous_batch(
         client_io_config=client_io_config,
         control=control,
         causal_control=causal_control,
+        steady_state=steady_state,
         disk_bw_gbps=float(disk_bw_gbps),
         npu_bw_gbps=float(npu_bw_gbps),
         submit_order_seed=int(submit_order_seed),
@@ -2083,7 +2372,11 @@ def simulate_continuous_batch(
         context.current_time_ms = current_time_ms
         context.event_counts[event_type] += 1
         events_processed += 1
-        if event_type == REQUEST_ARRIVAL:
+        if event_type == STEADY_MEASUREMENT_START:
+            _handle_steady_measurement_start(context, current_time_ms)
+        elif event_type == STEADY_MEASUREMENT_END:
+            _handle_steady_measurement_end(context)
+        elif event_type == REQUEST_ARRIVAL:
             _handle_arrival(context, context.pop_payload(value), current_time_ms)
         elif event_type == BATCH_DISPATCH:
             _handle_batch_dispatch(context, resource_id, current_time_ms)
@@ -2123,4 +2416,22 @@ def simulate_continuous_batch(
         else:
             raise RuntimeError(f"unknown event type: {event_type}")
 
+        if (
+            steady_state is not None
+            and context.measurement_ended
+            and context.measurement_completed_ids
+            == context.measurement_request_ids
+        ):
+            break
+
+    if steady_state is not None:
+        if (
+            context.measurement_start_ms is None
+            or context.measurement_end_ms is None
+            or not context.measurement_ended
+        ):
+            raise RuntimeError(
+                "steady-state input ended before the measurement window closed"
+            )
+        return _build_steady_state_summary(context, current_time_ms, events_processed)
     return _build_summary(context, requests, current_time_ms, events_processed)
