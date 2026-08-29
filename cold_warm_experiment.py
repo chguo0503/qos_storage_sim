@@ -1,4 +1,4 @@
-"""Modified baseline/Scheme-B cold-versus-warm six-request experiment."""
+"""Routing/Scheme-B cold-versus-warm six-request experiment."""
 
 from __future__ import annotations
 
@@ -37,7 +37,7 @@ from six_request_workload import (
 
 ROOT = Path(__file__).resolve().parent
 OUTPUT = ROOT / "results" / "cold_warm_modified" / "results.json"
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 3
 SSU_LIST = (40, 56, 70)
 
 
@@ -49,18 +49,22 @@ class Case:
 
 CASES = (
     Case("modified_baseline", "routing"),
+    Case("modified_layer_once", "routing"),
+    Case("modified_refresh8", "routing"),
     Case("modified_scheme_b", "causal_scheme_b"),
 )
 CASE_BY_NAME = {case.name: case for case in CASES}
 RUNTIME_WEIGHTS = {
     "modified_baseline": 1.0,
+    "modified_layer_once": 2.0,
+    "modified_refresh8": 3.0,
     "modified_scheme_b": 1.22,
 }
 _WORKER_TABLE = None
 
 
 def _source_fingerprint():
-    digest = hashlib.sha256(b"six-request-cold-warm-modified-v1\0")
+    digest = hashlib.sha256(b"six-request-cold-warm-modified-v3\0")
     for name in (
         "sim.py",
         "policy_logic.py",
@@ -95,13 +99,14 @@ def _simulate(case, requests, *, num_ssu, n_layers):
         "cross_request_layer0_prefetch": True,
     }
     if case.kind == "routing":
-        baseline = next(
-            spec for spec in routing_strategy_specs() if spec.name == "baseline"
+        routing_name = case.name.removeprefix("modified_")
+        routing_strategy = next(
+            spec for spec in routing_strategy_specs() if spec.name == routing_name
         )
         return simulate_continuous_batch(
             requests,
             qos_config=static_qos_config(),
-            client_io_config=baseline.client_config(),
+            client_io_config=routing_strategy.client_config(),
             **kwargs,
         )
 
@@ -138,6 +143,19 @@ def _compact(case, num_ssu, n_layers, workload, summary, wall_time_s):
         raise AssertionError(
             "Scheme B must configure every warm Layer-0 prefetch from its manifest"
         )
+    expected_pressure_reads = case.name in (
+        "modified_layer_once",
+        "modified_refresh8",
+    )
+    if (summary["pressure_reports"] > 0) != expected_pressure_reads:
+        raise AssertionError(
+            "only pressure-aware routing may read Path pressure"
+        )
+    if case.kind == "routing" and any(
+        summary[field]
+        for field in ("control_evaluations", "cir_commits", "cir_path_writes")
+    ):
+        raise AssertionError("routing strategies must not run the CIR controller")
     return {
         "strategy": case.name,
         "kind": case.kind,

@@ -115,11 +115,15 @@ class ContinuousPrefillClientTest(unittest.TestCase):
 
         self.assertEqual(
             [spec.name for spec in specs],
-            ["baseline", "refresh8"],
+            ["baseline", "layer_once", "refresh8"],
         )
         self.assertEqual(
             [spec.pressure_window_io for spec in specs],
-            [None, 8],
+            [None, None, 8],
+        )
+        self.assertEqual(
+            [spec.path_selection_mode for spec in specs],
+            ["fixed_path_zero", "pressure_aware", "pressure_aware"],
         )
 
 

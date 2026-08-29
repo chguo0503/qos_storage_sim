@@ -17,6 +17,7 @@ from policy_logic import (
     baseline_path_ids,
     category_path_ids,
     hardware_view,
+    layer_once_path_ids,
     oracle_priority_key,
     plan_causal_scheme_b,
     plan_scheme_b,
@@ -107,6 +108,29 @@ def test_pressure_routing_is_numerically_identical_to_existing_sim(sizes, golden
     )
     assert actual == expected == golden
     assert refresh8_path_ids(
+        sizes,
+        pure_pressure,
+        allowed,
+        pure_qos,
+        disk_bw_gbps=sim.DISK_BW,
+        start_offset=17,
+    ) == expected
+
+
+def test_layer_once_accepts_more_than_a_refresh8_window():
+    existing_qos = FINAL_STATIC.hardware_config()
+    pure_qos = hardware_view(existing_qos)
+    existing_pressure = _pressure_fixture()
+    pure_pressure = pressure_snapshot(existing_pressure)
+    allowed = sim.client_category_paths("SS", existing_qos)
+    sizes = (0.001,) * 9
+    config = sim.ClientRoutingConfig(existing_qos, sim.DISK_BW, start_offset=17)
+    expected = tuple(
+        sim._select_qos_paths_from_analysis(
+            sizes, existing_pressure, allowed, config
+        )
+    )
+    assert layer_once_path_ids(
         sizes,
         pure_pressure,
         allowed,

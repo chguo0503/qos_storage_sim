@@ -21,6 +21,7 @@ from continuous_batch_sim import (
     simulate_continuous_batch,
 )
 from continuous_prefill_client import (
+    routing_strategy_specs,
     static_qos_config,
     qos_configs_from_path_cirs,
     scheme_b_client_config,
@@ -219,6 +220,104 @@ def test_batch1_prefetches_next_request_layer0_during_final_compute():
     assert summary["cross_request_layer0_prefetches"] == 1
     assert summary["manifest_layer0_prefetches"] == 0
     assert all(summary["invariants"].values())
+
+
+def test_refresh8_prefetches_next_request_and_reads_path_pressure():
+    requests = (
+        _request(0, per_layer_compute_ms=10.0, n_layers=2),
+        _request(1, per_layer_compute_ms=3.0, n_layers=2),
+    )
+    refresh8 = next(
+        spec for spec in routing_strategy_specs() if spec.name == "refresh8"
+    )
+    summary = simulate_continuous_batch(
+        requests,
+        num_npu=1,
+        num_ssu=1,
+        n_layers=2,
+        batch_size=1,
+        qos_config=static_qos_config(),
+        client_io_config=refresh8.client_config(),
+        cross_request_layer0_prefetch=True,
+    )
+
+    first_batch, second_batch = _batches(summary)
+    second = _requests(summary)[1]
+    assert second["layer0_cross_request_prefetched"]
+    assert second_batch["layer_metrics"][0]["io_start_time_ms"] == pytest.approx(
+        first_batch["layer_metrics"][-1]["compute_start_ms"]
+    )
+    assert second_batch["layer_metrics"][0]["io_start_time_ms"] < second[
+        "admission_time_ms"
+    ]
+    assert summary["cross_request_layer0_prefetches"] == 1
+    assert summary["manifest_layer0_prefetches"] == 0
+    assert summary["pressure_reports"] > 0
+    assert all(summary["invariants"].values())
+
+
+def test_layer_once_prefetches_next_request_and_reads_path_pressure_once_per_state():
+    requests = (
+        _request(0, per_layer_compute_ms=10.0, n_layers=2),
+        _request(1, per_layer_compute_ms=3.0, n_layers=2),
+    )
+    layer_once = next(
+        spec for spec in routing_strategy_specs() if spec.name == "layer_once"
+    )
+    summary = simulate_continuous_batch(
+        requests,
+        num_npu=1,
+        num_ssu=1,
+        n_layers=2,
+        batch_size=1,
+        qos_config=static_qos_config(),
+        client_io_config=layer_once.client_config(),
+        cross_request_layer0_prefetch=True,
+    )
+
+    first_batch, second_batch = _batches(summary)
+    second = _requests(summary)[1]
+    assert second["layer0_cross_request_prefetched"]
+    assert second_batch["layer_metrics"][0]["io_start_time_ms"] == pytest.approx(
+        first_batch["layer_metrics"][-1]["compute_start_ms"]
+    )
+    assert second_batch["layer_metrics"][0]["io_start_time_ms"] < second[
+        "admission_time_ms"
+    ]
+    assert summary["cross_request_layer0_prefetches"] == 1
+    assert summary["manifest_layer0_prefetches"] == 0
+    assert summary["pressure_reports"] == 4
+    assert all(summary["invariants"].values())
+
+
+def test_layer_once_and_refresh8_use_one_vs_two_snapshots_for_nine_blocks():
+    request = _request(
+        0,
+        placement=(((0, 0.001),) * 9,),
+    )
+    summaries = {}
+    for strategy_name in ("layer_once", "refresh8"):
+        strategy = next(
+            spec
+            for spec in routing_strategy_specs()
+            if spec.name == strategy_name
+        )
+        summaries[strategy_name] = simulate_continuous_batch(
+            (request,),
+            num_npu=1,
+            num_ssu=1,
+            n_layers=1,
+            batch_size=1,
+            qos_config=static_qos_config(),
+            client_io_config=strategy.client_config(),
+        )
+
+    assert summaries["layer_once"]["pressure_reports"] == 1
+    assert summaries["refresh8"]["pressure_reports"] == 2
+    for summary in summaries.values():
+        assert summary["submitted_blocks"] == 9
+        assert summary["expected_read_gb"] == pytest.approx(0.009)
+        assert all(summary["invariants"].values())
 
 
 def test_cross_request_prefetch_does_not_retroactively_start_on_late_arrival():

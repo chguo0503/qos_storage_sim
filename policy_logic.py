@@ -7,6 +7,7 @@ snapshots and consumes the returned Path IDs / CIR table.
 Public policy boundary
 ----------------------
 * baseline: :func:`baseline_path_ids`
+* layer-once: :func:`layer_once_path_ids`
 * refresh8: :func:`refresh8_path_ids`
 * Scheme B: :func:`plan_scheme_b` and :func:`plan_causal_scheme_b`
 * feasible oracle comparator: :func:`oracle_priority_key`
@@ -48,6 +49,8 @@ __all__ = (
     "pressure_snapshot",
     "category_path_ids",
     "baseline_path_ids",
+    "pressure_aware_path_ids",
+    "layer_once_path_ids",
     "refresh8_path_ids",
     "dedicated_path_id",
     "cold_start_hybrid_path_id",
@@ -441,6 +444,26 @@ def pressure_aware_path_ids(
         selected[index] = estimate.path_id
         shadow.add(estimate.path_id, sizes[index], qos)
     return tuple(selected)
+
+
+def layer_once_path_ids(
+    block_sizes_gb: Sequence[float],
+    snapshot: PathPressureSnapshot,
+    allowed_path_ids: Sequence[int],
+    qos: QoSHardwareView,
+    *,
+    disk_bw_gbps: float = SSD_CAP_GBPS,
+    start_offset: int = 0,
+) -> tuple[int, ...]:
+    """Plan all I/Os of one request-layer-SSU from one pressure snapshot."""
+    return pressure_aware_path_ids(
+        block_sizes_gb,
+        snapshot,
+        allowed_path_ids,
+        qos,
+        disk_bw_gbps=disk_bw_gbps,
+        start_offset=start_offset,
+    )
 
 
 def refresh8_path_ids(

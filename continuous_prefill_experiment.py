@@ -40,7 +40,7 @@ from scheme_b_prefill import (
 )
 
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 OUTPUT_DIR = Path(__file__).resolve().parent / "results" / "full_prefill_microbatch"
 DEFAULT_OUTPUT = OUTPUT_DIR / "results.json"
 
@@ -61,7 +61,7 @@ CASE_BY_NAME = {case.name: case for case in CASES}
 
 
 def _source_fingerprint():
-    digest = hashlib.sha256(b"full-prefill-microbatch-experiment-v2\0")
+    digest = hashlib.sha256(b"full-prefill-microbatch-experiment-v3\0")
     root = Path(__file__).resolve().parent
     for name in (
         "sim.py",

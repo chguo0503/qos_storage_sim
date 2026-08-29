@@ -3,19 +3,22 @@
 本文面向没有读过本项目代码的读者，目标是回答四个问题：
 
 1. Scheme B 到底解决什么问题，如何从请求信息生成 Path 和 CIR；
-2. Baseline、Refresh8、Scheme B 和图中的“理论最优”究竟有什么不同；
+2. Baseline、Layer-once、Refresh8、Scheme B 和图中的“理论最优”究竟有什么不同；
 3. 当前离散事件仿真模拟了哪些硬件行为，最新 cold/warm 实验如何统计；
 4. Scheme B 为什么能显著减少中间层 I/O stall，却不一定改善 Layer 0、尾延迟或所有配置下的平均 NPU 利用率。
 
 文中只使用仓库中已经完成的实验结果，不外推未运行的配置。最重要的原始数据文件是：
 
-- 最新连续六请求实验：[`results/cold_warm_modified/results.json`](results/cold_warm_modified/results.json)
-- 最新分析表：[`results/cold_warm_modified/report.md`](results/cold_warm_modified/report.md)
+- 四策略连续六请求配对单点：[`results/cold_warm_routing_ssu40_layer16/comparison_results.json`](results/cold_warm_routing_ssu40_layer16/comparison_results.json)
+- Layer-once 单独原始运行：[`results/cold_warm_layer_once_ssu40_layer16/layer_once_results.json`](results/cold_warm_layer_once_ssu40_layer16/layer_once_results.json)
+- 三策略连续六请求配对单点：[`results/cold_warm_refresh8_ssu40_layer16/results.json`](results/cold_warm_refresh8_ssu40_layer16/results.json)
+- Baseline/Scheme B 完整 layer×SSU 矩阵：[`results/cold_warm_modified/results.json`](results/cold_warm_modified/results.json)
+- 完整矩阵分析表：[`results/cold_warm_modified/report.md`](results/cold_warm_modified/report.md)
 - 最新结果解释：[`results/cold_warm_modified/analysis_notes.md`](results/cold_warm_modified/analysis_notes.md)
 - batch=8 逐层分解：[`results/full_prefill_microbatch/causal_layer0_comparison_report.md`](results/full_prefill_microbatch/causal_layer0_comparison_report.md)
 - 单请求路由矩阵：[`results/routing_refresh_concurrency/analysis.json`](results/routing_refresh_concurrency/analysis.json)
 
-当前代码重构后的公共策略入口统一位于 [`policy_logic.py`](policy_logic.py)。该文件不依赖离散事件队列或仿真时间，Baseline、Refresh8、Scheme B 和可行 oracle 的客户端/控制面逻辑可以直接移植到其他框架；`sim.py`、`continuous_batch_sim.py` 等文件只负责提供硬件状态、执行返回的决定并推进仿真。
+当前代码重构后的公共策略入口统一位于 [`policy_logic.py`](policy_logic.py)。该文件不依赖离散事件队列或仿真时间，Baseline、Layer-once、Refresh8、Scheme B 和可行 oracle 的客户端/控制面逻辑可以直接移植到其他框架；`sim.py`、`continuous_batch_sim.py` 等文件只负责提供硬件状态、执行返回的决定并推进仿真。
 
 ---
 
@@ -28,6 +31,8 @@ Scheme B 的核心不是“让一条 I/O 按 CIR 的速率慢慢传输”，而�
 最新的 batch=1 连续六请求实验表明：
 
 - 在带宽紧张的 `40 SSU` 下，Scheme B 的 warm 平均 NPU 利用率相对 Baseline 提升：16 层 `+24.50 pp`、24 层 `+17.62 pp`、56 层 `+7.94 pp`、80 层 `+6.19 pp`。
+- 当前 `16层、40 SSU` 配对单点中，Layer-once 的 cold/warm 利用率为 `55.35%/59.90%`，TTFT SLO 为 `65.49%/77.34%`；Refresh8 的对应值为 `55.34%/59.87%` 和 `66.15%/77.34%`。两者性能基本重合，但 Layer-once 只读取 `491,520` 次 pressure，Refresh8 读取 `1,587,648` 次。
+- 同一点中 Scheme B 的 cold/warm 利用率为 `62.44%/75.74%`，TTFT SLO 为 `70.83%/74.53%`。因此 Scheme B 的平均利用率更高，但 Layer-once/Refresh8 的 warm SLO 高 `2.81 pp`。
 - 16 层、40 SSU 时，warm 请求平均暴露 I/O stall 从 `109.542 ms` 降到 `39.348 ms`，减少 `70.194 ms`。
 - 第一次请求仍是真实 cold start。在同一配置下，它的平均暴露 stall 反而从 Baseline 的 `112.260 ms` 增到 Scheme B 的 `276.927 ms`。因此 cold 口径的收益小于 warm 口径。
 - 在旧的 batch=8、16 层、28 SSU 分层实验中，因果 Scheme B 把初始满 batch 的 `L1–L15` 暴露等待之和从 `65.549 ms` 降到 `1.063 ms`，但 Layer 0 平均等待从 `79.165 ms` 增到 `215.910 ms`。这说明中间层调度确实有效，同时也说明 Layer 0 和 mixed cold/warm 仲裁是当前方案的主要短板。
@@ -95,7 +100,7 @@ SSD 单命令、不可抢占：service_time = size / 40 GB/s
 
 ---
 
-## 3. 四类策略分别做什么
+## 3. 五类策略分别做什么
 
 ### 3.1 Baseline
 
@@ -111,7 +116,15 @@ Baseline 的优点是所有 NPU 进入同一个 Path 的 FCFS 队列，行为简
 
 最新实验中的 `modified_baseline` 还启用了与 Scheme B 相同的跨请求 Layer0 预取触发时刻，所以比较并不是“Scheme B 有预取、Baseline 没有预取”。两者的差别是 warm Layer0 进入哪个 Path、CIR 如何配置。
 
-### 3.2 Refresh8
+### 3.2 Layer-once（每层读取一次）
+
+Layer-once 与 Baseline、Refresh8 使用完全相同的静态类别、Path、CIR 和硬件数据面。它只改变客户端选路：每个请求的每一层，针对该层实际访问的每块 SSU 各读取一次该 SSU 的 Path pressure，然后一次性规划这个 `request-layer-SSU` 中的全部 block。
+
+这里的“一层一次”不是全系统每层只读取一次，也不是一个 NPU 每层只读取一块 SSU。若某层访问 12 块 SSU，就会读取 12 份各自的本地 pressure snapshot。snapshot 之后新规划的 block 不再访问 SSU 状态表，而是在客户端用 local shadow 反映同批次先前已分配的 block。因此它需要的是目标 SSU 当前 Path outstanding-I/O 状态，不需要其他 NPU 的利用率、未来完成事件或全局仿真时钟。
+
+可复制入口是 [`policy_logic.py`](policy_logic.py) 的 `layer_once_path_ids()`。它接收本组全部 block 大小、一次 `PathPressureSnapshot`、合法 Path 集合和静态 `QoSHardwareView`，返回全部 Path ID。与 Refresh8 的差别仅是 pressure window 边界：Layer-once 的 window 是完整 `request-layer-SSU`，Refresh8 的 window 最多 8 条 I/O。
+
+### 3.3 Refresh8
 
 Refresh8 不动态修改 CIR。它保留 [`strategy_profiles.py`](strategy_profiles.py) 的 `FINAL_STATIC`：
 
@@ -124,11 +137,11 @@ Refresh8 不动态修改 CIR。它保留 [`strategy_profiles.py`](strategy_profi
 
 NPU 根据请求类别只能在对应类别的合法 Path 集合内选路。每规划 8 条 I/O，客户端读取一次目标 SSU 的 Path outstanding-I/O pressure；然后用同一个 immutable snapshot 加本轮 local planning shadow，估计候选 Path 的完成时间，把这一组 I/O 分散到压力较小的合法 Path。
 
-可复制的核心函数是 [`policy_logic.py`](policy_logic.py) 的 `refresh8_path_ids()`：调用方传入下一组至多 8 条 I/O、`PathPressureSnapshot`、合法 Path 集合和 `QoSHardwareView`，函数返回对应的 Path ID。局部 shadow 和完成时间投影也全部封装在 `policy_logic.py` 内。`sim.py` 的 `_plan_qos_pressure_window()` 和 `_select_qos_paths_from_analysis()` 现在只是把仿真器的 pressure report/QoS register 转为纯策略 ABI，再调用 `refresh8_path_ids()`；`sim.py` 中不再保存独立的 planning-shadow 策略实现。
+可复制的核心函数是 [`policy_logic.py`](policy_logic.py) 的 `refresh8_path_ids()`：调用方传入下一组至多 8 条 I/O、`PathPressureSnapshot`、合法 Path 集合和 `QoSHardwareView`，函数返回对应的 Path ID。局部 shadow 和完成时间投影也全部封装在 `policy_logic.py` 内。两个 pressure-aware 方案复用同一个纯 `pressure_aware_path_ids()` 内核；`continuous_batch_sim.py` 决定完整层窗口或 8-I/O 窗口，`sim.py` 只把 pressure report/QoS register 转为纯策略 ABI。
 
 因此 Refresh8 解决的是“同一静态类别内选哪个 Path”，它需要 SSU 暴露 pressure 状态；Scheme B 解决的是“每个 NPU×SSU 流应保证多少带宽”，当前版本不读取 pressure。
 
-### 3.3 Scheme B
+### 3.4 Scheme B
 
 仓库中有两个 Scheme B 使用方式，底层都调用 [`policy_logic.py`](policy_logic.py) 的纯策略函数：
 
@@ -137,7 +150,7 @@ NPU 根据请求类别只能在对应类别的合法 Path 集合内选路。每�
 
 两者使用相同的 demand 与 max-min 思路，区别主要是何时知道信息、何时提交 CIR。
 
-### 3.4 “理论最优”与 Best feasible
+### 3.5 “理论最优”与 Best feasible
 
 项目主图中的 `Best feasible` 不是已经证明的数学最优值，也不是多个候选策略逐点取最大值形成的包络线。它直接绘制唯一一个可执行的、保持 placement、SSD40、NPU50 和层依赖约束的 `demand_weighted_sjf_oracle_candidate`。
 
@@ -249,6 +262,7 @@ PIR[path_of_npu_n] = infinity
       ↓ 请求 k 的最后一层 compute 开始
 如果请求 k+1 已到达：
   Baseline：直接用 Path0 预取 k+1 的 Layer0
+  Layer-once/Refresh8：按各自 pressure window 选路后预取 Layer0
   Scheme B：先根据 k+1 manifest 配 CIR，再用专属 Path 预取 Layer0
       ↓
 请求 k 完成后，请求 k+1 才正式 admission
@@ -256,7 +270,7 @@ PIR[path_of_npu_n] = infinity
 
 触发函数是 [`continuous_batch_sim.py`](continuous_batch_sim.py) 的 `_start_cross_request_layer0_prefetch()`。预取只改变 I/O 的开始时刻，不提前请求 admission，也不把外部排队时间计入 TTFT。
 
-第一次请求没有上一请求最后一层可以覆盖 Layer0，因此一定保留 cold start。后续五个请求的 Layer0 则可以和前一请求最后一层 compute 重叠；最新每个 case 都验证了 640 次预取：`128 NPU × 5 warm requests`。Scheme B 的 640 次全部是 manifest-controlled，Baseline 为 0 次 manifest-controlled，但同样执行了 640 次跨请求预取。
+第一次请求没有上一请求最后一层可以覆盖 Layer0，因此一定保留 cold start。后续五个请求的 Layer0 则可以和前一请求最后一层 compute 重叠；最新每个 case 都验证了 640 次预取：`128 NPU × 5 warm requests`。Scheme B 的 640 次全部是 manifest-controlled；Baseline、Layer-once 和 Refresh8 都是 0 次 manifest-controlled，但同样分别执行跨请求预取。
 
 ---
 
@@ -281,6 +295,7 @@ PIR[path_of_npu_n] = infinity
 | 层内依赖 | 本层所有 block 通过 NPU link 后才能开始 compute |
 | 层间预取 | 第 k 层 compute 开始时读取第 k+1 层 |
 | 跨请求预取 | 当前请求最后一层 compute 开始时读取下一请求 Layer0 |
+| 对比策略 | Baseline、Layer-once、Refresh8、causal Scheme B |
 
 六请求负载不是让某些 NPU 永远轻、另一些永远重。四个代表画像 `SS/SL/LS/LL` 在全系统中各 192 个，共 768 个；每个 NPU 的六请求总计算量和 KV 量被刻意平衡，NPU 间误差低于 0.1%。每个 NPU 六请求合计的每层计算时间约 `43.194–43.233 ms`，每层 KV 约 `0.89957–0.89983 GiB`，平均需求约 `20.808–20.832 GB/s`。
 
@@ -344,9 +359,9 @@ exposed I/O stall = TTFT - ideal_TTFT
 
 ---
 
-## 7. 最新完整结果：平均 NPU 利用率与 TTFT SLO
+## 7. 实验结果：平均 NPU 利用率与 TTFT SLO
 
-下表的百分比均来自同一个完整 trace；cold 和 warm 是同一 trace 的两个 cohort，不是两次独立运行。
+完整 layer×SSU 矩阵历史上只包含 Baseline 和 Scheme B。下表的百分比均来自同一个完整 trace；cold 和 warm 是同一 trace 的两个 cohort，不是两次独立运行。
 
 | Layers | SSU | Baseline cold util | Baseline warm util | Scheme B cold util | Scheme B warm util | Baseline cold SLO | Baseline warm SLO | Scheme B cold SLO | Scheme B warm SLO |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
@@ -374,6 +389,21 @@ Scheme B 相对 Baseline 的平均 NPU 利用率增益：
 
 这里粗体的两个 warm 点达到此前设定的“至少比 Baseline 高 10 pp”目标。cold 口径还有一个点达到目标：16 层、40 SSU 的 `+11.27 pp`。
 
+针对 `16层、40 SSU`，四策略配对结果为：
+
+| 策略 | cold util | warm util | cold SLO | warm SLO | pressure reads |
+|---|---:|---:|---:|---:|---:|
+| Baseline | 51.16% | 51.24% | 50.26% | 50.31% | 0 |
+| Layer-once | 55.35% | 59.90% | 65.49% | 77.34% | 491,520 |
+| Refresh8 | 55.34% | 59.87% | 66.15% | 77.34% | 1,587,648 |
+| Scheme B | 62.44% | 75.74% | 70.83% | 74.53% | 0 |
+
+Layer-once 相对 Baseline 的 cold/warm 利用率增益为 `+4.18/+8.66 pp`；Refresh8 为 `+4.18/+8.62 pp`。两者不到 `0.04 pp` 的差异远小于 Scheme B 的带宽编排收益，因此该点没有证据表明每 8 条 I/O 重读一次比每层每 SSU 读一次更好。
+
+pressure read 在当前模型中是零延迟、无丢失的，所以少 `69.04%` 的读取次数不会自动增加图中的 NPU 利用率；它主要意味着真实部署时状态网络流量和读取控制开销更低。
+
+![四策略 16层、40 SSU](results/cold_warm_routing_ssu40_layer16/01_cold_warm.png)
+
 ![Cold/warm 完整矩阵](results/cold_warm_modified/01_cold_warm.png)
 
 固定 16 层、横轴为 SSU 数量的图：
@@ -387,6 +417,8 @@ Scheme B 相对 Baseline 的平均 NPU 利用率增益：
 ### 8.1 Warm 请求的平均暴露 stall
 
 正值 reduction 表示 Scheme B 比 Baseline 少等待：
+
+四策略 `16层、40 SSU` 单点的 warm 平均暴露 stall 分别是 Baseline `109.542 ms`、Layer-once `84.730 ms`、Refresh8 `84.791 ms`、Scheme B `39.348 ms`。Layer-once 与 Refresh8 只差 `0.061 ms`，再次说明额外 pressure refresh 没有改变该负载的关键等待。
 
 | Layers | SSU | Baseline | Scheme B | Reduction |
 |---:|---:|---:|---:|---:|
@@ -540,7 +572,7 @@ Scheme B 在此处的利用率增益只有 `0.51–1.18 pp`，但 SLO 仍可能�
 - Refresh8 利用实时 Path pressure，能修正同一类别内部的偶然冲突；
 - Best feasible 的调度目标直接偏向短的可见 layer work，因此能提高平均“每请求计算占比”，但在某些点会牺牲 fleet makespan；不能把该曲线当成所有指标都同时最优。
 
-最新 cold/warm 六请求矩阵只正式运行了 modified Baseline 和 modified Scheme B，没有在该矩阵中重新运行 Refresh8 或 Best feasible。因此不能把上表的 Refresh8/Best feasible 数字与最新 cold/warm 图直接相减。
+历史完整 cold/warm 六请求矩阵只运行了 modified Baseline 和 modified Scheme B。随后用三策略严格配对地运行了 `16层、40 SSU` 单点，再只运行同输入的 Layer-once。四策略结果见 [`results/cold_warm_routing_ssu40_layer16/report.md`](results/cold_warm_routing_ssu40_layer16/report.md)。按要求没有重复运行 Refresh8，因此合并结果逐策略保存不同源码指纹和源文件哈希；所有 workload、placement、trace 与 simulator-input 指纹已严格配对。其余 layer×SSU 点尚未运行 Layer-once/Refresh8，Best feasible 也未加入连续六请求矩阵，因此不能把上表的单请求数字与连续图直接相减。
 
 ---
 
@@ -630,13 +662,13 @@ TTFT SLO 是一个 threshold objective。一个请求如果只差少量带宽就
 精简后的结构把可复制策略集中到了一个明确的公共边界：
 
 - **可直接移植的策略/控制逻辑**
-  - [`policy_logic.py`](policy_logic.py)：公共数据结构与四个策略入口；Baseline 使用 `baseline_path_ids()`，Refresh8 使用 `refresh8_path_ids()`，Scheme B 使用 `plan_scheme_b()` / `plan_causal_scheme_b()`，可行 oracle 使用 `oracle_priority_key()`；该模块不导入 `sim`，不接触事件队列或仿真时钟；
+  - [`policy_logic.py`](policy_logic.py)：公共数据结构与五类策略入口；Baseline 使用 `baseline_path_ids()`，Layer-once 使用 `layer_once_path_ids()`，Refresh8 使用 `refresh8_path_ids()`，Scheme B 使用 `plan_scheme_b()` / `plan_causal_scheme_b()`，可行 oracle 使用 `oracle_priority_key()`；该模块不导入 `sim`，不接触事件队列或仿真时钟；
   - [`continuous_batch_control.py`](continuous_batch_control.py)：只保留 Scheme B 依赖的 demand-capped `allocate_grants()`。
 - **静态硬件描述**
-  - [`strategy_profiles.py`](strategy_profiles.py)：Baseline 与 Refresh8 共用的静态类别、Path 和 CIR 配置。
+  - [`strategy_profiles.py`](strategy_profiles.py)：Baseline、Layer-once 与 Refresh8 共用的静态类别、Path 和 CIR 配置。
 - **薄仿真适配层**
   - [`scheme_b_prefill.py`](scheme_b_prefill.py)：把 prepared placement 转成 `ManifestDemand`，调用 `plan_scheme_b()`，再把纯 CIR 表包装成仿真器 `StaticQoSConfig`；
-  - [`continuous_prefill_client.py`](continuous_prefill_client.py)：只构造 Baseline/Refresh8 的 `ClientIOConfig` 和 Scheme B 的仿真 QoS register，不实现 grant 或 Path 选择算法；
+  - [`continuous_prefill_client.py`](continuous_prefill_client.py)：只构造 Baseline/Layer-once/Refresh8 的 `ClientIOConfig` 和 Scheme B 的仿真 QoS register，不实现 grant 或 Path 选择算法；
   - [`capacity_constrained_oracle_experiment.py`](capacity_constrained_oracle_experiment.py)：把仿真 flow 适配为 `OracleFlowView` 后调用 `oracle_priority_key()`。
 - **离散事件仿真与硬件代理**
   - [`sim.py`](sim.py)：SSD Path 队列、CIR/WRR 仲裁、NPU50 数据面、ring placement，并把 pressure/QoS snapshot 交给 `policy_logic`；
@@ -645,11 +677,11 @@ TTFT SLO 是一个 threshold objective。一个请求如果只差少量带宽就
   - [`routing_refresh_concurrency_experiment.py`](routing_refresh_concurrency_experiment.py)：只运行 Baseline 与 Refresh8；
   - [`scheme_b_prefill_experiment.py`](scheme_b_prefill_experiment.py)：单独运行 one-shot Scheme B；
   - [`capacity_constrained_oracle_experiment.py`](capacity_constrained_oracle_experiment.py)：单独运行受容量约束的 oracle candidate；
-  - [`cold_warm_experiment.py`](cold_warm_experiment.py)：最新 Baseline/Scheme B 实验矩阵与结果 checkpoint；
+  - [`cold_warm_experiment.py`](cold_warm_experiment.py)：Baseline/Layer-once/Refresh8/Scheme B 连续实验矩阵与结果 checkpoint；
   - [`cold_warm_metrics.py`](cold_warm_metrics.py)：cold/warm TTFT SLO 和每 NPU 利用率；
   - [`analyze_cold_warm.py`](analyze_cold_warm.py)：配对校验、表格和图片。
 
-[`test_policy_logic.py`](test_policy_logic.py) 直接测试上述纯策略 ABI，包括 Baseline 固定 Path、Refresh8 snapshot 选路、Scheme B 容量约束和 oracle 排序；这组测试不需要启动离散事件仿真。
+[`test_policy_logic.py`](test_policy_logic.py) 直接测试上述纯策略 ABI，包括 Baseline 固定 Path、Layer-once/Refresh8 snapshot 选路、Scheme B 容量约束和 oracle 排序；真实数据面测试还用同一 SSU 的 9 个 block 验证 Layer-once 读取 1 次 pressure、Refresh8 读取 2 次。这些决策不依赖未来仿真事件。
 
 如果要复制到开源框架，真正应迁移的 Scheme B 客户端逻辑是：
 
@@ -711,9 +743,20 @@ Scheme B 已经证明了一个重要点：利用 ring-hash manifest 做 demand-a
 ## 17. 复现实验与核对数字
 
 ```bash
-# 最新 2 策略 × 3 SSU × 4 层数 cold/warm 矩阵
+# 当前 4 策略 × 3 SSU × 4 层数 cold/warm 矩阵
 python cold_warm_experiment.py --workers 8
 python analyze_cold_warm.py
+
+# 已完成的 Layer-once 16层、40 SSU 单点（不重跑 Refresh8）
+python cold_warm_experiment.py \
+  --output results/cold_warm_layer_once_ssu40_layer16/layer_once_results.json \
+  --workers 1 --case modified_layer_once --ssu 40 --layer 16 --rerun
+
+# 与冻结的三策略单点合并；输出保留每条 row 的来源和源码指纹
+python analyze_cold_warm.py \
+  --input results/cold_warm_refresh8_ssu40_layer16/results.json \
+  --input results/cold_warm_layer_once_ssu40_layer16/layer_once_results.json \
+  --output-dir results/cold_warm_routing_ssu40_layer16
 
 # 单请求矩阵：Baseline 与 Refresh8
 python routing_refresh_concurrency_experiment.py --workers 10 --rerun
@@ -726,4 +769,4 @@ python capacity_constrained_oracle_experiment.py --workers 10
 python analyze_routing_refresh_concurrency.py
 ```
 
-最新结果完整性检查记录在每一行的 `diagnostics.invariants`。24 个 paired case 均满足 request completion、SSD/NPU 字节守恒、每盘单命令、每 NPU 单接收命令、CIR 容量、固定层 barrier 和跨层预取等不变量。
+结果完整性检查记录在每一行的 `diagnostics.invariants`。历史完整矩阵的 24 个 Baseline/Scheme B case，以及当前 `16层、40 SSU` 的 4 个配对策略 case，均满足 request completion、SSD/NPU 字节守恒、每盘单命令、每 NPU 单接收命令、CIR 容量、固定层 barrier 和跨层预取等不变量。Layer-once/Refresh8 分别验证了 `491,520/1,587,648` 次 pressure read；两者都有 640 次跨请求 Layer0 预取、0 次 manifest 预取和 0 次 CIR controller 写入。Layer-once 在少 `69.04%` pressure read 的情况下，warm 利用率只比 Refresh8 高 `0.031 pp`，warm SLO 完全相同。

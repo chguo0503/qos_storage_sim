@@ -22,6 +22,7 @@ DEFAULT_INPUT = experiment.DEFAULT_OUTPUT
 EXECUTION_MODEL = "full_prefill_layer_synchronous_microbatch_v1"
 LABELS = {
     "baseline": "Baseline\n(Path 0)",
+    "layer_once": "Read once\nper layer",
     "refresh8": "Refresh 8",
     "scheme_b_once": "Scheme B\none-shot",
     "scheme_b_after_l0": "L0 Path0\nthen Scheme B",

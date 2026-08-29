@@ -50,12 +50,18 @@ class RoutingStrategySpec:
 
 
 def routing_strategy_specs() -> tuple[RoutingStrategySpec, ...]:
-    """The retained baseline and Refresh8 clients on identical hardware."""
+    """Retained routing clients on one identical static-QoS data plane."""
     return (
         RoutingStrategySpec(
             "baseline",
             "All I/Os use Path 0; no pressure reads",
             sim.PATH_SELECTION_FIXED_PATH_ZERO,
+            None,
+        ),
+        RoutingStrategySpec(
+            "layer_once",
+            "Read Path pressure once per request-layer-SSU",
+            sim.PATH_SELECTION_PRESSURE_AWARE,
             None,
         ),
         RoutingStrategySpec(
@@ -68,7 +74,7 @@ def routing_strategy_specs() -> tuple[RoutingStrategySpec, ...]:
 
 
 def static_qos_config() -> sim.StaticQoSConfig:
-    """The one hardware QoS profile shared by baseline and Refresh8."""
+    """The one hardware QoS profile shared by all routing strategies."""
     return FINAL_STATIC.hardware_config()
 
 

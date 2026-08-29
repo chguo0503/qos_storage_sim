@@ -1,4 +1,4 @@
-"""Refresh 路由策略使用的精简离散事件仿真。
+"""Pressure-aware 路由策略使用的精简离散事件仿真。
 
 所有方案共享相同的静态 QoS、单命令 SSD 40 GB/s 服务和每 NPU 独立的
 50 GB/s FCFS 接收队列。唯一策略变量是客户端读取 Path pressure 的频率。
@@ -30,7 +30,7 @@ from policy_logic import (
     baseline_path_ids,
     category_path_ids,
     hardware_view,
-    refresh8_path_ids,
+    pressure_aware_path_ids,
 )
 
 NUM_NPU = 32
@@ -496,9 +496,9 @@ def client_category_paths(category, qos_config):
 def _select_qos_paths_from_analysis(
     sizes, analysis, allowed_path_ids, routing_config
 ):
-    """Thin simulator adapter for the DES-independent Refresh8 policy."""
+    """Adapt one pressure window to the DES-independent routing policy."""
     return list(
-        refresh8_path_ids(
+        pressure_aware_path_ids(
             sizes,
             analysis,
             allowed_path_ids,
