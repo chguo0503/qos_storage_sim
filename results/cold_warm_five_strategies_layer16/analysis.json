@@ -1,5 +1,5 @@
 {
-  "schema_version": 3,
+  "schema_version": 4,
   "complete": false,
   "selected_complete": true,
   "num_npu": 128,
@@ -10,7 +10,9 @@
   "ssu_list": [
     16,
     28,
-    40
+    40,
+    56,
+    70
   ],
   "strategies": [
     "modified_baseline",
@@ -24,7 +26,9 @@
     "cold": "per NPU: request 0 admission through request 5 completion; six-request TTFT cohort and six-request compute busy time",
     "warm": "per NPU: request 1 admission through request 5 completion; request 1--5 TTFT cohort and request 1--5 compute busy time",
     "ttft": "completion minus admission; external arrival queue wait excluded",
-    "utilization": "compute busy / per-NPU cohort window, then equal-weight mean across all 128 NPUs"
+    "utilization": "compute busy / per-NPU cohort window, then equal-weight mean across all 128 NPUs",
+    "shared_window_utilization_diagnostic": "cohort compute busy summed across all NPUs / (NPU count * one common cohort window from the earliest per-NPU cohort start to the latest completion)",
+    "warm_common_window_limitation": "the shared warm envelope starts at the earliest request-1 admission, which is still policy-dependent; a strict steady-state comparison requires a fixed wall-clock window after a common burn-in"
   },
   "metrics": {
     "modified_baseline": {
@@ -32,6 +36,15 @@
         "16": {
           "cold": {
             "mean_npu_utilization": 0.22653539754982796,
+            "shared_window_npu_utilization": 0.22478182942736102,
+            "shared_window": {
+              "window_start_ms": 0.021497876681136896,
+              "window_end_ms": 3075.964663032161,
+              "window_ms": 3075.9431651554796,
+              "compute_ms": 88501.26488041421,
+              "npu_count": 128,
+              "utilization": 0.22478182942736102
+            },
             "mean_ttft_ms": 508.6951083754058,
             "ttft_slo": {
               "1.05": {
@@ -87,6 +100,15 @@
           },
           "warm": {
             "mean_npu_utilization": 0.22574714800413814,
+            "shared_window_npu_utilization": 0.2204528385309856,
+            "shared_window": {
+              "window_start_ms": 462.36577152082833,
+              "window_end_ms": 3075.964663032161,
+              "window_ms": 2613.5988915113326,
+              "compute_ms": 73750.43768513418,
+              "npu_count": 128,
+              "utilization": 0.2204528385309856
+            },
             "mean_ttft_ms": 510.35465274240084,
             "ttft_slo": {
               "1.05": {
@@ -200,6 +222,15 @@
         "28": {
           "cold": {
             "mean_npu_utilization": 0.3666364168041928,
+            "shared_window_npu_utilization": 0.363116111069363,
+            "shared_window": {
+              "window_start_ms": 0.021497876681136896,
+              "window_end_ms": 1904.1400726268878,
+              "window_ms": 1904.1185747502066,
+              "compute_ms": 88501.26488041384,
+              "npu_count": 128,
+              "utilization": 0.363116111069363
+            },
             "mean_ttft_ms": 314.3108950138564,
             "ttft_slo": {
               "1.05": {
@@ -255,6 +286,15 @@
           },
           "warm": {
             "mean_npu_utilization": 0.36667519622826844,
+            "shared_window_npu_utilization": 0.35678036778445266,
+            "shared_window": {
+              "window_start_ms": 289.21014250471507,
+              "window_end_ms": 1904.1400726268878,
+              "window_ms": 1614.9299301221727,
+              "compute_ms": 73750.43768513398,
+              "npu_count": 128,
+              "utilization": 0.35678036778445266
+            },
             "mean_ttft_ms": 314.1663003039319,
             "ttft_slo": {
               "1.05": {
@@ -368,6 +408,15 @@
         "40": {
           "cold": {
             "mean_npu_utilization": 0.5116450711761862,
+            "shared_window_npu_utilization": 0.5054449841051665,
+            "shared_window": {
+              "window_start_ms": 0.021497876681136896,
+              "window_end_ms": 1367.9569876358837,
+              "window_ms": 1367.9354897592025,
+              "compute_ms": 88501.26488041386,
+              "npu_count": 128,
+              "utilization": 0.5054449841051665
+            },
             "mean_ttft_ms": 225.23106998767892,
             "ttft_slo": {
               "1.05": {
@@ -423,6 +472,15 @@
           },
           "warm": {
             "mean_npu_utilization": 0.5124238953472484,
+            "shared_window_npu_utilization": 0.49617898307014574,
+            "shared_window": {
+              "window_start_ms": 206.73228027326974,
+              "window_end_ms": 1367.9569876358837,
+              "window_ms": 1161.224707362614,
+              "compute_ms": 73750.437685134,
+              "npu_count": 128,
+              "utilization": 0.49617898307014574
+            },
             "mean_ttft_ms": 224.77707965655978,
             "ttft_slo": {
               "1.05": {
@@ -532,6 +590,378 @@
             }
           },
           "wall_time_s": 328.53042525
+        },
+        "56": {
+          "cold": {
+            "mean_npu_utilization": 0.7273877975383377,
+            "shared_window_npu_utilization": 0.6844144685401411,
+            "shared_window": {
+              "window_start_ms": 0.021497876681136896,
+              "window_end_ms": 1010.2516488450362,
+              "window_ms": 1010.2301509683551,
+              "compute_ms": 88501.26488041386,
+              "npu_count": 128,
+              "utilization": 0.6844144685401411
+            },
+            "mean_ttft_ms": 158.54972022784077,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 192,
+                "fail": 576,
+                "total": 768,
+                "attainment": 0.25,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 204,
+                "fail": 564,
+                "total": 768,
+                "attainment": 0.265625,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 352,
+                "fail": 416,
+                "total": 768,
+                "attainment": 0.4583333333333333,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 576,
+                "fail": 192,
+                "total": 768,
+                "attainment": 0.75,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 576,
+                "fail": 192,
+                "total": 768,
+                "attainment": 0.75,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 576,
+                "fail": 192,
+                "total": 768,
+                "attainment": 0.75,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 576,
+                "fail": 192,
+                "total": 768,
+                "attainment": 0.75,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "warm": {
+            "mean_npu_utilization": 0.7264405155065944,
+            "shared_window_npu_utilization": 0.6536966295148963,
+            "shared_window": {
+              "window_start_ms": 128.8408102383185,
+              "window_end_ms": 1010.2516488450362,
+              "window_ms": 881.4108386067178,
+              "compute_ms": 73750.43768513403,
+              "npu_count": 128,
+              "utilization": 0.6536966295148963
+            },
+            "mean_ttft_ms": 158.348529955316,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 161,
+                "fail": 479,
+                "total": 640,
+                "attainment": 0.2515625,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 173,
+                "fail": 467,
+                "total": 640,
+                "attainment": 0.2703125,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 288,
+                "fail": 352,
+                "total": 640,
+                "attainment": 0.45,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 479,
+                "fail": 161,
+                "total": 640,
+                "attainment": 0.7484375,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 479,
+                "fail": 161,
+                "total": 640,
+                "attainment": 0.7484375,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 479,
+                "fail": 161,
+                "total": 640,
+                "attainment": 0.7484375,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 479,
+                "fail": 161,
+                "total": 640,
+                "attainment": 0.7484375,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "first_request_only": {
+            "request_count": 128,
+            "mean_ttft_ms": 159.55567159046456,
+            "slo": {
+              "1.05": {
+                "pass": 31,
+                "fail": 97,
+                "total": 128,
+                "attainment": 0.2421875,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 31,
+                "fail": 97,
+                "total": 128,
+                "attainment": 0.2421875,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 64,
+                "fail": 64,
+                "total": 128,
+                "attainment": 0.5,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 97,
+                "fail": 31,
+                "total": 128,
+                "attainment": 0.7578125,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 97,
+                "fail": 31,
+                "total": 128,
+                "attainment": 0.7578125,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 97,
+                "fail": 31,
+                "total": 128,
+                "attainment": 0.7578125,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 97,
+                "fail": 31,
+                "total": 128,
+                "attainment": 0.7578125,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "wall_time_s": 679.49466425
+        },
+        "70": {
+          "cold": {
+            "mean_npu_utilization": 0.9195272539686287,
+            "shared_window_npu_utilization": 0.8328811381300039,
+            "shared_window": {
+              "window_start_ms": 0.021497876681136896,
+              "window_end_ms": 830.1713238537833,
+              "window_ms": 830.1498259771022,
+              "compute_ms": 88501.26488041389,
+              "npu_count": 128,
+              "utilization": 0.8328811381300039
+            },
+            "mean_ttft_ms": 125.47260174967217,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 558,
+                "fail": 210,
+                "total": 768,
+                "attainment": 0.7265625,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 576,
+                "fail": 192,
+                "total": 768,
+                "attainment": 0.75,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 576,
+                "fail": 192,
+                "total": 768,
+                "attainment": 0.75,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 576,
+                "fail": 192,
+                "total": 768,
+                "attainment": 0.75,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 621,
+                "fail": 147,
+                "total": 768,
+                "attainment": 0.80859375,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 707,
+                "fail": 61,
+                "total": 768,
+                "attainment": 0.9205729166666666,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 733,
+                "fail": 35,
+                "total": 768,
+                "attainment": 0.9544270833333334,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "warm": {
+            "mean_npu_utilization": 0.9317272067270419,
+            "shared_window_npu_utilization": 0.7722429170449787,
+            "shared_window": {
+              "window_start_ms": 84.06503825666819,
+              "window_end_ms": 830.1713238537833,
+              "window_ms": 746.1062855971151,
+              "compute_ms": 73750.4376851341,
+              "npu_count": 128,
+              "utilization": 0.7722429170449787
+            },
+            "mean_ttft_ms": 123.59079775168543,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 474,
+                "fail": 166,
+                "total": 640,
+                "attainment": 0.740625,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 479,
+                "fail": 161,
+                "total": 640,
+                "attainment": 0.7484375,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 479,
+                "fail": 161,
+                "total": 640,
+                "attainment": 0.7484375,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 479,
+                "fail": 161,
+                "total": 640,
+                "attainment": 0.7484375,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 524,
+                "fail": 116,
+                "total": 640,
+                "attainment": 0.81875,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 610,
+                "fail": 30,
+                "total": 640,
+                "attainment": 0.953125,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 636,
+                "fail": 4,
+                "total": 640,
+                "attainment": 0.99375,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "first_request_only": {
+            "request_count": 128,
+            "mean_ttft_ms": 134.88162173960583,
+            "slo": {
+              "1.05": {
+                "pass": 84,
+                "fail": 44,
+                "total": 128,
+                "attainment": 0.65625,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 97,
+                "fail": 31,
+                "total": 128,
+                "attainment": 0.7578125,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 97,
+                "fail": 31,
+                "total": 128,
+                "attainment": 0.7578125,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 97,
+                "fail": 31,
+                "total": 128,
+                "attainment": 0.7578125,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 97,
+                "fail": 31,
+                "total": 128,
+                "attainment": 0.7578125,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 97,
+                "fail": 31,
+                "total": 128,
+                "attainment": 0.7578125,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 97,
+                "fail": 31,
+                "total": 128,
+                "attainment": 0.7578125,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "wall_time_s": 685.6212465
         }
       }
     },
@@ -540,6 +970,15 @@
         "16": {
           "cold": {
             "mean_npu_utilization": 0.2656337512992313,
+            "shared_window_npu_utilization": 0.22092196256481678,
+            "shared_window": {
+              "window_start_ms": 0.021497876681136896,
+              "window_end_ms": 3129.7064049414575,
+              "window_ms": 3129.6849070647763,
+              "compute_ms": 88501.26488041428,
+              "npu_count": 128,
+              "utilization": 0.22092196256481678
+            },
             "mean_ttft_ms": 446.88330151863073,
             "ttft_slo": {
               "1.05": {
@@ -595,6 +1034,15 @@
           },
           "warm": {
             "mean_npu_utilization": 0.3223839375608374,
+            "shared_window_npu_utilization": 0.19406657281122325,
+            "shared_window": {
+              "window_start_ms": 160.74948428938302,
+              "window_end_ms": 3129.7064049414575,
+              "window_ms": 2968.9569206520746,
+              "compute_ms": 73750.43768513421,
+              "npu_count": 128,
+              "utilization": 0.19406657281122325
+            },
             "mean_ttft_ms": 416.3188714833603,
             "ttft_slo": {
               "1.05": {
@@ -708,6 +1156,15 @@
         "28": {
           "cold": {
             "mean_npu_utilization": 0.4154820138304336,
+            "shared_window_npu_utilization": 0.3520571946610113,
+            "shared_window": {
+              "window_start_ms": 0.021497876681136896,
+              "window_end_ms": 1963.9527634881792,
+              "window_ms": 1963.931265611498,
+              "compute_ms": 88501.26488041389,
+              "npu_count": 128,
+              "utilization": 0.3520571946610113
+            },
             "mean_ttft_ms": 282.4280084571213,
             "ttft_slo": {
               "1.05": {
@@ -763,6 +1220,15 @@
           },
           "warm": {
             "mean_npu_utilization": 0.4714760413205143,
+            "shared_window_npu_utilization": 0.30930497347122127,
+            "shared_window": {
+              "window_start_ms": 101.14633024885569,
+              "window_end_ms": 1963.9527634881792,
+              "window_ms": 1862.8064332393235,
+              "compute_ms": 73750.43768513399,
+              "npu_count": 128,
+              "utilization": 0.30930497347122127
+            },
             "mean_ttft_ms": 265.1647105670524,
             "ttft_slo": {
               "1.05": {
@@ -876,6 +1342,15 @@
         "40": {
           "cold": {
             "mean_npu_utilization": 0.5534619868224456,
+            "shared_window_npu_utilization": 0.4750571916950794,
+            "shared_window": {
+              "window_start_ms": 0.021497876681136896,
+              "window_end_ms": 1455.45916720477,
+              "window_ms": 1455.4376693280888,
+              "compute_ms": 88501.26488041387,
+              "npu_count": 128,
+              "utilization": 0.4750571916950794
+            },
             "mean_ttft_ms": 210.08937912462497,
             "ttft_slo": {
               "1.05": {
@@ -931,6 +1406,15 @@
           },
           "warm": {
             "mean_npu_utilization": 0.5989847123344444,
+            "shared_window_npu_utilization": 0.4071236567847619,
+            "shared_window": {
+              "window_start_ms": 40.22503670637522,
+              "window_end_ms": 1455.45916720477,
+              "window_ms": 1415.2341304983947,
+              "compute_ms": 73750.437685134,
+              "npu_count": 128,
+              "utilization": 0.4071236567847619
+            },
             "mean_ttft_ms": 199.9650323622662,
             "ttft_slo": {
               "1.05": {
@@ -1040,6 +1524,378 @@
             }
           },
           "wall_time_s": 1045.264512166
+        },
+        "56": {
+          "cold": {
+            "mean_npu_utilization": 0.7499066682762111,
+            "shared_window_npu_utilization": 0.6613595361304654,
+            "shared_window": {
+              "window_start_ms": 0.021497876681136896,
+              "window_end_ms": 1045.4681786996803,
+              "window_ms": 1045.446680822999,
+              "compute_ms": 88501.26488041387,
+              "npu_count": 128,
+              "utilization": 0.6613595361304654
+            },
+            "mean_ttft_ms": 154.22437906658922,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 275,
+                "fail": 493,
+                "total": 768,
+                "attainment": 0.35807291666666663,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 279,
+                "fail": 489,
+                "total": 768,
+                "attainment": 0.36328125,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 294,
+                "fail": 474,
+                "total": 768,
+                "attainment": 0.3828125,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 431,
+                "fail": 337,
+                "total": 768,
+                "attainment": 0.5611979166666666,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 766,
+                "fail": 2,
+                "total": 768,
+                "attainment": 0.9973958333333334,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 768,
+                "fail": 0,
+                "total": 768,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 768,
+                "fail": 0,
+                "total": 768,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "warm": {
+            "mean_npu_utilization": 0.7820907589400656,
+            "shared_window_npu_utilization": 0.5707340647167798,
+            "shared_window": {
+              "window_start_ms": 35.934439547400736,
+              "window_end_ms": 1045.4681786996803,
+              "window_ms": 1009.5337391522795,
+              "compute_ms": 73750.43768513405,
+              "npu_count": 128,
+              "utilization": 0.5707340647167798
+            },
+            "mean_ttft_ms": 149.13829925724366,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 275,
+                "fail": 365,
+                "total": 640,
+                "attainment": 0.4296875,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 279,
+                "fail": 361,
+                "total": 640,
+                "attainment": 0.43593750000000003,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 294,
+                "fail": 346,
+                "total": 640,
+                "attainment": 0.459375,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 407,
+                "fail": 233,
+                "total": 640,
+                "attainment": 0.6359375,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 640,
+                "fail": 0,
+                "total": 640,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 640,
+                "fail": 0,
+                "total": 640,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 640,
+                "fail": 0,
+                "total": 640,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "first_request_only": {
+            "request_count": 128,
+            "mean_ttft_ms": 179.65477811331698,
+            "slo": {
+              "1.05": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 24,
+                "fail": 104,
+                "total": 128,
+                "attainment": 0.1875,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 126,
+                "fail": 2,
+                "total": 128,
+                "attainment": 0.984375,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 128,
+                "fail": 0,
+                "total": 128,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 128,
+                "fail": 0,
+                "total": 128,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "wall_time_s": 2044.166753
+        },
+        "70": {
+          "cold": {
+            "mean_npu_utilization": 0.913741602350581,
+            "shared_window_npu_utilization": 0.8728963688850465,
+            "shared_window": {
+              "window_start_ms": 0.021497876681136896,
+              "window_end_ms": 792.1156759764041,
+              "window_ms": 792.094178099723,
+              "compute_ms": 88501.26488041389,
+              "npu_count": 128,
+              "utilization": 0.8728963688850465
+            },
+            "mean_ttft_ms": 126.16737350587243,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 349,
+                "fail": 419,
+                "total": 768,
+                "attainment": 0.4544270833333333,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 452,
+                "fail": 316,
+                "total": 768,
+                "attainment": 0.5885416666666666,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 532,
+                "fail": 236,
+                "total": 768,
+                "attainment": 0.6927083333333334,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 576,
+                "fail": 192,
+                "total": 768,
+                "attainment": 0.75,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 756,
+                "fail": 12,
+                "total": 768,
+                "attainment": 0.984375,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 768,
+                "fail": 0,
+                "total": 768,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 768,
+                "fail": 0,
+                "total": 768,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "warm": {
+            "mean_npu_utilization": 0.9358306132280351,
+            "shared_window_npu_utilization": 0.7617773547590234,
+            "shared_window": {
+              "window_start_ms": 35.75912269270334,
+              "window_end_ms": 792.1156759764041,
+              "window_ms": 756.3565532837007,
+              "compute_ms": 73750.43768513406,
+              "npu_count": 128,
+              "utilization": 0.7617773547590234
+            },
+            "mean_ttft_ms": 123.15138525815124,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 349,
+                "fail": 291,
+                "total": 640,
+                "attainment": 0.5453125,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 452,
+                "fail": 188,
+                "total": 640,
+                "attainment": 0.70625,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 479,
+                "fail": 161,
+                "total": 640,
+                "attainment": 0.7484375,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 479,
+                "fail": 161,
+                "total": 640,
+                "attainment": 0.7484375,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 628,
+                "fail": 12,
+                "total": 640,
+                "attainment": 0.98125,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 640,
+                "fail": 0,
+                "total": 640,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 640,
+                "fail": 0,
+                "total": 640,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "first_request_only": {
+            "request_count": 128,
+            "mean_ttft_ms": 141.24731474447847,
+            "slo": {
+              "1.05": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 53,
+                "fail": 75,
+                "total": 128,
+                "attainment": 0.4140625,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 97,
+                "fail": 31,
+                "total": 128,
+                "attainment": 0.7578125,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 128,
+                "fail": 0,
+                "total": 128,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 128,
+                "fail": 0,
+                "total": 128,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 128,
+                "fail": 0,
+                "total": 128,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "wall_time_s": 2108.907829625
         }
       }
     },
@@ -1048,6 +1904,15 @@
         "16": {
           "cold": {
             "mean_npu_utilization": 0.265674050508405,
+            "shared_window_npu_utilization": 0.22068171484176505,
+            "shared_window": {
+              "window_start_ms": 0.021497876681136896,
+              "window_end_ms": 3133.113572922415,
+              "window_ms": 3133.092075045734,
+              "compute_ms": 88501.26488041428,
+              "npu_count": 128,
+              "utilization": 0.22068171484176505
+            },
             "mean_ttft_ms": 447.00498139137557,
             "ttft_slo": {
               "1.05": {
@@ -1103,6 +1968,15 @@
           },
           "warm": {
             "mean_npu_utilization": 0.3228042803257918,
+            "shared_window_npu_utilization": 0.19389311438352627,
+            "shared_window": {
+              "window_start_ms": 161.50059818098458,
+              "window_end_ms": 3133.113572922415,
+              "window_ms": 2971.6129747414307,
+              "compute_ms": 73750.43768513421,
+              "npu_count": 128,
+              "utilization": 0.19389311438352627
+            },
             "mean_ttft_ms": 416.4025541125373,
             "ttft_slo": {
               "1.05": {
@@ -1216,6 +2090,15 @@
         "28": {
           "cold": {
             "mean_npu_utilization": 0.41546682771729354,
+            "shared_window_npu_utilization": 0.35158596460805214,
+            "shared_window": {
+              "window_start_ms": 0.021497876681136896,
+              "window_end_ms": 1966.585017125875,
+              "window_ms": 1966.5635192491939,
+              "compute_ms": 88501.26488041389,
+              "npu_count": 128,
+              "utilization": 0.35158596460805214
+            },
             "mean_ttft_ms": 282.44898445538223,
             "ttft_slo": {
               "1.05": {
@@ -1271,6 +2154,15 @@
           },
           "warm": {
             "mean_npu_utilization": 0.4712329397010942,
+            "shared_window_npu_utilization": 0.30864080547015554,
+            "shared_window": {
+              "window_start_ms": 99.76998747541819,
+              "window_end_ms": 1966.585017125875,
+              "window_ms": 1866.8150296504568,
+              "compute_ms": 73750.43768513399,
+              "npu_count": 128,
+              "utilization": 0.30864080547015554
+            },
             "mean_ttft_ms": 265.29191090972955,
             "ttft_slo": {
               "1.05": {
@@ -1384,6 +2276,15 @@
         "40": {
           "cold": {
             "mean_npu_utilization": 0.5534185654224728,
+            "shared_window_npu_utilization": 0.47567670269061163,
+            "shared_window": {
+              "window_start_ms": 0.021497876681136896,
+              "window_end_ms": 1453.5636368280236,
+              "window_ms": 1453.5421389513424,
+              "compute_ms": 88501.26488041387,
+              "npu_count": 128,
+              "utilization": 0.47567670269061163
+            },
             "mean_ttft_ms": 210.10147220155534,
             "ttft_slo": {
               "1.05": {
@@ -1439,6 +2340,15 @@
           },
           "warm": {
             "mean_npu_utilization": 0.5986732819158972,
+            "shared_window_npu_utilization": 0.40662723419133856,
+            "shared_window": {
+              "window_start_ms": 36.60174650862131,
+              "window_end_ms": 1453.5636368280236,
+              "window_ms": 1416.9618903194023,
+              "compute_ms": 73750.437685134,
+              "npu_count": 128,
+              "utilization": 0.40662723419133856
+            },
             "mean_ttft_ms": 200.02624801820565,
             "ttft_slo": {
               "1.05": {
@@ -1548,6 +2458,378 @@
             }
           },
           "wall_time_s": 1158.9277725830002
+        },
+        "56": {
+          "cold": {
+            "mean_npu_utilization": 0.7495146482568046,
+            "shared_window_npu_utilization": 0.6599714790372189,
+            "shared_window": {
+              "window_start_ms": 0.021497876681136896,
+              "window_end_ms": 1047.6669702035865,
+              "window_ms": 1047.6454723269053,
+              "compute_ms": 88501.26488041387,
+              "npu_count": 128,
+              "utilization": 0.6599714790372189
+            },
+            "mean_ttft_ms": 154.30540096246384,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 274,
+                "fail": 494,
+                "total": 768,
+                "attainment": 0.3567708333333333,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 278,
+                "fail": 490,
+                "total": 768,
+                "attainment": 0.36197916666666663,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 294,
+                "fail": 474,
+                "total": 768,
+                "attainment": 0.3828125,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 435,
+                "fail": 333,
+                "total": 768,
+                "attainment": 0.56640625,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 768,
+                "fail": 0,
+                "total": 768,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 768,
+                "fail": 0,
+                "total": 768,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 768,
+                "fail": 0,
+                "total": 768,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "warm": {
+            "mean_npu_utilization": 0.7816133529435093,
+            "shared_window_npu_utilization": 0.5697265306031335,
+            "shared_window": {
+              "window_start_ms": 36.347918929724784,
+              "window_end_ms": 1047.6669702035865,
+              "window_ms": 1011.3190512738618,
+              "compute_ms": 73750.43768513405,
+              "npu_count": 128,
+              "utilization": 0.5697265306031335
+            },
+            "mean_ttft_ms": 149.26061334704386,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 274,
+                "fail": 366,
+                "total": 640,
+                "attainment": 0.42812500000000003,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 278,
+                "fail": 362,
+                "total": 640,
+                "attainment": 0.434375,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 294,
+                "fail": 346,
+                "total": 640,
+                "attainment": 0.459375,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 409,
+                "fail": 231,
+                "total": 640,
+                "attainment": 0.6390625,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 640,
+                "fail": 0,
+                "total": 640,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 640,
+                "fail": 0,
+                "total": 640,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 640,
+                "fail": 0,
+                "total": 640,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "first_request_only": {
+            "request_count": 128,
+            "mean_ttft_ms": 179.52933903956378,
+            "slo": {
+              "1.05": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 26,
+                "fail": 102,
+                "total": 128,
+                "attainment": 0.203125,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 128,
+                "fail": 0,
+                "total": 128,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 128,
+                "fail": 0,
+                "total": 128,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 128,
+                "fail": 0,
+                "total": 128,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "wall_time_s": 2105.311495292
+        },
+        "70": {
+          "cold": {
+            "mean_npu_utilization": 0.9120043313750638,
+            "shared_window_npu_utilization": 0.870369333787011,
+            "shared_window": {
+              "window_start_ms": 0.021497876681136896,
+              "window_end_ms": 794.415446558047,
+              "window_ms": 794.3939486813659,
+              "compute_ms": 88501.26488041389,
+              "npu_count": 128,
+              "utilization": 0.870369333787011
+            },
+            "mean_ttft_ms": 126.40955375216997,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 349,
+                "fail": 419,
+                "total": 768,
+                "attainment": 0.4544270833333333,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 434,
+                "fail": 334,
+                "total": 768,
+                "attainment": 0.5651041666666666,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 533,
+                "fail": 235,
+                "total": 768,
+                "attainment": 0.6940104166666666,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 576,
+                "fail": 192,
+                "total": 768,
+                "attainment": 0.75,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 755,
+                "fail": 13,
+                "total": 768,
+                "attainment": 0.9830729166666666,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 768,
+                "fail": 0,
+                "total": 768,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 768,
+                "fail": 0,
+                "total": 768,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "warm": {
+            "mean_npu_utilization": 0.9337428670468991,
+            "shared_window_npu_utilization": 0.7594735644229422,
+            "shared_window": {
+              "window_start_ms": 35.76455809309398,
+              "window_end_ms": 794.415446558047,
+              "window_ms": 758.650888464953,
+              "compute_ms": 73750.43768513406,
+              "npu_count": 128,
+              "utilization": 0.7594735644229422
+            },
+            "mean_ttft_ms": 123.4615695301438,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 349,
+                "fail": 291,
+                "total": 640,
+                "attainment": 0.5453125,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 434,
+                "fail": 206,
+                "total": 640,
+                "attainment": 0.678125,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 479,
+                "fail": 161,
+                "total": 640,
+                "attainment": 0.7484375,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 479,
+                "fail": 161,
+                "total": 640,
+                "attainment": 0.7484375,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 627,
+                "fail": 13,
+                "total": 640,
+                "attainment": 0.9796875,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 640,
+                "fail": 0,
+                "total": 640,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 640,
+                "fail": 0,
+                "total": 640,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "first_request_only": {
+            "request_count": 128,
+            "mean_ttft_ms": 141.14947486230065,
+            "slo": {
+              "1.05": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 54,
+                "fail": 74,
+                "total": 128,
+                "attainment": 0.421875,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 97,
+                "fail": 31,
+                "total": 128,
+                "attainment": 0.7578125,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 128,
+                "fail": 0,
+                "total": 128,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 128,
+                "fail": 0,
+                "total": 128,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 128,
+                "fail": 0,
+                "total": 128,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "wall_time_s": 2146.800602791
         }
       }
     },
@@ -1556,6 +2838,15 @@
         "16": {
           "cold": {
             "mean_npu_utilization": 0.3942363467744864,
+            "shared_window_npu_utilization": 0.1988961814412424,
+            "shared_window": {
+              "window_start_ms": 0.021497876681136896,
+              "window_end_ms": 3476.287994639424,
+              "window_ms": 3476.266496762743,
+              "compute_ms": 88501.26488041403,
+              "npu_count": 128,
+              "utilization": 0.1988961814412424
+            },
             "mean_ttft_ms": 340.5839066694238,
             "ttft_slo": {
               "1.05": {
@@ -1611,6 +2902,15 @@
           },
           "warm": {
             "mean_npu_utilization": 0.7193859420094827,
+            "shared_window_npu_utilization": 0.1674680486039586,
+            "shared_window": {
+              "window_start_ms": 35.779197778152565,
+              "window_end_ms": 3476.287994639424,
+              "window_ms": 3440.5087968612715,
+              "compute_ms": 73750.43768513415,
+              "npu_count": 128,
+              "utilization": 0.1674680486039586
+            },
             "mean_ttft_ms": 165.19301453666088,
             "ttft_slo": {
               "1.05": {
@@ -1724,6 +3024,15 @@
         "28": {
           "cold": {
             "mean_npu_utilization": 0.5777921081944447,
+            "shared_window_npu_utilization": 0.29994976430004344,
+            "shared_window": {
+              "window_start_ms": 0.021497876681136896,
+              "window_end_ms": 2305.127932921588,
+              "window_ms": 2305.106435044907,
+              "compute_ms": 88501.26488041386,
+              "npu_count": 128,
+              "utilization": 0.29994976430004344
+            },
             "mean_ttft_ms": 227.54773404650248,
             "ttft_slo": {
               "1.05": {
@@ -1779,6 +3088,15 @@
           },
           "warm": {
             "mean_npu_utilization": 0.8726170579494459,
+            "shared_window_npu_utilization": 0.2538931497650706,
+            "shared_window": {
+              "window_start_ms": 35.766609277176,
+              "window_end_ms": 2305.127932921588,
+              "window_ms": 2269.361323644412,
+              "compute_ms": 73750.43768513402,
+              "npu_count": 128,
+              "utilization": 0.2538931497650706
+            },
             "mean_ttft_ms": 132.74194011923055,
             "ttft_slo": {
               "1.05": {
@@ -1892,6 +3210,15 @@
         "40": {
           "cold": {
             "mean_npu_utilization": 0.6243844944003556,
+            "shared_window_npu_utilization": 0.38878256757689594,
+            "shared_window": {
+              "window_start_ms": 0.021497876681136896,
+              "window_end_ms": 1778.4349081988416,
+              "window_ms": 1778.4134103221604,
+              "compute_ms": 88501.26488041386,
+              "npu_count": 128,
+              "utilization": 0.38878256757689594
+            },
             "mean_ttft_ms": 194.18091260560433,
             "ttft_slo": {
               "1.05": {
@@ -1947,6 +3274,15 @@
           },
           "warm": {
             "mean_npu_utilization": 0.7574446572714252,
+            "shared_window_npu_utilization": 0.3306271073131692,
+            "shared_window": {
+              "window_start_ms": 35.76081502668772,
+              "window_end_ms": 1778.4349081988416,
+              "window_ms": 1742.674093172154,
+              "compute_ms": 73750.43768513402,
+              "npu_count": 128,
+              "utilization": 0.3306271073131692
+            },
             "mean_ttft_ms": 154.5834772193253,
             "ttft_slo": {
               "1.05": {
@@ -2056,6 +3392,378 @@
             }
           },
           "wall_time_s": 358.322791667
+        },
+        "56": {
+          "cold": {
+            "mean_npu_utilization": 0.7710685629526443,
+            "shared_window_npu_utilization": 0.4817319028903066,
+            "shared_window": {
+              "window_start_ms": 0.021497876681136896,
+              "window_end_ms": 1435.2931245425887,
+              "window_ms": 1435.2716266659074,
+              "compute_ms": 88501.26488041386,
+              "npu_count": 128,
+              "utilization": 0.4817319028903066
+            },
+            "mean_ttft_ms": 152.32972266428501,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 277,
+                "fail": 491,
+                "total": 768,
+                "attainment": 0.3606770833333333,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 403,
+                "fail": 365,
+                "total": 768,
+                "attainment": 0.5247395833333334,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 447,
+                "fail": 321,
+                "total": 768,
+                "attainment": 0.58203125,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 498,
+                "fail": 270,
+                "total": 768,
+                "attainment": 0.6484375,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 601,
+                "fail": 167,
+                "total": 768,
+                "attainment": 0.7825520833333334,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 658,
+                "fail": 110,
+                "total": 768,
+                "attainment": 0.8567708333333334,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 701,
+                "fail": 67,
+                "total": 768,
+                "attainment": 0.9127604166666666,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "warm": {
+            "mean_npu_utilization": 0.8206936280788599,
+            "shared_window_npu_utilization": 0.4116892018541545,
+            "shared_window": {
+              "window_start_ms": 35.75363742427869,
+              "window_end_ms": 1435.2931245425887,
+              "window_ms": 1399.53948711831,
+              "compute_ms": 73750.43768513405,
+              "npu_count": 128,
+              "utilization": 0.4116892018541545
+            },
+            "mean_ttft_ms": 140.91269308864565,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 247,
+                "fail": 393,
+                "total": 640,
+                "attainment": 0.3859375,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 348,
+                "fail": 292,
+                "total": 640,
+                "attainment": 0.54375,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 382,
+                "fail": 258,
+                "total": 640,
+                "attainment": 0.596875,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 425,
+                "fail": 215,
+                "total": 640,
+                "attainment": 0.6640625,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 512,
+                "fail": 128,
+                "total": 640,
+                "attainment": 0.8,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 559,
+                "fail": 81,
+                "total": 640,
+                "attainment": 0.8734375,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 595,
+                "fail": 45,
+                "total": 640,
+                "attainment": 0.9296875,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "first_request_only": {
+            "request_count": 128,
+            "mean_ttft_ms": 209.41487054248176,
+            "slo": {
+              "1.05": {
+                "pass": 30,
+                "fail": 98,
+                "total": 128,
+                "attainment": 0.234375,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 55,
+                "fail": 73,
+                "total": 128,
+                "attainment": 0.4296875,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 65,
+                "fail": 63,
+                "total": 128,
+                "attainment": 0.5078125,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 73,
+                "fail": 55,
+                "total": 128,
+                "attainment": 0.5703125,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 89,
+                "fail": 39,
+                "total": 128,
+                "attainment": 0.6953125,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 99,
+                "fail": 29,
+                "total": 128,
+                "attainment": 0.7734375,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 106,
+                "fail": 22,
+                "total": 128,
+                "attainment": 0.828125,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "wall_time_s": 824.015198334
+        },
+        "70": {
+          "cold": {
+            "mean_npu_utilization": 0.920312946568209,
+            "shared_window_npu_utilization": 0.802701389240405,
+            "shared_window": {
+              "window_start_ms": 0.021497876681136896,
+              "window_end_ms": 861.3830716152282,
+              "window_ms": 861.3615737385471,
+              "compute_ms": 88501.26488041387,
+              "npu_count": 128,
+              "utilization": 0.802701389240405
+            },
+            "mean_ttft_ms": 125.47522518779441,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 506,
+                "fail": 262,
+                "total": 768,
+                "attainment": 0.6588541666666666,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 548,
+                "fail": 220,
+                "total": 768,
+                "attainment": 0.7135416666666666,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 556,
+                "fail": 212,
+                "total": 768,
+                "attainment": 0.7239583333333334,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 563,
+                "fail": 205,
+                "total": 768,
+                "attainment": 0.7330729166666666,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 684,
+                "fail": 84,
+                "total": 768,
+                "attainment": 0.890625,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 755,
+                "fail": 13,
+                "total": 768,
+                "attainment": 0.9830729166666666,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 763,
+                "fail": 5,
+                "total": 768,
+                "attainment": 0.9934895833333334,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "warm": {
+            "mean_npu_utilization": 0.9434975751897338,
+            "shared_window_npu_utilization": 0.6982373220540569,
+            "shared_window": {
+              "window_start_ms": 36.19759926016695,
+              "window_end_ms": 861.3830716152282,
+              "window_ms": 825.1854723550613,
+              "compute_ms": 73750.43768513408,
+              "npu_count": 128,
+              "utilization": 0.6982373220540569
+            },
+            "mean_ttft_ms": 122.04066754589739,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 451,
+                "fail": 189,
+                "total": 640,
+                "attainment": 0.7046875,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 478,
+                "fail": 162,
+                "total": 640,
+                "attainment": 0.7468750000000001,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 479,
+                "fail": 161,
+                "total": 640,
+                "attainment": 0.7484375,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 479,
+                "fail": 161,
+                "total": 640,
+                "attainment": 0.7484375,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 581,
+                "fail": 59,
+                "total": 640,
+                "attainment": 0.9078125,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 634,
+                "fail": 6,
+                "total": 640,
+                "attainment": 0.990625,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 640,
+                "fail": 0,
+                "total": 640,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "first_request_only": {
+            "request_count": 128,
+            "mean_ttft_ms": 142.6480133972794,
+            "slo": {
+              "1.05": {
+                "pass": 55,
+                "fail": 73,
+                "total": 128,
+                "attainment": 0.4296875,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 70,
+                "fail": 58,
+                "total": 128,
+                "attainment": 0.546875,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 77,
+                "fail": 51,
+                "total": 128,
+                "attainment": 0.6015625,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 84,
+                "fail": 44,
+                "total": 128,
+                "attainment": 0.65625,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 103,
+                "fail": 25,
+                "total": 128,
+                "attainment": 0.8046875,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 121,
+                "fail": 7,
+                "total": 128,
+                "attainment": 0.9453125,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 123,
+                "fail": 5,
+                "total": 128,
+                "attainment": 0.9609375,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "wall_time_s": 915.643801375
         }
       }
     },
@@ -2064,6 +3772,15 @@
         "16": {
           "cold": {
             "mean_npu_utilization": 0.3405682487358917,
+            "shared_window_npu_utilization": 0.2046974428481359,
+            "shared_window": {
+              "window_start_ms": 0.021497876681136896,
+              "window_end_ms": 3377.7682946023933,
+              "window_ms": 3377.746796725712,
+              "compute_ms": 88501.26488041415,
+              "npu_count": 128,
+              "utilization": 0.2046974428481359
+            },
             "mean_ttft_ms": 370.27558679032103,
             "ttft_slo": {
               "1.05": {
@@ -2119,6 +3836,15 @@
           },
           "warm": {
             "mean_npu_utilization": 0.4995977890337665,
+            "shared_window_npu_utilization": 0.17256057868137628,
+            "shared_window": {
+              "window_start_ms": 38.79424376203928,
+              "window_end_ms": 3377.7682946023933,
+              "window_ms": 3338.9740508403543,
+              "compute_ms": 73750.43768513417,
+              "npu_count": 128,
+              "utilization": 0.17256057868137628
+            },
             "mean_ttft_ms": 313.4562167153367,
             "ttft_slo": {
               "1.05": {
@@ -2232,6 +3958,15 @@
         "28": {
           "cold": {
             "mean_npu_utilization": 0.5181683822069503,
+            "shared_window_npu_utilization": 0.3112811309127369,
+            "shared_window": {
+              "window_start_ms": 0.021497876681136896,
+              "window_end_ms": 2221.216627343304,
+              "window_ms": 2221.195129466623,
+              "compute_ms": 88501.26488041387,
+              "npu_count": 128,
+              "utilization": 0.3112811309127369
+            },
             "mean_ttft_ms": 240.38414345064393,
             "ttft_slo": {
               "1.05": {
@@ -2287,6 +4022,15 @@
           },
           "warm": {
             "mean_npu_utilization": 0.6567673189152505,
+            "shared_window_npu_utilization": 0.26375061999809085,
+            "shared_window": {
+              "window_start_ms": 36.67088326399241,
+              "window_end_ms": 2221.216627343304,
+              "window_ms": 2184.5457440793116,
+              "compute_ms": 73750.43768513396,
+              "npu_count": 128,
+              "utilization": 0.26375061999809085
+            },
             "mean_ttft_ms": 207.35784320928087,
             "ttft_slo": {
               "1.05": {
@@ -2400,6 +4144,15 @@
         "40": {
           "cold": {
             "mean_npu_utilization": 0.6508640768426154,
+            "shared_window_npu_utilization": 0.40612229791631305,
+            "shared_window": {
+              "window_start_ms": 0.021497876681136896,
+              "window_end_ms": 1702.504063905865,
+              "window_ms": 1702.4825660291838,
+              "compute_ms": 88501.26488041386,
+              "npu_count": 128,
+              "utilization": 0.40612229791631305
+            },
             "mean_ttft_ms": 187.44963522430893,
             "ttft_slo": {
               "1.05": {
@@ -2455,6 +4208,15 @@
           },
           "warm": {
             "mean_npu_utilization": 0.7521540493091501,
+            "shared_window_npu_utilization": 0.3457253307869479,
+            "shared_window": {
+              "window_start_ms": 35.9345559568635,
+              "window_end_ms": 1702.504063905865,
+              "window_ms": 1666.5695079490015,
+              "compute_ms": 73750.43768513402,
+              "npu_count": 128,
+              "utilization": 0.3457253307869479
+            },
             "mean_ttft_ms": 167.66235637237975,
             "ttft_slo": {
               "1.05": {
@@ -2564,6 +4326,378 @@
             }
           },
           "wall_time_s": 483.5916175
+        },
+        "56": {
+          "cold": {
+            "mean_npu_utilization": 0.8090183003301441,
+            "shared_window_npu_utilization": 0.46755504068973386,
+            "shared_window": {
+              "window_start_ms": 0.021497876681136896,
+              "window_end_ms": 1478.8123817440899,
+              "window_ms": 1478.7908838674086,
+              "compute_ms": 88501.26488041392,
+              "npu_count": 128,
+              "utilization": 0.46755504068973386
+            },
+            "mean_ttft_ms": 148.32218381780336,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 420,
+                "fail": 348,
+                "total": 768,
+                "attainment": 0.546875,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 442,
+                "fail": 326,
+                "total": 768,
+                "attainment": 0.5755208333333334,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 456,
+                "fail": 312,
+                "total": 768,
+                "attainment": 0.59375,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 511,
+                "fail": 257,
+                "total": 768,
+                "attainment": 0.6653645833333334,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 729,
+                "fail": 39,
+                "total": 768,
+                "attainment": 0.94921875,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 748,
+                "fail": 20,
+                "total": 768,
+                "attainment": 0.9739583333333334,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 762,
+                "fail": 6,
+                "total": 768,
+                "attainment": 0.9921875,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "warm": {
+            "mean_npu_utilization": 0.8705949909754761,
+            "shared_window_npu_utilization": 0.3993217171058443,
+            "shared_window": {
+              "window_start_ms": 35.92743526273314,
+              "window_end_ms": 1478.8123817440899,
+              "window_ms": 1442.8849464813568,
+              "compute_ms": 73750.43768513403,
+              "npu_count": 128,
+              "utilization": 0.3993217171058443
+            },
+            "mean_ttft_ms": 138.42699227513123,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 407,
+                "fail": 233,
+                "total": 640,
+                "attainment": 0.6359375,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 420,
+                "fail": 220,
+                "total": 640,
+                "attainment": 0.65625,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 430,
+                "fail": 210,
+                "total": 640,
+                "attainment": 0.671875,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 443,
+                "fail": 197,
+                "total": 640,
+                "attainment": 0.6921875,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 617,
+                "fail": 23,
+                "total": 640,
+                "attainment": 0.9640625,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 626,
+                "fail": 14,
+                "total": 640,
+                "attainment": 0.978125,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 639,
+                "fail": 1,
+                "total": 640,
+                "attainment": 0.9984375,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "first_request_only": {
+            "request_count": 128,
+            "mean_ttft_ms": 197.798141531164,
+            "slo": {
+              "1.05": {
+                "pass": 13,
+                "fail": 115,
+                "total": 128,
+                "attainment": 0.1015625,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 22,
+                "fail": 106,
+                "total": 128,
+                "attainment": 0.171875,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 26,
+                "fail": 102,
+                "total": 128,
+                "attainment": 0.203125,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 68,
+                "fail": 60,
+                "total": 128,
+                "attainment": 0.53125,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 112,
+                "fail": 16,
+                "total": 128,
+                "attainment": 0.875,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 122,
+                "fail": 6,
+                "total": 128,
+                "attainment": 0.953125,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 123,
+                "fail": 5,
+                "total": 128,
+                "attainment": 0.9609375,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "wall_time_s": 496.380324291
+        },
+        "70": {
+          "cold": {
+            "mean_npu_utilization": 0.910163704571754,
+            "shared_window_npu_utilization": 0.6420482864423052,
+            "shared_window": {
+              "window_start_ms": 0.021497876681136896,
+              "window_end_ms": 1076.9126702049864,
+              "window_ms": 1076.8911723283052,
+              "compute_ms": 88501.26488041389,
+              "npu_count": 128,
+              "utilization": 0.6420482864423052
+            },
+            "mean_ttft_ms": 127.20163862195591,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 446,
+                "fail": 322,
+                "total": 768,
+                "attainment": 0.5807291666666666,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 472,
+                "fail": 296,
+                "total": 768,
+                "attainment": 0.6145833333333334,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 503,
+                "fail": 265,
+                "total": 768,
+                "attainment": 0.6549479166666666,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 566,
+                "fail": 202,
+                "total": 768,
+                "attainment": 0.7369791666666666,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 765,
+                "fail": 3,
+                "total": 768,
+                "attainment": 0.99609375,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 768,
+                "fail": 0,
+                "total": 768,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 768,
+                "fail": 0,
+                "total": 768,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "warm": {
+            "mean_npu_utilization": 0.9387925655590286,
+            "shared_window_npu_utilization": 0.5533995556297395,
+            "shared_window": {
+              "window_start_ms": 35.7566220049609,
+              "window_end_ms": 1076.9126702049864,
+              "window_ms": 1041.1560482000255,
+              "compute_ms": 73750.43768513405,
+              "npu_count": 128,
+              "utilization": 0.5533995556297395
+            },
+            "mean_ttft_ms": 123.34909898014845,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 419,
+                "fail": 221,
+                "total": 640,
+                "attainment": 0.6546875,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 438,
+                "fail": 202,
+                "total": 640,
+                "attainment": 0.6843750000000001,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 457,
+                "fail": 183,
+                "total": 640,
+                "attainment": 0.7140625,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 474,
+                "fail": 166,
+                "total": 640,
+                "attainment": 0.740625,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 638,
+                "fail": 2,
+                "total": 640,
+                "attainment": 0.996875,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 640,
+                "fail": 0,
+                "total": 640,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 640,
+                "fail": 0,
+                "total": 640,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "first_request_only": {
+            "request_count": 128,
+            "mean_ttft_ms": 146.46433683099315,
+            "slo": {
+              "1.05": {
+                "pass": 27,
+                "fail": 101,
+                "total": 128,
+                "attainment": 0.2109375,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 34,
+                "fail": 94,
+                "total": 128,
+                "attainment": 0.265625,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 46,
+                "fail": 82,
+                "total": 128,
+                "attainment": 0.359375,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 92,
+                "fail": 36,
+                "total": 128,
+                "attainment": 0.71875,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 127,
+                "fail": 1,
+                "total": 128,
+                "attainment": 0.9921875,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 128,
+                "fail": 0,
+                "total": 128,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 128,
+                "fail": 0,
+                "total": 128,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "wall_time_s": 510.929838167
         }
       }
     }
@@ -2574,31 +4708,61 @@
         "16": {
           "cold": {
             "npu_utilization_delta_pp": 3.909835374940332,
+            "shared_window_npu_utilization_delta_pp": -0.3859866862544248,
             "ttft_slo_delta_pp": 48.95833333333333
           },
           "warm": {
             "npu_utilization_delta_pp": 9.663678955669925,
+            "shared_window_npu_utilization_delta_pp": -2.638626571976235,
             "ttft_slo_delta_pp": 58.75
           }
         },
         "28": {
           "cold": {
             "npu_utilization_delta_pp": 4.884559702624081,
+            "shared_window_npu_utilization_delta_pp": -1.105891640835166,
             "ttft_slo_delta_pp": 32.8125
           },
           "warm": {
             "npu_utilization_delta_pp": 10.480084509224586,
+            "shared_window_npu_utilization_delta_pp": -4.747539431323139,
             "ttft_slo_delta_pp": 44.21874999999999
           }
         },
         "40": {
           "cold": {
             "npu_utilization_delta_pp": 4.181691564625945,
+            "shared_window_npu_utilization_delta_pp": -3.0387792410087098,
             "ttft_slo_delta_pp": 15.234375
           },
           "warm": {
             "npu_utilization_delta_pp": 8.656081698719598,
+            "shared_window_npu_utilization_delta_pp": -8.905532628538381,
             "ttft_slo_delta_pp": 27.031249999999996
+          }
+        },
+        "56": {
+          "cold": {
+            "npu_utilization_delta_pp": 2.2518870737873398,
+            "shared_window_npu_utilization_delta_pp": -2.305493240967571,
+            "ttft_slo_delta_pp": 24.739583333333336
+          },
+          "warm": {
+            "npu_utilization_delta_pp": 5.565024343347124,
+            "shared_window_npu_utilization_delta_pp": -8.296256479811648,
+            "ttft_slo_delta_pp": 25.156250000000004
+          }
+        },
+        "70": {
+          "cold": {
+            "npu_utilization_delta_pp": -0.5785651618047671,
+            "shared_window_npu_utilization_delta_pp": 4.001523075504265,
+            "ttft_slo_delta_pp": 17.578125
+          },
+          "warm": {
+            "npu_utilization_delta_pp": 0.41034065009931675,
+            "shared_window_npu_utilization_delta_pp": -1.0465562285955299,
+            "ttft_slo_delta_pp": 16.249999999999996
           }
         }
       }
@@ -2608,31 +4772,61 @@
         "16": {
           "cold": {
             "npu_utilization_delta_pp": 3.913865295857702,
+            "shared_window_npu_utilization_delta_pp": -0.41001145855959764,
             "ttft_slo_delta_pp": 50.260416666666664
           },
           "warm": {
             "npu_utilization_delta_pp": 9.705713232165364,
+            "shared_window_npu_utilization_delta_pp": -2.655972414745933,
             "ttft_slo_delta_pp": 60.3125
           }
         },
         "28": {
           "cold": {
             "npu_utilization_delta_pp": 4.8830410913100755,
+            "shared_window_npu_utilization_delta_pp": -1.1530146461310842,
             "ttft_slo_delta_pp": 32.682291666666664
           },
           "warm": {
             "npu_utilization_delta_pp": 10.455774347282576,
+            "shared_window_npu_utilization_delta_pp": -4.813956231429711,
             "ttft_slo_delta_pp": 44.06249999999999
           }
         },
         "40": {
           "cold": {
             "npu_utilization_delta_pp": 4.177349424628662,
+            "shared_window_npu_utilization_delta_pp": -2.976828141455484,
             "ttft_slo_delta_pp": 15.885416666666663
           },
           "warm": {
             "npu_utilization_delta_pp": 8.624938656864877,
+            "shared_window_npu_utilization_delta_pp": -8.955174887880718,
             "ttft_slo_delta_pp": 27.031249999999996
+          }
+        },
+        "56": {
+          "cold": {
+            "npu_utilization_delta_pp": 2.2126850718466873,
+            "shared_window_npu_utilization_delta_pp": -2.444298950292223,
+            "ttft_slo_delta_pp": 25.0
+          },
+          "warm": {
+            "npu_utilization_delta_pp": 5.517283743691492,
+            "shared_window_npu_utilization_delta_pp": -8.397009891176276,
+            "ttft_slo_delta_pp": 25.156250000000004
+          }
+        },
+        "70": {
+          "cold": {
+            "npu_utilization_delta_pp": -0.7522922593564907,
+            "shared_window_npu_utilization_delta_pp": 3.7488195657007117,
+            "ttft_slo_delta_pp": 17.447916666666664
+          },
+          "warm": {
+            "npu_utilization_delta_pp": 0.20156603198572265,
+            "shared_window_npu_utilization_delta_pp": -1.276935262203649,
+            "ttft_slo_delta_pp": 16.093750000000007
           }
         }
       }
@@ -2642,31 +4836,61 @@
         "16": {
           "cold": {
             "npu_utilization_delta_pp": 16.77009492246584,
+            "shared_window_npu_utilization_delta_pp": -2.5885647986118614,
             "ttft_slo_delta_pp": 61.71875
           },
           "warm": {
             "npu_utilization_delta_pp": 49.36387940053446,
+            "shared_window_npu_utilization_delta_pp": -5.298478992702699,
             "ttft_slo_delta_pp": 69.53125
           }
         },
         "28": {
           "cold": {
             "npu_utilization_delta_pp": 21.11556913902519,
+            "shared_window_npu_utilization_delta_pp": -6.316634676931954,
             "ttft_slo_delta_pp": 49.088541666666664
           },
           "warm": {
             "npu_utilization_delta_pp": 50.59418617211775,
+            "shared_window_npu_utilization_delta_pp": -10.288721801938205,
             "ttft_slo_delta_pp": 56.56250000000001
           }
         },
         "40": {
           "cold": {
             "npu_utilization_delta_pp": 11.273942322416941,
+            "shared_window_npu_utilization_delta_pp": -11.666241652827052,
             "ttft_slo_delta_pp": 20.572916666666675
           },
           "warm": {
             "npu_utilization_delta_pp": 24.502076192417675,
+            "shared_window_npu_utilization_delta_pp": -16.555187575697655,
             "ttft_slo_delta_pp": 24.21875
+          }
+        },
+        "56": {
+          "cold": {
+            "npu_utilization_delta_pp": 4.368076541430654,
+            "shared_window_npu_utilization_delta_pp": -20.26825656498345,
+            "ttft_slo_delta_pp": 3.255208333333337
+          },
+          "warm": {
+            "npu_utilization_delta_pp": 9.425311257226554,
+            "shared_window_npu_utilization_delta_pp": -24.20074276607418,
+            "ttft_slo_delta_pp": 5.156250000000007
+          }
+        },
+        "70": {
+          "cold": {
+            "npu_utilization_delta_pp": 0.07856925995802788,
+            "shared_window_npu_utilization_delta_pp": -3.0179748889598845,
+            "ttft_slo_delta_pp": 8.203125
+          },
+          "warm": {
+            "npu_utilization_delta_pp": 1.177036846269186,
+            "shared_window_npu_utilization_delta_pp": -7.400559499092186,
+            "ttft_slo_delta_pp": 8.906250000000004
           }
         }
       }
@@ -2676,31 +4900,61 @@
         "16": {
           "cold": {
             "npu_utilization_delta_pp": 11.403285118606373,
+            "shared_window_npu_utilization_delta_pp": -2.008438657922512,
             "ttft_slo_delta_pp": 71.61458333333334
           },
           "warm": {
             "npu_utilization_delta_pp": 27.385064102962836,
+            "shared_window_npu_utilization_delta_pp": -4.789225984960932,
             "ttft_slo_delta_pp": 80.78125
           }
         },
         "28": {
           "cold": {
             "npu_utilization_delta_pp": 15.153196540275749,
+            "shared_window_npu_utilization_delta_pp": -5.183498015662607,
             "ttft_slo_delta_pp": 54.6875
           },
           "warm": {
             "npu_utilization_delta_pp": 29.00921226869821,
+            "shared_window_npu_utilization_delta_pp": -9.30297477863618,
             "ttft_slo_delta_pp": 61.25000000000001
           }
         },
         "40": {
           "cold": {
             "npu_utilization_delta_pp": 13.92190056664292,
+            "shared_window_npu_utilization_delta_pp": -9.932268618885342,
             "ttft_slo_delta_pp": 35.677083333333336
           },
           "warm": {
             "npu_utilization_delta_pp": 23.973015396190167,
+            "shared_window_npu_utilization_delta_pp": -15.045365228319785,
             "ttft_slo_delta_pp": 40.625
+          }
+        },
+        "56": {
+          "cold": {
+            "npu_utilization_delta_pp": 8.16305027918064,
+            "shared_window_npu_utilization_delta_pp": -21.685942785040723,
+            "ttft_slo_delta_pp": 19.921875
+          },
+          "warm": {
+            "npu_utilization_delta_pp": 14.41544754688817,
+            "shared_window_npu_utilization_delta_pp": -25.437491240905196,
+            "ttft_slo_delta_pp": 21.562500000000007
+          }
+        },
+        "70": {
+          "cold": {
+            "npu_utilization_delta_pp": -0.9363549396874671,
+            "shared_window_npu_utilization_delta_pp": -19.08328516876987,
+            "ttft_slo_delta_pp": 18.75
+          },
+          "warm": {
+            "npu_utilization_delta_pp": 0.7065358831986668,
+            "shared_window_npu_utilization_delta_pp": -21.884336141523917,
+            "ttft_slo_delta_pp": 17.812499999999996
           }
         }
       }
@@ -2711,31 +4965,61 @@
       "16": {
         "cold": {
           "npu_utilization_delta_pp": 3.909835374940332,
+          "shared_window_npu_utilization_delta_pp": -0.3859866862544248,
           "ttft_slo_delta_pp": 48.95833333333333
         },
         "warm": {
           "npu_utilization_delta_pp": 9.663678955669925,
+          "shared_window_npu_utilization_delta_pp": -2.638626571976235,
           "ttft_slo_delta_pp": 58.75
         }
       },
       "28": {
         "cold": {
           "npu_utilization_delta_pp": 4.884559702624081,
+          "shared_window_npu_utilization_delta_pp": -1.105891640835166,
           "ttft_slo_delta_pp": 32.8125
         },
         "warm": {
           "npu_utilization_delta_pp": 10.480084509224586,
+          "shared_window_npu_utilization_delta_pp": -4.747539431323139,
           "ttft_slo_delta_pp": 44.21874999999999
         }
       },
       "40": {
         "cold": {
           "npu_utilization_delta_pp": 4.181691564625945,
+          "shared_window_npu_utilization_delta_pp": -3.0387792410087098,
           "ttft_slo_delta_pp": 15.234375
         },
         "warm": {
           "npu_utilization_delta_pp": 8.656081698719598,
+          "shared_window_npu_utilization_delta_pp": -8.905532628538381,
           "ttft_slo_delta_pp": 27.031249999999996
+        }
+      },
+      "56": {
+        "cold": {
+          "npu_utilization_delta_pp": 2.2518870737873398,
+          "shared_window_npu_utilization_delta_pp": -2.305493240967571,
+          "ttft_slo_delta_pp": 24.739583333333336
+        },
+        "warm": {
+          "npu_utilization_delta_pp": 5.565024343347124,
+          "shared_window_npu_utilization_delta_pp": -8.296256479811648,
+          "ttft_slo_delta_pp": 25.156250000000004
+        }
+      },
+      "70": {
+        "cold": {
+          "npu_utilization_delta_pp": -0.5785651618047671,
+          "shared_window_npu_utilization_delta_pp": 4.001523075504265,
+          "ttft_slo_delta_pp": 17.578125
+        },
+        "warm": {
+          "npu_utilization_delta_pp": 0.41034065009931675,
+          "shared_window_npu_utilization_delta_pp": -1.0465562285955299,
+          "ttft_slo_delta_pp": 16.249999999999996
         }
       }
     }
@@ -2745,31 +5029,61 @@
       "16": {
         "cold": {
           "npu_utilization_delta_pp": 3.913865295857702,
+          "shared_window_npu_utilization_delta_pp": -0.41001145855959764,
           "ttft_slo_delta_pp": 50.260416666666664
         },
         "warm": {
           "npu_utilization_delta_pp": 9.705713232165364,
+          "shared_window_npu_utilization_delta_pp": -2.655972414745933,
           "ttft_slo_delta_pp": 60.3125
         }
       },
       "28": {
         "cold": {
           "npu_utilization_delta_pp": 4.8830410913100755,
+          "shared_window_npu_utilization_delta_pp": -1.1530146461310842,
           "ttft_slo_delta_pp": 32.682291666666664
         },
         "warm": {
           "npu_utilization_delta_pp": 10.455774347282576,
+          "shared_window_npu_utilization_delta_pp": -4.813956231429711,
           "ttft_slo_delta_pp": 44.06249999999999
         }
       },
       "40": {
         "cold": {
           "npu_utilization_delta_pp": 4.177349424628662,
+          "shared_window_npu_utilization_delta_pp": -2.976828141455484,
           "ttft_slo_delta_pp": 15.885416666666663
         },
         "warm": {
           "npu_utilization_delta_pp": 8.624938656864877,
+          "shared_window_npu_utilization_delta_pp": -8.955174887880718,
           "ttft_slo_delta_pp": 27.031249999999996
+        }
+      },
+      "56": {
+        "cold": {
+          "npu_utilization_delta_pp": 2.2126850718466873,
+          "shared_window_npu_utilization_delta_pp": -2.444298950292223,
+          "ttft_slo_delta_pp": 25.0
+        },
+        "warm": {
+          "npu_utilization_delta_pp": 5.517283743691492,
+          "shared_window_npu_utilization_delta_pp": -8.397009891176276,
+          "ttft_slo_delta_pp": 25.156250000000004
+        }
+      },
+      "70": {
+        "cold": {
+          "npu_utilization_delta_pp": -0.7522922593564907,
+          "shared_window_npu_utilization_delta_pp": 3.7488195657007117,
+          "ttft_slo_delta_pp": 17.447916666666664
+        },
+        "warm": {
+          "npu_utilization_delta_pp": 0.20156603198572265,
+          "shared_window_npu_utilization_delta_pp": -1.276935262203649,
+          "ttft_slo_delta_pp": 16.093750000000007
         }
       }
     }
@@ -2779,31 +5093,61 @@
       "16": {
         "cold": {
           "npu_utilization_delta_pp": 16.77009492246584,
+          "shared_window_npu_utilization_delta_pp": -2.5885647986118614,
           "ttft_slo_delta_pp": 61.71875
         },
         "warm": {
           "npu_utilization_delta_pp": 49.36387940053446,
+          "shared_window_npu_utilization_delta_pp": -5.298478992702699,
           "ttft_slo_delta_pp": 69.53125
         }
       },
       "28": {
         "cold": {
           "npu_utilization_delta_pp": 21.11556913902519,
+          "shared_window_npu_utilization_delta_pp": -6.316634676931954,
           "ttft_slo_delta_pp": 49.088541666666664
         },
         "warm": {
           "npu_utilization_delta_pp": 50.59418617211775,
+          "shared_window_npu_utilization_delta_pp": -10.288721801938205,
           "ttft_slo_delta_pp": 56.56250000000001
         }
       },
       "40": {
         "cold": {
           "npu_utilization_delta_pp": 11.273942322416941,
+          "shared_window_npu_utilization_delta_pp": -11.666241652827052,
           "ttft_slo_delta_pp": 20.572916666666675
         },
         "warm": {
           "npu_utilization_delta_pp": 24.502076192417675,
+          "shared_window_npu_utilization_delta_pp": -16.555187575697655,
           "ttft_slo_delta_pp": 24.21875
+        }
+      },
+      "56": {
+        "cold": {
+          "npu_utilization_delta_pp": 4.368076541430654,
+          "shared_window_npu_utilization_delta_pp": -20.26825656498345,
+          "ttft_slo_delta_pp": 3.255208333333337
+        },
+        "warm": {
+          "npu_utilization_delta_pp": 9.425311257226554,
+          "shared_window_npu_utilization_delta_pp": -24.20074276607418,
+          "ttft_slo_delta_pp": 5.156250000000007
+        }
+      },
+      "70": {
+        "cold": {
+          "npu_utilization_delta_pp": 0.07856925995802788,
+          "shared_window_npu_utilization_delta_pp": -3.0179748889598845,
+          "ttft_slo_delta_pp": 8.203125
+        },
+        "warm": {
+          "npu_utilization_delta_pp": 1.177036846269186,
+          "shared_window_npu_utilization_delta_pp": -7.400559499092186,
+          "ttft_slo_delta_pp": 8.906250000000004
         }
       }
     }
@@ -2813,31 +5157,61 @@
       "16": {
         "cold": {
           "npu_utilization_delta_pp": 11.403285118606373,
+          "shared_window_npu_utilization_delta_pp": -2.008438657922512,
           "ttft_slo_delta_pp": 71.61458333333334
         },
         "warm": {
           "npu_utilization_delta_pp": 27.385064102962836,
+          "shared_window_npu_utilization_delta_pp": -4.789225984960932,
           "ttft_slo_delta_pp": 80.78125
         }
       },
       "28": {
         "cold": {
           "npu_utilization_delta_pp": 15.153196540275749,
+          "shared_window_npu_utilization_delta_pp": -5.183498015662607,
           "ttft_slo_delta_pp": 54.6875
         },
         "warm": {
           "npu_utilization_delta_pp": 29.00921226869821,
+          "shared_window_npu_utilization_delta_pp": -9.30297477863618,
           "ttft_slo_delta_pp": 61.25000000000001
         }
       },
       "40": {
         "cold": {
           "npu_utilization_delta_pp": 13.92190056664292,
+          "shared_window_npu_utilization_delta_pp": -9.932268618885342,
           "ttft_slo_delta_pp": 35.677083333333336
         },
         "warm": {
           "npu_utilization_delta_pp": 23.973015396190167,
+          "shared_window_npu_utilization_delta_pp": -15.045365228319785,
           "ttft_slo_delta_pp": 40.625
+        }
+      },
+      "56": {
+        "cold": {
+          "npu_utilization_delta_pp": 8.16305027918064,
+          "shared_window_npu_utilization_delta_pp": -21.685942785040723,
+          "ttft_slo_delta_pp": 19.921875
+        },
+        "warm": {
+          "npu_utilization_delta_pp": 14.41544754688817,
+          "shared_window_npu_utilization_delta_pp": -25.437491240905196,
+          "ttft_slo_delta_pp": 21.562500000000007
+        }
+      },
+      "70": {
+        "cold": {
+          "npu_utilization_delta_pp": -0.9363549396874671,
+          "shared_window_npu_utilization_delta_pp": -19.08328516876987,
+          "ttft_slo_delta_pp": 18.75
+        },
+        "warm": {
+          "npu_utilization_delta_pp": 0.7065358831986668,
+          "shared_window_npu_utilization_delta_pp": -21.884336141523917,
+          "ttft_slo_delta_pp": 17.812499999999996
         }
       }
     }
@@ -2847,7 +5221,7 @@
     "fixed_complete_cohorts": true,
     "survivorship_bias_excluded": true,
     "external_arrival_queue_wait_excluded_from_ttft": true,
-    "result_rows": 15
+    "result_rows": 25
   },
   "comparison_provenance": {
     "kind": "merged_compatible_runs",
@@ -2890,6 +5264,18 @@
           "modified_refresh8",
           "modified_scheme_b"
         ]
+      },
+      {
+        "path": "results/cold_warm_five_strategies_layer16/ssu56_70_results.json",
+        "file_sha256": "21dd2f53763b2f1ba8999021b901daa8bc65b82234417fc572f41c57c915856f",
+        "source_fingerprint": "489eeeb492a75dfdef3d5f2a30b2e9e4c3f057fcb8d7c1994b99caeebe1bce9f",
+        "strategies_with_rows": [
+          "modified_baseline",
+          "modified_best_feasible",
+          "modified_layer_once",
+          "modified_refresh8",
+          "modified_scheme_b"
+        ]
       }
     ],
     "row_source": {
@@ -2907,7 +5293,17 @@
       "modified_layer_once|layers=16|ssu=28": "results/cold_warm_five_strategies_layer16/ssu16_28_results.json",
       "modified_refresh8|layers=16|ssu=28": "results/cold_warm_five_strategies_layer16/ssu16_28_results.json",
       "modified_scheme_b|layers=16|ssu=28": "results/cold_warm_five_strategies_layer16/ssu16_28_results.json",
-      "modified_best_feasible|layers=16|ssu=28": "results/cold_warm_five_strategies_layer16/ssu16_28_results.json"
+      "modified_best_feasible|layers=16|ssu=28": "results/cold_warm_five_strategies_layer16/ssu16_28_results.json",
+      "modified_baseline|layers=16|ssu=56": "results/cold_warm_five_strategies_layer16/ssu56_70_results.json",
+      "modified_layer_once|layers=16|ssu=56": "results/cold_warm_five_strategies_layer16/ssu56_70_results.json",
+      "modified_refresh8|layers=16|ssu=56": "results/cold_warm_five_strategies_layer16/ssu56_70_results.json",
+      "modified_scheme_b|layers=16|ssu=56": "results/cold_warm_five_strategies_layer16/ssu56_70_results.json",
+      "modified_best_feasible|layers=16|ssu=56": "results/cold_warm_five_strategies_layer16/ssu56_70_results.json",
+      "modified_baseline|layers=16|ssu=70": "results/cold_warm_five_strategies_layer16/ssu56_70_results.json",
+      "modified_layer_once|layers=16|ssu=70": "results/cold_warm_five_strategies_layer16/ssu56_70_results.json",
+      "modified_refresh8|layers=16|ssu=70": "results/cold_warm_five_strategies_layer16/ssu56_70_results.json",
+      "modified_scheme_b|layers=16|ssu=70": "results/cold_warm_five_strategies_layer16/ssu56_70_results.json",
+      "modified_best_feasible|layers=16|ssu=70": "results/cold_warm_five_strategies_layer16/ssu56_70_results.json"
     },
     "source_fingerprint_by_result": {
       "modified_baseline|layers=16|ssu=40": "528c29224b72be78546e72366ffb253db52a3cb6c9c0cba6d6008e2f99dd6fb2",
@@ -2924,13 +5320,23 @@
       "modified_layer_once|layers=16|ssu=28": "489eeeb492a75dfdef3d5f2a30b2e9e4c3f057fcb8d7c1994b99caeebe1bce9f",
       "modified_refresh8|layers=16|ssu=28": "489eeeb492a75dfdef3d5f2a30b2e9e4c3f057fcb8d7c1994b99caeebe1bce9f",
       "modified_scheme_b|layers=16|ssu=28": "489eeeb492a75dfdef3d5f2a30b2e9e4c3f057fcb8d7c1994b99caeebe1bce9f",
-      "modified_best_feasible|layers=16|ssu=28": "489eeeb492a75dfdef3d5f2a30b2e9e4c3f057fcb8d7c1994b99caeebe1bce9f"
+      "modified_best_feasible|layers=16|ssu=28": "489eeeb492a75dfdef3d5f2a30b2e9e4c3f057fcb8d7c1994b99caeebe1bce9f",
+      "modified_baseline|layers=16|ssu=56": "489eeeb492a75dfdef3d5f2a30b2e9e4c3f057fcb8d7c1994b99caeebe1bce9f",
+      "modified_layer_once|layers=16|ssu=56": "489eeeb492a75dfdef3d5f2a30b2e9e4c3f057fcb8d7c1994b99caeebe1bce9f",
+      "modified_refresh8|layers=16|ssu=56": "489eeeb492a75dfdef3d5f2a30b2e9e4c3f057fcb8d7c1994b99caeebe1bce9f",
+      "modified_scheme_b|layers=16|ssu=56": "489eeeb492a75dfdef3d5f2a30b2e9e4c3f057fcb8d7c1994b99caeebe1bce9f",
+      "modified_best_feasible|layers=16|ssu=56": "489eeeb492a75dfdef3d5f2a30b2e9e4c3f057fcb8d7c1994b99caeebe1bce9f",
+      "modified_baseline|layers=16|ssu=70": "489eeeb492a75dfdef3d5f2a30b2e9e4c3f057fcb8d7c1994b99caeebe1bce9f",
+      "modified_layer_once|layers=16|ssu=70": "489eeeb492a75dfdef3d5f2a30b2e9e4c3f057fcb8d7c1994b99caeebe1bce9f",
+      "modified_refresh8|layers=16|ssu=70": "489eeeb492a75dfdef3d5f2a30b2e9e4c3f057fcb8d7c1994b99caeebe1bce9f",
+      "modified_scheme_b|layers=16|ssu=70": "489eeeb492a75dfdef3d5f2a30b2e9e4c3f057fcb8d7c1994b99caeebe1bce9f",
+      "modified_best_feasible|layers=16|ssu=70": "489eeeb492a75dfdef3d5f2a30b2e9e4c3f057fcb8d7c1994b99caeebe1bce9f"
     },
     "compatibility": {
       "experiment_metadata_checked_by_analyzer": true,
       "paired_workload_fingerprints_checked_by_analyzer": true,
       "behavior_compatibility_verified_by_analyzer": false,
-      "manual_compatibility_audit_note": "Manual audit: one-command submission, 0.1-us spacing, identical L0-prefetch trigger rule, compatible shared data plane"
+      "manual_compatibility_audit_note": "Manual audit: one-command submission, 0.1-us spacing, identical L0-prefetch trigger rule, compatible shared data plane; SSU56/70 freshly rerun with current simulator source"
     }
   }
 }

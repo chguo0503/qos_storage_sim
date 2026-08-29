@@ -146,10 +146,16 @@ def test_analysis_uses_paired_complete_cold_and_warm_cohorts(tmp_path):
     ]["npu_utilization_delta_pp"] == pytest.approx(10.0)
     assert result["modified_refresh8_minus_modified_baseline"]["16"]["40"][
         "warm"
+    ]["shared_window_npu_utilization_delta_pp"] == pytest.approx(0.0)
+    assert result["modified_refresh8_minus_modified_baseline"]["16"]["40"][
+        "warm"
     ]["ttft_slo_delta_pp"] == pytest.approx(10.0)
     assert result["modified_layer_once_minus_modified_baseline"]["16"]["40"][
         "cold"
     ]["npu_utilization_delta_pp"] == pytest.approx(5.0)
+    assert result["modified_layer_once_minus_modified_baseline"]["16"]["40"][
+        "cold"
+    ]["shared_window_npu_utilization_delta_pp"] == pytest.approx(0.0)
 
     base = deepcopy(payload)
     base["schema_version"] = 2

@@ -63,6 +63,22 @@ def _alpha_key(alpha):
     return f"{alpha:g}"
 
 
+def _common_window_utilization(cohort):
+    npu_rows = cohort["npu_rows"]
+    window_start_ms = min(row["window_start_ms"] for row in npu_rows)
+    window_end_ms = max(row["window_end_ms"] for row in npu_rows)
+    window_ms = window_end_ms - window_start_ms
+    compute_ms = sum(row["compute_ms"] for row in npu_rows)
+    return {
+        "window_start_ms": window_start_ms,
+        "window_end_ms": window_end_ms,
+        "window_ms": window_ms,
+        "compute_ms": compute_ms,
+        "npu_count": len(npu_rows),
+        "utilization": compute_ms / (len(npu_rows) * window_ms),
+    }
+
+
 def _display_path(path):
     try:
         return str(path.resolve().relative_to(ROOT))
@@ -252,11 +268,17 @@ def analyze(payload):
             metrics[strategy][str(n_layers)] = {}
             for num_ssu in ssus:
                 row = by_key[(strategy, num_ssu, n_layers)]
+                cold_common = _common_window_utilization(row["cohorts"]["cold"])
+                warm_common = _common_window_utilization(row["cohorts"]["warm"])
                 metrics[strategy][str(n_layers)][str(num_ssu)] = {
                     "cold": {
                         "mean_npu_utilization": row["cohorts"]["cold"][
                             "mean_npu_utilization"
                         ],
+                        "shared_window_npu_utilization": cold_common[
+                            "utilization"
+                        ],
+                        "shared_window": cold_common,
                         "mean_ttft_ms": row["cohorts"]["cold"]["mean_ttft_ms"],
                         "ttft_slo": row["cohorts"]["cold"]["slo"],
                     },
@@ -264,6 +286,10 @@ def analyze(payload):
                         "mean_npu_utilization": row["cohorts"]["warm"][
                             "mean_npu_utilization"
                         ],
+                        "shared_window_npu_utilization": warm_common[
+                            "utilization"
+                        ],
+                        "shared_window": warm_common,
                         "mean_ttft_ms": row["cohorts"]["warm"]["mean_ttft_ms"],
                         "ttft_slo": row["cohorts"]["warm"]["slo"],
                     },
@@ -290,6 +316,15 @@ def analyze(payload):
                             candidate[cohort]["mean_npu_utilization"]
                             - baseline[cohort]["mean_npu_utilization"]
                         ),
+                        "shared_window_npu_utilization_delta_pp": 100.0
+                        * (
+                            candidate[cohort][
+                                "shared_window_npu_utilization"
+                            ]
+                            - baseline[cohort][
+                                "shared_window_npu_utilization"
+                            ]
+                        ),
                         "ttft_slo_delta_pp": 100.0
                         * (
                             candidate[cohort]["ttft_slo"][
@@ -304,7 +339,7 @@ def analyze(payload):
                 }
 
     return {
-        "schema_version": 3,
+        "schema_version": 4,
         "complete": bool(payload.get("complete")),
         "selected_complete": bool(
             payload.get("selected_complete", payload.get("complete"))
@@ -320,6 +355,17 @@ def analyze(payload):
             "warm": experiment["warm_definition"],
             "ttft": experiment["ttft_definition"],
             "utilization": experiment["npu_utilization_definition"],
+            "shared_window_utilization_diagnostic": (
+                "cohort compute busy summed across all NPUs / (NPU count * "
+                "one common cohort window from the earliest per-NPU cohort "
+                "start to the latest completion)"
+            ),
+            "warm_common_window_limitation": (
+                "the shared warm envelope starts at the earliest request-1 "
+                "admission, which is still policy-dependent; a strict "
+                "steady-state comparison requires a fixed wall-clock window "
+                "after a common burn-in"
+            ),
         },
         "metrics": metrics,
         "strategy_minus_modified_baseline": strategy_deltas,
@@ -364,7 +410,10 @@ def write_plot(path, analysis):
         for axis, (metric_name, ylabel) in zip(
             axes,
             (
-                ("mean_npu_utilization", "Mean NPU utilization (%)"),
+                (
+                    "mean_npu_utilization",
+                    "Mean per-NPU utilization (%)",
+                ),
                 ("ttft_slo", f"TTFT SLO attainment @ {PLOT_ALPHA:g}x (%)"),
             ),
         ):
@@ -466,7 +515,7 @@ def write_plot(path, analysis):
         slo_axis.grid(alpha=0.25)
         slo_axis.set_xlabel("Number of SSUs")
         slo_axis.set_xticks(ssus)
-    axes[0, 0].set_ylabel("Mean NPU utilization (%)")
+    axes[0, 0].set_ylabel("Mean per-NPU utilization (%)")
     axes[1, 0].set_ylabel(f"TTFT SLO attainment @ {PLOT_ALPHA:g}x (%)")
     axes[0, 0].set_ylim(0.0, 100.0)
     axes[1, 0].set_ylim(0.0, 100.0)
@@ -498,7 +547,10 @@ def write_ssu40_plot(path, analysis):
 
     figure, axes = plt.subplots(1, 2, figsize=(12.8, 5.4), sharex=True)
     metric_specs = (
-        ("mean_npu_utilization", "Mean NPU utilization (%)"),
+        (
+            "mean_npu_utilization",
+            "Mean per-NPU utilization (%)",
+        ),
         ("ttft_slo", f"TTFT SLO attainment @ {PLOT_ALPHA:g}x (%)"),
     )
     for axis, (metric_name, ylabel) in zip(axes, metric_specs):
@@ -559,7 +611,10 @@ def write_layer16_plot(path, analysis):
 
     figure, axes = plt.subplots(1, 2, figsize=(15.5, 6.2), sharex=True)
     metric_specs = (
-        ("mean_npu_utilization", "Mean NPU utilization (%)"),
+        (
+            "mean_npu_utilization",
+            "Mean per-NPU utilization (%)",
+        ),
         ("ttft_slo", f"TTFT SLO attainment @ {PLOT_ALPHA:g}x (%)"),
     )
     for axis, (metric_name, ylabel) in zip(axes, metric_specs):
@@ -620,10 +675,22 @@ def write_report(path, analysis):
     lines = [
         "# Modified strategies: cold and warm six-request results",
         "",
-        "Both views come from the same fully completed trace. Cold uses each "
-        "NPU's request-0 admission through request-5 completion; warm starts at "
-        "request-1 admission. TTFT is completion minus admission, so external "
-        "arrival queue wait is not included.",
+        "Both views come from the same fully completed trace. The main NPU "
+        "utilization metric is computed independently per NPU, then averaged "
+        "equally across 128 NPUs. Cold uses that NPU's request-0 admission "
+        "through request-5 completion; warm uses its request-1 admission "
+        "through request-5 completion. Time after an NPU finishes its own "
+        "six-request stream is not charged to that NPU.",
+        "",
+        "A shared fleet-window utilization is retained below as a diagnostic "
+        "for cross-NPU serialization and makespan imbalance; it is not the "
+        "requested mean per-NPU metric. TTFT remains completion minus "
+        "admission, so external arrival queue wait is not included.",
+        "",
+        "The shared warm envelope is still not a strict fixed-clock "
+        "steady-state metric because its earliest request-1 admission depends "
+        "on the strategy. A future steady-state experiment should use a common "
+        "burn-in boundary and a fixed wall-clock measurement interval.",
         "",
         f"Primary SLO: `TTFT <= {PLOT_ALPHA:g} × compute-only TTFT`.",
         "",
@@ -668,7 +735,7 @@ def write_report(path, analysis):
                     "",
                     f"## {LABELS[strategy]} minus baseline — {cohort}",
                     "",
-                    "### Mean NPU utilization delta",
+                    "### Mean per-NPU utilization delta",
                     "",
                     "| Layers | "
                     + " | ".join(f"SSU {ssu}" for ssu in analysis["ssu_list"])
@@ -714,7 +781,10 @@ def write_report(path, analysis):
     for n_layers in analysis["layer_list"]:
         lines.extend(["", f"## {n_layers} layers", ""])
         for metric_name, title in (
-            ("mean_npu_utilization", "Mean NPU utilization"),
+            (
+                "mean_npu_utilization",
+                "Mean per-NPU utilization",
+            ),
             ("ttft_slo", f"TTFT SLO attainment @ {PLOT_ALPHA:g}x"),
         ):
             lines.extend(
@@ -748,6 +818,39 @@ def write_report(path, analysis):
                         + " |"
                     )
             lines.append("")
+
+        lines.extend(
+            [
+                "### Shared fleet-window utilization (diagnostic only)",
+                "",
+                "This uses the earliest cohort admission and latest stream "
+                "completion across all 128 NPUs. It exposes cross-NPU "
+                "serialization, but charges an NPU for time after it has "
+                "finished its own assigned stream, so it is not used as the "
+                "requested mean per-NPU metric.",
+                "",
+                "| Strategy / cohort | "
+                + " | ".join(f"SSU {ssu}" for ssu in analysis["ssu_list"])
+                + " |",
+                "|---|" + "---:|" * len(analysis["ssu_list"]),
+            ]
+        )
+        for strategy in analysis["strategies"]:
+            for cohort in ("cold", "warm"):
+                values = [
+                    _percent(
+                        analysis["metrics"][strategy][str(n_layers)][str(ssu)][
+                            cohort
+                        ]["shared_window_npu_utilization"]
+                    )
+                    for ssu in analysis["ssu_list"]
+                ]
+                lines.append(
+                    f"| {LABELS[strategy]} — {cohort} | "
+                    + " | ".join(values)
+                    + " |"
+                )
+        lines.append("")
     path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
 
 
