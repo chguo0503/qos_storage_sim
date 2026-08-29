@@ -28,7 +28,8 @@
     "ttft": "completion minus admission; external arrival queue wait excluded",
     "utilization": "compute busy / per-NPU cohort window, then equal-weight mean across all 128 NPUs",
     "shared_window_utilization_diagnostic": "cohort compute busy summed across all NPUs / (NPU count * one common cohort window from the earliest per-NPU cohort start to the latest completion)",
-    "warm_common_window_limitation": "the shared warm envelope starts at the earliest request-1 admission, which is still policy-dependent; a strict steady-state comparison requires a fixed wall-clock window after a common burn-in"
+    "warm_common_window_limitation": "the shared warm envelope starts at the earliest request-1 admission, which is still policy-dependent; a strict steady-state comparison requires a fixed wall-clock window after a common burn-in",
+    "warm_exposed_io_stall": "per warm request: TTFT minus compute-only TTFT; requests 1--5 are averaged equally, and time after each NPU finishes its own stream is excluded"
   },
   "metrics": {
     "modified_baseline": {
@@ -110,6 +111,11 @@
               "utilization": 0.2204528385309856
             },
             "mean_ttft_ms": 510.35465274240084,
+            "exposed_io_stall": {
+              "request_count": 640,
+              "mean_per_request_ms": 395.1195938593779,
+              "mean_total_per_npu_ms": 1975.5979692968895
+            },
             "ttft_slo": {
               "1.05": {
                 "pass": 0,
@@ -296,6 +302,11 @@
               "utilization": 0.35678036778445266
             },
             "mean_ttft_ms": 314.1663003039319,
+            "exposed_io_stall": {
+              "request_count": 640,
+              "mean_per_request_ms": 198.9312414209105,
+              "mean_total_per_npu_ms": 994.6562071045525
+            },
             "ttft_slo": {
               "1.05": {
                 "pass": 0,
@@ -482,6 +493,11 @@
               "utilization": 0.49617898307014574
             },
             "mean_ttft_ms": 224.77707965655978,
+            "exposed_io_stall": {
+              "request_count": 640,
+              "mean_per_request_ms": 109.54202077353781,
+              "mean_total_per_npu_ms": 547.7101038676891
+            },
             "ttft_slo": {
               "1.05": {
                 "pass": 0,
@@ -668,6 +684,11 @@
               "utilization": 0.6536966295148963
             },
             "mean_ttft_ms": 158.348529955316,
+            "exposed_io_stall": {
+              "request_count": 640,
+              "mean_per_request_ms": 43.11347107229401,
+              "mean_total_per_npu_ms": 215.56735536147005
+            },
             "ttft_slo": {
               "1.05": {
                 "pass": 161,
@@ -854,6 +875,11 @@
               "utilization": 0.7722429170449787
             },
             "mean_ttft_ms": 123.59079775168543,
+            "exposed_io_stall": {
+              "request_count": 640,
+              "mean_per_request_ms": 8.355738868663412,
+              "mean_total_per_npu_ms": 41.778694343317056
+            },
             "ttft_slo": {
               "1.05": {
                 "pass": 474,
@@ -1044,6 +1070,11 @@
               "utilization": 0.19406657281122325
             },
             "mean_ttft_ms": 416.3188714833603,
+            "exposed_io_stall": {
+              "request_count": 640,
+              "mean_per_request_ms": 301.08381260033804,
+              "mean_total_per_npu_ms": 1505.4190630016901
+            },
             "ttft_slo": {
               "1.05": {
                 "pass": 103,
@@ -1230,6 +1261,11 @@
               "utilization": 0.30930497347122127
             },
             "mean_ttft_ms": 265.1647105670524,
+            "exposed_io_stall": {
+              "request_count": 640,
+              "mean_per_request_ms": 149.92965168403046,
+              "mean_total_per_npu_ms": 749.6482584201523
+            },
             "ttft_slo": {
               "1.05": {
                 "pass": 198,
@@ -1416,6 +1452,11 @@
               "utilization": 0.4071236567847619
             },
             "mean_ttft_ms": 199.9650323622662,
+            "exposed_io_stall": {
+              "request_count": 640,
+              "mean_per_request_ms": 84.72997347924425,
+              "mean_total_per_npu_ms": 423.6498673962212
+            },
             "ttft_slo": {
               "1.05": {
                 "pass": 198,
@@ -1602,6 +1643,11 @@
               "utilization": 0.5707340647167798
             },
             "mean_ttft_ms": 149.13829925724366,
+            "exposed_io_stall": {
+              "request_count": 640,
+              "mean_per_request_ms": 33.90324037422165,
+              "mean_total_per_npu_ms": 169.51620187110825
+            },
             "ttft_slo": {
               "1.05": {
                 "pass": 275,
@@ -1788,6 +1834,11 @@
               "utilization": 0.7617773547590234
             },
             "mean_ttft_ms": 123.15138525815124,
+            "exposed_io_stall": {
+              "request_count": 640,
+              "mean_per_request_ms": 7.916326375129179,
+              "mean_total_per_npu_ms": 39.5816318756459
+            },
             "ttft_slo": {
               "1.05": {
                 "pass": 349,
@@ -1978,6 +2029,11 @@
               "utilization": 0.19389311438352627
             },
             "mean_ttft_ms": 416.4025541125373,
+            "exposed_io_stall": {
+              "request_count": 640,
+              "mean_per_request_ms": 301.1674952295152,
+              "mean_total_per_npu_ms": 1505.8374761475761
+            },
             "ttft_slo": {
               "1.05": {
                 "pass": 93,
@@ -2164,6 +2220,11 @@
               "utilization": 0.30864080547015554
             },
             "mean_ttft_ms": 265.29191090972955,
+            "exposed_io_stall": {
+              "request_count": 640,
+              "mean_per_request_ms": 150.05685202670753,
+              "mean_total_per_npu_ms": 750.2842601335377
+            },
             "ttft_slo": {
               "1.05": {
                 "pass": 197,
@@ -2350,6 +2411,11 @@
               "utilization": 0.40662723419133856
             },
             "mean_ttft_ms": 200.02624801820565,
+            "exposed_io_stall": {
+              "request_count": 640,
+              "mean_per_request_ms": 84.7911891351837,
+              "mean_total_per_npu_ms": 423.9559456759185
+            },
             "ttft_slo": {
               "1.05": {
                 "pass": 195,
@@ -2536,6 +2602,11 @@
               "utilization": 0.5697265306031335
             },
             "mean_ttft_ms": 149.26061334704386,
+            "exposed_io_stall": {
+              "request_count": 640,
+              "mean_per_request_ms": 34.02555446402185,
+              "mean_total_per_npu_ms": 170.12777232010927
+            },
             "ttft_slo": {
               "1.05": {
                 "pass": 274,
@@ -2722,6 +2793,11 @@
               "utilization": 0.7594735644229422
             },
             "mean_ttft_ms": 123.4615695301438,
+            "exposed_io_stall": {
+              "request_count": 640,
+              "mean_per_request_ms": 8.226510647121781,
+              "mean_total_per_npu_ms": 41.13255323560891
+            },
             "ttft_slo": {
               "1.05": {
                 "pass": 349,
@@ -2912,6 +2988,11 @@
               "utilization": 0.1674680486039586
             },
             "mean_ttft_ms": 165.19301453666088,
+            "exposed_io_stall": {
+              "request_count": 640,
+              "mean_per_request_ms": 49.95795565363885,
+              "mean_total_per_npu_ms": 249.78977826819425
+            },
             "ttft_slo": {
               "1.05": {
                 "pass": 212,
@@ -3098,6 +3179,11 @@
               "utilization": 0.2538931497650706
             },
             "mean_ttft_ms": 132.74194011923055,
+            "exposed_io_stall": {
+              "request_count": 640,
+              "mean_per_request_ms": 17.50688123620852,
+              "mean_total_per_npu_ms": 87.5344061810426
+            },
             "ttft_slo": {
               "1.05": {
                 "pass": 373,
@@ -3284,6 +3370,11 @@
               "utilization": 0.3306271073131692
             },
             "mean_ttft_ms": 154.5834772193253,
+            "exposed_io_stall": {
+              "request_count": 640,
+              "mean_per_request_ms": 39.348418336303276,
+              "mean_total_per_npu_ms": 196.74209168151637
+            },
             "ttft_slo": {
               "1.05": {
                 "pass": 253,
@@ -3470,6 +3561,11 @@
               "utilization": 0.4116892018541545
             },
             "mean_ttft_ms": 140.91269308864565,
+            "exposed_io_stall": {
+              "request_count": 640,
+              "mean_per_request_ms": 25.67763420562365,
+              "mean_total_per_npu_ms": 128.38817102811825
+            },
             "ttft_slo": {
               "1.05": {
                 "pass": 247,
@@ -3656,6 +3752,11 @@
               "utilization": 0.6982373220540569
             },
             "mean_ttft_ms": 122.04066754589739,
+            "exposed_io_stall": {
+              "request_count": 640,
+              "mean_per_request_ms": 6.805608662875365,
+              "mean_total_per_npu_ms": 34.02804331437682
+            },
             "ttft_slo": {
               "1.05": {
                 "pass": 451,
@@ -3846,6 +3947,11 @@
               "utilization": 0.17256057868137628
             },
             "mean_ttft_ms": 313.4562167153367,
+            "exposed_io_stall": {
+              "request_count": 640,
+              "mean_per_request_ms": 198.22115783231453,
+              "mean_total_per_npu_ms": 991.1057891615726
+            },
             "ttft_slo": {
               "1.05": {
                 "pass": 314,
@@ -4032,6 +4138,11 @@
               "utilization": 0.26375061999809085
             },
             "mean_ttft_ms": 207.35784320928087,
+            "exposed_io_stall": {
+              "request_count": 640,
+              "mean_per_request_ms": 92.122784326259,
+              "mean_total_per_npu_ms": 460.613921631295
+            },
             "ttft_slo": {
               "1.05": {
                 "pass": 346,
@@ -4218,6 +4329,11 @@
               "utilization": 0.3457253307869479
             },
             "mean_ttft_ms": 167.66235637237975,
+            "exposed_io_stall": {
+              "request_count": 640,
+              "mean_per_request_ms": 52.42729748935774,
+              "mean_total_per_npu_ms": 262.1364874467887
+            },
             "ttft_slo": {
               "1.05": {
                 "pass": 367,
@@ -4404,6 +4520,11 @@
               "utilization": 0.3993217171058443
             },
             "mean_ttft_ms": 138.42699227513123,
+            "exposed_io_stall": {
+              "request_count": 640,
+              "mean_per_request_ms": 23.19193339210923,
+              "mean_total_per_npu_ms": 115.95966696054616
+            },
             "ttft_slo": {
               "1.05": {
                 "pass": 407,
@@ -4590,6 +4711,11 @@
               "utilization": 0.5533995556297395
             },
             "mean_ttft_ms": 123.34909898014845,
+            "exposed_io_stall": {
+              "request_count": 640,
+              "mean_per_request_ms": 8.114040097126423,
+              "mean_total_per_npu_ms": 40.570200485632114
+            },
             "ttft_slo": {
               "1.05": {
                 "pass": 419,

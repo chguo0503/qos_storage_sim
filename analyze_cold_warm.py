@@ -86,6 +86,19 @@ def _common_window_utilization(cohort):
     }
 
 
+def _warm_exposed_io_stall(row, num_npu):
+    stalls_ms = [
+        request["ttft_ms"] - request["ideal_ttft_ms"]
+        for request in row["request_rows"]
+        if request["sequence"] in (1, 2, 3, 4, 5)
+    ]
+    return {
+        "request_count": len(stalls_ms),
+        "mean_per_request_ms": sum(stalls_ms) / len(stalls_ms),
+        "mean_total_per_npu_ms": sum(stalls_ms) / num_npu,
+    }
+
+
 def _display_path(path):
     try:
         return str(path.resolve().relative_to(ROOT))
@@ -277,6 +290,7 @@ def analyze(payload):
                 row = by_key[(strategy, num_ssu, n_layers)]
                 cold_common = _common_window_utilization(row["cohorts"]["cold"])
                 warm_common = _common_window_utilization(row["cohorts"]["warm"])
+                warm_stall = _warm_exposed_io_stall(row, experiment["num_npu"])
                 metrics[strategy][str(n_layers)][str(num_ssu)] = {
                     "cold": {
                         "mean_npu_utilization": row["cohorts"]["cold"][
@@ -298,6 +312,7 @@ def analyze(payload):
                         ],
                         "shared_window": warm_common,
                         "mean_ttft_ms": row["cohorts"]["warm"]["mean_ttft_ms"],
+                        "exposed_io_stall": warm_stall,
                         "ttft_slo": row["cohorts"]["warm"]["slo"],
                     },
                     "first_request_only": row["first_request_only"],
@@ -372,6 +387,11 @@ def analyze(payload):
                 "admission, which is still policy-dependent; a strict "
                 "steady-state comparison requires a fixed wall-clock window "
                 "after a common burn-in"
+            ),
+            "warm_exposed_io_stall": (
+                "per warm request: TTFT minus compute-only TTFT; requests "
+                "1--5 are averaged equally, and time after each NPU finishes "
+                "its own stream is excluded"
             ),
         },
         "metrics": metrics,
@@ -829,6 +849,46 @@ def write_report(path, analysis):
                         + " | ".join(values)
                         + " |"
                     )
+            lines.append("")
+
+        if 16 in analysis["ssu_list"]:
+            baseline_stall = analysis["metrics"]["modified_baseline"][
+                str(n_layers)
+            ]["16"]["warm"]["exposed_io_stall"]["mean_per_request_ms"]
+            lines.extend(
+                [
+                    "### Warm exposed I/O stall at SSU 16",
+                    "",
+                    "This uses each NPU's own warm processing window. Request 0 "
+                    "is the cold request; requests 1--5 are the five warm "
+                    "requests. For each request, `stall = TTFT - compute-only "
+                    "TTFT`. Time after an NPU finishes its own stream is not "
+                    "charged, and the 128 NPUs are not required to be in warm "
+                    "at the same wall-clock time.",
+                    "",
+                    "| Strategy | Mean stall / warm request | Mean total stall / "
+                    "NPU across 5 warm requests | Reduction vs. Baseline |",
+                    "|---|---:|---:|---:|",
+                ]
+            )
+            for strategy in analysis["strategies"]:
+                stall = analysis["metrics"][strategy][str(n_layers)]["16"][
+                    "warm"
+                ]["exposed_io_stall"]
+                reduction = 100.0 * (
+                    baseline_stall - stall["mean_per_request_ms"]
+                ) / baseline_stall
+                reduction_text = (
+                    "—"
+                    if strategy == "modified_baseline"
+                    else f"{reduction:.2f}%"
+                )
+                lines.append(
+                    f"| {PLOT_LABELS[strategy]} | "
+                    f"{stall['mean_per_request_ms']:.3f} ms | "
+                    f"{stall['mean_total_per_npu_ms']:.3f} ms | "
+                    f"{reduction_text} |"
+                )
             lines.append("")
 
         lines.extend(

@@ -138,6 +138,13 @@ def test_analysis_uses_paired_complete_cold_and_warm_cohorts(tmp_path):
     assert result["metrics"]["modified_baseline"]["16"]["40"]["warm"][
         "ttft_slo"
     ]["2"]["total"] == 10
+    assert result["metrics"]["modified_baseline"]["16"]["40"]["warm"][
+        "exposed_io_stall"
+    ] == {
+        "request_count": 10,
+        "mean_per_request_ms": 3.0,
+        "mean_total_per_npu_ms": 15.0,
+    }
     assert result["modified_scheme_b_minus_modified_baseline"]["16"]["40"][
         "warm"
     ]["npu_utilization_delta_pp"] == 0.0

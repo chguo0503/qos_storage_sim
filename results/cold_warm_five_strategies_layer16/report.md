@@ -158,6 +158,18 @@ Provenance: the analyzer verified experiment metadata and paired workload finger
 | Best feasible reference + L0 prefetch — cold | 71.61% | 79.69% | 85.94% | 94.92% | 99.61% |
 | Best feasible reference + L0 prefetch — warm | 80.78% | 86.41% | 90.94% | 96.41% | 99.69% |
 
+### Warm exposed I/O stall at SSU 16
+
+This uses each NPU's own warm processing window. Request 0 is the cold request; requests 1--5 are the five warm requests. For each request, `stall = TTFT - compute-only TTFT`. Time after an NPU finishes its own stream is not charged, and the 128 NPUs are not required to be in warm at the same wall-clock time.
+
+| Strategy | Mean stall / warm request | Mean total stall / NPU across 5 warm requests | Reduction vs. Baseline |
+|---|---:|---:|---:|
+| Baseline | 395.120 ms | 1975.598 ms | — |
+| Read once/layer | 301.084 ms | 1505.419 ms | 23.80% |
+| Refresh8 | 301.167 ms | 1505.837 ms | 23.78% |
+| Scheme B | 49.958 ms | 249.790 ms | 87.36% |
+| Best feasible | 198.221 ms | 991.106 ms | 49.83% |
+
 ### Shared fleet-window utilization (diagnostic only)
 
 This uses the earliest cohort admission and latest stream completion across all 128 NPUs. It exposes cross-NPU serialization, but charges an NPU for time after it has finished its own assigned stream, so it is not used as the requested mean per-NPU metric.
