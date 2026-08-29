@@ -179,6 +179,142 @@ def test_next_layer_prefetch_starts_with_previous_layer_compute():
     )
 
 
+def test_batch1_prefetches_next_request_layer0_during_final_compute():
+    requests = (
+        _request(0, per_layer_compute_ms=10.0, n_layers=2),
+        _request(1, per_layer_compute_ms=3.0, n_layers=2),
+    )
+    summary = simulate_continuous_batch(
+        requests,
+        num_npu=1,
+        num_ssu=1,
+        n_layers=2,
+        batch_size=1,
+        qos_config=legacy_qos_config(),
+        client_io_config=sim.ClientIOConfig(
+            "cross_request_baseline",
+            None,
+            path_selection_mode=sim.PATH_SELECTION_FIXED_PATH_ZERO,
+        ),
+        cross_request_layer0_prefetch=True,
+    )
+
+    first_batch, second_batch = _batches(summary)
+    first, second = _requests(summary).values()
+    assert not first["layer0_cross_request_prefetched"]
+    assert second["layer0_cross_request_prefetched"]
+    assert second_batch["layer_metrics"][0]["io_start_time_ms"] == pytest.approx(
+        first_batch["layer_metrics"][-1]["compute_start_ms"]
+    )
+    assert second_batch["layer_metrics"][0]["io_start_time_ms"] < second[
+        "admission_time_ms"
+    ]
+    assert second["arrival_time_ms"] == 0.0
+    assert second["admission_time_ms"] == pytest.approx(
+        first["completion_time_ms"]
+    )
+    assert second["processing_latency_ms"] == pytest.approx(
+        second["completion_time_ms"] - second["admission_time_ms"]
+    )
+    assert summary["cross_request_layer0_prefetches"] == 1
+    assert summary["manifest_layer0_prefetches"] == 0
+    assert all(summary["invariants"].values())
+
+
+def test_cross_request_prefetch_does_not_retroactively_start_on_late_arrival():
+    summary = simulate_continuous_batch(
+        (
+            _request(0, per_layer_compute_ms=10.0, n_layers=1),
+            _request(1, arrival_ms=1.0, per_layer_compute_ms=3.0, n_layers=1),
+        ),
+        num_npu=1,
+        num_ssu=1,
+        n_layers=1,
+        batch_size=1,
+        qos_config=legacy_qos_config(),
+        client_io_config=sim.ClientIOConfig(
+            "late_cross_request_baseline",
+            None,
+            path_selection_mode=sim.PATH_SELECTION_FIXED_PATH_ZERO,
+        ),
+        cross_request_layer0_prefetch=True,
+    )
+
+    second = _requests(summary)[1]
+    assert not second["layer0_cross_request_prefetched"]
+    assert second["layer0_io_start_time_ms"] == pytest.approx(
+        second["admission_time_ms"]
+    )
+    assert summary["cross_request_layer0_prefetches"] == 0
+
+
+def test_causal_cross_request_prefetch_programs_manifest_dedicated_path():
+    requests = (
+        _request(
+            0,
+            per_layer_compute_ms=5.0,
+            placement=((((0, 0.001),)),),
+            n_layers=2,
+        ),
+        _request(
+            1,
+            per_layer_compute_ms=5.0,
+            placement=((((0, 0.010),)),),
+            n_layers=2,
+        ),
+    )
+    dedicated_path = cold_start_hybrid_path_id(0)
+    controller = CausalMaxMinSchemeBController(
+        (dedicated_path,),
+        cold_path_id=0,
+        cold_path_cir_gbps=legacy_qos_config().path_cirs[0],
+        path_count=PATH_COUNT,
+    )
+    snapshots = []
+
+    def capture(snapshot):
+        snapshots.append(snapshot)
+        return controller(snapshot)
+
+    summary = simulate_continuous_batch(
+        requests,
+        num_npu=1,
+        num_ssu=1,
+        n_layers=2,
+        batch_size=1,
+        qos_configs_by_ssu=qos_configs_from_path_cirs(
+            ((0.0,) * PATH_COUNT,)
+        ),
+        npu_dedicated_paths=(dedicated_path,),
+        layer0_path_id=0,
+        client_io_config=scheme_b_client_config("cross_request_manifest"),
+        causal_control=CausalLayerControlConfig(capture),
+        cross_request_layer0_prefetch=True,
+    )
+
+    first, second = _requests(summary).values()
+    assert {item["path_id"] for item in first["layer0_path_cirs_at_submit"]} == {0}
+    assert second["layer0_cross_request_prefetched"]
+    assert second["layer0_manifest_controlled"]
+    assert {
+        item["path_id"] for item in second["layer0_path_cirs_at_submit"]
+    } == {dedicated_path}
+    assert [
+        item["cir_gbps"] for item in second["layer0_path_cirs_at_submit"]
+    ] == pytest.approx([2.0])
+    manifest = next(
+        observation
+        for snapshot in snapshots
+        for observation in snapshot.active_batches
+        if observation.manifest_layer0
+    )
+    assert manifest.observed_work_gb_by_ssu == pytest.approx((0.010,))
+    assert manifest.compute_budget_ms == pytest.approx(5.0)
+    assert summary["cross_request_layer0_prefetches"] == 1
+    assert summary["manifest_layer0_prefetches"] == 1
+    assert all(summary["invariants"].values())
+
+
 def test_layer_15_completes_every_batch_member_at_same_timestamp():
     summary = _run(
         (

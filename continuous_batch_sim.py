@@ -197,6 +197,7 @@ class CausalLayerObservation:
     observed_layer: int
     observed_work_gb_by_ssu: tuple[float, ...]
     compute_budget_ms: float
+    manifest_layer0: bool = False
 
 
 @dataclass(frozen=True)
@@ -351,9 +352,15 @@ class _RequestState:
     batch_size: int = 0
     io_started: bytearray = field(default_factory=bytearray)
     io_ready: bytearray = field(default_factory=bytearray)
+    io_start_time_ms: list[float] = field(default_factory=list)
     pending_blocks: list[int] = field(default_factory=list)
     io_ready_time_ms: list[float] = field(default_factory=list)
     completed_gb_by_layer_ssu: list[list[float]] = field(default_factory=list)
+    layer0_cross_request_prefetched: bool = False
+    layer0_manifest_controlled: bool = False
+    layer0_path_cirs_at_submit: dict[tuple[int, int], float] = field(
+        default_factory=dict
+    )
     ssd_queue_wait_ms: float = 0.0
     link_queue_wait_ms: float = 0.0
     io_latency_ms: float = 0.0
@@ -394,6 +401,7 @@ class _NPUState:
     admission_queue: deque[int] = field(default_factory=deque)
     future_arrivals: int = 0
     active_batch: Optional[_MicrobatchState] = None
+    layer0_prefetch_request_id: Optional[int] = None
     batch_dispatch_pending: bool = False
     compute_active: Optional[tuple[int, int]] = None
     compute_generation: int = 0
@@ -426,6 +434,7 @@ class _SubmissionState:
     demand_gbps: float
     deadline_time_ms: float
     layer_work_gb: float
+    manifest_dedicated_path: bool = False
     cursor: int = 0
     planned_path_ids: list[int] = field(default_factory=list)
 
@@ -456,6 +465,29 @@ def _state_placement_groups(request: _RequestState, layer: int):
     ]
 
 
+def _materialize_request(context: _Context, request: _RequestState):
+    if request.placement_groups is None:
+        request.placement_groups = tuple(
+            _group_placement_layer(layer) for layer in request.manifest.placement
+        )
+    if not request.completed_gb_by_layer_ssu:
+        request.completed_gb_by_layer_ssu = [
+            [0.0] * context.num_ssu for _ in range(context.n_layers)
+        ]
+
+
+def _layer_work_by_ssu(
+    context: _Context,
+    request: _RequestState,
+    layer: int,
+):
+    _materialize_request(context, request)
+    work = [0.0] * context.num_ssu
+    for ssu_id, _, work_gb in _state_placement_groups(request, layer):
+        work[ssu_id] = work_gb
+    return tuple(work)
+
+
 class _Context:
     def __init__(
         self,
@@ -469,6 +501,7 @@ class _Context:
         qos_configs_by_ssu: tuple[sim.StaticQoSConfig, ...],
         npu_dedicated_paths: Optional[tuple[int, ...]],
         layer0_path_id: Optional[int],
+        cross_request_layer0_prefetch: bool,
         client_io_config: sim.ClientIOConfig,
         control: Optional[CIRControlConfig],
         causal_control: Optional[CausalLayerControlConfig],
@@ -484,6 +517,7 @@ class _Context:
         self.qos_configs_by_ssu = qos_configs_by_ssu
         self.npu_dedicated_paths = npu_dedicated_paths
         self.layer0_path_id = layer0_path_id
+        self.cross_request_layer0_prefetch = cross_request_layer0_prefetch
         self.client_io_config = client_io_config
         self.control = control
         self.causal_control = causal_control
@@ -506,6 +540,7 @@ class _Context:
                 per_layer_compute_ms=float(request.load["per_layer_us"]) / 1000.0,
                 io_started=bytearray(n_layers),
                 io_ready=bytearray(n_layers),
+                io_start_time_ms=[math.nan] * n_layers,
                 pending_blocks=[0] * n_layers,
                 io_ready_time_ms=[math.nan] * n_layers,
             )
@@ -546,7 +581,10 @@ class _Context:
         self.control_reasons_by_time: dict[float, set[str]] = defaultdict(set)
         self.causal_control_pending = False
         self.pending_causal_prefetches: dict[int, tuple[int, int, float]] = {}
+        self.pending_causal_request_prefetches: dict[int, tuple[int, float]] = {}
         self.causal_observations = 0
+        self.cross_request_layer0_prefetches = 0
+        self.manifest_layer0_prefetches = 0
         self.next_wall_control_ms: Optional[float] = None
         self.control_evaluations = 0
         self.cir_commits = 0
@@ -601,7 +639,8 @@ class _Context:
 
 
 def _register_submit(context: _Context, flow: sim.BlockIOFlow):
-    request = context.requests[flow.request_id].manifest
+    request_state = context.requests[flow.request_id]
+    request = request_state.manifest
     expected_ssu, expected_gb = _manifest_layer(request, flow.layer)[flow.block_idx]
     if flow.disk_id != expected_ssu or not math.isclose(
         flow.total_gb, expected_gb, rel_tol=0.0, abs_tol=1e-15
@@ -612,6 +651,10 @@ def _register_submit(context: _Context, flow: sim.BlockIOFlow):
         raise AssertionError("block submitted more than once")
     context.block_states[block_id] = 1
     context.submitted_blocks += 1
+    if flow.layer == 0 and flow.queue_id >= 0:
+        request_state.layer0_path_cirs_at_submit[
+            (flow.disk_id, flow.queue_id)
+        ] = context.disks[flow.disk_id].scheduler.paths[flow.queue_id].cir
 
 
 def _register_complete(context: _Context, flow: sim.BlockIOFlow):
@@ -658,6 +701,8 @@ def _mark_layer_io_ready(
 ):
     request.io_ready[layer] = 1
     request.io_ready_time_ms[layer] = current_time_ms
+    if not request.admitted:
+        return
     npu = context.npus[request.manifest.npu_id]
     batch = npu.active_batch
     if batch is None or request.batch_id != batch.batch_id:
@@ -699,10 +744,13 @@ def _start_layer_io(
     current_time_ms: float,
     deadline_time_ms: float,
     demand_window_ms: float,
+    *,
+    manifest_dedicated_path: bool = False,
 ):
     if layer < 0 or layer >= context.n_layers or request.io_started[layer]:
         return
     request.io_started[layer] = 1
+    request.io_start_time_ms[layer] = current_time_ms
     placement_groups = _state_placement_groups(request, layer)
     request.pending_blocks[layer] = sum(
         len(blocks) for _, blocks, _ in placement_groups
@@ -725,6 +773,9 @@ def _start_layer_io(
     npu_id = request.manifest.npu_id
     for ssu_id, blocks, work_gb in placement_groups:
         allowed_paths = (
+            (context.npu_dedicated_paths[npu_id],)
+            if manifest_dedicated_path
+            else
             (context.layer0_path_id,)
             if layer == 0 and context.layer0_path_id is not None
             else
@@ -755,6 +806,7 @@ def _start_layer_io(
             demand_gbps=demand_by_ssu.get(ssu_id, 0.0),
             deadline_time_ms=deadline_time_ms,
             layer_work_gb=work_gb,
+            manifest_dedicated_path=manifest_dedicated_path,
         )
         context.submission_queues[npu_id].append(state_id)
     _schedule_client_event(context)
@@ -785,7 +837,11 @@ def _start_batch_layer_io(
 
 def _plan_paths(context: _Context, state: _SubmissionState, current_time_ms):
     window_start = len(state.planned_path_ids)
-    if state.layer == 0 and context.layer0_path_id is not None:
+    if (
+        state.layer == 0
+        and context.layer0_path_id is not None
+        and not state.manifest_dedicated_path
+    ):
         state.planned_path_ids.extend(
             context.layer0_path_id
             for _ in range(window_start, len(state.blocks))
@@ -998,16 +1054,15 @@ def _handle_batch_dispatch(
     npu.first_admission_ms = min(npu.first_admission_ms, current_time_ms)
     for request_id in member_ids:
         request = context.requests[request_id]
-        request.placement_groups = tuple(
-            _group_placement_layer(layer) for layer in request.manifest.placement
-        )
-        request.completed_gb_by_layer_ssu = [
-            [0.0] * context.num_ssu for _ in range(context.n_layers)
-        ]
+        _materialize_request(context, request)
         request.admitted = True
         request.admission_time_ms = current_time_ms
         request.batch_id = batch.batch_id
         request.batch_size = len(member_ids)
+    if len(member_ids) == 1:
+        request = context.requests[member_ids[0]]
+        if request.io_started[0]:
+            batch.layer_metrics[0].io_start_time_ms = request.io_start_time_ms[0]
     _queue_control_event(context, current_time_ms, "batch_boundary")
     _queue_causal_control_event(context, current_time_ms)
     _start_batch_layer_io(
@@ -1017,6 +1072,7 @@ def _handle_batch_dispatch(
         current_time_ms,
         current_time_ms,
     )
+    _schedule_compute_dispatch(context, npu, current_time_ms)
 
 
 def _handle_arrival(context: _Context, request_id: int, current_time_ms: float):
@@ -1026,6 +1082,44 @@ def _handle_arrival(context: _Context, request_id: int, current_time_ms: float):
     npu.future_arrivals -= 1
     npu.admission_queue.append(request_id)
     _schedule_batch_dispatch(context, npu, current_time_ms)
+
+
+def _start_cross_request_layer0_prefetch(
+    context: _Context,
+    npu: _NPUState,
+    current_time_ms: float,
+    deadline_time_ms: float,
+):
+    if (
+        not context.cross_request_layer0_prefetch
+        or context.batch_size != 1
+        or not npu.admission_queue
+    ):
+        return
+    request = context.requests[npu.admission_queue[0]]
+    if request.io_started[0] or npu.layer0_prefetch_request_id is not None:
+        return
+    _materialize_request(context, request)
+    request.layer0_cross_request_prefetched = True
+    npu.layer0_prefetch_request_id = request.manifest.request_id
+    context.cross_request_layer0_prefetches += 1
+    if context.causal_control is not None:
+        request.layer0_manifest_controlled = True
+        context.manifest_layer0_prefetches += 1
+        context.pending_causal_request_prefetches[npu.npu_id] = (
+            request.manifest.request_id,
+            deadline_time_ms,
+        )
+        _queue_causal_control_event(context, current_time_ms)
+        return
+    _start_layer_io(
+        context,
+        request,
+        0,
+        current_time_ms,
+        deadline_time_ms,
+        request.per_layer_compute_ms,
+    )
 
 
 def _handle_compute_schedule(context: _Context, npu_id: int, current_time_ms: float):
@@ -1048,6 +1142,11 @@ def _handle_compute_schedule(context: _Context, npu_id: int, current_time_ms: fl
             observed_work[ssu_id] += work_gb
     batch.observed_layer = layer
     batch.observed_work_gb_by_ssu = tuple(observed_work)
+    if (
+        layer == 0
+        and npu.layer0_prefetch_request_id in batch.member_request_ids
+    ):
+        npu.layer0_prefetch_request_id = None
     context.causal_observations += int(context.causal_control is not None)
     metric = batch.layer_metrics[layer]
     metric.compute_start_ms = current_time_ms
@@ -1077,6 +1176,13 @@ def _handle_compute_schedule(context: _Context, npu_id: int, current_time_ms: fl
                 end_time_ms,
             )
             _queue_causal_control_event(context, current_time_ms)
+    else:
+        _start_cross_request_layer0_prefetch(
+            context,
+            npu,
+            current_time_ms,
+            end_time_ms,
+        )
     context.push_event(
         end_time_ms,
         sim.COMPUTE_DONE,
@@ -1271,6 +1377,22 @@ def _handle_causal_layer_control(context: _Context, current_time_ms: float):
     context.control_evaluations += 1
     observations = []
     for npu in context.npus:
+        prefetch_request_id = npu.layer0_prefetch_request_id
+        if prefetch_request_id is not None:
+            request = context.requests[prefetch_request_id]
+            observations.append(
+                CausalLayerObservation(
+                    batch_id=-prefetch_request_id - 1,
+                    npu_id=npu.npu_id,
+                    observed_layer=0,
+                    observed_work_gb_by_ssu=_layer_work_by_ssu(
+                        context, request, 0
+                    ),
+                    compute_budget_ms=request.per_layer_compute_ms,
+                    manifest_layer0=True,
+                )
+            )
+            continue
         batch = npu.active_batch
         if batch is None:
             continue
@@ -1302,6 +1424,25 @@ def _handle_causal_layer_control(context: _Context, current_time_ms: float):
                 layer,
                 current_time_ms,
                 deadline_time_ms,
+            )
+    request_prefetches = tuple(
+        sorted(context.pending_causal_request_prefetches.items())
+    )
+    context.pending_causal_request_prefetches.clear()
+    for npu_id, (request_id, deadline_time_ms) in request_prefetches:
+        request = context.requests[request_id]
+        if (
+            context.npus[npu_id].layer0_prefetch_request_id == request_id
+            and not request.io_started[0]
+        ):
+            _start_layer_io(
+                context,
+                request,
+                0,
+                current_time_ms,
+                deadline_time_ms,
+                request.per_layer_compute_ms,
+                manifest_dedicated_path=True,
             )
 
 
@@ -1487,6 +1628,21 @@ def _build_summary(context: _Context, requests, current_time_ms, events_processe
                 "arrival_time_ms": request.manifest.arrival_time_ms,
                 "admission_time_ms": request.admission_time_ms,
                 "completion_time_ms": request.completion_time_ms,
+                "layer0_cross_request_prefetched": (
+                    request.layer0_cross_request_prefetched
+                ),
+                "layer0_manifest_controlled": request.layer0_manifest_controlled,
+                "layer0_io_start_time_ms": request.io_start_time_ms[0],
+                "layer0_path_cirs_at_submit": [
+                    {
+                        "ssu_id": ssu_id,
+                        "path_id": path_id,
+                        "cir_gbps": cir_gbps,
+                    }
+                    for (ssu_id, path_id), cir_gbps in sorted(
+                        request.layer0_path_cirs_at_submit.items()
+                    )
+                ],
                 "admission_wait_ms": admission_wait_ms,
                 "processing_latency_ms": processing_ms,
                 "latency_ms": latency_ms,
@@ -1575,7 +1731,10 @@ def _build_summary(context: _Context, requests, current_time_ms, events_processe
         ),
         "cir_capacity": context.max_cir_sum_gbps
         <= context.disk_bw_gbps + 1e-9,
-        "causal_control_drained": not context.pending_causal_prefetches,
+        "causal_control_drained": (
+            not context.pending_causal_prefetches
+            and not context.pending_causal_request_prefetches
+        ),
         "batch_latency_decomposition": all(
             abs(row["latency_accounting_error_ms"]) <= 1e-7
             for row in microbatch_metrics
@@ -1644,6 +1803,11 @@ def _build_summary(context: _Context, requests, current_time_ms, events_processe
         "partial_batch_policy": PARTIAL_BATCH_POLICY,
         "prefetch_policy": PREFETCH_POLICY,
         "layer0_path_id": context.layer0_path_id,
+        "cross_request_layer0_prefetch": context.cross_request_layer0_prefetch,
+        "cross_request_layer0_prefetches": (
+            context.cross_request_layer0_prefetches
+        ),
+        "manifest_layer0_prefetches": context.manifest_layer0_prefetches,
         "routing_mode": (
             "layer0_path0_then_causal_npu_dedicated"
             if context.layer0_path_id is not None
@@ -1750,6 +1914,7 @@ def simulate_continuous_batch(
     qos_configs_by_ssu: Optional[Sequence[sim.StaticQoSConfig]] = None,
     npu_dedicated_paths: Optional[Sequence[int]] = None,
     layer0_path_id: Optional[int] = None,
+    cross_request_layer0_prefetch: bool = False,
     client_io_config: sim.ClientIOConfig = sim.DEFAULT_CLIENT_IO_CONFIG,
     control: Optional[CIRControlConfig] = None,
     causal_control: Optional[CausalLayerControlConfig] = None,
@@ -1761,14 +1926,19 @@ def simulate_continuous_batch(
 
     Static routing strategies pass the same QoS configuration and different
     ``ClientIOConfig`` values.  Dynamic Scheme B additionally passes one
-    dedicated Path per NPU and a periodic ``CIRControlConfig``.  The physical
-    oracle uses ``POLICY_PER_SSD_FULL_VISIBLE_EDF`` and no QoS configuration.
+    dedicated Path per NPU and a periodic ``CIRControlConfig``.  With batch
+    size one, ``cross_request_layer0_prefetch`` starts an already-arrived next
+    request's Layer-0 I/O at the current request's final-layer compute start;
+    admission still waits for current-request completion.  The physical oracle
+    uses ``POLICY_PER_SSD_FULL_VISIBLE_EDF`` and no QoS configuration.
     """
     requests = tuple(requests)
     if not requests:
         raise ValueError("continuous-batch trace must contain requests")
     if num_npu <= 0 or num_ssu <= 0 or n_layers <= 0 or batch_size <= 0:
         raise ValueError("simulation dimensions must be positive")
+    if cross_request_layer0_prefetch and batch_size != 1:
+        raise ValueError("cross-request Layer-0 prefetch requires batch_size=1")
     if policy not in sim.SUPPORTED_POLICIES:
         raise ValueError(f"unsupported policy: {policy}")
     if len({request.request_id for request in requests}) != len(requests):
@@ -1854,6 +2024,7 @@ def simulate_continuous_batch(
         layer0_path_id=(
             int(layer0_path_id) if layer0_path_id is not None else None
         ),
+        cross_request_layer0_prefetch=bool(cross_request_layer0_prefetch),
         client_io_config=client_io_config,
         control=control,
         causal_control=causal_control,

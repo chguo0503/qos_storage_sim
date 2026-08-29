@@ -133,6 +133,33 @@ Layer 0 的公共 Path0 失去剩余带宽。完整矩阵、cohort、逐层、�
 `results/continuous_batch_control/` 是旧 request-interleaved/slot-replacement 模型的
 历史产物，只能用于追溯，不能再作为 Full-prefill microbatch 的硬件结论。
 
+## 连续 batch=1 的跨请求 Layer0 预取
+
+`cross_request_layer0_prefetch=True` 会在请求 k 的最后一层开始计算时，预取已到达的
+请求 k+1 的 Layer0；请求 k+1 仍在请求 k 完成时正式 admission。baseline 和 Scheme B
+使用相同触发时刻。Scheme B 会先由 ring-hash manifest 计算下一请求的
+`NPU × SSU` demand、配置专用 Path/CIR，再提交 Layer0，因此后续请求不再进入
+0.208333 GB/s 的公共 cold Path。每个 NPU 的第一次请求仍保留真实冷启动。
+
+正式矩阵为 128 NPU、每 NPU 6 个 batch=1 请求、16/24/56/80 层、SSU 40/56/70。
+同一完整 trace 同时输出两个视图：
+
+- cold：请求0 admission 到请求5 completion，包含全部6个请求；
+- warm：请求1 admission 到请求5 completion，只统计后5个请求。
+
+TTFT 使用 `completion - admission`，不包含外部 arrival queue wait；利用率先按每个 NPU
+计算 `compute busy / cohort window`，再对128个 NPU 等权平均。Scheme B 相对 baseline
+的 warm 利用率增益如下，粗体为达到 `+10 pp` 目标的配置：
+
+| Layers | SSU 40 | SSU 56 | SSU 70 |
+|---:|---:|---:|---:|
+| 16 | **+24.50 pp** | +9.43 pp | +1.18 pp |
+| 24 | **+17.62 pp** | +6.51 pp | +1.09 pp |
+| 56 | +7.94 pp | +2.72 pp | +0.81 pp |
+| 80 | +6.19 pp | +2.19 pp | +0.51 pp |
+
+![Cold/warm 跨请求预取结果](results/cold_warm_modified/01_cold_warm.png)
+
 ## 运行
 
 ```bash
@@ -175,6 +202,10 @@ python analyze_causal_full_matrix.py
 # 截止于最快 NPU 完成第 6 次推理；TTFT SLO 固定统计前 5 次
 python six_request_experiment.py --workers 8
 python analyze_six_request.py
+
+# 跨请求 Layer0 预取：2 策略 × 3 SSU × 4 层数
+python cold_warm_experiment.py --workers 8
+python analyze_cold_warm.py
 ```
 
 runner 会逐 case checkpoint；不带 `--rerun` 时，只在代码、数据和配置指纹完全一致时复用缓存。
@@ -203,6 +234,9 @@ runner 会逐 case checkpoint；不带 `--rerun` 时，只在代码、数据和�
 - `six_request_workload.py`：为 128 个 NPU 构造计算量和 KV 量误差低于 0.1% 的六请求均衡压力输入。
 - `six_request_experiment.py`：比较 baseline、因果 Scheme B 和 Full-info EDF，并在最快第 6 次完成处裁剪全系统利用率。
 - `analyze_six_request.py`：严格检查前五请求 SLO cohort，生成 16/24/56/80 层对比图和报告。
+- `cold_warm_metrics.py`：从同一完整 trace 计算 cold/warm TTFT SLO 与每 NPU 利用率。
+- `cold_warm_experiment.py`：运行修改后的 baseline/Scheme B 跨请求预取矩阵并逐 case checkpoint。
+- `analyze_cold_warm.py`：校验配对输入、输出 cold/warm 差值、报告和结果图。
 - `test_continuous_batch_sim.py`：动态 max-min 一致性、wall-clock 更新与端到端守恒测试。
 - `test_full_prefill_microbatch_sim.py`：固定成员、层 barrier、整批预取/完成和计算工作守恒测试。
 - `data`：请求画像输入。
