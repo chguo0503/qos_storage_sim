@@ -8,6 +8,11 @@ NPU 接收限制；可部署的策略逻辑集中在 `policy_logic.py`，离散�
 Scheme B 的设计、公式、实验结果和硬件接口另见
 [Scheme B 详细分析](SCHEME_B_DETAILED_ANALYSIS.md)。
 
+当前正在执行的 128 NPU 持续满负载正式矩阵另见
+[稳态满负载实验规范](STEADY_STATE_FULL_LOAD_EXPERIMENT.md)。该规范只比较 Baseline、
+Read once per layer 和 Scheme B，SSU 固定为 `16/24/40/70`，不包含 Refresh8 或
+Best feasible。
+
 ## 保留的策略
 
 | 策略 | 可见信息 | 决策 |
@@ -265,6 +270,10 @@ python analyze_cold_warm.py \
   --manual-compatibility-audit-note \
   "Manual audit: one-command submission, 0.1-us spacing, identical L0-prefetch trigger rule, compatible shared data plane; SSU56/70 freshly rerun with current simulator source" \
   --output-dir results/cold_warm_five_strategies_layer16
+
+# 当前正式稳态满负载矩阵：3 策略 × SSU 16/24/40/70
+python steady_state_experiment.py --workers 9
+python analyze_steady_state.py
 ```
 
 runner 会逐 case checkpoint。未指定 `--rerun` 时，只有代码、数据与实验配置指纹完全
@@ -312,6 +321,9 @@ python -m pytest -q test_cold_warm_experiment.py test_cold_warm_metrics.py
 - `capacity_constrained_oracle_experiment.py`：Best feasible reference 扫描；
 - `continuous_prefill_experiment.py`：六个保留策略的 Full-prefill 对比；
 - `cold_warm_experiment.py`：Baseline、Layer-once、Refresh8、因果 Scheme B 和 Best feasible candidate 的 cold/warm 对比；
+- `steady_state_workload.py`：SS/SL/LS/LL 均衡的持续满负载请求流；
+- `steady_state_experiment.py`：Baseline、Layer-once 和 Scheme B 的固定稳态窗口矩阵；
+- `analyze_steady_state.py`：稳态实验配对校验、两项主指标和最终图；
 - `data`：请求画像。
 
 ## 模型边界
