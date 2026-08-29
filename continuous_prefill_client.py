@@ -9,7 +9,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from policy_logic import GROUP_COUNT, PATH_COUNT
+from policy_logic import (
+    GROUP_COUNT,
+    PATH_COUNT,
+    OracleFlowView,
+    oracle_priority_key,
+)
 import sim
 from strategy_profiles import FINAL_STATIC
 
@@ -89,6 +94,17 @@ def scheme_b_client_config(name: str) -> sim.ClientIOConfig:
     )
 
 
+def best_feasible_client_config() -> sim.ClientIOConfig:
+    """Use the same one-command, 0.1-us issue stream as retained clients."""
+    return sim.ClientIOConfig(
+        name="continuous_prefill_best_feasible",
+        pressure_window_io=None,
+        submit_batch_size=SUBMIT_BATCH_SIZE,
+        issue_interval_us=ISSUE_INTERVAL_US,
+        path_selection_mode=sim.PATH_SELECTION_FIXED_PATH_ZERO,
+    )
+
+
 def qos_configs_from_path_cirs(
     path_cirs_by_ssu,
 ) -> tuple[sim.StaticQoSConfig, ...]:
@@ -103,4 +119,20 @@ def qos_configs_from_path_cirs(
             category_labels=("NPU",),
         )
         for cirs in path_cirs_by_ssu
+    )
+
+
+def best_feasible_priority_key(flow):
+    """Adapt one released simulator flow to the retained oracle candidate."""
+    return oracle_priority_key(
+        OracleFlowView(
+            demand_gbps=flow.demand_gbps,
+            layer_work_gb=flow.layer_work_gb,
+            deadline_time=flow.deadline_time,
+            enqueue_order=flow.enqueue_time,
+            request_id=flow.request_id,
+            layer=flow.layer,
+            block_idx=flow.block_idx,
+            ssu_id=flow.disk_id,
+        )
     )

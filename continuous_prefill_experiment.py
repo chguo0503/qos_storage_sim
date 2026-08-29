@@ -20,6 +20,8 @@ from continuous_batch_sim import (
     simulate_continuous_batch,
 )
 from continuous_prefill_client import (
+    best_feasible_client_config,
+    best_feasible_priority_key,
     routing_strategy_specs,
     qos_configs_from_path_cirs,
     scheme_b_client_config,
@@ -161,6 +163,8 @@ def _run_case(case: Case):
         summary = simulate_continuous_batch(
             requests,
             policy=sim.POLICY_PER_SSD_FULL_VISIBLE_EDF,
+            client_io_config=best_feasible_client_config(),
+            oracle_priority_key=best_feasible_priority_key,
             **kwargs,
         )
 

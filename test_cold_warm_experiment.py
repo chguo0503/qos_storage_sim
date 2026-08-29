@@ -15,8 +15,9 @@ def test_modified_strategy_matrix_and_metadata():
         "modified_layer_once",
         "modified_refresh8",
         "modified_scheme_b",
+        "modified_best_feasible",
     ]
-    assert experiment.SSU_LIST == (40, 56, 70)
+    assert experiment.SSU_LIST == (16, 28, 40, 56, 70)
     assert experiment.LAYER_LIST == (16, 24, 56, 80)
     assert spec["num_npu"] == 128
     assert spec["requests_per_npu"] == 6
@@ -38,7 +39,7 @@ def test_all_modified_strategies_enable_cross_request_layer0_prefetch(monkeypatc
         assert experiment._simulate(case, (), num_ssu=40, n_layers=16) == {
             "ok": True
         }
-    assert len(calls) == 4
+    assert len(calls) == 5
     assert all(call["cross_request_layer0_prefetch"] is True for call in calls)
     assert all(call["batch_size"] == 1 for call in calls)
     routing_calls = [call for call in calls if "qos_config" in call]
@@ -56,6 +57,19 @@ def test_all_modified_strategies_enable_cross_request_layer0_prefetch(monkeypatc
     ]
     assert len({call["qos_config"] for call in routing_calls}) == 1
     assert all("causal_control" not in call for call in routing_calls)
+    full_info_calls = [
+        call
+        for call in calls
+        if call.get("policy") == "per_ssd_full_visible_edf"
+    ]
+    assert len(full_info_calls) == 1
+    assert "qos_config" not in full_info_calls[0]
+    assert full_info_calls[0]["client_io_config"].submit_batch_size == 1
+    assert full_info_calls[0]["client_io_config"].issue_interval_us == 0.1
+    assert (
+        full_info_calls[0]["oracle_priority_key"]
+        is experiment.best_feasible_priority_key
+    )
 
 
 def test_analysis_uses_paired_complete_cold_and_warm_cohorts(tmp_path):
@@ -116,7 +130,7 @@ def test_analysis_uses_paired_complete_cold_and_warm_cohorts(tmp_path):
         "fixed_complete_cohorts": True,
         "survivorship_bias_excluded": True,
         "external_arrival_queue_wait_excluded_from_ttft": True,
-        "result_rows": 4,
+        "result_rows": 5,
     }
     assert result["metrics"]["modified_baseline"]["16"]["40"]["cold"][
         "ttft_slo"
@@ -147,7 +161,14 @@ def test_analysis_uses_paired_complete_cold_and_warm_cohorts(tmp_path):
         "modified_scheme_b",
     ]
     base["results"] = [
-        row for row in base["results"] if row["strategy"] != "modified_layer_once"
+        row
+        for row in base["results"]
+        if row["strategy"]
+        in {
+            "modified_baseline",
+            "modified_refresh8",
+            "modified_scheme_b",
+        }
     ]
     layer_once = deepcopy(payload)
     layer_once["experiment"]["source_fingerprint"] = "layer-source"
@@ -156,18 +177,51 @@ def test_analysis_uses_paired_complete_cold_and_warm_cohorts(tmp_path):
         for row in layer_once["results"]
         if row["strategy"] == "modified_layer_once"
     ]
+    best_feasible = deepcopy(payload)
+    best_feasible["experiment"]["source_fingerprint"] = "oracle-source"
+    best_feasible["results"] = [
+        row
+        for row in best_feasible["results"]
+        if row["strategy"] == "modified_best_feasible"
+    ]
     base_path = tmp_path / "base.json"
     layer_path = tmp_path / "layer.json"
+    oracle_path = tmp_path / "oracle.json"
     base_path.write_text("base")
     layer_path.write_text("layer")
+    oracle_path.write_text("oracle")
+    second_ssu = deepcopy(payload)
+    second_ssu["experiment"]["source_fingerprint"] = "sweep-source"
+    for row in second_ssu["results"]:
+        row["num_ssu"] = 28
+    second_ssu_path = tmp_path / "second_ssu.json"
+    second_ssu_path.write_text("second-ssu")
     merged = merge_compatible_payloads(
-        ((base_path, base), (layer_path, layer_once))
+        (
+            (base_path, base),
+            (layer_path, layer_once),
+            (oracle_path, best_feasible),
+            (second_ssu_path, second_ssu),
+        ),
+        manual_compatibility_audit_note="synthetic fixtures manually matched",
     )
     assert merged["comparison_provenance"]["single_source"] is False
+    assert merged["experiment"]["layer_list"] == [16]
+    assert merged["experiment"]["ssu_list"] == [28, 40]
     assert merged["experiment"]["source_fingerprints_by_strategy"] == {
-        "modified_baseline": "base-source",
-        "modified_refresh8": "base-source",
-        "modified_scheme_b": "base-source",
-        "modified_layer_once": "layer-source",
+        "modified_baseline": ["base-source", "sweep-source"],
+        "modified_refresh8": ["base-source", "sweep-source"],
+        "modified_scheme_b": ["base-source", "sweep-source"],
+        "modified_best_feasible": ["oracle-source", "sweep-source"],
+        "modified_layer_once": ["layer-source", "sweep-source"],
     }
-    assert analyze(merged)["validation"]["result_rows"] == 4
+    assert merged["comparison_provenance"]["row_source"][
+        "modified_baseline|layers=16|ssu=28"
+    ].endswith("second_ssu.json")
+    compatibility = merged["comparison_provenance"]["compatibility"]
+    assert compatibility["behavior_compatibility_verified_by_analyzer"] is False
+    assert (
+        compatibility["manual_compatibility_audit_note"]
+        == "synthetic fixtures manually matched"
+    )
+    assert analyze(merged)["validation"]["result_rows"] == 10

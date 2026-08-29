@@ -21,6 +21,8 @@ from continuous_batch_sim import (
     simulate_continuous_batch,
 )
 from continuous_prefill_client import (
+    best_feasible_client_config,
+    best_feasible_priority_key,
     routing_strategy_specs,
     static_qos_config,
     qos_configs_from_path_cirs,
@@ -219,6 +221,41 @@ def test_batch1_prefetches_next_request_layer0_during_final_compute():
     )
     assert summary["cross_request_layer0_prefetches"] == 1
     assert summary["manifest_layer0_prefetches"] == 0
+    assert all(summary["invariants"].values())
+
+
+def test_best_feasible_uses_the_same_issue_stream_and_cross_request_prefetch():
+    requests = (
+        _request(0, per_layer_compute_ms=10.0, n_layers=2),
+        _request(1, per_layer_compute_ms=3.0, n_layers=2),
+    )
+    summary = simulate_continuous_batch(
+        requests,
+        num_npu=1,
+        num_ssu=1,
+        n_layers=2,
+        batch_size=1,
+        policy=sim.POLICY_PER_SSD_FULL_VISIBLE_EDF,
+        client_io_config=best_feasible_client_config(),
+        oracle_priority_key=best_feasible_priority_key,
+        cross_request_layer0_prefetch=True,
+    )
+
+    first_batch, second_batch = _batches(summary)
+    second = _requests(summary)[1]
+    assert second["layer0_cross_request_prefetched"]
+    assert second_batch["layer_metrics"][0]["io_start_time_ms"] == pytest.approx(
+        first_batch["layer_metrics"][-1]["compute_start_ms"]
+    )
+    assert second_batch["layer_metrics"][0]["io_start_time_ms"] < second[
+        "admission_time_ms"
+    ]
+    assert summary["client_submit_batch_size"] == 1
+    assert summary["client_issue_interval_us"] == 0.1
+    assert summary["oracle_priority"] == "best_feasible_priority_key"
+    assert summary["cross_request_layer0_prefetches"] == 1
+    assert summary["manifest_layer0_prefetches"] == 0
+    assert summary["pressure_reports"] == 0
     assert all(summary["invariants"].values())
 
 

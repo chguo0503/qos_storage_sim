@@ -24,25 +24,39 @@ LABELS = {
     "modified_layer_once": "Read once/layer + L0 prefetch",
     "modified_refresh8": "Refresh8 + L0 prefetch",
     "modified_scheme_b": "Scheme B + manifest/CIR prefetch",
+    "modified_best_feasible": "Best feasible reference + L0 prefetch",
 }
 COLORS = {
     "modified_baseline": "#4C78A8",
     "modified_layer_once": "#59A14F",
     "modified_refresh8": "#F2CF5B",
     "modified_scheme_b": "#E45756",
+    "modified_best_feasible": "#B279A2",
 }
 MARKERS = {
     "modified_baseline": "o",
     "modified_layer_once": "D",
     "modified_refresh8": "s",
     "modified_scheme_b": "^",
+    "modified_best_feasible": "P",
 }
 
-_MIXED_RUN_FIELDS = {"schema_version", "source_fingerprint", "strategies"}
+_MIXED_RUN_FIELDS = {
+    "schema_version",
+    "source_fingerprint",
+    "strategies",
+    "ssu_list",
+}
 
 
 def _key(row):
     return row["strategy"], row["num_ssu"], row["n_layers"]
+
+
+def _provenance_key(row):
+    return (
+        f"{row['strategy']}|layers={row['n_layers']}|ssu={row['num_ssu']}"
+    )
 
 
 def _alpha_key(alpha):
@@ -56,8 +70,12 @@ def _display_path(path):
         return str(path.resolve())
 
 
-def merge_compatible_payloads(sources):
-    """Merge paired strategy rows while preserving per-run provenance."""
+def merge_compatible_payloads(
+    sources,
+    *,
+    manual_compatibility_audit_note=None,
+):
+    """Merge paired rows and record, without inferring, behavior audit provenance."""
     if len(sources) == 1:
         return sources[0][1]
 
@@ -69,6 +87,7 @@ def merge_compatible_payloads(sources):
     rows_by_key = {}
     source_runs = []
     row_source = {}
+    fingerprint_by_result = {}
     fingerprints_by_strategy = {}
     for path, payload in sources:
         experiment = payload["experiment"]
@@ -96,12 +115,11 @@ def merge_compatible_payloads(sources):
                 raise ValueError(f"duplicate merged result row: {key}")
             rows_by_key[key] = row
             strategy = row["strategy"]
-            previous = row_source.setdefault(strategy, display_path)
-            if previous != display_path:
-                raise ValueError(f"strategy spans multiple source runs: {strategy}")
-            fingerprints_by_strategy[strategy] = experiment.get(
-                "source_fingerprint"
-            )
+            result_key = _provenance_key(row)
+            row_source[result_key] = display_path
+            fingerprint = experiment.get("source_fingerprint")
+            fingerprint_by_result[result_key] = fingerprint
+            fingerprints_by_strategy.setdefault(strategy, set()).add(fingerprint)
 
     present = {key[0] for key in rows_by_key}
     strategies = tuple(case.name for case in CASES if case.name in present)
@@ -118,9 +136,17 @@ def merge_compatible_payloads(sources):
     )
     experiment = deepcopy(sources[-1][1]["experiment"])
     experiment.pop("source_fingerprint", None)
-    experiment["source_fingerprint_scope"] = "per strategy; see provenance"
-    experiment["source_fingerprints_by_strategy"] = fingerprints_by_strategy
+    experiment["source_fingerprint_scope"] = "per result row; see provenance"
+    experiment["source_fingerprints_by_strategy"] = {
+        strategy: sorted(
+            fingerprints,
+            key=lambda value: "" if value is None else value,
+        )
+        for strategy, fingerprints in fingerprints_by_strategy.items()
+    }
     experiment["strategies"] = list(strategies)
+    experiment["layer_list"] = sorted({row["n_layers"] for row in rows})
+    experiment["ssu_list"] = sorted({row["num_ssu"] for row in rows})
     merged = {
         "schema_version": max(payload["schema_version"] for _, payload in sources),
         "complete": False,
@@ -132,10 +158,14 @@ def merge_compatible_payloads(sources):
             "single_source": False,
             "source_runs": source_runs,
             "row_source": row_source,
+            "source_fingerprint_by_result": fingerprint_by_result,
             "compatibility": {
-                "experiment_metadata_except_schema_source_and_strategies": True,
-                "paired_row_fingerprints_checked_by_analyzer": True,
-                "behavior_compatibility_audited": True,
+                "experiment_metadata_checked_by_analyzer": True,
+                "paired_workload_fingerprints_checked_by_analyzer": True,
+                "behavior_compatibility_verified_by_analyzer": False,
+                "manual_compatibility_audit_note": (
+                    manual_compatibility_audit_note
+                ),
             },
         },
     }
@@ -301,6 +331,9 @@ def analyze(payload):
         ),
         "modified_scheme_b_minus_modified_baseline": strategy_deltas.get(
             "modified_scheme_b", {}
+        ),
+        "modified_best_feasible_minus_modified_baseline": strategy_deltas.get(
+            "modified_best_feasible", {}
         ),
         "validation": {
             "paired_inputs": True,
@@ -524,7 +557,7 @@ def write_layer16_plot(path, analysis):
     if n_layers not in analysis["layer_list"]:
         raise ValueError("16-layer results are missing from the analysis")
 
-    figure, axes = plt.subplots(1, 2, figsize=(12.8, 5.4), sharex=True)
+    figure, axes = plt.subplots(1, 2, figsize=(15.5, 6.2), sharex=True)
     metric_specs = (
         ("mean_npu_utilization", "Mean NPU utilization (%)"),
         ("ttft_slo", f"TTFT SLO attainment @ {PLOT_ALPHA:g}x (%)"),
@@ -599,13 +632,31 @@ def write_report(path, analysis):
     ]
     provenance = analysis.get("comparison_provenance")
     if provenance:
+        compatibility = provenance["compatibility"]
+        audit_note = compatibility["manual_compatibility_audit_note"]
         lines.extend(
             [
                 "",
-                "Provenance: this comparison merges paired, behavior-compatible "
-                "runs and preserves a separate source fingerprint for each "
-                "strategy. It is not presented as a single-checkout rerun; see "
-                "`comparison_results.json` for file hashes and row sources.",
+                "Provenance: the analyzer verified experiment metadata and paired "
+                "workload fingerprints, then preserved a separate source "
+                "fingerprint for every result row. It does not infer behavior "
+                "compatibility across source versions. Compatibility note: "
+                f"{audit_note or 'not provided'}. See `comparison_results.json` "
+                "for file hashes and row sources.",
+            ]
+        )
+    if "modified_best_feasible" in analysis["strategies"]:
+        lines.extend(
+            [
+                "",
+                "`Best feasible` is the retained demand-weighted "
+                "shortest-visible-layer-work candidate. Each SSD independently "
+                "ranks only its currently enqueued pending I/O. The candidate "
+                "preserves SSD/NPU capacity, placement, the client issue stream, "
+                "and layer-release constraints, but cannot see another SSD's "
+                "queue or released commands that have not been submitted. It is "
+                "not a proof of the mathematical optimum for NPU utilization or "
+                "TTFT SLO.",
             ]
         )
     for strategy in analysis["strategies"]:
@@ -704,10 +755,12 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", action="append", type=Path)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
+    parser.add_argument("--manual-compatibility-audit-note")
     args = parser.parse_args()
     input_paths = tuple(args.input or (DEFAULT_INPUT,))
     payload = merge_compatible_payloads(
-        tuple((path, json.loads(path.read_text())) for path in input_paths)
+        tuple((path, json.loads(path.read_text())) for path in input_paths),
+        manual_compatibility_audit_note=args.manual_compatibility_audit_note,
     )
     analysis = analyze(payload)
     args.output_dir.mkdir(parents=True, exist_ok=True)

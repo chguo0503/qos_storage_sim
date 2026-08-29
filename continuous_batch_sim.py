@@ -512,6 +512,7 @@ class _Context:
         disk_bw_gbps: float,
         npu_bw_gbps: float,
         submit_order_seed: int,
+        oracle_priority_key,
     ):
         self.num_npu = num_npu
         self.num_ssu = num_ssu
@@ -556,7 +557,13 @@ class _Context:
                 if policy == sim.POLICY_QOS_STATIC_CIR
                 else None
             )
-            sim.DiskIOScheduler(disk, policy, disk_bw_gbps, qos)
+            sim.DiskIOScheduler(
+                disk,
+                policy,
+                disk_bw_gbps,
+                qos,
+                oracle_priority_key,
+            )
 
         self.client_path_pools_by_ssu = (
             tuple(
@@ -1793,7 +1800,7 @@ def _build_summary(context: _Context, requests, current_time_ms, events_processe
             repr((batch.batch_id, batch.npu_id, batch.member_request_ids)).encode()
         )
     return {
-        "schema_version": 2,
+        "schema_version": 3,
         "execution_model": EXECUTION_MODEL,
         "batch_compute_model": BATCH_COMPUTE_MODEL,
         "batch_compute_calibration": "singleton layer times added; no batch speedup",
@@ -1817,6 +1824,13 @@ def _build_summary(context: _Context, requests, current_time_ms, events_processe
         "num_ssu": context.num_ssu,
         "n_layers": context.n_layers,
         "batch_size": context.batch_size,
+        "client_submit_batch_size": context.client_io_config.submit_batch_size,
+        "client_issue_interval_us": context.client_io_config.issue_interval_us,
+        "oracle_priority": (
+            context.disks[0].scheduler.oracle_priority.__name__
+            if context.policy == sim.POLICY_PER_SSD_FULL_VISIBLE_EDF
+            else None
+        ),
         "causal_layer_observations": context.causal_observations,
         "request_count": len(requests),
         "input_fingerprint": _input_fingerprint(requests),
@@ -1918,6 +1932,7 @@ def simulate_continuous_batch(
     disk_bw_gbps: float = sim.DISK_BW,
     npu_bw_gbps: float = sim.NPU_BW_LIMIT,
     submit_order_seed: int = 42,
+    oracle_priority_key=None,
 ):
     """Run a finite Full-prefill microbatch trace and return JSON-safe metrics.
 
@@ -1927,7 +1942,8 @@ def simulate_continuous_batch(
     size one, ``cross_request_layer0_prefetch`` starts an already-arrived next
     request's Layer-0 I/O at the current request's final-layer compute start;
     admission still waits for current-request completion.  The physical oracle
-    uses ``POLICY_PER_SSD_FULL_VISIBLE_EDF`` and no QoS configuration.
+    uses ``POLICY_PER_SSD_FULL_VISIBLE_EDF`` and no QoS configuration; an
+    explicit released-I/O priority callback selects its retained candidate.
     """
     requests = tuple(requests)
     if not requests:
@@ -1986,6 +2002,10 @@ def simulate_continuous_batch(
             raise ValueError("static routing requires SS/SL/LS/LL Path classes")
     elif qos_config is not None or qos_configs_by_ssu is not None:
         raise ValueError("the physical EDF policy does not use QoS tables")
+    if oracle_priority_key is not None and (
+        policy != sim.POLICY_PER_SSD_FULL_VISIBLE_EDF
+    ):
+        raise ValueError("oracle priority requires the physical full-info policy")
 
     if control is not None and (
         policy != sim.POLICY_QOS_STATIC_CIR or dedicated_paths is None
@@ -2028,6 +2048,7 @@ def simulate_continuous_batch(
         disk_bw_gbps=float(disk_bw_gbps),
         npu_bw_gbps=float(npu_bw_gbps),
         submit_order_seed=int(submit_order_seed),
+        oracle_priority_key=oracle_priority_key,
     )
     if disk_qos_configs:
         context.max_cir_sum_gbps = max(

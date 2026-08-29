@@ -1,0 +1,2936 @@
+{
+  "schema_version": 3,
+  "complete": false,
+  "selected_complete": true,
+  "num_npu": 128,
+  "requests_per_npu": 6,
+  "layer_list": [
+    16
+  ],
+  "ssu_list": [
+    16,
+    28,
+    40
+  ],
+  "strategies": [
+    "modified_baseline",
+    "modified_layer_once",
+    "modified_refresh8",
+    "modified_scheme_b",
+    "modified_best_feasible"
+  ],
+  "plot_alpha": 2.0,
+  "metric_scope": {
+    "cold": "per NPU: request 0 admission through request 5 completion; six-request TTFT cohort and six-request compute busy time",
+    "warm": "per NPU: request 1 admission through request 5 completion; request 1--5 TTFT cohort and request 1--5 compute busy time",
+    "ttft": "completion minus admission; external arrival queue wait excluded",
+    "utilization": "compute busy / per-NPU cohort window, then equal-weight mean across all 128 NPUs"
+  },
+  "metrics": {
+    "modified_baseline": {
+      "16": {
+        "16": {
+          "cold": {
+            "mean_npu_utilization": 0.22653539754982796,
+            "mean_ttft_ms": 508.6951083754058,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 0,
+                "fail": 768,
+                "total": 768,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 0,
+                "fail": 768,
+                "total": 768,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 0,
+                "fail": 768,
+                "total": 768,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 0,
+                "fail": 768,
+                "total": 768,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 0,
+                "fail": 768,
+                "total": 768,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 192,
+                "fail": 576,
+                "total": 768,
+                "attainment": 0.25,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 204,
+                "fail": 564,
+                "total": 768,
+                "attainment": 0.265625,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "warm": {
+            "mean_npu_utilization": 0.22574714800413814,
+            "mean_ttft_ms": 510.35465274240084,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 0,
+                "fail": 640,
+                "total": 640,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 0,
+                "fail": 640,
+                "total": 640,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 0,
+                "fail": 640,
+                "total": 640,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 0,
+                "fail": 640,
+                "total": 640,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 0,
+                "fail": 640,
+                "total": 640,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 161,
+                "fail": 479,
+                "total": 640,
+                "attainment": 0.2515625,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 161,
+                "fail": 479,
+                "total": 640,
+                "attainment": 0.2515625,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "first_request_only": {
+            "request_count": 128,
+            "mean_ttft_ms": 500.39738654043055,
+            "slo": {
+              "1.05": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 31,
+                "fail": 97,
+                "total": 128,
+                "attainment": 0.2421875,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 43,
+                "fail": 85,
+                "total": 128,
+                "attainment": 0.3359375,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "wall_time_s": 546.92012025
+        },
+        "28": {
+          "cold": {
+            "mean_npu_utilization": 0.3666364168041928,
+            "mean_ttft_ms": 314.3108950138564,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 0,
+                "fail": 768,
+                "total": 768,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 0,
+                "fail": 768,
+                "total": 768,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 0,
+                "fail": 768,
+                "total": 768,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 39,
+                "fail": 729,
+                "total": 768,
+                "attainment": 0.05078125,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 192,
+                "fail": 576,
+                "total": 768,
+                "attainment": 0.25,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 535,
+                "fail": 233,
+                "total": 768,
+                "attainment": 0.6966145833333333,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 576,
+                "fail": 192,
+                "total": 768,
+                "attainment": 0.75,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "warm": {
+            "mean_npu_utilization": 0.36667519622826844,
+            "mean_ttft_ms": 314.1663003039319,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 0,
+                "fail": 640,
+                "total": 640,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 0,
+                "fail": 640,
+                "total": 640,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 0,
+                "fail": 640,
+                "total": 640,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 37,
+                "fail": 603,
+                "total": 640,
+                "attainment": 0.0578125,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 161,
+                "fail": 479,
+                "total": 640,
+                "attainment": 0.2515625,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 447,
+                "fail": 193,
+                "total": 640,
+                "attainment": 0.6984375,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 479,
+                "fail": 161,
+                "total": 640,
+                "attainment": 0.7484375,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "first_request_only": {
+            "request_count": 128,
+            "mean_ttft_ms": 315.03386856347896,
+            "slo": {
+              "1.05": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 2,
+                "fail": 126,
+                "total": 128,
+                "attainment": 0.015625,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 31,
+                "fail": 97,
+                "total": 128,
+                "attainment": 0.2421875,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 88,
+                "fail": 40,
+                "total": 128,
+                "attainment": 0.6875,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 97,
+                "fail": 31,
+                "total": 128,
+                "attainment": 0.7578125,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "wall_time_s": 579.76462925
+        },
+        "40": {
+          "cold": {
+            "mean_npu_utilization": 0.5116450711761862,
+            "mean_ttft_ms": 225.23106998767892,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 0,
+                "fail": 768,
+                "total": 768,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 70,
+                "fail": 698,
+                "total": 768,
+                "attainment": 0.09114583333333333,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 192,
+                "fail": 576,
+                "total": 768,
+                "attainment": 0.25,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 192,
+                "fail": 576,
+                "total": 768,
+                "attainment": 0.25,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 386,
+                "fail": 382,
+                "total": 768,
+                "attainment": 0.5026041666666666,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 576,
+                "fail": 192,
+                "total": 768,
+                "attainment": 0.75,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 576,
+                "fail": 192,
+                "total": 768,
+                "attainment": 0.75,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "warm": {
+            "mean_npu_utilization": 0.5124238953472484,
+            "mean_ttft_ms": 224.77707965655978,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 0,
+                "fail": 640,
+                "total": 640,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 70,
+                "fail": 570,
+                "total": 640,
+                "attainment": 0.109375,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 161,
+                "fail": 479,
+                "total": 640,
+                "attainment": 0.2515625,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 161,
+                "fail": 479,
+                "total": 640,
+                "attainment": 0.2515625,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 322,
+                "fail": 318,
+                "total": 640,
+                "attainment": 0.503125,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 479,
+                "fail": 161,
+                "total": 640,
+                "attainment": 0.7484375,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 479,
+                "fail": 161,
+                "total": 640,
+                "attainment": 0.7484375,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "first_request_only": {
+            "request_count": 128,
+            "mean_ttft_ms": 227.50102164327475,
+            "slo": {
+              "1.05": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 31,
+                "fail": 97,
+                "total": 128,
+                "attainment": 0.2421875,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 31,
+                "fail": 97,
+                "total": 128,
+                "attainment": 0.2421875,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 64,
+                "fail": 64,
+                "total": 128,
+                "attainment": 0.5,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 97,
+                "fail": 31,
+                "total": 128,
+                "attainment": 0.7578125,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 97,
+                "fail": 31,
+                "total": 128,
+                "attainment": 0.7578125,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "wall_time_s": 328.53042525
+        }
+      }
+    },
+    "modified_layer_once": {
+      "16": {
+        "16": {
+          "cold": {
+            "mean_npu_utilization": 0.2656337512992313,
+            "mean_ttft_ms": 446.88330151863073,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 103,
+                "fail": 665,
+                "total": 768,
+                "attainment": 0.13411458333333331,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 118,
+                "fail": 650,
+                "total": 768,
+                "attainment": 0.15364583333333331,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 140,
+                "fail": 628,
+                "total": 768,
+                "attainment": 0.18229166666666666,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 197,
+                "fail": 571,
+                "total": 768,
+                "attainment": 0.25651041666666663,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 376,
+                "fail": 392,
+                "total": 768,
+                "attainment": 0.4895833333333333,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 438,
+                "fail": 330,
+                "total": 768,
+                "attainment": 0.5703125,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 479,
+                "fail": 289,
+                "total": 768,
+                "attainment": 0.6236979166666666,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "warm": {
+            "mean_npu_utilization": 0.3223839375608374,
+            "mean_ttft_ms": 416.3188714833603,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 103,
+                "fail": 537,
+                "total": 640,
+                "attainment": 0.1609375,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 118,
+                "fail": 522,
+                "total": 640,
+                "attainment": 0.184375,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 140,
+                "fail": 500,
+                "total": 640,
+                "attainment": 0.21875,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 197,
+                "fail": 443,
+                "total": 640,
+                "attainment": 0.3078125,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 376,
+                "fail": 264,
+                "total": 640,
+                "attainment": 0.5875,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 438,
+                "fail": 202,
+                "total": 640,
+                "attainment": 0.684375,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 479,
+                "fail": 161,
+                "total": 640,
+                "attainment": 0.7484375,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "first_request_only": {
+            "request_count": 128,
+            "mean_ttft_ms": 599.705451694983,
+            "slo": {
+              "1.05": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "wall_time_s": 1838.7646951670001
+        },
+        "28": {
+          "cold": {
+            "mean_npu_utilization": 0.4154820138304336,
+            "mean_ttft_ms": 282.4280084571213,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 198,
+                "fail": 570,
+                "total": 768,
+                "attainment": 0.2578125,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 205,
+                "fail": 563,
+                "total": 768,
+                "attainment": 0.2669270833333333,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 244,
+                "fail": 524,
+                "total": 768,
+                "attainment": 0.3177083333333333,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 250,
+                "fail": 518,
+                "total": 768,
+                "attainment": 0.3255208333333333,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 444,
+                "fail": 324,
+                "total": 768,
+                "attainment": 0.578125,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 530,
+                "fail": 238,
+                "total": 768,
+                "attainment": 0.6901041666666666,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 725,
+                "fail": 43,
+                "total": 768,
+                "attainment": 0.9440104166666666,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "warm": {
+            "mean_npu_utilization": 0.4714760413205143,
+            "mean_ttft_ms": 265.1647105670524,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 198,
+                "fail": 442,
+                "total": 640,
+                "attainment": 0.309375,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 205,
+                "fail": 435,
+                "total": 640,
+                "attainment": 0.3203125,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 244,
+                "fail": 396,
+                "total": 640,
+                "attainment": 0.38125000000000003,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 250,
+                "fail": 390,
+                "total": 640,
+                "attainment": 0.390625,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 444,
+                "fail": 196,
+                "total": 640,
+                "attainment": 0.69375,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 500,
+                "fail": 140,
+                "total": 640,
+                "attainment": 0.78125,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 628,
+                "fail": 12,
+                "total": 640,
+                "attainment": 0.98125,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "first_request_only": {
+            "request_count": 128,
+            "mean_ttft_ms": 368.7444979074655,
+            "slo": {
+              "1.05": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 30,
+                "fail": 98,
+                "total": 128,
+                "attainment": 0.234375,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 97,
+                "fail": 31,
+                "total": 128,
+                "attainment": 0.7578125,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "wall_time_s": 1894.9662638329999
+        },
+        "40": {
+          "cold": {
+            "mean_npu_utilization": 0.5534619868224456,
+            "mean_ttft_ms": 210.08937912462497,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 198,
+                "fail": 570,
+                "total": 768,
+                "attainment": 0.2578125,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 205,
+                "fail": 563,
+                "total": 768,
+                "attainment": 0.2669270833333333,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 230,
+                "fail": 538,
+                "total": 768,
+                "attainment": 0.29947916666666663,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 294,
+                "fail": 474,
+                "total": 768,
+                "attainment": 0.3828125,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 503,
+                "fail": 265,
+                "total": 768,
+                "attainment": 0.6549479166666666,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 768,
+                "fail": 0,
+                "total": 768,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 768,
+                "fail": 0,
+                "total": 768,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "warm": {
+            "mean_npu_utilization": 0.5989847123344444,
+            "mean_ttft_ms": 199.9650323622662,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 198,
+                "fail": 442,
+                "total": 640,
+                "attainment": 0.309375,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 205,
+                "fail": 435,
+                "total": 640,
+                "attainment": 0.3203125,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 230,
+                "fail": 410,
+                "total": 640,
+                "attainment": 0.359375,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 294,
+                "fail": 346,
+                "total": 640,
+                "attainment": 0.459375,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 495,
+                "fail": 145,
+                "total": 640,
+                "attainment": 0.7734375,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 640,
+                "fail": 0,
+                "total": 640,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 640,
+                "fail": 0,
+                "total": 640,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "first_request_only": {
+            "request_count": 128,
+            "mean_ttft_ms": 260.711112936419,
+            "slo": {
+              "1.05": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 8,
+                "fail": 120,
+                "total": 128,
+                "attainment": 0.0625,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 128,
+                "fail": 0,
+                "total": 128,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 128,
+                "fail": 0,
+                "total": 128,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "wall_time_s": 1045.264512166
+        }
+      }
+    },
+    "modified_refresh8": {
+      "16": {
+        "16": {
+          "cold": {
+            "mean_npu_utilization": 0.265674050508405,
+            "mean_ttft_ms": 447.00498139137557,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 93,
+                "fail": 675,
+                "total": 768,
+                "attainment": 0.12109375,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 113,
+                "fail": 655,
+                "total": 768,
+                "attainment": 0.14713541666666666,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 137,
+                "fail": 631,
+                "total": 768,
+                "attainment": 0.17838541666666666,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 206,
+                "fail": 562,
+                "total": 768,
+                "attainment": 0.26822916666666663,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 386,
+                "fail": 382,
+                "total": 768,
+                "attainment": 0.5026041666666666,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 436,
+                "fail": 332,
+                "total": 768,
+                "attainment": 0.5677083333333334,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 479,
+                "fail": 289,
+                "total": 768,
+                "attainment": 0.6236979166666666,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "warm": {
+            "mean_npu_utilization": 0.3228042803257918,
+            "mean_ttft_ms": 416.4025541125373,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 93,
+                "fail": 547,
+                "total": 640,
+                "attainment": 0.1453125,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 113,
+                "fail": 527,
+                "total": 640,
+                "attainment": 0.1765625,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 137,
+                "fail": 503,
+                "total": 640,
+                "attainment": 0.21406250000000002,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 206,
+                "fail": 434,
+                "total": 640,
+                "attainment": 0.321875,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 386,
+                "fail": 254,
+                "total": 640,
+                "attainment": 0.603125,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 436,
+                "fail": 204,
+                "total": 640,
+                "attainment": 0.68125,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 479,
+                "fail": 161,
+                "total": 640,
+                "attainment": 0.7484375,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "first_request_only": {
+            "request_count": 128,
+            "mean_ttft_ms": 600.0171177855668,
+            "slo": {
+              "1.05": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "wall_time_s": 1943.6645015
+        },
+        "28": {
+          "cold": {
+            "mean_npu_utilization": 0.41546682771729354,
+            "mean_ttft_ms": 282.44898445538223,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 197,
+                "fail": 571,
+                "total": 768,
+                "attainment": 0.25651041666666663,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 205,
+                "fail": 563,
+                "total": 768,
+                "attainment": 0.2669270833333333,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 243,
+                "fail": 525,
+                "total": 768,
+                "attainment": 0.31640625,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 250,
+                "fail": 518,
+                "total": 768,
+                "attainment": 0.3255208333333333,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 443,
+                "fail": 325,
+                "total": 768,
+                "attainment": 0.5768229166666666,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 536,
+                "fail": 232,
+                "total": 768,
+                "attainment": 0.6979166666666666,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 723,
+                "fail": 45,
+                "total": 768,
+                "attainment": 0.94140625,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "warm": {
+            "mean_npu_utilization": 0.4712329397010942,
+            "mean_ttft_ms": 265.29191090972955,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 197,
+                "fail": 443,
+                "total": 640,
+                "attainment": 0.3078125,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 205,
+                "fail": 435,
+                "total": 640,
+                "attainment": 0.3203125,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 243,
+                "fail": 397,
+                "total": 640,
+                "attainment": 0.3796875,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 250,
+                "fail": 390,
+                "total": 640,
+                "attainment": 0.390625,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 443,
+                "fail": 197,
+                "total": 640,
+                "attainment": 0.6921875,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 503,
+                "fail": 137,
+                "total": 640,
+                "attainment": 0.7859375000000001,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 626,
+                "fail": 14,
+                "total": 640,
+                "attainment": 0.978125,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "first_request_only": {
+            "request_count": 128,
+            "mean_ttft_ms": 368.23435218364574,
+            "slo": {
+              "1.05": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 33,
+                "fail": 95,
+                "total": 128,
+                "attainment": 0.2578125,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 97,
+                "fail": 31,
+                "total": 128,
+                "attainment": 0.7578125,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "wall_time_s": 1980.749872375
+        },
+        "40": {
+          "cold": {
+            "mean_npu_utilization": 0.5534185654224728,
+            "mean_ttft_ms": 210.10147220155534,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 195,
+                "fail": 573,
+                "total": 768,
+                "attainment": 0.25390625,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 202,
+                "fail": 566,
+                "total": 768,
+                "attainment": 0.2630208333333333,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 229,
+                "fail": 539,
+                "total": 768,
+                "attainment": 0.2981770833333333,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 294,
+                "fail": 474,
+                "total": 768,
+                "attainment": 0.3828125,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 508,
+                "fail": 260,
+                "total": 768,
+                "attainment": 0.6614583333333333,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 768,
+                "fail": 0,
+                "total": 768,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 768,
+                "fail": 0,
+                "total": 768,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "warm": {
+            "mean_npu_utilization": 0.5986732819158972,
+            "mean_ttft_ms": 200.02624801820565,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 195,
+                "fail": 445,
+                "total": 640,
+                "attainment": 0.3046875,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 202,
+                "fail": 438,
+                "total": 640,
+                "attainment": 0.315625,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 229,
+                "fail": 411,
+                "total": 640,
+                "attainment": 0.35781250000000003,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 294,
+                "fail": 346,
+                "total": 640,
+                "attainment": 0.459375,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 495,
+                "fail": 145,
+                "total": 640,
+                "attainment": 0.7734375,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 640,
+                "fail": 0,
+                "total": 640,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 640,
+                "fail": 0,
+                "total": 640,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "first_request_only": {
+            "request_count": 128,
+            "mean_ttft_ms": 260.4775931183038,
+            "slo": {
+              "1.05": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 13,
+                "fail": 115,
+                "total": 128,
+                "attainment": 0.1015625,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 128,
+                "fail": 0,
+                "total": 128,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 128,
+                "fail": 0,
+                "total": 128,
+                "attainment": 1.0,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "wall_time_s": 1158.9277725830002
+        }
+      }
+    },
+    "modified_scheme_b": {
+      "16": {
+        "16": {
+          "cold": {
+            "mean_npu_utilization": 0.3942363467744864,
+            "mean_ttft_ms": 340.5839066694238,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 221,
+                "fail": 547,
+                "total": 768,
+                "attainment": 0.28776041666666663,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 278,
+                "fail": 490,
+                "total": 768,
+                "attainment": 0.36197916666666663,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 311,
+                "fail": 457,
+                "total": 768,
+                "attainment": 0.40494791666666663,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 384,
+                "fail": 384,
+                "total": 768,
+                "attainment": 0.5,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 474,
+                "fail": 294,
+                "total": 768,
+                "attainment": 0.6171875,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 543,
+                "fail": 225,
+                "total": 768,
+                "attainment": 0.70703125,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 589,
+                "fail": 179,
+                "total": 768,
+                "attainment": 0.7669270833333334,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "warm": {
+            "mean_npu_utilization": 0.7193859420094827,
+            "mean_ttft_ms": 165.19301453666088,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 212,
+                "fail": 428,
+                "total": 640,
+                "attainment": 0.33125,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 264,
+                "fail": 376,
+                "total": 640,
+                "attainment": 0.41250000000000003,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 294,
+                "fail": 346,
+                "total": 640,
+                "attainment": 0.45937500000000003,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 362,
+                "fail": 278,
+                "total": 640,
+                "attainment": 0.565625,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 445,
+                "fail": 195,
+                "total": 640,
+                "attainment": 0.6953125,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 507,
+                "fail": 133,
+                "total": 640,
+                "attainment": 0.7921875,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 547,
+                "fail": 93,
+                "total": 640,
+                "attainment": 0.8546875,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "first_request_only": {
+            "request_count": 128,
+            "mean_ttft_ms": 1217.5383673332385,
+            "slo": {
+              "1.05": {
+                "pass": 9,
+                "fail": 119,
+                "total": 128,
+                "attainment": 0.0703125,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 14,
+                "fail": 114,
+                "total": 128,
+                "attainment": 0.109375,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 17,
+                "fail": 111,
+                "total": 128,
+                "attainment": 0.1328125,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 22,
+                "fail": 106,
+                "total": 128,
+                "attainment": 0.171875,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 29,
+                "fail": 99,
+                "total": 128,
+                "attainment": 0.2265625,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 36,
+                "fail": 92,
+                "total": 128,
+                "attainment": 0.28125,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 42,
+                "fail": 86,
+                "total": 128,
+                "attainment": 0.328125,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "wall_time_s": 582.248295041
+        },
+        "28": {
+          "cold": {
+            "mean_npu_utilization": 0.5777921081944447,
+            "mean_ttft_ms": 227.54773404650248,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 386,
+                "fail": 382,
+                "total": 768,
+                "attainment": 0.5026041666666666,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 446,
+                "fail": 322,
+                "total": 768,
+                "attainment": 0.5807291666666666,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 458,
+                "fail": 310,
+                "total": 768,
+                "attainment": 0.5963541666666666,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 485,
+                "fail": 283,
+                "total": 768,
+                "attainment": 0.6315104166666666,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 569,
+                "fail": 199,
+                "total": 768,
+                "attainment": 0.7408854166666666,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 633,
+                "fail": 135,
+                "total": 768,
+                "attainment": 0.82421875,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 666,
+                "fail": 102,
+                "total": 768,
+                "attainment": 0.8671875,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "warm": {
+            "mean_npu_utilization": 0.8726170579494459,
+            "mean_ttft_ms": 132.74194011923055,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 373,
+                "fail": 267,
+                "total": 640,
+                "attainment": 0.5828125,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 421,
+                "fail": 219,
+                "total": 640,
+                "attainment": 0.6578125,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 428,
+                "fail": 212,
+                "total": 640,
+                "attainment": 0.66875,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 449,
+                "fail": 191,
+                "total": 640,
+                "attainment": 0.7015625,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 523,
+                "fail": 117,
+                "total": 640,
+                "attainment": 0.8171875000000001,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 578,
+                "fail": 62,
+                "total": 640,
+                "attainment": 0.9031250000000001,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 606,
+                "fail": 34,
+                "total": 640,
+                "attainment": 0.946875,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "first_request_only": {
+            "request_count": 128,
+            "mean_ttft_ms": 701.5767036828623,
+            "slo": {
+              "1.05": {
+                "pass": 13,
+                "fail": 115,
+                "total": 128,
+                "attainment": 0.1015625,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 25,
+                "fail": 103,
+                "total": 128,
+                "attainment": 0.1953125,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 30,
+                "fail": 98,
+                "total": 128,
+                "attainment": 0.234375,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 36,
+                "fail": 92,
+                "total": 128,
+                "attainment": 0.28125,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 46,
+                "fail": 82,
+                "total": 128,
+                "attainment": 0.359375,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 55,
+                "fail": 73,
+                "total": 128,
+                "attainment": 0.4296875,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 60,
+                "fail": 68,
+                "total": 128,
+                "attainment": 0.46875,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "wall_time_s": 625.919366167
+        },
+        "40": {
+          "cold": {
+            "mean_npu_utilization": 0.6243844944003556,
+            "mean_ttft_ms": 194.18091260560433,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 279,
+                "fail": 489,
+                "total": 768,
+                "attainment": 0.36328125,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 333,
+                "fail": 435,
+                "total": 768,
+                "attainment": 0.43359375,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 372,
+                "fail": 396,
+                "total": 768,
+                "attainment": 0.484375,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 437,
+                "fail": 331,
+                "total": 768,
+                "attainment": 0.5690104166666666,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 544,
+                "fail": 224,
+                "total": 768,
+                "attainment": 0.7083333333333334,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 616,
+                "fail": 152,
+                "total": 768,
+                "attainment": 0.8020833333333334,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 639,
+                "fail": 129,
+                "total": 768,
+                "attainment": 0.83203125,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "warm": {
+            "mean_npu_utilization": 0.7574446572714252,
+            "mean_ttft_ms": 154.5834772193253,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 253,
+                "fail": 387,
+                "total": 640,
+                "attainment": 0.3953125,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 297,
+                "fail": 343,
+                "total": 640,
+                "attainment": 0.4640625,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 330,
+                "fail": 310,
+                "total": 640,
+                "attainment": 0.515625,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 383,
+                "fail": 257,
+                "total": 640,
+                "attainment": 0.5984375,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 477,
+                "fail": 163,
+                "total": 640,
+                "attainment": 0.7453125,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 536,
+                "fail": 104,
+                "total": 640,
+                "attainment": 0.8375,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 555,
+                "fail": 85,
+                "total": 640,
+                "attainment": 0.8671875,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "first_request_only": {
+            "request_count": 128,
+            "mean_ttft_ms": 392.16808953699956,
+            "slo": {
+              "1.05": {
+                "pass": 26,
+                "fail": 102,
+                "total": 128,
+                "attainment": 0.203125,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 36,
+                "fail": 92,
+                "total": 128,
+                "attainment": 0.28125,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 42,
+                "fail": 86,
+                "total": 128,
+                "attainment": 0.328125,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 54,
+                "fail": 74,
+                "total": 128,
+                "attainment": 0.421875,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 67,
+                "fail": 61,
+                "total": 128,
+                "attainment": 0.5234375,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 80,
+                "fail": 48,
+                "total": 128,
+                "attainment": 0.625,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 84,
+                "fail": 44,
+                "total": 128,
+                "attainment": 0.65625,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "wall_time_s": 358.322791667
+        }
+      }
+    },
+    "modified_best_feasible": {
+      "16": {
+        "16": {
+          "cold": {
+            "mean_npu_utilization": 0.3405682487358917,
+            "mean_ttft_ms": 370.27558679032103,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 314,
+                "fail": 454,
+                "total": 768,
+                "attainment": 0.40885416666666663,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 322,
+                "fail": 446,
+                "total": 768,
+                "attainment": 0.4192708333333333,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 332,
+                "fail": 436,
+                "total": 768,
+                "attainment": 0.43229166666666663,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 345,
+                "fail": 423,
+                "total": 768,
+                "attainment": 0.44921875,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 550,
+                "fail": 218,
+                "total": 768,
+                "attainment": 0.7161458333333334,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 578,
+                "fail": 190,
+                "total": 768,
+                "attainment": 0.7526041666666666,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 613,
+                "fail": 155,
+                "total": 768,
+                "attainment": 0.7981770833333334,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "warm": {
+            "mean_npu_utilization": 0.4995977890337665,
+            "mean_ttft_ms": 313.4562167153367,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 314,
+                "fail": 326,
+                "total": 640,
+                "attainment": 0.490625,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 322,
+                "fail": 318,
+                "total": 640,
+                "attainment": 0.503125,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 332,
+                "fail": 308,
+                "total": 640,
+                "attainment": 0.51875,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 345,
+                "fail": 295,
+                "total": 640,
+                "attainment": 0.5390625,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 517,
+                "fail": 123,
+                "total": 640,
+                "attainment": 0.8078125,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 530,
+                "fail": 110,
+                "total": 640,
+                "attainment": 0.828125,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 551,
+                "fail": 89,
+                "total": 640,
+                "attainment": 0.8609375,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "first_request_only": {
+            "request_count": 128,
+            "mean_ttft_ms": 654.3724371652424,
+            "slo": {
+              "1.05": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 33,
+                "fail": 95,
+                "total": 128,
+                "attainment": 0.2578125,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 48,
+                "fail": 80,
+                "total": 128,
+                "attainment": 0.375,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 62,
+                "fail": 66,
+                "total": 128,
+                "attainment": 0.484375,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "wall_time_s": 458.057827292
+        },
+        "28": {
+          "cold": {
+            "mean_npu_utilization": 0.5181683822069503,
+            "mean_ttft_ms": 240.38414345064393,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 346,
+                "fail": 422,
+                "total": 768,
+                "attainment": 0.4505208333333333,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 353,
+                "fail": 415,
+                "total": 768,
+                "attainment": 0.45963541666666663,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 360,
+                "fail": 408,
+                "total": 768,
+                "attainment": 0.46875,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 398,
+                "fail": 370,
+                "total": 768,
+                "attainment": 0.5182291666666666,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 612,
+                "fail": 156,
+                "total": 768,
+                "attainment": 0.796875,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 654,
+                "fail": 114,
+                "total": 768,
+                "attainment": 0.8515625,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 701,
+                "fail": 67,
+                "total": 768,
+                "attainment": 0.9127604166666667,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "warm": {
+            "mean_npu_utilization": 0.6567673189152505,
+            "mean_ttft_ms": 207.35784320928087,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 346,
+                "fail": 294,
+                "total": 640,
+                "attainment": 0.540625,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 353,
+                "fail": 287,
+                "total": 640,
+                "attainment": 0.5515625,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 360,
+                "fail": 280,
+                "total": 640,
+                "attainment": 0.5625,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 376,
+                "fail": 264,
+                "total": 640,
+                "attainment": 0.5875,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 553,
+                "fail": 87,
+                "total": 640,
+                "attainment": 0.8640625000000001,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 579,
+                "fail": 61,
+                "total": 640,
+                "attainment": 0.9046875,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 599,
+                "fail": 41,
+                "total": 640,
+                "attainment": 0.9359375,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "first_request_only": {
+            "request_count": 128,
+            "mean_ttft_ms": 405.5156446574592,
+            "slo": {
+              "1.05": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 22,
+                "fail": 106,
+                "total": 128,
+                "attainment": 0.171875,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 59,
+                "fail": 69,
+                "total": 128,
+                "attainment": 0.4609375,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 75,
+                "fail": 53,
+                "total": 128,
+                "attainment": 0.5859375,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 102,
+                "fail": 26,
+                "total": 128,
+                "attainment": 0.796875,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "wall_time_s": 414.07942816699995
+        },
+        "40": {
+          "cold": {
+            "mean_npu_utilization": 0.6508640768426154,
+            "mean_ttft_ms": 187.44963522430893,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 367,
+                "fail": 401,
+                "total": 768,
+                "attainment": 0.4778645833333333,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 372,
+                "fail": 396,
+                "total": 768,
+                "attainment": 0.484375,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 379,
+                "fail": 389,
+                "total": 768,
+                "attainment": 0.4934895833333333,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 434,
+                "fail": 334,
+                "total": 768,
+                "attainment": 0.5651041666666666,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 660,
+                "fail": 108,
+                "total": 768,
+                "attainment": 0.859375,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 708,
+                "fail": 60,
+                "total": 768,
+                "attainment": 0.921875,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 742,
+                "fail": 26,
+                "total": 768,
+                "attainment": 0.9661458333333334,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "warm": {
+            "mean_npu_utilization": 0.7521540493091501,
+            "mean_ttft_ms": 167.66235637237975,
+            "ttft_slo": {
+              "1.05": {
+                "pass": 367,
+                "fail": 273,
+                "total": 640,
+                "attainment": 0.5734375,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 372,
+                "fail": 268,
+                "total": 640,
+                "attainment": 0.58125,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 378,
+                "fail": 262,
+                "total": 640,
+                "attainment": 0.590625,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 398,
+                "fail": 242,
+                "total": 640,
+                "attainment": 0.621875,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 582,
+                "fail": 58,
+                "total": 640,
+                "attainment": 0.909375,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 605,
+                "fail": 35,
+                "total": 640,
+                "attainment": 0.9453125,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 627,
+                "fail": 13,
+                "total": 640,
+                "attainment": 0.9796875,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "first_request_only": {
+            "request_count": 128,
+            "mean_ttft_ms": 286.3860294839549,
+            "slo": {
+              "1.05": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.1": {
+                "pass": 0,
+                "fail": 128,
+                "total": 128,
+                "attainment": 0.0,
+                "equal_weight_per_npu": true
+              },
+              "1.2": {
+                "pass": 1,
+                "fail": 127,
+                "total": 128,
+                "attainment": 0.0078125,
+                "equal_weight_per_npu": true
+              },
+              "1.5": {
+                "pass": 36,
+                "fail": 92,
+                "total": 128,
+                "attainment": 0.28125,
+                "equal_weight_per_npu": true
+              },
+              "2": {
+                "pass": 78,
+                "fail": 50,
+                "total": 128,
+                "attainment": 0.609375,
+                "equal_weight_per_npu": true
+              },
+              "3": {
+                "pass": 103,
+                "fail": 25,
+                "total": 128,
+                "attainment": 0.8046875,
+                "equal_weight_per_npu": true
+              },
+              "4": {
+                "pass": 115,
+                "fail": 13,
+                "total": 128,
+                "attainment": 0.8984375,
+                "equal_weight_per_npu": true
+              }
+            }
+          },
+          "wall_time_s": 483.5916175
+        }
+      }
+    }
+  },
+  "strategy_minus_modified_baseline": {
+    "modified_layer_once": {
+      "16": {
+        "16": {
+          "cold": {
+            "npu_utilization_delta_pp": 3.909835374940332,
+            "ttft_slo_delta_pp": 48.95833333333333
+          },
+          "warm": {
+            "npu_utilization_delta_pp": 9.663678955669925,
+            "ttft_slo_delta_pp": 58.75
+          }
+        },
+        "28": {
+          "cold": {
+            "npu_utilization_delta_pp": 4.884559702624081,
+            "ttft_slo_delta_pp": 32.8125
+          },
+          "warm": {
+            "npu_utilization_delta_pp": 10.480084509224586,
+            "ttft_slo_delta_pp": 44.21874999999999
+          }
+        },
+        "40": {
+          "cold": {
+            "npu_utilization_delta_pp": 4.181691564625945,
+            "ttft_slo_delta_pp": 15.234375
+          },
+          "warm": {
+            "npu_utilization_delta_pp": 8.656081698719598,
+            "ttft_slo_delta_pp": 27.031249999999996
+          }
+        }
+      }
+    },
+    "modified_refresh8": {
+      "16": {
+        "16": {
+          "cold": {
+            "npu_utilization_delta_pp": 3.913865295857702,
+            "ttft_slo_delta_pp": 50.260416666666664
+          },
+          "warm": {
+            "npu_utilization_delta_pp": 9.705713232165364,
+            "ttft_slo_delta_pp": 60.3125
+          }
+        },
+        "28": {
+          "cold": {
+            "npu_utilization_delta_pp": 4.8830410913100755,
+            "ttft_slo_delta_pp": 32.682291666666664
+          },
+          "warm": {
+            "npu_utilization_delta_pp": 10.455774347282576,
+            "ttft_slo_delta_pp": 44.06249999999999
+          }
+        },
+        "40": {
+          "cold": {
+            "npu_utilization_delta_pp": 4.177349424628662,
+            "ttft_slo_delta_pp": 15.885416666666663
+          },
+          "warm": {
+            "npu_utilization_delta_pp": 8.624938656864877,
+            "ttft_slo_delta_pp": 27.031249999999996
+          }
+        }
+      }
+    },
+    "modified_scheme_b": {
+      "16": {
+        "16": {
+          "cold": {
+            "npu_utilization_delta_pp": 16.77009492246584,
+            "ttft_slo_delta_pp": 61.71875
+          },
+          "warm": {
+            "npu_utilization_delta_pp": 49.36387940053446,
+            "ttft_slo_delta_pp": 69.53125
+          }
+        },
+        "28": {
+          "cold": {
+            "npu_utilization_delta_pp": 21.11556913902519,
+            "ttft_slo_delta_pp": 49.088541666666664
+          },
+          "warm": {
+            "npu_utilization_delta_pp": 50.59418617211775,
+            "ttft_slo_delta_pp": 56.56250000000001
+          }
+        },
+        "40": {
+          "cold": {
+            "npu_utilization_delta_pp": 11.273942322416941,
+            "ttft_slo_delta_pp": 20.572916666666675
+          },
+          "warm": {
+            "npu_utilization_delta_pp": 24.502076192417675,
+            "ttft_slo_delta_pp": 24.21875
+          }
+        }
+      }
+    },
+    "modified_best_feasible": {
+      "16": {
+        "16": {
+          "cold": {
+            "npu_utilization_delta_pp": 11.403285118606373,
+            "ttft_slo_delta_pp": 71.61458333333334
+          },
+          "warm": {
+            "npu_utilization_delta_pp": 27.385064102962836,
+            "ttft_slo_delta_pp": 80.78125
+          }
+        },
+        "28": {
+          "cold": {
+            "npu_utilization_delta_pp": 15.153196540275749,
+            "ttft_slo_delta_pp": 54.6875
+          },
+          "warm": {
+            "npu_utilization_delta_pp": 29.00921226869821,
+            "ttft_slo_delta_pp": 61.25000000000001
+          }
+        },
+        "40": {
+          "cold": {
+            "npu_utilization_delta_pp": 13.92190056664292,
+            "ttft_slo_delta_pp": 35.677083333333336
+          },
+          "warm": {
+            "npu_utilization_delta_pp": 23.973015396190167,
+            "ttft_slo_delta_pp": 40.625
+          }
+        }
+      }
+    }
+  },
+  "modified_layer_once_minus_modified_baseline": {
+    "16": {
+      "16": {
+        "cold": {
+          "npu_utilization_delta_pp": 3.909835374940332,
+          "ttft_slo_delta_pp": 48.95833333333333
+        },
+        "warm": {
+          "npu_utilization_delta_pp": 9.663678955669925,
+          "ttft_slo_delta_pp": 58.75
+        }
+      },
+      "28": {
+        "cold": {
+          "npu_utilization_delta_pp": 4.884559702624081,
+          "ttft_slo_delta_pp": 32.8125
+        },
+        "warm": {
+          "npu_utilization_delta_pp": 10.480084509224586,
+          "ttft_slo_delta_pp": 44.21874999999999
+        }
+      },
+      "40": {
+        "cold": {
+          "npu_utilization_delta_pp": 4.181691564625945,
+          "ttft_slo_delta_pp": 15.234375
+        },
+        "warm": {
+          "npu_utilization_delta_pp": 8.656081698719598,
+          "ttft_slo_delta_pp": 27.031249999999996
+        }
+      }
+    }
+  },
+  "modified_refresh8_minus_modified_baseline": {
+    "16": {
+      "16": {
+        "cold": {
+          "npu_utilization_delta_pp": 3.913865295857702,
+          "ttft_slo_delta_pp": 50.260416666666664
+        },
+        "warm": {
+          "npu_utilization_delta_pp": 9.705713232165364,
+          "ttft_slo_delta_pp": 60.3125
+        }
+      },
+      "28": {
+        "cold": {
+          "npu_utilization_delta_pp": 4.8830410913100755,
+          "ttft_slo_delta_pp": 32.682291666666664
+        },
+        "warm": {
+          "npu_utilization_delta_pp": 10.455774347282576,
+          "ttft_slo_delta_pp": 44.06249999999999
+        }
+      },
+      "40": {
+        "cold": {
+          "npu_utilization_delta_pp": 4.177349424628662,
+          "ttft_slo_delta_pp": 15.885416666666663
+        },
+        "warm": {
+          "npu_utilization_delta_pp": 8.624938656864877,
+          "ttft_slo_delta_pp": 27.031249999999996
+        }
+      }
+    }
+  },
+  "modified_scheme_b_minus_modified_baseline": {
+    "16": {
+      "16": {
+        "cold": {
+          "npu_utilization_delta_pp": 16.77009492246584,
+          "ttft_slo_delta_pp": 61.71875
+        },
+        "warm": {
+          "npu_utilization_delta_pp": 49.36387940053446,
+          "ttft_slo_delta_pp": 69.53125
+        }
+      },
+      "28": {
+        "cold": {
+          "npu_utilization_delta_pp": 21.11556913902519,
+          "ttft_slo_delta_pp": 49.088541666666664
+        },
+        "warm": {
+          "npu_utilization_delta_pp": 50.59418617211775,
+          "ttft_slo_delta_pp": 56.56250000000001
+        }
+      },
+      "40": {
+        "cold": {
+          "npu_utilization_delta_pp": 11.273942322416941,
+          "ttft_slo_delta_pp": 20.572916666666675
+        },
+        "warm": {
+          "npu_utilization_delta_pp": 24.502076192417675,
+          "ttft_slo_delta_pp": 24.21875
+        }
+      }
+    }
+  },
+  "modified_best_feasible_minus_modified_baseline": {
+    "16": {
+      "16": {
+        "cold": {
+          "npu_utilization_delta_pp": 11.403285118606373,
+          "ttft_slo_delta_pp": 71.61458333333334
+        },
+        "warm": {
+          "npu_utilization_delta_pp": 27.385064102962836,
+          "ttft_slo_delta_pp": 80.78125
+        }
+      },
+      "28": {
+        "cold": {
+          "npu_utilization_delta_pp": 15.153196540275749,
+          "ttft_slo_delta_pp": 54.6875
+        },
+        "warm": {
+          "npu_utilization_delta_pp": 29.00921226869821,
+          "ttft_slo_delta_pp": 61.25000000000001
+        }
+      },
+      "40": {
+        "cold": {
+          "npu_utilization_delta_pp": 13.92190056664292,
+          "ttft_slo_delta_pp": 35.677083333333336
+        },
+        "warm": {
+          "npu_utilization_delta_pp": 23.973015396190167,
+          "ttft_slo_delta_pp": 40.625
+        }
+      }
+    }
+  },
+  "validation": {
+    "paired_inputs": true,
+    "fixed_complete_cohorts": true,
+    "survivorship_bias_excluded": true,
+    "external_arrival_queue_wait_excluded_from_ttft": true,
+    "result_rows": 15
+  },
+  "comparison_provenance": {
+    "kind": "merged_compatible_runs",
+    "single_source": false,
+    "source_runs": [
+      {
+        "path": "results/cold_warm_refresh8_ssu40_layer16/results.json",
+        "file_sha256": "387a010e91e98c00d992fd9a78d98c476195e89b2cbf5bb53a6d7e02527ed098",
+        "source_fingerprint": "528c29224b72be78546e72366ffb253db52a3cb6c9c0cba6d6008e2f99dd6fb2",
+        "strategies_with_rows": [
+          "modified_baseline",
+          "modified_refresh8",
+          "modified_scheme_b"
+        ]
+      },
+      {
+        "path": "results/cold_warm_layer_once_ssu40_layer16/layer_once_results.json",
+        "file_sha256": "626b0d15d7c1403ef39ddfb2a8cc6f4471724df4a3330b92885d138c1e51f682",
+        "source_fingerprint": "479fa8e4824b092c68f6f7bbe359c442f5f3400414f70012be280a4865c2b9d3",
+        "strategies_with_rows": [
+          "modified_layer_once"
+        ]
+      },
+      {
+        "path": "results/cold_warm_best_feasible_ssu40_layer16/results.json",
+        "file_sha256": "fa258fa2506d59c15613f2f1c53af002aac9d2afd836f080cd6b9f2629d7db50",
+        "source_fingerprint": "489eeeb492a75dfdef3d5f2a30b2e9e4c3f057fcb8d7c1994b99caeebe1bce9f",
+        "strategies_with_rows": [
+          "modified_best_feasible"
+        ]
+      },
+      {
+        "path": "results/cold_warm_five_strategies_layer16/ssu16_28_results.json",
+        "file_sha256": "530d8789b527c03f82775818771d6ef208cf5f23d9ed41718b374cf3f6ee9613",
+        "source_fingerprint": "489eeeb492a75dfdef3d5f2a30b2e9e4c3f057fcb8d7c1994b99caeebe1bce9f",
+        "strategies_with_rows": [
+          "modified_baseline",
+          "modified_best_feasible",
+          "modified_layer_once",
+          "modified_refresh8",
+          "modified_scheme_b"
+        ]
+      }
+    ],
+    "row_source": {
+      "modified_baseline|layers=16|ssu=40": "results/cold_warm_refresh8_ssu40_layer16/results.json",
+      "modified_refresh8|layers=16|ssu=40": "results/cold_warm_refresh8_ssu40_layer16/results.json",
+      "modified_scheme_b|layers=16|ssu=40": "results/cold_warm_refresh8_ssu40_layer16/results.json",
+      "modified_layer_once|layers=16|ssu=40": "results/cold_warm_layer_once_ssu40_layer16/layer_once_results.json",
+      "modified_best_feasible|layers=16|ssu=40": "results/cold_warm_best_feasible_ssu40_layer16/results.json",
+      "modified_baseline|layers=16|ssu=16": "results/cold_warm_five_strategies_layer16/ssu16_28_results.json",
+      "modified_layer_once|layers=16|ssu=16": "results/cold_warm_five_strategies_layer16/ssu16_28_results.json",
+      "modified_refresh8|layers=16|ssu=16": "results/cold_warm_five_strategies_layer16/ssu16_28_results.json",
+      "modified_scheme_b|layers=16|ssu=16": "results/cold_warm_five_strategies_layer16/ssu16_28_results.json",
+      "modified_best_feasible|layers=16|ssu=16": "results/cold_warm_five_strategies_layer16/ssu16_28_results.json",
+      "modified_baseline|layers=16|ssu=28": "results/cold_warm_five_strategies_layer16/ssu16_28_results.json",
+      "modified_layer_once|layers=16|ssu=28": "results/cold_warm_five_strategies_layer16/ssu16_28_results.json",
+      "modified_refresh8|layers=16|ssu=28": "results/cold_warm_five_strategies_layer16/ssu16_28_results.json",
+      "modified_scheme_b|layers=16|ssu=28": "results/cold_warm_five_strategies_layer16/ssu16_28_results.json",
+      "modified_best_feasible|layers=16|ssu=28": "results/cold_warm_five_strategies_layer16/ssu16_28_results.json"
+    },
+    "source_fingerprint_by_result": {
+      "modified_baseline|layers=16|ssu=40": "528c29224b72be78546e72366ffb253db52a3cb6c9c0cba6d6008e2f99dd6fb2",
+      "modified_refresh8|layers=16|ssu=40": "528c29224b72be78546e72366ffb253db52a3cb6c9c0cba6d6008e2f99dd6fb2",
+      "modified_scheme_b|layers=16|ssu=40": "528c29224b72be78546e72366ffb253db52a3cb6c9c0cba6d6008e2f99dd6fb2",
+      "modified_layer_once|layers=16|ssu=40": "479fa8e4824b092c68f6f7bbe359c442f5f3400414f70012be280a4865c2b9d3",
+      "modified_best_feasible|layers=16|ssu=40": "489eeeb492a75dfdef3d5f2a30b2e9e4c3f057fcb8d7c1994b99caeebe1bce9f",
+      "modified_baseline|layers=16|ssu=16": "489eeeb492a75dfdef3d5f2a30b2e9e4c3f057fcb8d7c1994b99caeebe1bce9f",
+      "modified_layer_once|layers=16|ssu=16": "489eeeb492a75dfdef3d5f2a30b2e9e4c3f057fcb8d7c1994b99caeebe1bce9f",
+      "modified_refresh8|layers=16|ssu=16": "489eeeb492a75dfdef3d5f2a30b2e9e4c3f057fcb8d7c1994b99caeebe1bce9f",
+      "modified_scheme_b|layers=16|ssu=16": "489eeeb492a75dfdef3d5f2a30b2e9e4c3f057fcb8d7c1994b99caeebe1bce9f",
+      "modified_best_feasible|layers=16|ssu=16": "489eeeb492a75dfdef3d5f2a30b2e9e4c3f057fcb8d7c1994b99caeebe1bce9f",
+      "modified_baseline|layers=16|ssu=28": "489eeeb492a75dfdef3d5f2a30b2e9e4c3f057fcb8d7c1994b99caeebe1bce9f",
+      "modified_layer_once|layers=16|ssu=28": "489eeeb492a75dfdef3d5f2a30b2e9e4c3f057fcb8d7c1994b99caeebe1bce9f",
+      "modified_refresh8|layers=16|ssu=28": "489eeeb492a75dfdef3d5f2a30b2e9e4c3f057fcb8d7c1994b99caeebe1bce9f",
+      "modified_scheme_b|layers=16|ssu=28": "489eeeb492a75dfdef3d5f2a30b2e9e4c3f057fcb8d7c1994b99caeebe1bce9f",
+      "modified_best_feasible|layers=16|ssu=28": "489eeeb492a75dfdef3d5f2a30b2e9e4c3f057fcb8d7c1994b99caeebe1bce9f"
+    },
+    "compatibility": {
+      "experiment_metadata_checked_by_analyzer": true,
+      "paired_workload_fingerprints_checked_by_analyzer": true,
+      "behavior_compatibility_verified_by_analyzer": false,
+      "manual_compatibility_audit_note": "Manual audit: one-command submission, 0.1-us spacing, identical L0-prefetch trigger rule, compatible shared data plane"
+    }
+  }
+}

@@ -17,10 +17,12 @@ Scheme B 的设计、公式、实验结果和硬件接口另见
 | `refresh8` | 每规划 8 条 I/O 读取一次目标 SSU 的 Path pressure | 在当前类别允许的 Path 中选择预计完成时间最小者；同一窗口用本地 shadow pressure 反映刚规划的 I/O |
 | `Scheme B one-shot` | admission 时已知请求 manifest、ring-hash placement 和每层计算预算 | 计算 `NPU × SSU` demand-capped max-min grant，为每个 NPU 分配专属 Path，并把 grant 写成每块 SSU 的 CIR 表 |
 | `Scheme B causal warm` | 已完成前一层的 bytes-by-SSU 和计算预算；后续请求的 Layer 0 manifest | 首次冷请求的 Layer 0 使用公共 Path 0；warm 阶段根据已观察信息更新专属 Path/CIR，并在上一请求最后一层计算期间预取下一请求 Layer 0 |
-| `Best feasible reference` | 对应实验允许的全局已释放工作信息 | 在相同 placement、SSD40、NPU50 和层依赖下运行容量受限的参考调度器 |
+| `Best feasible reference` | 每块 SSD 已提交并进入其 pending queue 的 I/O | 各 SSD 独立按 demand-weighted shortest-visible-layer-work 优先级，在相同 placement、SSD40、NPU50 和层依赖下调度 |
 
 `Best feasible reference` 是可以在当前物理容量模型中执行的候选参考，不是带最优性
-证明的数学理论上界，也不会改变 NPU 与 SSD 的访问关系。
+证明的数学理论上界，也不会改变 NPU 与 SSD 的访问关系。它不能看到尚未 release
+的未来层、其他 SSD 的 pending queue，或已经 release 但尚未提交到目标 SSD 的命令；
+该优先级也不等价于最大化本文的平均 NPU 利用率或 TTFT SLO。
 
 ## 策略层与仿真层
 
@@ -34,7 +36,7 @@ Scheme B 的设计、公式、实验结果和硬件接口另见
 - `refresh8_path_ids(...)`：输入一份 pressure snapshot 和至多 8 条 I/O，返回 Path ID；
 - `plan_scheme_b(...)`：输入活跃 manifest，返回 demand、grant、专属 Path 和 per-SSU CIR 表；
 - `plan_causal_scheme_b(...)`：只根据前层观察和 cold Path 保留量生成新 CIR 表；
-- `oracle_priority_key(...)`：Best feasible reference 使用的已释放 I/O 优先级。
+- `oracle_priority_key(...)`：Best feasible reference 对单块 SSD 已入队 pending I/O 使用的优先级。
 
 [`continuous_batch_control.py`](continuous_batch_control.py) 只保留 Scheme B 使用的
 demand-capped equal max-min grant 分配器。`strategy_profiles.py`、
@@ -75,14 +77,15 @@ Static QoS：CIR + Group/Path 仲裁
 
 ## 实验与现有结果
 
-### 1. 16 层 SSU 数量扫描
+### 1. 历史单请求：16 层 SSU 数量扫描
 
 配置为 128 NPU、16 层、SSU=`8/16/28/40/56/80/112`、seed=`42/43`，每个
 NPU 有独立 `0–5 ms` launch jitter。客户端每次提交 1 条 I/O，相邻提交间隔为
 `0.1 us`。Baseline 与 Refresh8 共用类别 CIR `20/6/8/6 GB/s`、每 Group Path 数
 `12/4/12/4` 和 8 个 Group。
 
-纵轴 `Average NPU Utilization` 在这个实验中定义为：先对每个请求计算
+这是早期“每个 NPU 只运行一个请求”的历史矩阵，不是后文的连续六请求 cold/warm
+实验。纵轴 `Average NPU Utilization` 在这个历史实验中定义为：先对每个请求计算
 
 ```text
 16 层计算时间 / (16 层计算时间 + 暴露的 I/O stall)
@@ -119,12 +122,12 @@ NPU 有独立 `0–5 ms` launch jitter。客户端每次提交 1 条 I/O，相�
 分析器输出 fleet utilization、active-window utilization、makespan、平均层 I/O barrier
 和 P99 请求延迟。Layer 0 没有上一层计算窗口，因此会保留真实 cold-start 排队。
 
-### 3. 连续 batch=1 的 cold/warm 对比
+### 3. 最终连续 batch=1 cold/warm 对比
 
-默认矩阵为 128 NPU、每个 NPU 连续 6 个请求、layer=`16/24/56/80`、
-SSU=`40/56/70`。请求 k 的最后一层开始计算时，可以预取已经到达的请求 k+1 的
-Layer 0；首次请求仍是冷启动。当前 runner 正式包含 Baseline、Layer-once、Refresh8 和
-causal Scheme B；四者使用同一请求、placement、SSD40→NPU50 数据面和跨请求预取时机。
+最终矩阵为 128 NPU、每个 NPU 连续 6 个请求、固定 16 层、SSU=`16/28/40`。
+请求 k 的最后一层开始计算时，可以预取已经到达的请求 k+1 的 Layer 0；首次请求仍是冷启动。
+五个对比对象是 Baseline、Layer-once、Refresh8、causal Scheme B 和 Best feasible candidate；它们使用
+同一请求、placement、到达/提交序列、SSD40→NPU50 数据面和跨请求预取时机。
 
 - cold：请求 0 admission 到请求 5 completion，统计全部 6 个请求；
 - warm：请求 1 admission 到请求 5 completion，统计后 5 个请求；
@@ -132,45 +135,66 @@ causal Scheme B；四者使用同一请求、placement、SSD40→NPU50 数据面
 - TTFT SLO：`TTFT <= 2 × compute-only TTFT`，TTFT 使用 completion−admission，
   不包含外部 arrival queue wait。
 
-16 层、SSU=40 时，Scheme B warm 相对 Baseline 的平均 NPU 利用率提升
-`+24.50 pp`，TTFT SLO 达标率提升 `+24.22 pp`。完整矩阵见
-[cold/warm report](results/cold_warm_modified/report.md)。
+最终平均 NPU 利用率：
 
-`16层、40 SSU` 的最新四策略配对单点如下：
+| 策略 / cohort | SSU 16 | SSU 28 | SSU 40 |
+|---|---:|---:|---:|
+| Baseline + L0 prefetch — cold | 22.65% | 36.66% | 51.16% |
+| Baseline + L0 prefetch — warm | 22.57% | 36.67% | 51.24% |
+| Read once/layer + L0 prefetch — cold | 26.56% | 41.55% | 55.35% |
+| Read once/layer + L0 prefetch — warm | 32.24% | 47.15% | 59.90% |
+| Refresh8 + L0 prefetch — cold | 26.57% | 41.55% | 55.34% |
+| Refresh8 + L0 prefetch — warm | 32.28% | 47.12% | 59.87% |
+| Scheme B + manifest/CIR prefetch — cold | 39.42% | 57.78% | 62.44% |
+| Scheme B + manifest/CIR prefetch — warm | **71.94%** | **87.26%** | **75.74%** |
+| Best feasible reference + L0 prefetch — cold | 34.06% | 51.82% | **65.09%** |
+| Best feasible reference + L0 prefetch — warm | 49.96% | 65.68% | 75.22% |
 
-| 策略 | cold NPU 利用率 | warm NPU 利用率 | cold SLO | warm SLO |
-|---|---:|---:|---:|---:|
-| Baseline + L0 prefetch | 51.16% | 51.24% | 50.26% | 50.31% |
-| Read once/layer + L0 prefetch | 55.35% | 59.90% | 65.49% | **77.34%** |
-| Refresh8 + L0 prefetch | 55.34% | 59.87% | 66.15% | **77.34%** |
-| Scheme B + manifest/CIR prefetch | **62.44%** | **75.74%** | **70.83%** | 74.53% |
+TTFT SLO 达标率（`TTFT <= 2 × compute-only TTFT`）：
 
-Layer-once 与 Refresh8 的结果几乎相同，但 pressure read 从 `1,587,648` 次降到
+| 策略 / cohort | SSU 16 | SSU 28 | SSU 40 |
+|---|---:|---:|---:|
+| Baseline + L0 prefetch — cold | 0.00% | 25.00% | 50.26% |
+| Baseline + L0 prefetch — warm | 0.00% | 25.16% | 50.31% |
+| Read once/layer + L0 prefetch — cold | 48.96% | 57.81% | 65.49% |
+| Read once/layer + L0 prefetch — warm | 58.75% | 69.38% | 77.34% |
+| Refresh8 + L0 prefetch — cold | 50.26% | 57.68% | 66.15% |
+| Refresh8 + L0 prefetch — warm | 60.31% | 69.22% | 77.34% |
+| Scheme B + manifest/CIR prefetch — cold | 61.72% | 74.09% | 70.83% |
+| Scheme B + manifest/CIR prefetch — warm | 69.53% | 81.72% | 74.53% |
+| Best feasible reference + L0 prefetch — cold | **71.61%** | **79.69%** | **85.94%** |
+| Best feasible reference + L0 prefetch — warm | **80.78%** | **86.41%** | **90.94%** |
+
+Scheme B 在三个 SSU 点的 warm 平均 NPU 利用率均最高，相对 Baseline 分别提升
+`+49.36/+50.59/+24.50 pp`。Best feasible candidate 在三个点的 TTFT SLO 最高，但其 warm
+利用率低于 Scheme B。这不矛盾：每块 SSD 的 candidate 优先最短的本地 pending layer work，并不直接优化
+每个 NPU 的 cold/warm cohort window。
+
+SSU=40 时 Layer-once 与 Refresh8 的结果几乎相同，但 pressure read 从 `1,587,648` 次降到
 `491,520` 次，减少 `69.04%`。这说明在该输入下，一个 request-layer-SSU 内的 local
 shadow 已经捕获了大部分有效分流信息；每 8 条 I/O 重读状态没有形成可见的利用率收益。
 仿真把 pressure read 视为零延迟，因此这个降幅代表更低的实际状态网络/控制面开销，
 不会被额外折算成图中的利用率收益。
 
-按要求没有重复运行 Refresh8。新的 Layer-once 行与刚完成的三策略行使用完全相同的
-workload、placement、trace 和 simulator-input 指纹；分析器将两次兼容运行合并，同时在
-`comparison_results.json` 中逐策略保留源码指纹、源文件 SHA256 和 row source，未把它们
-伪装成一次同源码运行。四策略单点的
-[报告](results/cold_warm_routing_ssu40_layer16/report.md)、
-[合并结果](results/cold_warm_routing_ssu40_layer16/comparison_results.json)和
-[对比图](results/cold_warm_routing_ssu40_layer16/01_cold_warm.png)均单独保存；
-[Layer-once 原始结果](results/cold_warm_layer_once_ssu40_layer16/layer_once_results.json)
-也予以保留。
+最终 15 行结果合并了四个行为兼容的 raw source：
 
-原 `cold_warm_modified` 目录仍保留此前 Baseline/Scheme B 的完整 layer×SSU 矩阵，
-没有将旧行伪装为当前四策略源码重新生成的结果。
+- [`SSU40 Baseline/Refresh8/Scheme B`](results/cold_warm_refresh8_ssu40_layer16/results.json)；
+- [`SSU40 Layer-once`](results/cold_warm_layer_once_ssu40_layer16/layer_once_results.json)；
+- [`SSU40 Best feasible`](results/cold_warm_best_feasible_ssu40_layer16/results.json)；
+- [`SSU16/28 五策略`](results/cold_warm_five_strategies_layer16/ssu16_28_results.json)。
 
-现有图片：
+分析器对每个 SSU 内的 workload、placement、trace 和 simulator-input 指纹做配对校验，并在
+`comparison_results.json` 中按结果行保留源码指纹、源文件 SHA256 和 row source；因此这些行不会被伪装成
+同一 checkout 的一次重跑。分析器本身不会从这些字段推断跨源码版本的行为兼容性；本次另行人工核对了四个 source
+都使用单条提交、`0.1 µs` 间隔、相同跨请求 Layer0 预取触发规则和兼容的共享数据面，并把该人工声明写入 provenance。
+最终产物：
 
-- [完整 layer × SSU 矩阵](results/cold_warm_modified/01_cold_warm.png)
-- [固定 SSU=40，横轴为层数](results/cold_warm_modified/02_ssu40_cold_warm.png)
-- [固定 16 层，横轴为 SSU 数量](results/cold_warm_modified/03_layer16_cold_warm_by_ssu.png)
+- [报告](results/cold_warm_five_strategies_layer16/report.md)
+- [分析 JSON](results/cold_warm_five_strategies_layer16/analysis.json)
+- [合并结果](results/cold_warm_five_strategies_layer16/comparison_results.json)
+- [固定 16 层、横轴为 SSU 数量的最终图](results/cold_warm_five_strategies_layer16/03_layer16_cold_warm_by_ssu.png)
 
-![Cold/warm 对比](results/cold_warm_modified/01_cold_warm.png)
+![五策略 cold/warm 对比](results/cold_warm_five_strategies_layer16/03_layer16_cold_warm_by_ssu.png)
 
 ## 安装与运行
 
@@ -195,9 +219,25 @@ python analyze_routing_refresh_concurrency.py
 python continuous_prefill_experiment.py --workers 5 --rerun
 python analyze_continuous_prefill.py
 
-# batch=1 cold/warm：4 策略 × 3 SSU × 4 层数
-python cold_warm_experiment.py --workers 8 --rerun
-python analyze_cold_warm.py
+# batch=1 cold/warm：新跑 SSU 16/28 的五策略，固定 16 层
+python cold_warm_experiment.py \
+  --output results/cold_warm_five_strategies_layer16/ssu16_28_results.json \
+  --workers 9 --ssu 16 --ssu 28 --layer 16 --rerun
+
+# 只补 SSU 40 的 Best feasible candidate
+python cold_warm_experiment.py \
+  --output results/cold_warm_best_feasible_ssu40_layer16/results.json \
+  --workers 1 --case modified_best_feasible --ssu 40 --layer 16 --rerun
+
+# 合并四份 raw source，校验配对关系并生成最终表格/图片
+python analyze_cold_warm.py \
+  --input results/cold_warm_refresh8_ssu40_layer16/results.json \
+  --input results/cold_warm_layer_once_ssu40_layer16/layer_once_results.json \
+  --input results/cold_warm_best_feasible_ssu40_layer16/results.json \
+  --input results/cold_warm_five_strategies_layer16/ssu16_28_results.json \
+  --manual-compatibility-audit-note \
+  "Manual audit: one-command submission, 0.1-us spacing, identical L0-prefetch trigger rule, compatible shared data plane" \
+  --output-dir results/cold_warm_five_strategies_layer16
 ```
 
 runner 会逐 case checkpoint。未指定 `--rerun` 时，只有代码、数据与实验配置指纹完全
@@ -244,7 +284,7 @@ python -m pytest -q test_cold_warm_experiment.py test_cold_warm_metrics.py
 - `scheme_b_prefill_experiment.py`：Scheme B one-shot SSU 扫描；
 - `capacity_constrained_oracle_experiment.py`：Best feasible reference 扫描；
 - `continuous_prefill_experiment.py`：六个保留策略的 Full-prefill 对比；
-- `cold_warm_experiment.py`：Baseline、Layer-once、Refresh8 与因果 Scheme B 的 cold/warm 对比；
+- `cold_warm_experiment.py`：Baseline、Layer-once、Refresh8、因果 Scheme B 和 Best feasible candidate 的 cold/warm 对比；
 - `data`：请求画像。
 
 ## 模型边界

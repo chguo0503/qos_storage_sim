@@ -676,6 +676,7 @@ class DiskIOScheduler:
         policy,
         disk_bw,
         qos_config=None,
+        oracle_priority=None,
     ):
         self.state = disk_state
         self.policy = policy
@@ -683,6 +684,7 @@ class DiskIOScheduler:
         self.paths = {}
         self.group_weights = ()
         self.oracle_heap = []
+        self.oracle_priority = oracle_priority or omniscient_edf_key
         if policy == POLICY_QOS_STATIC_CIR:
             if sum(qos_config.path_cirs) > self.disk_bw + _EPS:
                 raise ValueError("所有 Path 的 CIR 总和超过了 SSD 物理带宽")
@@ -980,7 +982,10 @@ class DiskIOScheduler:
                     self._publish_qos_floor(selected_path)
             else:
                 flow.queue_id = -1
-                heapq.heappush(self.oracle_heap, (omniscient_edf_key(flow), flow))
+                heapq.heappush(
+                    self.oracle_heap,
+                    (self.oracle_priority(flow), flow),
+                )
             self.flows_enqueued += 1
             self.blocks_enqueued += flow.block_count
             self.outstanding_blocks += flow.block_count

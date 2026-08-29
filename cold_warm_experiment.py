@@ -19,6 +19,8 @@ from continuous_batch_sim import (
     simulate_continuous_batch,
 )
 from continuous_prefill_client import (
+    best_feasible_client_config,
+    best_feasible_priority_key,
     routing_strategy_specs,
     qos_configs_from_path_cirs,
     scheme_b_client_config,
@@ -37,8 +39,8 @@ from six_request_workload import (
 
 ROOT = Path(__file__).resolve().parent
 OUTPUT = ROOT / "results" / "cold_warm_modified" / "results.json"
-SCHEMA_VERSION = 3
-SSU_LIST = (40, 56, 70)
+SCHEMA_VERSION = 4
+SSU_LIST = (16, 28, 40, 56, 70)
 
 
 @dataclass(frozen=True)
@@ -52,6 +54,7 @@ CASES = (
     Case("modified_layer_once", "routing"),
     Case("modified_refresh8", "routing"),
     Case("modified_scheme_b", "causal_scheme_b"),
+    Case("modified_best_feasible", "full_info"),
 )
 CASE_BY_NAME = {case.name: case for case in CASES}
 RUNTIME_WEIGHTS = {
@@ -59,12 +62,13 @@ RUNTIME_WEIGHTS = {
     "modified_layer_once": 2.0,
     "modified_refresh8": 3.0,
     "modified_scheme_b": 1.22,
+    "modified_best_feasible": 1.0,
 }
 _WORKER_TABLE = None
 
 
 def _source_fingerprint():
-    digest = hashlib.sha256(b"six-request-cold-warm-modified-v3\0")
+    digest = hashlib.sha256(b"six-request-cold-warm-modified-v4\0")
     for name in (
         "sim.py",
         "policy_logic.py",
@@ -110,27 +114,43 @@ def _simulate(case, requests, *, num_ssu, n_layers):
             **kwargs,
         )
 
-    path_by_npu = tuple(cold_start_hybrid_path_id(npu) for npu in range(NUM_NPU))
-    controller = CausalMaxMinSchemeBController(
-        path_by_npu,
-        cold_path_id=0,
-        cold_path_cir_gbps=static_qos_config().path_cirs[0],
-        path_count=PATH_COUNT,
-    )
+    if case.kind == "causal_scheme_b":
+        path_by_npu = tuple(
+            cold_start_hybrid_path_id(npu) for npu in range(NUM_NPU)
+        )
+        controller = CausalMaxMinSchemeBController(
+            path_by_npu,
+            cold_path_id=0,
+            cold_path_cir_gbps=static_qos_config().path_cirs[0],
+            path_count=PATH_COUNT,
+        )
+        return simulate_continuous_batch(
+            requests,
+            qos_configs_by_ssu=qos_configs_from_path_cirs(
+                ((0.0,) * PATH_COUNT,) * num_ssu
+            ),
+            npu_dedicated_paths=path_by_npu,
+            layer0_path_id=0,
+            client_io_config=scheme_b_client_config(case.name),
+            causal_control=CausalLayerControlConfig(controller),
+            **kwargs,
+        )
+
     return simulate_continuous_batch(
         requests,
-        qos_configs_by_ssu=qos_configs_from_path_cirs(
-            ((0.0,) * PATH_COUNT,) * num_ssu
-        ),
-        npu_dedicated_paths=path_by_npu,
-        layer0_path_id=0,
-        client_io_config=scheme_b_client_config(case.name),
-        causal_control=CausalLayerControlConfig(controller),
+        policy=sim.POLICY_PER_SSD_FULL_VISIBLE_EDF,
+        client_io_config=best_feasible_client_config(),
+        oracle_priority_key=best_feasible_priority_key,
         **kwargs,
     )
 
 
 def _compact(case, num_ssu, n_layers, workload, summary, wall_time_s):
+    if (
+        summary["client_submit_batch_size"] != 1
+        or summary["client_issue_interval_us"] != 0.1
+    ):
+        raise AssertionError("all strategies must use the same client issue stream")
     expected_prefetches = NUM_NPU * (REQUESTS_PER_NPU - 1)
     if summary["cross_request_layer0_prefetches"] != expected_prefetches:
         raise AssertionError(
@@ -156,6 +176,13 @@ def _compact(case, num_ssu, n_layers, workload, summary, wall_time_s):
         for field in ("control_evaluations", "cir_commits", "cir_path_writes")
     ):
         raise AssertionError("routing strategies must not run the CIR controller")
+    if case.kind == "full_info" and (
+        summary["pressure_reports"]
+        or summary["control_evaluations"]
+        or summary["cir_commits"]
+        or summary["cir_path_writes"]
+    ):
+        raise AssertionError("the full-info reference bypasses Path QoS")
     return {
         "strategy": case.name,
         "kind": case.kind,
@@ -183,6 +210,18 @@ def _compact(case, num_ssu, n_layers, workload, summary, wall_time_s):
             "expected_prefetched_request_count": expected_prefetches,
             "ssd_mean_utilization": summary["ssd_mean_utilization"],
             "npu_link_mean_utilization": summary["npu_link_mean_utilization"],
+            "client_submit_batch_size": summary["client_submit_batch_size"],
+            "client_issue_interval_us": summary["client_issue_interval_us"],
+            "oracle_priority": summary["oracle_priority"],
+            "oracle_candidate": (
+                "demand_weighted_shortest_visible_layer_work"
+                if case.kind == "full_info"
+                else None
+            ),
+            "exact_optimum_proven": False if case.kind == "full_info" else None,
+            "future_unreleased_layers_visible": (
+                False if case.kind == "full_info" else None
+            ),
             "pressure_reports": summary["pressure_reports"],
             "control_evaluations": summary["control_evaluations"],
             "cir_commits": summary["cir_commits"],

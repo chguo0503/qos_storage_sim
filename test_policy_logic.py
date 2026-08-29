@@ -67,6 +67,32 @@ def test_baseline_is_fixed_path_zero_without_external_state():
     assert baseline_path_ids(5) == (0, 0, 0, 0, 0)
 
 
+def test_full_info_scheduler_uses_the_explicit_priority_callback():
+    disk = sim.DiskState(0)
+    scheduler = sim.DiskIOScheduler(
+        disk,
+        sim.POLICY_PER_SSD_FULL_VISIBLE_EDF,
+        sim.DISK_BW,
+        oracle_priority=lambda flow: (-flow.request_id,),
+    )
+    flows = tuple(
+        sim.BlockIOFlow(
+            npu_id=request_id,
+            layer=0,
+            block_idx=0,
+            disk_id=0,
+            total_gb=0.001,
+            queue_id=-1,
+            block_count=1,
+            enqueue_time=0.0,
+            request_id=request_id,
+        )
+        for request_id in (0, 1)
+    )
+    scheduler.enqueue_many(flows, 0.0)
+    assert scheduler.dispatch(0.0, []).request_id == 1
+
+
 def test_category_path_mapping_matches_existing_client():
     existing = FINAL_STATIC.hardware_config()
     pure = hardware_view(existing)
