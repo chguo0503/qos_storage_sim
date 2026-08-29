@@ -2,20 +2,14 @@ import unittest
 
 import sim
 from continuous_batch_sim import (
-    CIRControlConfig,
     CIRControlSnapshot,
     ContinuousBatchRequest,
     ControlRequestView,
     MaxMinSchemeBController,
     simulate_continuous_batch,
 )
-from continuous_prefill_client import (
-    ActiveRequestSnapshot,
-    build_scheme_b_target,
-    legacy_qos_config,
-    qos_configs_from_path_cirs,
-    scheme_b_client_config,
-)
+from continuous_prefill_client import static_qos_config
+from policy_logic import ManifestDemand, plan_scheme_b
 from scheme_b_prefill import PATH_COUNT, dedicated_path_id
 
 
@@ -56,7 +50,7 @@ class ContinuousBatchSimTest(unittest.TestCase):
             num_ssu=1,
             n_layers=16,
             batch_size=1,
-            qos_config=legacy_qos_config(),
+            qos_config=static_qos_config(),
         )
         expected_read_gb = 0.0
         for _ in range(16):
@@ -81,37 +75,25 @@ class ContinuousBatchSimTest(unittest.TestCase):
             current_path_cirs_by_ssu=((0.0,) * PATH_COUNT,) * 2,
         )
         decision = controller(snapshot)
-        target = build_scheme_b_target(
-            (ActiveRequestSnapshot(
-                0, 0, 0.0, 1_000_000.0, (10.0, 100.0)
-            ),),
+        target = plan_scheme_b(
+            (ManifestDemand(0, 0, 1.0, (10.0, 100.0)),),
             num_npu=1,
             num_ssu=2,
+            path_by_npu=paths,
         )
         self.assertEqual(decision.path_cirs_by_ssu, target.path_cirs_by_ssu)
         self.assertAlmostEqual(decision.path_cirs_by_ssu[0][paths[0]], 10.0)
         self.assertAlmostEqual(decision.path_cirs_by_ssu[1][paths[0]], 40.0)
 
-    def test_wall_clock_ticks_and_end_to_end_conservation(self):
-        calls = []
-
-        def observe(snapshot):
-            calls.append(snapshot.time_ms)
-            return None
-
-        zero_cirs = ((0.0,) * PATH_COUNT,)
+    def test_end_to_end_conservation(self):
         summary = simulate_continuous_batch(
             (request(0, 0), request(1, 0, 50.0)),
             num_npu=1,
             num_ssu=1,
             n_layers=3,
             batch_size=1,
-            qos_configs_by_ssu=qos_configs_from_path_cirs(zero_cirs),
-            npu_dedicated_paths=(dedicated_path_id(0),),
-            client_io_config=scheme_b_client_config("test"),
-            control=CIRControlConfig(callback=observe, interval_ms=10.0),
+            qos_config=static_qos_config(),
         )
-        self.assertEqual(calls[:3], [0.0, 10.0, 20.0])
         self.assertTrue(all(summary["invariants"].values()))
         self.assertEqual(summary["request_count"], 2)
         self.assertEqual(summary["submitted_blocks"], 6)

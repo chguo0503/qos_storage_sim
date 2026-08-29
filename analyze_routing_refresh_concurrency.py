@@ -26,32 +26,22 @@ DEFAULT_PLOT = (
 )
 ORACLE_STRATEGY = "demand_weighted_sjf_oracle_candidate"
 SCHEME_B_STRATEGY = "scheme_b_prefill"
-BEST_STRATEGY = "best_feasible"
 ROUTING_STRATEGY_ORDER = (
     "baseline",
-    "path_rr",
-    "layer_once",
     "refresh8",
-    "refresh1",
 )
-STRATEGY_ORDER = (*ROUTING_STRATEGY_ORDER, SCHEME_B_STRATEGY)
+STRATEGY_ORDER = (*ROUTING_STRATEGY_ORDER, SCHEME_B_STRATEGY, ORACLE_STRATEGY)
 LABELS = {
     "baseline": "Baseline (Path 0)",
-    "path_rr": "Path RR (no refresh)",
-    "layer_once": "Layer once",
     "refresh8": "Refresh every 8 I/Os",
-    "refresh1": "Refresh every I/O",
     SCHEME_B_STRATEGY: "Scheme B (one-shot)",
-    BEST_STRATEGY: "Best feasible",
+    ORACLE_STRATEGY: "Best feasible reference",
 }
 STYLES = {
     "baseline": "o-",
-    "path_rr": "s-",
-    "layer_once": "^-",
     "refresh8": "D-",
-    "refresh1": "v-",
     SCHEME_B_STRATEGY: "P-",
-    BEST_STRATEGY: "*-",
+    ORACLE_STRATEGY: "*-",
 }
 
 
@@ -75,9 +65,11 @@ def _validate(routing, oracle, scheme_b):
     assert scheme_b["experiment"]["data_fingerprint"] == data_fingerprint
     assert oracle["experiment"]["strategy"] == ORACLE_STRATEGY
     assert scheme_b["experiment"]["strategy"] == SCHEME_B_STRATEGY
-    assert routing["selected_strategies"] == list(ROUTING_STRATEGY_ORDER)
+    assert set(ROUTING_STRATEGY_ORDER) <= set(routing["selected_strategies"])
     routing_by_pair = defaultdict(list)
     for row in routing["results"]:
+        if row["strategy"] not in ROUTING_STRATEGY_ORDER:
+            continue
         assert row["placement_mode"] == sim.PLACEMENT_BLOCK_RING_HASH
         assert all(row["summary"]["invariants"].values())
         routing_by_pair[_pair_key(row)].append(row)
@@ -135,26 +127,17 @@ def analyze(routing, oracle, scheme_b):
         routing, oracle, scheme_b
     )
     by_strategy_ssu = defaultdict(list)
-    best_sources = defaultdict(list)
     for pair, rows in routing_by_pair.items():
-        seed, ssu = pair
+        _, ssu = pair
         for row in rows:
             by_strategy_ssu[(row["strategy"], ssu)].append(row)
         scheme_b_row = scheme_b_by_pair[pair]
         by_strategy_ssu[(SCHEME_B_STRATEGY, ssu)].append(scheme_b_row)
-        candidates = rows + [scheme_b_row, oracle_by_pair[pair]]
-        best = max(
-            candidates,
-            key=lambda row: row["summary"]["avg_request_compute_fraction"],
-        )
-        by_strategy_ssu[(BEST_STRATEGY, ssu)].append(best)
-        best_sources[ssu].append(
-            {"seed": seed, "source_strategy": best["strategy"]}
-        )
+        by_strategy_ssu[(ORACLE_STRATEGY, ssu)].append(oracle_by_pair[pair])
 
     metrics = {}
     category_metrics = {}
-    for strategy in (*STRATEGY_ORDER, BEST_STRATEGY):
+    for strategy in STRATEGY_ORDER:
         metrics[strategy] = {}
         category_metrics[strategy] = {}
         for ssu in runtime["ssu_list"]:
@@ -204,14 +187,13 @@ def analyze(routing, oracle, scheme_b):
         "n_layers": runtime["n_layers"],
         "seeds": runtime["seeds"],
         "ssu_list": runtime["ssu_list"],
-        "strategy_order": [*STRATEGY_ORDER, BEST_STRATEGY],
+        "strategy_order": list(STRATEGY_ORDER),
         "metrics": metrics,
         "category_metrics": category_metrics,
         "scheme_b_control": scheme_b_control,
-        "best_feasible_sources": dict(best_sources),
         "optimality_note": (
-            "Best feasible is the pointwise best measured physical-capacity-"
-            "preserving candidate; it is not a proven mathematical optimum."
+            "Best feasible reference is the measured physical-capacity-preserving "
+            "oracle candidate; it is not a proven mathematical optimum."
         ),
     }
 
@@ -254,7 +236,7 @@ def write_report(path, analysis):
             "",
             "## Scheme B paired deltas",
             "",
-            "| SSU | vs baseline | vs best refresh | SS class vs that refresh | saturated SSUs |",
+            "| SSU | vs baseline | vs Refresh8 | SS class vs Refresh8 | saturated SSUs |",
             "|---:|---:|---:|---:|---:|",
         ]
     )
@@ -266,12 +248,7 @@ def write_report(path, analysis):
         baseline_value = analysis["metrics"]["baseline"][key][
             "avg_request_compute_fraction"
         ]
-        refresh_strategy = max(
-            ("layer_once", "refresh8", "refresh1"),
-            key=lambda strategy: analysis["metrics"][strategy][key][
-                "avg_request_compute_fraction"
-            ],
-        )
+        refresh_strategy = "refresh8"
         refresh_value = analysis["metrics"][refresh_strategy][key][
             "avg_request_compute_fraction"
         ]
@@ -296,11 +273,11 @@ def write_report(path, analysis):
             "contention. From 28 through 56 SSUs every disk remains saturated, "
             "and equal flow fairness removes the original 20/40 GB/s protection "
             "for the latency-sensitive SS class; the resulting last-block wait "
-            "makes Scheme B slower than pressure-aware routing. The oracle wins "
-            "both seeds at every SSU count, so Scheme B does not change the Best "
-            "feasible envelope.",
+            "makes Scheme B slower than pressure-aware routing. The executable "
+            "oracle reference has the highest measured mean at every SSU count.",
             "",
-            "`Best feasible` is a measured feasible envelope, not a proven exact optimum.",
+            "`Best feasible reference` is an executable capacity-preserving oracle "
+            "candidate, not a proven exact optimum.",
         ]
     )
     path.parent.mkdir(parents=True, exist_ok=True)

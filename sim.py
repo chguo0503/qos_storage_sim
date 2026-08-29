@@ -25,6 +25,14 @@ from typing import Optional
 
 import numpy as np
 
+from policy_logic import (
+    PathPressureSnapshot,
+    baseline_path_ids,
+    category_path_ids,
+    hardware_view,
+    refresh8_path_ids,
+)
+
 NUM_NPU = 32
 NUM_DISK = 8
 DISK_BW = 40.0
@@ -50,11 +58,9 @@ BLOCK_RING_VIRTUAL_NODES = 256
 PLACEMENT_MODES = (PLACEMENT_BLOCK_RING_HASH,)
 
 PATH_SELECTION_PRESSURE_AWARE = "pressure_aware"
-PATH_SELECTION_STATELESS_RR = "stateless_round_robin"
 PATH_SELECTION_FIXED_PATH_ZERO = "fixed_path_zero"
 PATH_SELECTION_MODES = (
     PATH_SELECTION_PRESSURE_AWARE,
-    PATH_SELECTION_STATELESS_RR,
     PATH_SELECTION_FIXED_PATH_ZERO,
 )
 
@@ -92,9 +98,7 @@ class ClientIOConfig:
             raise ValueError("baseline 不读取 Path pressure")
 
 
-QOS_REFRESH_EVERY_IO = ClientIOConfig("refresh1", 1)
 QOS_REFRESH_EVERY_8_IO = ClientIOConfig("refresh8", PRESSURE_READ_INTERVAL)
-QOS_SNAPSHOT_PER_LAYER = ClientIOConfig("layer_once", None)
 DEFAULT_CLIENT_IO_CONFIG = QOS_REFRESH_EVERY_8_IO
 
 def ssd_command_service_time_ms(size_gb, bandwidth_gbps):
@@ -483,314 +487,27 @@ class ClientRoutingConfig:
     disk_bw: float
     start_offset: int = 0
 
-@dataclass(frozen=True)
-class CandidatePathEstimate:
-    """用 count-only 遥测估算的一块 SSU 下一条 I/O 结果。"""
-
-    path_id: int
-    finish_time_s: float
-    effective_path_rate_gbps: float
-    near_term_rate_gbps: float
-    estimated_old_backlog_gb: float
-
-@dataclass(frozen=True)
-class _QoSCountAnalysis:
-    """完全由一份 256-count 派生的客户端侧聚合；不含硬件隐藏状态。"""
-
-    counts: tuple[int, ...]
-    group_io_counts: tuple[int, ...]
-    active_paths_per_group: tuple[int, ...]
-    active_path_weights: tuple[float, ...]
-    active_group_weight_sum: float
-    active_cir_sum: float
-
-def _projection_choices_from_qos_counts(
-    *,
-    block_size_gb,
-    representative_block_gb,
-    allowed_path_ids,
-    routing_config,
-    counts,
-    group_io_counts,
-    active_paths_per_group,
-    active_path_weights,
-    active_group_weight_sum,
-    active_cir_sum,
-    projected_work_gb=None,
-):
-    """计算与 start_offset 无关的最优候选集合。
-
-    原比较键依次为 F、Path count、Group count、轮转距离和 Path ID。
-    前三项与请求的稳定轮转起点无关，因此同一不可变 snapshot 可缓存这份
-    通常很小的候选集合；最后两项仍在每次请求时独立计算。
-    """
-    qos = routing_config.qos_config
-    allowed = tuple(allowed_path_ids)
-    path_cirs = qos.path_cirs
-    path_pirs = qos.path_pirs
-    path_weights = qos.path_weights
-    group_weights = qos.group_weights
-    paths_per_group = len(path_cirs) // len(group_weights)
-    disk_bw = routing_config.disk_bw
-    best_primary = None
-    choices = []
-    # 同一 group 中服务输入完全相同的 Path 有完全相同的长期 rate。先把它们
-    # 合并，并在每个 rate 等价类内淘汰 old_work/count 更差者；最终平局 Path
-    # 仍全部保留，所以稳定哈希的轮转结果不变。该归并不假设 WRR 权重为 1。
-    equivalence = {}
-    for allowed_index, path_id in enumerate(allowed):
-        group_id = path_id // paths_per_group
-        was_empty = counts[path_id] == 0
-        path_pir = path_pirs[path_id]
-        path_weight = path_weights[path_id]
-        path_cir = path_cirs[path_id]
-        old_work = (
-            projected_work_gb[path_id]
-            if projected_work_gb is not None
-            else counts[path_id] * representative_block_gb
-        )
-        rate_class = (
-            group_id,
-            was_empty,
-            path_cir,
-            path_pir,
-            path_weight,
-        )
-        dominance_rank = (old_work, counts[path_id])
-        current = equivalence.get(rate_class)
-        record = (allowed_index, path_id, old_work, counts[path_id])
-        if current is None or dominance_rank < current[0]:
-            equivalence[rate_class] = (dominance_rank, [record])
-        elif dominance_rank == current[0]:
-            current[1].append(record)
-
-    for rate_class, (_, equivalent_paths) in equivalence.items():
-        group_id, was_empty, path_cir, path_pir, path_weight = rate_class
-        group_weight = group_weights[group_id]
-        base_rate = min(path_cir, path_pir)
-        cir_sum = active_cir_sum + (base_rate if was_empty else 0.0)
-        group_weight_sum = active_group_weight_sum
-        path_weight_sum = active_path_weights[group_id]
-        if was_empty:
-            path_weight_sum += path_weight
-            if active_paths_per_group[group_id] == 0:
-                group_weight_sum += group_weight
-        if group_weight_sum <= _EPS or path_weight_sum <= _EPS:
-            continue
-        remaining = max(0.0, disk_bw - cir_sum)
-        group_extra = remaining * group_weight / group_weight_sum
-        path_extra = group_extra * path_weight / path_weight_sum
-        rate = min(path_pir, base_rate + path_extra)
-        if rate <= _EPS:
-            continue
-        allowed_index, path_id, old_work, path_count = equivalent_paths[0]
-        finish_s = (old_work + block_size_gb) / rate
-        primary = (
-            finish_s,
-            path_count,
-            group_io_counts[group_id],
-        )
-        equivalent_choices = [
-            (index, candidate_path, finish_s, rate, candidate_old_work)
-            for index, candidate_path, candidate_old_work, _ in equivalent_paths
-        ]
-        if best_primary is None or primary < best_primary:
-            best_primary = primary
-            choices = equivalent_choices
-        elif primary == best_primary:
-            choices.extend(equivalent_choices)
-    if not choices:
-        best_fallback = None
-        choices = []
-        for allowed_index, path_id in enumerate(allowed):
-            group_id = path_id // paths_per_group
-            old_work = (
-                projected_work_gb[path_id]
-                if projected_work_gb is not None
-                else counts[path_id] * representative_block_gb
-            )
-            primary = (
-                old_work,
-                counts[path_id],
-                group_io_counts[group_id],
-            )
-            record = (allowed_index, path_id, float("inf"), 0.0, old_work)
-            if best_fallback is None or primary < best_fallback:
-                best_fallback = primary
-                choices = [record]
-            elif primary == best_fallback:
-                choices.append(record)
-    choices.sort(key=lambda choice: choice[0])
-    return (
-        tuple(choice[0] for choice in choices),
-        tuple(choices),
-    )
-
-def _select_projection_choice(
-    choices,
-    *,
-    allowed_count,
-    start_offset,
-    block_size_gb,
-    disk_bw,
-):
-    offset = start_offset % allowed_count
-    allowed_indices, records = choices
-    position = bisect.bisect_left(allowed_indices, offset)
-    if position == len(records):
-        position = 0
-    selected = records[position]
-    return CandidatePathEstimate(
-        path_id=selected[1],
-        finish_time_s=selected[2],
-        effective_path_rate_gbps=selected[3],
-        near_term_rate_gbps=min(
-            disk_bw,
-            block_size_gb / max(selected[2], _EPS),
-        ),
-        estimated_old_backlog_gb=selected[4],
-    )
-
-def _estimate_from_qos_projection(
-    *,
-    block_size_gb,
-    representative_block_gb,
-    allowed_path_ids,
-    routing_config,
-    counts,
-    group_io_counts,
-    active_paths_per_group,
-    active_path_weights,
-    active_group_weight_sum,
-    active_cir_sum,
-    projected_work_gb=None,
-):
-    allowed = tuple(allowed_path_ids)
-    choices = _projection_choices_from_qos_counts(
-        block_size_gb=block_size_gb,
-        representative_block_gb=representative_block_gb,
-        allowed_path_ids=allowed,
-        routing_config=routing_config,
-        counts=counts,
-        group_io_counts=group_io_counts,
-        active_paths_per_group=active_paths_per_group,
-        active_path_weights=active_path_weights,
-        active_group_weight_sum=active_group_weight_sum,
-        active_cir_sum=active_cir_sum,
-        projected_work_gb=projected_work_gb,
-    )
-    return _select_projection_choice(
-        choices,
-        allowed_count=len(allowed),
-        start_offset=routing_config.start_offset,
-        block_size_gb=block_size_gb,
-        disk_bw=routing_config.disk_bw,
-    )
-
-class _QoSPlanningShadow:
-    """一轮 plan 内由 snapshot 派生、只记录本 NPU 新计划的可变 shadow。"""
-
-    def __init__(self, analysis, representative_block_gb):
-        self.counts = list(analysis.counts)
-        self.group_io_counts = list(analysis.group_io_counts)
-        self.active_paths_per_group = list(analysis.active_paths_per_group)
-        self.active_path_weights = list(analysis.active_path_weights)
-        self.active_group_weight_sum = analysis.active_group_weight_sum
-        self.active_cir_sum = analysis.active_cir_sum
-        self.projected_work_gb = [
-            count * representative_block_gb for count in analysis.counts
-        ]
-
-    def estimate(
-        self,
-        *,
-        block_size_gb,
-        representative_block_gb,
-        allowed_path_ids,
-        routing_config,
-    ):
-        return _estimate_from_qos_projection(
-            block_size_gb=block_size_gb,
-            representative_block_gb=representative_block_gb,
-            allowed_path_ids=allowed_path_ids,
-            routing_config=routing_config,
-            counts=self.counts,
-            group_io_counts=self.group_io_counts,
-            active_paths_per_group=self.active_paths_per_group,
-            active_path_weights=self.active_path_weights,
-            active_group_weight_sum=self.active_group_weight_sum,
-            active_cir_sum=self.active_cir_sum,
-            projected_work_gb=self.projected_work_gb,
-        )
-
-    def add(self, path_id, block_size_gb, qos_config, io_count=1):
-        if io_count <= 0:
-            raise ValueError("shadow 新增 I/O 数必须为正数")
-        group_id = path_id // (
-            len(qos_config.path_cirs) // len(qos_config.group_weights)
-        )
-        if self.counts[path_id] == 0:
-            if self.active_paths_per_group[group_id] == 0:
-                self.active_group_weight_sum += qos_config.group_weights[group_id]
-            self.active_paths_per_group[group_id] += 1
-            self.active_path_weights[group_id] += qos_config.path_weights[path_id]
-            self.active_cir_sum += min(
-                qos_config.path_cirs[path_id], qos_config.path_pirs[path_id]
-            )
-        self.counts[path_id] += io_count
-        self.group_io_counts[group_id] += io_count
-        self.projected_work_gb[path_id] += block_size_gb
 
 def client_category_paths(category, qos_config):
-    """返回某个类别在所有 Group 中可使用的静态 Path ID。"""
-    category_index = qos_config.category_labels.index(category)
-    category_offset = sum(
-        qos_config.category_paths_per_group[:category_index]
-    )
-    category_count = qos_config.category_paths_per_group[category_index]
-    return tuple(
-        group_id * qos_config.paths_per_group
-        + category_offset
-        + local_offset
-        for local_offset in range(category_count)
-        for group_id in range(qos_config.group_count)
-    )
+    """Return category-legal Path IDs through the portable policy module."""
+    return category_path_ids(category, hardware_view(qos_config))
+
 
 def _select_qos_paths_from_analysis(
     sizes, analysis, allowed_path_ids, routing_config
 ):
-    qos = routing_config.qos_config
-    allowed = tuple(allowed_path_ids)
-    representative_gb = sorted(sizes)[len(sizes) // 2]
-    if len(sizes) == 1:
-        estimate = _estimate_from_qos_projection(
-            block_size_gb=sizes[0],
-            representative_block_gb=representative_gb,
-            allowed_path_ids=allowed,
-            routing_config=routing_config,
-            counts=analysis.counts,
-            group_io_counts=analysis.group_io_counts,
-            active_paths_per_group=analysis.active_paths_per_group,
-            active_path_weights=analysis.active_path_weights,
-            active_group_weight_sum=analysis.active_group_weight_sum,
-            active_cir_sum=analysis.active_cir_sum,
+    """Thin simulator adapter for the DES-independent Refresh8 policy."""
+    return list(
+        refresh8_path_ids(
+            sizes,
+            analysis,
+            allowed_path_ids,
+            hardware_view(routing_config.qos_config),
+            disk_bw_gbps=routing_config.disk_bw,
+            start_offset=routing_config.start_offset,
         )
-        return [estimate.path_id]
+    )
 
-    shadow = _QoSPlanningShadow(analysis, representative_gb)
-    selected = [None] * len(sizes)
-    order = sorted(range(len(sizes)), key=lambda index: (-sizes[index], index))
-    for index in order:
-        block_gb = sizes[index]
-        estimate = shadow.estimate(
-            block_size_gb=block_gb,
-            representative_block_gb=representative_gb,
-            allowed_path_ids=allowed,
-            routing_config=routing_config,
-        )
-        selected[index] = estimate.path_id
-        shadow.add(estimate.path_id, block_gb, qos)
-    return selected
 
 @dataclass(eq=False)
 class BlockIOFlow:
@@ -1015,7 +732,7 @@ class DiskIOScheduler:
     def report_path_pressure_analysis(self, current_time):
         self.pressure_reports += 1
         self.settle(current_time)
-        return _QoSCountAnalysis(
+        return PathPressureSnapshot(
             counts=self._path_io_counts,
             group_io_counts=tuple(self._group_io_counts),
             active_paths_per_group=tuple(self._active_paths_per_group),
@@ -1650,14 +1367,7 @@ def _plan_qos_pressure_window(context, state, current_time):
         return
     if context.client_io_config.path_selection_mode == PATH_SELECTION_FIXED_PATH_ZERO:
         state.planned_path_ids.extend(
-            0 for _ in range(window_start, len(state.blocks))
-        )
-        return
-    if context.client_io_config.path_selection_mode == PATH_SELECTION_STATELESS_RR:
-        allowed = state.allowed_path_ids
-        state.planned_path_ids.extend(
-            allowed[(state.start_offset + index) % len(allowed)]
-            for index in range(window_start, len(state.blocks))
+            baseline_path_ids(len(state.blocks) - window_start)
         )
         return
     pressure_window_io = context.client_io_config.pressure_window_io
@@ -2297,11 +2007,10 @@ def _build_summary(context, current_time, total_requests, events_processed):
         "backend_capacity_gbps": context.disk_states[0].scheduler.disk_bw if context.disk_states else 0.0,
         "qos_static_configuration": context.policy == POLICY_QOS_STATIC_CIR,
         "qos_client_routing": (
-            "one_dedicated_path_per_npu"
+                "one_dedicated_path_per_npu"
             if context.npu_dedicated_paths is not None
             else {
                     PATH_SELECTION_FIXED_PATH_ZERO: "all_npus_all_io_fixed_to_path_zero",
-                    PATH_SELECTION_STATELESS_RR: "strict_category_stateless_round_robin_nonexclusive",
                     PATH_SELECTION_PRESSURE_AWARE: "strict_category_group_aware_sed_nonexclusive",
                 }[context.client_io_config.path_selection_mode]
             if context.policy == POLICY_QOS_STATIC_CIR else "none"

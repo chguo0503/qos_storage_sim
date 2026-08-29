@@ -20,7 +20,13 @@ from typing import Callable, Mapping, Optional, Sequence
 import numpy as np
 
 import sim
-from continuous_batch_control import allocate_grants
+from policy_logic import (
+    CausalLayerObservation as PolicyCausalLayerObservation,
+    ManifestDemand,
+    baseline_path_ids as policy_baseline_path_ids,
+    plan_causal_scheme_b,
+    plan_scheme_b,
+)
 
 
 REQUEST_ARRIVAL = -1
@@ -236,35 +242,35 @@ class MaxMinSchemeBController:
         self.npu_cap_gbps = float(npu_cap_gbps)
 
     def __call__(self, snapshot: CIRControlSnapshot):
-        work = np.zeros((snapshot.num_npu, snapshot.num_ssu), dtype=float)
-        compute_s = np.zeros(snapshot.num_npu, dtype=float)
+        manifests = []
         for request in snapshot.active_requests:
             horizon = min(request.remaining_layers, self.horizon_layers)
             if horizon <= 0:
                 continue
-            work[request.npu_id] += horizon * np.asarray(
-                request.next_layer_work_gb_by_ssu, dtype=float
+            manifests.append(
+                ManifestDemand(
+                    request_id=request.request_id,
+                    npu_id=request.npu_id,
+                    compute_budget_s=(
+                        horizon * request.per_layer_compute_ms / 1000.0
+                    ),
+                    work_by_ssu_gb=tuple(
+                        horizon * work_gb
+                        for work_gb in request.next_layer_work_gb_by_ssu
+                    ),
+                )
             )
-            compute_s[request.npu_id] += (
-                horizon * request.per_layer_compute_ms / 1000.0
-            )
-
-        demand = np.zeros_like(work)
-        active = compute_s > 0.0
-        demand[active] = work[active] / compute_s[active, None]
-        grants = allocate_grants(
-            demand,
-            ssd_caps=self.ssd_cap_gbps,
-            npu_caps=self.npu_cap_gbps,
-        )
         path_count = len(snapshot.current_path_cirs_by_ssu[0])
-        cirs_by_ssu = []
-        for ssu_id in range(snapshot.num_ssu):
-            cirs = [0.0] * path_count
-            for npu_id, path_id in enumerate(self.path_by_npu):
-                cirs[path_id] = grants[npu_id][ssu_id]
-            cirs_by_ssu.append(tuple(cirs))
-        return CIRControlDecision(tuple(cirs_by_ssu))
+        plan = plan_scheme_b(
+            manifests,
+            num_npu=snapshot.num_npu,
+            num_ssu=snapshot.num_ssu,
+            ssd_cap_gbps=self.ssd_cap_gbps,
+            npu_cap_gbps=self.npu_cap_gbps,
+            path_count=path_count,
+            path_by_npu=self.path_by_npu,
+        )
+        return CIRControlDecision(plan.path_cirs_by_ssu)
 
 
 class CausalMaxMinSchemeBController:
@@ -310,29 +316,27 @@ class CausalMaxMinSchemeBController:
             return None
         self._previous_signature = signature
 
-        demand_rows = []
-        for observation in warm:
-            compute_s = observation.compute_budget_ms / 1000.0
-            demand = tuple(
-                work_gb / compute_s
-                for work_gb in observation.observed_work_gb_by_ssu
-            )
-            demand_rows.append(demand)
-        cold_reserve = self.cold_path_cir_gbps if cold_count else 0.0
-        grants = allocate_grants(
-            demand_rows,
-            ssd_caps=self.ssd_cap_gbps - cold_reserve,
-            npu_caps=self.npu_cap_gbps,
+        plan = plan_causal_scheme_b(
+            tuple(
+                PolicyCausalLayerObservation(
+                    request_id=observation.batch_id,
+                    npu_id=observation.npu_id,
+                    observed_layer=observation.observed_layer,
+                    compute_budget_ms=observation.compute_budget_ms,
+                    observed_work_gb_by_ssu=observation.observed_work_gb_by_ssu,
+                )
+                for observation in snapshot.active_batches
+            ),
+            num_npu=snapshot.num_npu,
+            num_ssu=snapshot.num_ssu,
+            cold_path_id=self.cold_path_id,
+            cold_path_cir_gbps=self.cold_path_cir_gbps,
+            path_count=self.path_count,
+            ssd_cap_gbps=self.ssd_cap_gbps,
+            npu_cap_gbps=self.npu_cap_gbps,
+            path_by_npu=self.path_by_npu,
         )
-        cirs_by_ssu = []
-        for ssu_id in range(snapshot.num_ssu):
-            cirs = [0.0] * self.path_count
-            for row_id, observation in enumerate(warm):
-                cirs[self.path_by_npu[observation.npu_id]] = grants[row_id][ssu_id]
-            if cold_count:
-                cirs[self.cold_path_id] = cold_reserve
-            cirs_by_ssu.append(tuple(cirs))
-        return CIRControlDecision(tuple(cirs_by_ssu))
+        return CIRControlDecision(plan.path_cirs_by_ssu)
 
 
 @dataclass
@@ -856,14 +860,7 @@ def _plan_paths(context: _Context, state: _SubmissionState, current_time_ms):
     mode = context.client_io_config.path_selection_mode
     if mode == sim.PATH_SELECTION_FIXED_PATH_ZERO:
         state.planned_path_ids.extend(
-            0 for _ in range(window_start, len(state.blocks))
-        )
-        return
-    if mode == sim.PATH_SELECTION_STATELESS_RR:
-        allowed = state.allowed_path_ids
-        state.planned_path_ids.extend(
-            allowed[(state.start_offset + index) % len(allowed)]
-            for index in range(window_start, len(state.blocks))
+            policy_baseline_path_ids(len(state.blocks) - window_start)
         )
         return
 

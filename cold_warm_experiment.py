@@ -19,10 +19,10 @@ from continuous_batch_sim import (
     simulate_continuous_batch,
 )
 from continuous_prefill_client import (
-    legacy_qos_config,
-    legacy_strategy_specs,
+    routing_strategy_specs,
     qos_configs_from_path_cirs,
     scheme_b_client_config,
+    static_qos_config,
 )
 from scheme_b_prefill import PATH_COUNT, cold_start_hybrid_path_id
 from six_request_workload import (
@@ -48,7 +48,7 @@ class Case:
 
 
 CASES = (
-    Case("modified_baseline", "legacy"),
+    Case("modified_baseline", "routing"),
     Case("modified_scheme_b", "causal_scheme_b"),
 )
 CASE_BY_NAME = {case.name: case for case in CASES}
@@ -63,12 +63,12 @@ def _source_fingerprint():
     digest = hashlib.sha256(b"six-request-cold-warm-modified-v1\0")
     for name in (
         "sim.py",
+        "policy_logic.py",
         "strategy_profiles.py",
         "continuous_batch_control.py",
         "continuous_batch_sim.py",
         "continuous_prefill_client.py",
         "continuous_prefill_workload.py",
-        "closed_loop_workload.py",
         "six_request_workload.py",
         "cold_warm_metrics.py",
         "cold_warm_experiment.py",
@@ -94,13 +94,13 @@ def _simulate(case, requests, *, num_ssu, n_layers):
         "submit_order_seed": SEED,
         "cross_request_layer0_prefetch": True,
     }
-    if case.kind == "legacy":
+    if case.kind == "routing":
         baseline = next(
-            spec for spec in legacy_strategy_specs() if spec.name == "baseline"
+            spec for spec in routing_strategy_specs() if spec.name == "baseline"
         )
         return simulate_continuous_batch(
             requests,
-            qos_config=legacy_qos_config(),
+            qos_config=static_qos_config(),
             client_io_config=baseline.client_config(),
             **kwargs,
         )
@@ -109,7 +109,7 @@ def _simulate(case, requests, *, num_ssu, n_layers):
     controller = CausalMaxMinSchemeBController(
         path_by_npu,
         cold_path_id=0,
-        cold_path_cir_gbps=legacy_qos_config().path_cirs[0],
+        cold_path_cir_gbps=static_qos_config().path_cirs[0],
         path_count=PATH_COUNT,
     )
     return simulate_continuous_batch(

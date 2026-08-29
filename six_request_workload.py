@@ -1,4 +1,4 @@
-"""Balanced six-request streams for the fastest-finish cutoff experiment."""
+"""Balanced six-request streams for the cold/warm Scheme-B experiment."""
 
 from __future__ import annotations
 
@@ -6,21 +6,21 @@ from collections import Counter, defaultdict
 import statistics
 
 import sim
-from closed_loop_workload import _request_with_profile
 from continuous_prefill_workload import (
+    ContinuousPrefillRequest,
     ContinuousPrefillWorkload,
     _fingerprints,
     _hash_json,
     _rng,
+    _sticky_placement,
+    _work_by_ssu,
 )
 
 
 NUM_NPU = 128
 REQUESTS_PER_NPU = 6
 SLO_REQUESTS_PER_NPU = 5
-CUTOFF_SEQUENCE = REQUESTS_PER_NPU - 1
 LAYER_LIST = (16, 24, 56, 80)
-SSU_LIST = (16, 24, 56)
 SEED = 42
 INITIAL_JITTER_MS = (0.0, 5.0)
 
@@ -41,6 +41,44 @@ TEMPLATE_CATEGORIES = {
 def representative_profiles(table):
     """Return the four calibrated SS/SL/LS/LL stress profiles."""
     return tuple(BALANCED_PROFILES[category] for category in sim.WORKLOAD_CATEGORIES)
+
+
+def _request_with_profile(
+    table,
+    *,
+    request_id,
+    npu_id,
+    sequence,
+    profile_key,
+    arrival_ms,
+    num_ssu,
+):
+    """Build one request and its ring-hash block placement."""
+    required_bw, per_layer_us, _, per_layer_kv_gb = table[profile_key]
+    placement = _sticky_placement(
+        request_id,
+        profile_key[0],
+        profile_key[1],
+        float(per_layer_kv_gb),
+        num_ssu,
+    )
+    request = ContinuousPrefillRequest(
+        request_id=request_id,
+        npu_id=npu_id,
+        stream_id=sequence,
+        generation=0,
+        profile_key=profile_key,
+        seq_len_k=profile_key[0],
+        nql=profile_key[1],
+        category=sim.classify_request(*profile_key),
+        required_bw_input_gbps=float(required_bw),
+        per_layer_us=float(per_layer_us),
+        per_layer_kv_gb=float(per_layer_kv_gb),
+        arrival_ms=float(arrival_ms),
+        initial=sequence == 0,
+        work_by_ssu_gb=_work_by_ssu(placement, num_ssu),
+    )
+    return request, placement
 
 
 def _balanced_profile_orders(*, num_npu, seed):

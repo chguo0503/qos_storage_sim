@@ -114,11 +114,11 @@ class SchemeBPrefillTest(unittest.TestCase):
             "num_disk": 3,
             "n_layers": 2,
             "client_io_config": sim.ClientIOConfig(
-                "test_rr",
+                "test_baseline",
                 None,
                 submit_batch_size=1,
                 issue_interval_us=0.1,
-                path_selection_mode=sim.PATH_SELECTION_STATELESS_RR,
+                path_selection_mode=sim.PATH_SELECTION_FIXED_PATH_ZERO,
             ),
             "submit_order_seed": 34,
             "prepared_inputs": prepared,

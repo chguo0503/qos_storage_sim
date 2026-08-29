@@ -12,34 +12,28 @@ from dataclasses import dataclass
 import hashlib
 import json
 
-from continuous_batch_control import GrantMatrix, allocate_grants
+from continuous_batch_control import GrantMatrix
+from continuous_prefill_client import qos_configs_from_path_cirs
+from policy_logic import (
+    MAX_NPU,
+    NPU_CAP_GBPS,
+    PATH_COUNT,
+    SSD_CAP_GBPS,
+    ManifestDemand,
+    cold_start_hybrid_path_id,
+    dedicated_path_id,
+    plan_scheme_b,
+)
 from sim import PreparedSimulationInputs, StaticQoSConfig
 
 
-PATH_COUNT = 256
-GROUP_COUNT = 8
-PATHS_PER_GROUP = PATH_COUNT // GROUP_COUNT
-MAX_NPU = 128
-SSD_CAP_GBPS = 40.0
-NPU_CAP_GBPS = 50.0
-
-
-def dedicated_path_id(npu_id: int) -> int:
-    """Spread 128 NPU-dedicated Paths evenly over the eight QoS groups."""
-    return (npu_id % GROUP_COUNT) * PATHS_PER_GROUP + npu_id // GROUP_COUNT
-
-
-def cold_start_hybrid_path_id(npu_id: int) -> int:
-    """Use the unused half of every Group and keep Path 0 for Layer 0."""
-    return dedicated_path_id(npu_id) + MAX_NPU // GROUP_COUNT
-
-
-def _demand_matrix(prepared: PreparedSimulationInputs) -> GrantMatrix:
+def _manifests(prepared: PreparedSimulationInputs) -> tuple[ManifestDemand, ...]:
+    """Translate immutable ring placement into the pure policy input ABI."""
     loads = sorted(prepared.request_loads, key=lambda load: load["npu_id"])
     assert tuple(load["npu_id"] for load in loads) == tuple(range(len(loads)))
     assert len(loads) <= MAX_NPU
 
-    rows = []
+    manifests = []
     for load in loads:
         layers = prepared.placement_by_request[load["request_id"]]
         layer_zero = layers[0]
@@ -47,31 +41,15 @@ def _demand_matrix(prepared: PreparedSimulationInputs) -> GrantMatrix:
         work_by_ssu = [0.0] * prepared.num_disk
         for ssu_id, block_gb in layer_zero:
             work_by_ssu[ssu_id] += block_gb
-        compute_s = load["per_layer_us"] / 1e6
-        rows.append(tuple(work_gb / compute_s for work_gb in work_by_ssu))
-    return tuple(rows)
-
-
-def _qos_configs(grants: GrantMatrix) -> tuple[StaticQoSConfig, ...]:
-    npu_count = len(grants)
-    ssu_count = len(grants[0]) if grants else 0
-    path_by_npu = tuple(dedicated_path_id(npu) for npu in range(npu_count))
-    configs = []
-    for ssu in range(ssu_count):
-        cirs = [0.0] * PATH_COUNT
-        for npu, path_id in enumerate(path_by_npu):
-            cirs[path_id] = grants[npu][ssu]
-        configs.append(
-            StaticQoSConfig(
-                path_cirs=tuple(cirs),
-                path_pirs=(float("inf"),) * PATH_COUNT,
-                path_weights=(1.0,) * PATH_COUNT,
-                group_weights=(1.0,) * GROUP_COUNT,
-                category_paths_per_group=(PATHS_PER_GROUP,),
-                category_labels=("NPU",),
+        manifests.append(
+            ManifestDemand(
+                request_id=load["request_id"],
+                npu_id=load["npu_id"],
+                compute_budget_s=load["per_layer_us"] / 1e6,
+                work_by_ssu_gb=tuple(work_by_ssu),
             )
         )
-    return tuple(configs)
+    return tuple(manifests)
 
 
 def _fingerprint(payload: dict) -> str:
@@ -184,14 +162,17 @@ def build_scheme_b_prefill_plan(
     npu_cap_gbps: float = NPU_CAP_GBPS,
 ) -> SchemeBPrefillPlan:
     """Plan CIR once for a batch=1, 16-layer prefill admission batch."""
-    demands = _demand_matrix(prepared)
-    grants = allocate_grants(
-        demands,
-        ssd_caps=ssd_cap_gbps,
-        npu_caps=npu_cap_gbps,
+    policy_plan = plan_scheme_b(
+        _manifests(prepared),
+        num_npu=len(prepared.request_loads),
+        num_ssu=prepared.num_disk,
+        ssd_cap_gbps=ssd_cap_gbps,
+        npu_cap_gbps=npu_cap_gbps,
     )
-    paths = tuple(dedicated_path_id(npu) for npu in range(len(demands)))
-    configs = _qos_configs(grants)
+    demands = policy_plan.demands_gbps
+    grants = policy_plan.grants_gbps
+    paths = policy_plan.path_by_npu
+    configs = qos_configs_from_path_cirs(policy_plan.path_cirs_by_ssu)
     fingerprint = _fingerprint(
         {
             "scheme": "scheme_b_prefill_one_shot_v1",

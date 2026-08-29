@@ -139,9 +139,9 @@ NPU 根据请求类别只能在对应类别的合法 Path 集合内选路。每�
 
 ### 3.4 “理论最优”与 Best feasible
 
-项目主图中的 `Best feasible` 不是已经证明的数学最优值。其准确定义是：对每个 `(seed, SSU)`，在已经实际运行、且保持 placement、SSD40、NPU50 和层依赖约束的策略候选中，取目标指标最好的值。
+项目主图中的 `Best feasible` 不是已经证明的数学最优值，也不是多个候选策略逐点取最大值形成的包络线。它直接绘制唯一一个可执行的、保持 placement、SSD40、NPU50 和层依赖约束的 `demand_weighted_sjf_oracle_candidate`。
 
-其中最强候选的纯优先级逻辑是 [`policy_logic.py`](policy_logic.py) 的 `oracle_priority_key()`：对当前已 release 的 I/O 计算 demand-weighted shortest-visible-layer-work 排序键。[`capacity_constrained_oracle_experiment.py`](capacity_constrained_oracle_experiment.py) 只把仿真 flow 转成 `OracleFlowView` 并把返回键接到 SSD runner。它可以看到当前已经 release 的 I/O 的全局元数据，并直接决定每块 SSD 下一条命令，但：
+该参考候选的纯优先级逻辑是 [`policy_logic.py`](policy_logic.py) 的 `oracle_priority_key()`：对当前已 release 的 I/O 计算 demand-weighted shortest-visible-layer-work 排序键。[`capacity_constrained_oracle_experiment.py`](capacity_constrained_oracle_experiment.py) 只把仿真 flow 转成 `OracleFlowView` 并把返回键接到 SSD runner。它可以看到当前已经 release 的 I/O 的全局元数据，并直接决定每块 SSD 下一条命令，但：
 
 - 不能移动 ring-hash placement；
 - 每块 SSD 仍是单命令 40 GB/s；

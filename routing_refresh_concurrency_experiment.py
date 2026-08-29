@@ -1,4 +1,4 @@
-"""Run the five retained Path-routing strategies on ring-hash placement."""
+"""Run baseline and Refresh8 on the paired ring-hash workload."""
 
 from __future__ import annotations
 
@@ -68,28 +68,10 @@ def strategy_specs():
             None,
         ),
         StrategySpec(
-            "path_rr",
-            "Category-legal deterministic Path round-robin; no pressure reads",
-            sim.PATH_SELECTION_STATELESS_RR,
-            None,
-        ),
-        StrategySpec(
-            "layer_once",
-            "Read pressure once per request-layer-SSU submission state",
-            sim.PATH_SELECTION_PRESSURE_AWARE,
-            None,
-        ),
-        StrategySpec(
             "refresh8",
             "Read pressure once every eight planned I/Os",
             sim.PATH_SELECTION_PRESSURE_AWARE,
             8,
-        ),
-        StrategySpec(
-            "refresh1",
-            "Read live pressure before every planned I/O",
-            sim.PATH_SELECTION_PRESSURE_AWARE,
-            1,
         ),
     )
 
@@ -133,6 +115,7 @@ def _code_fingerprint():
     digest = hashlib.sha256()
     for name in (
         "sim.py",
+        "policy_logic.py",
         "experiment.py",
         "strategy_profiles.py",
         "routing_refresh_concurrency_experiment.py",

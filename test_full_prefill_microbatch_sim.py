@@ -21,7 +21,7 @@ from continuous_batch_sim import (
     simulate_continuous_batch,
 )
 from continuous_prefill_client import (
-    legacy_qos_config,
+    static_qos_config,
     qos_configs_from_path_cirs,
     scheme_b_client_config,
 )
@@ -190,7 +190,7 @@ def test_batch1_prefetches_next_request_layer0_during_final_compute():
         num_ssu=1,
         n_layers=2,
         batch_size=1,
-        qos_config=legacy_qos_config(),
+        qos_config=static_qos_config(),
         client_io_config=sim.ClientIOConfig(
             "cross_request_baseline",
             None,
@@ -231,7 +231,7 @@ def test_cross_request_prefetch_does_not_retroactively_start_on_late_arrival():
         num_ssu=1,
         n_layers=1,
         batch_size=1,
-        qos_config=legacy_qos_config(),
+        qos_config=static_qos_config(),
         client_io_config=sim.ClientIOConfig(
             "late_cross_request_baseline",
             None,
@@ -267,7 +267,7 @@ def test_causal_cross_request_prefetch_programs_manifest_dedicated_path():
     controller = CausalMaxMinSchemeBController(
         (dedicated_path,),
         cold_path_id=0,
-        cold_path_cir_gbps=legacy_qos_config().path_cirs[0],
+        cold_path_cir_gbps=static_qos_config().path_cirs[0],
         path_count=PATH_COUNT,
     )
     snapshots = []
@@ -467,7 +467,7 @@ def test_hybrid_layer0_matches_baseline_then_uses_scheme_b():
         submit_order_seed=42,
     )
     baseline = simulate_continuous_batch(
-        qos_config=legacy_qos_config(),
+        qos_config=static_qos_config(),
         client_io_config=sim.ClientIOConfig(
             "test_baseline", None, path_selection_mode=sim.PATH_SELECTION_FIXED_PATH_ZERO
         ),
@@ -485,7 +485,7 @@ def test_hybrid_layer0_matches_baseline_then_uses_scheme_b():
             CausalMaxMinSchemeBController(
                 paths,
                 cold_path_id=0,
-                cold_path_cir_gbps=legacy_qos_config().path_cirs[0],
+                cold_path_cir_gbps=static_qos_config().path_cirs[0],
                 path_count=PATH_COUNT,
             )
         ),

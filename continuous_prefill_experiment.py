@@ -1,4 +1,4 @@
-"""Paired Full-prefill microbatch comparison on one 28-SSU trace."""
+"""Retained Full-prefill comparison on one paired 28-SSU trace."""
 
 from __future__ import annotations
 
@@ -20,10 +20,10 @@ from continuous_batch_sim import (
     simulate_continuous_batch,
 )
 from continuous_prefill_client import (
-    legacy_qos_config,
-    legacy_strategy_specs,
+    routing_strategy_specs,
     qos_configs_from_path_cirs,
     scheme_b_client_config,
+    static_qos_config,
 )
 from continuous_prefill_workload import (
     DEFAULT_BATCH_SIZE,
@@ -49,16 +49,11 @@ DEFAULT_OUTPUT = OUTPUT_DIR / "results.json"
 class Case:
     name: str
     kind: str
-    period_layers: int | None = None
 
 
 CASES = (
-    *(Case(spec.name, "legacy") for spec in legacy_strategy_specs()),
+    *(Case(spec.name, "routing") for spec in routing_strategy_specs()),
     Case("scheme_b_once", "scheme_b"),
-    Case("scheme_b_periodic8", "scheme_b", 8),
-    Case("scheme_b_periodic4", "scheme_b", 4),
-    Case("scheme_b_periodic2", "scheme_b", 2),
-    Case("scheme_b_periodic1", "scheme_b", 1),
     Case("scheme_b_after_l0", "scheme_b_hybrid"),
     Case("best_feasible", "full_info"),
 )
@@ -70,6 +65,7 @@ def _source_fingerprint():
     root = Path(__file__).resolve().parent
     for name in (
         "sim.py",
+        "policy_logic.py",
         "continuous_batch_control.py",
         "continuous_batch_sim.py",
         "continuous_prefill_client.py",
@@ -98,11 +94,11 @@ def _run_case(case: Case):
     }
     control_metadata = None
 
-    if case.kind == "legacy":
-        spec = next(spec for spec in legacy_strategy_specs() if spec.name == case.name)
+    if case.kind == "routing":
+        spec = next(spec for spec in routing_strategy_specs() if spec.name == case.name)
         summary = simulate_continuous_batch(
             requests,
-            qos_config=legacy_qos_config(),
+            qos_config=static_qos_config(),
             client_io_config=spec.client_config(),
             **kwargs,
         )
@@ -120,7 +116,7 @@ def _run_case(case: Case):
         )
         causal = case.kind == "scheme_b_hybrid"
         control = None if causal else CIRControlConfig(
-            every_layers=case.period_layers,
+            on_batch_boundary=True,
             callback=MaxMinSchemeBController(path_by_npu, horizon_layers=1),
         )
         causal_control = (
@@ -128,7 +124,7 @@ def _run_case(case: Case):
                 CausalMaxMinSchemeBController(
                     path_by_npu,
                     cold_path_id=0,
-                    cold_path_cir_gbps=legacy_qos_config().path_cirs[0],
+                    cold_path_cir_gbps=static_qos_config().path_cirs[0],
                     path_count=PATH_COUNT,
                 )
             )
@@ -146,12 +142,10 @@ def _run_case(case: Case):
             **kwargs,
         )
         control_metadata = {
-            "period_layers": case.period_layers,
-            "period_ms": None,
             "update_trigger": (
                 "microbatch_membership_only"
-                if case.period_layers is None
-                else f"microbatch_membership_or_{case.period_layers}_fleet_layers"
+                if not causal
+                else "previous_layer_observation_change"
             ),
             "initial_target_hash": None,
             "initial_path_writes": 0,
@@ -174,7 +168,6 @@ def _run_case(case: Case):
     return {
         "strategy": case.name,
         "kind": case.kind,
-        "period_layers": case.period_layers,
         "wall_time_s": time.perf_counter() - started,
         "trace_hash": workload.trace_hash,
         "workload_statistics": workload.statistics,

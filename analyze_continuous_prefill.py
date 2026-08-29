@@ -22,24 +22,14 @@ DEFAULT_INPUT = experiment.DEFAULT_OUTPUT
 EXECUTION_MODEL = "full_prefill_layer_synchronous_microbatch_v1"
 LABELS = {
     "baseline": "Baseline\n(Path 0)",
-    "path_rr": "Path RR",
-    "layer_once": "Layer once",
     "refresh8": "Refresh 8",
-    "refresh1": "Refresh 1",
-    "scheme_b_once": "Scheme B\nmembership",
-    "scheme_b_periodic8": "Scheme B\n8 layers",
-    "scheme_b_periodic4": "Scheme B\n4 layers",
-    "scheme_b_periodic2": "Scheme B\n2 layers",
-    "scheme_b_periodic1": "Scheme B\n1 layer",
+    "scheme_b_once": "Scheme B\none-shot",
     "scheme_b_after_l0": "L0 Path0\nthen Scheme B",
     "best_feasible": "Full-info\nEDF reference",
 }
 SCHEME_ORDER = (
     "scheme_b_once",
-    "scheme_b_periodic8",
-    "scheme_b_periodic4",
-    "scheme_b_periodic2",
-    "scheme_b_periodic1",
+    "scheme_b_after_l0",
 )
 
 
@@ -300,27 +290,38 @@ def write_plot(output_dir: Path, analysis):
     axes[0].bar_label(active_bars, fmt="%.1f", fontsize=7, padding=2)
     axes[0].legend(loc="lower right")
 
-    frequency_labels = ("Membership", "8", "4", "2", "1")
-    scheme_util = [
-        100 * metrics[name]["fleet_npu_compute_utilization"]
-        for name in SCHEME_ORDER
-    ]
-    axes[1].plot(frequency_labels, scheme_util, marker="o", linewidth=2,
-                 color="#F58518", label="Fleet NPU utilization")
-    axes[1].set(
-        title="Scheme B update-frequency sweep",
-        xlabel="Membership updates plus periodic interval (batch layers)",
-        ylabel="Fleet NPU compute utilization (%)",
-        ylim=(0, 100),
+    barriers = [metrics[name]["avg_batch_io_barrier_wait_ms"] for name in names]
+    p99 = [metrics[name]["p99_request_latency_ms"] for name in names]
+    barrier_bars = axes[1].bar(
+        positions - 0.19,
+        barriers,
+        width=0.38,
+        color=colors,
+        label="Average layer I/O barrier",
     )
+    axes[1].set(
+        title="Exposed I/O stall and request tail",
+        ylabel="Average layer I/O barrier (ms)",
+        xticks=positions,
+        xticklabels=[LABELS[name] for name in names],
+    )
+    axes[1].tick_params(axis="x", labelrotation=35)
     axes[1].grid(alpha=0.3)
-    writes_axis = axes[1].twinx()
-    writes = [metrics[name]["cir_path_writes"] for name in SCHEME_ORDER]
-    writes_axis.plot(frequency_labels, writes, marker="s", linestyle="--",
-                     color="#E45756", label="CIR Path writes")
-    writes_axis.set_ylabel("Runtime CIR Path writes")
-    lines = axes[1].lines + writes_axis.lines
-    axes[1].legend(lines, [line.get_label() for line in lines], loc="lower right")
+    tail_axis = axes[1].twinx()
+    tail_axis.plot(
+        positions,
+        p99,
+        marker="o",
+        color="#E45756",
+        label="Request P99",
+    )
+    tail_axis.set_ylabel("Request P99 latency (ms)")
+    handles = [barrier_bars, tail_axis.lines[0]]
+    axes[1].legend(
+        handles,
+        [handle.get_label() for handle in handles],
+        loc="upper right",
+    )
     figure.tight_layout()
     output_path = output_dir / "01_full_prefill_microbatch_strategies.png"
     figure.savefig(output_path, dpi=180)
@@ -363,7 +364,7 @@ def write_report(output_dir: Path, analysis):
             "",
             "## 结论口径",
             "",
-            f"Scheme B 频率中最好的是 **{LABELS[best_scheme_name].replace(chr(10), ' ')}**，"
+            f"保留的 Scheme B 方案中最好的是 **{LABELS[best_scheme_name].replace(chr(10), ' ')}**，"
             f"fleet 利用率 {100 * best_scheme['fleet_npu_compute_utilization']:.3f}%，"
             f"相对 baseline {best_scheme['fleet_delta_vs_baseline_pp']:+.3f} pp。",
             "",
@@ -387,7 +388,7 @@ def write_report(output_dir: Path, analysis):
             "`next-layer bytes / batch compute window` 分配 CIR，但 layer 0 没有该窗口；"
             "低稳态需求的 batch 会在 cold start 被低配，这个首层延迟会沿 16 层关键路径保留下来。",
             "",
-            "Scheme B 的 membership 版本只在 microbatch 成员变化时重算；周期版本还在每 8/4/2/1 个真实 batch-layer equivalent 后评估。sticky placement 与固定成员使各稳态层的需求向量相同，所以更频繁评估理论上通常只会增加评估次数；只有 membership、shape 或层耗时改变时目标 CIR 才应变化。",
+            "Scheme B one-shot 在 microbatch membership 改变时计算 manifest demand；因果版本在上一层观测发生变化时计算下一层 CIR。sticky placement 与固定成员使稳态各层需求向量相同，因此无需保留旧的 8/4/2/1 层周期扫描代码。",
             "",
             "Layer 0 是 cold-start burst，没有上一层计算窗口可隐藏。它仍由相同命令级 SSD/NPU 数据面真实排队；报告没有把 layer-0 bytes / layer compute 伪称为可满足的稳态 CIR demand。",
             "",

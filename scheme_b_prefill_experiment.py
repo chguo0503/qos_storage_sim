@@ -45,6 +45,7 @@ def experiment_spec(table, runtime):
         "sim.py",
         "experiment.py",
         "continuous_batch_control.py",
+        "policy_logic.py",
         "scheme_b_prefill.py",
         "scheme_b_prefill_experiment.py",
         "routing_refresh_concurrency_experiment.py",

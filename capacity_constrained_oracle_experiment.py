@@ -1,10 +1,9 @@
 """Run the physical-capacity-preserving oracle candidate matrix.
 
-This experiment deliberately does not claim an exact optimum.  It runs a
+This experiment deliberately does not claim an exact optimum. It runs a
 clairvoyant, per-SSD demand-weighted shortest-layer-work scheduler on the same
-discrete SSD40 -> NPU50 event model as the routing experiment.  The analysis
-combines this candidate with every already measured runnable strategy and
-plots their pointwise best feasible envelope.
+discrete SSD40 -> NPU50 event model as the routing experiment and exposes that
+executable result as the capacity-preserving ``Best feasible`` reference.
 """
 
 from __future__ import annotations
@@ -19,6 +18,7 @@ import time
 
 import sim
 from experiment import compact_summary
+from policy_logic import OracleFlowView, oracle_priority_key as policy_oracle_key
 import routing_refresh_concurrency_experiment as routing
 
 
@@ -31,18 +31,19 @@ DEFAULT_OUTPUT_PATH = (
 
 
 def oracle_priority_key(flow):
-    """Prefer short visible layer work, with a mild demand urgency weight."""
-    demand = max(flow.demand_gbps, 1e-12)
-    weighted_work = flow.layer_work_gb / demand**PRIORITY_DEMAND_EXPONENT
-    return (
-        weighted_work,
-        flow.deadline_time,
-        flow.layer_work_gb,
-        flow.enqueue_time,
-        flow.request_id,
-        flow.layer,
-        flow.block_idx,
-        flow.disk_id,
+    """Adapt simulator flow metadata to the portable feasible reference."""
+    return policy_oracle_key(
+        OracleFlowView(
+            demand_gbps=flow.demand_gbps,
+            layer_work_gb=flow.layer_work_gb,
+            deadline_time=flow.deadline_time,
+            enqueue_order=flow.enqueue_time,
+            request_id=flow.request_id,
+            layer=flow.layer,
+            block_idx=flow.block_idx,
+            ssu_id=flow.disk_id,
+        ),
+        demand_exponent=PRIORITY_DEMAND_EXPONENT,
     )
 
 
@@ -60,6 +61,7 @@ def experiment_spec(table, runtime):
     digest = hashlib.sha256()
     for name in (
         "sim.py",
+        "policy_logic.py",
         "capacity_constrained_oracle_experiment.py",
         "routing_refresh_concurrency_experiment.py",
     ):
