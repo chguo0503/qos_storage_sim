@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "amendment": "selected128_measurement_window_amendment_v1",
+  "recorded_on": "2026-08-31",
+  "superseded_campaign": {
+    "campaign": "selected128_alpha_tuned_v1",
+    "campaign_spec_sha256": "f9cd30e23075b7302cba828ecf3ecc42f45fbb2362074bfaef17a3a123b87c3b",
+    "measurement_ms": 8000.0,
+    "formal_source_commit": "86902b6cd4fca1c0e105935f6d84629d3c3cbf98",
+    "formal_source_fingerprint": "88f08dae857d10eecc9a0db4995dc4102f9ee1b6479ba1ed0a36f0f8d4a1b12e"
+  },
+  "replacement_campaign": {
+    "campaign": "selected128_alpha_tuned_v2",
+    "campaign_spec_sha256": "1069ea307a9680e1ff236314577a84d7d8004a1f5794ad274bfb5345afcd8d28",
+    "measurement_ms": 16000.0,
+    "formal_source_commit": "370055743484914502dc0089c88ea8a0e6b05b44",
+    "formal_source_fingerprint": "6c9cfe0b06839feba3da38c44199fdf539736232357b59602297cf8d7b8948dc"
+  },
+  "triggering_evidence": {
+    "num_npu": 128,
+    "num_ssu": 8,
+    "case": "adaptive_a2_t0_i25ms",
+    "seed": 42,
+    "measurement_ms": 8000.0,
+    "measurement_request_count": 905,
+    "requests_per_npu_min_median_max": [0, 6.5, 19],
+    "zero_sample_npu_ids": [4, 51, 57, 60, 70, 86],
+    "failed_invariants": ["all_npus_sampled_for_slo"],
+    "all_other_invariants_passed": true,
+    "no_backlog_exhaustion": true,
+    "classification": "The eight-second observation window did not sample every NPU at the severe-overload endpoint, so equal-NPU SLO was not defined for the full fleet."
+  },
+  "window_diagnostics": [
+    {
+      "measurement_ms": 12000.0,
+      "diagnostic_source_fingerprint": "bbab4921a541059f04b3590a742d253834a7696f5bbfa71f94e8fbcbb1623deb",
+      "num_ssu": 8,
+      "case": "adaptive_a2_t0_i25ms",
+      "measurement_request_count": 1387,
+      "requests_per_npu_min_median_max": [1, 10.0, 29],
+      "zero_sample_npu_count": 0,
+      "maximum_measurement_sequence": 62,
+      "all_invariants_passed": true
+    },
+    {
+      "measurement_ms": 16000.0,
+      "diagnostic_source_fingerprint": "bbab4921a541059f04b3590a742d253834a7696f5bbfa71f94e8fbcbb1623deb",
+      "num_ssu": 8,
+      "case": "adaptive_a2_t0_i25ms",
+      "measurement_request_count": 1861,
+      "requests_per_npu_min_median_max": [2, 14.0, 35],
+      "zero_sample_npu_count": 0,
+      "maximum_measurement_sequence": 68,
+      "all_invariants_passed": true,
+      "selected_for_formal_campaign": true
+    }
+  ],
+  "backing_endpoint_diagnostic": {
+    "diagnostic_source_fingerprint": "23e2dd0dfa4e42b9d4d73998560e6d6b732c6b0af8c356dc1869d0c5bd5194de",
+    "measurement_ms": 16000.0,
+    "num_ssu": 72,
+    "cases": [
+      "baseline",
+      "adaptive_a1p5_t0_i25ms",
+      "adaptive_a2_t0_i25ms"
+    ],
+    "measurement_request_count_per_case": 4996,
+    "requests_per_npu_min_median_max": [22, 38.0, 56],
+    "completed_by_npu_at_stop_min_median_max": [46, 68.5, 89],
+    "backing_sequences_remaining_min_median_max": [39, 59.5, 82],
+    "zero_sample_npu_count": 0,
+    "negative_backing_margin_npu_count": 0,
+    "maximum_measurement_sequence": 82,
+    "all_29_invariants_passed_for_every_case": true,
+    "no_backlog_exhaustion_for_every_case": true,
+    "selected_complete": true,
+    "service_exit_status": 0,
+    "service_memory_peak_bytes": 7977881600
+  },
+  "diagnostic_to_formal_source_audit": {
+    "event_simulation_or_controller_behavior_changed": false,
+    "changed_areas_after_diagnostics": [
+      "sixteen-second, historical eight-second, and 500 ms accounting numeric-contract probes",
+      "formal campaign and payload validation",
+      "calibration/coverage CLI admission gates",
+      "publication provenance and negative self-tests"
+    ],
+    "formal_exact_source_must_still_pass_every_row_invariant": true
+  },
+  "change_scope": {
+    "changed": [
+      "formal measurement window from 8000 ms to 16000 ms",
+      "campaign identity and configuration fingerprint",
+      "formal canonical validation and public-result defaults"
+    ],
+    "unchanged": [
+      "128-NPU topology, 16 layers, and batch size 1",
+      "SSU counts 8,12,16,20,24,40,72",
+      "seed 42 and the authenticated 128-request-per-NPU backing",
+      "warmup, settle, and stationarity block settings",
+      "baseline, Layer Once, and alpha-specific Adaptive case definitions",
+      "event ordering, scheduling, workload generation, and controller decisions"
+    ]
+  },
+  "calibration_reuse_decision": {
+    "reuse_selected_alpha1p5_target_ratio": true,
+    "selected_target_ratio": 0.6866666666666666,
+    "reason": "The preregistered nine-cell calibration selected a controller parameter from independent four-second held-out runs. The observation-window amendment changes no Adaptive case parameter or calibration metric, and the current analyzer replayed all nine immutable source-bound cells successfully."
+  },
+  "formal_result_reuse_decision": {
+    "reuse_eight_second_rows": false,
+    "reason": "All seven replacement shards use a fresh output root, one sixteen-second configuration fingerprint, and one exact formal source fingerprint."
+  }
+}
