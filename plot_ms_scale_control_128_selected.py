@@ -21,9 +21,9 @@ import matplotlib.pyplot as plt
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 DEFAULT_INPUT = Path(
-    "results/ms_scale_control/selected128_alpha_tuned_v1_analysis/summary.csv"
+    "results/ms_scale_control/selected128_alpha_tuned_v2_analysis/summary.csv"
 )
-DEFAULT_OUTPUT_DIR = Path("results/ms_scale_control/selected128_alpha_tuned_v1_plots")
+DEFAULT_OUTPUT_DIR = Path("results/ms_scale_control/selected128_alpha_tuned_v2_plots")
 SSU_COUNTS = (8, 12, 16, 20, 24, 40, 72)
 SHA256_RE = re.compile(r"[0-9a-f]{64}")
 

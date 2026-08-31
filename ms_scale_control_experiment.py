@@ -411,6 +411,8 @@ SELECTED128_SSUS = (8, 12, 16, 20, 24, 40, 72)
 SELECTED128_INTERVALS_MS = (25.0, 100.0, 200.0)
 SELECTED128_ALPHA1P5_REQUIRED_RATIO = 1.0 / 1.5
 SELECTED128_ALPHA1P5_TARGET_RATIO = SELECTED128_ALPHA1P5_REQUIRED_RATIO + 0.02
+SELECTED128_CAMPAIGN_NAME = "selected128_alpha_tuned_v2"
+SELECTED128_FORMAL_MEASUREMENT_MS = 16_000.0
 SELECTED128_FORMAL_MAX_WORKERS = 3
 SELECTED128_EXPECTED_RUNTIME_IDENTITY = {
     "python_implementation": "CPython",
@@ -489,7 +491,7 @@ def _require_exact_keys(value, expected_keys, context):
 
 
 def validate_selected128_campaign_document(document):
-    """Strictly validate every semantic field in the formal v1 campaign."""
+    """Strictly validate every semantic field in the formal v2 campaign."""
 
     top_keys = {
         "schema_version",
@@ -505,8 +507,8 @@ def validate_selected128_campaign_document(document):
     _require_exact_keys(document, top_keys, "selected128 campaign")
     if document["schema_version"] != 1:
         raise ValueError("selected128 campaign schema_version must equal 1")
-    if document["campaign"] != "selected128_alpha_tuned_v1":
-        raise ValueError("selected128 campaign name is not the frozen v1 name")
+    if document["campaign"] != SELECTED128_CAMPAIGN_NAME:
+        raise ValueError("selected128 campaign name is not the frozen v2 name")
     if not isinstance(document["purpose"], str) or not document["purpose"].strip():
         raise ValueError("selected128 campaign purpose must be non-empty")
 
@@ -554,7 +556,7 @@ def validate_selected128_campaign_document(document):
         "scientific_prefix_requests_per_npu": 32,
         "warmup_requests_per_npu": 8,
         "settle_ms": 500.0,
-        "measurement_ms": 8000.0,
+        "measurement_ms": SELECTED128_FORMAL_MEASUREMENT_MS,
         "stationarity_block_ms": 500.0,
     }
     if workload != expected_workload:
@@ -591,7 +593,7 @@ def validate_selected128_campaign_document(document):
         or adaptive["explicit_spill_threshold"] != 0.75
         or adaptive["background_reserve_fraction"] != 0.05
     ):
-        raise ValueError("selected128 Adaptive common settings are not frozen v1")
+        raise ValueError("selected128 Adaptive common settings are not frozen v2")
     profile_keys = {
         "tuning_slo_alpha",
         "required_ratio",
@@ -670,7 +672,7 @@ def validate_selected128_campaign_document(document):
         or not isinstance(execution["checkpoint_rule"], str)
         or not execution["checkpoint_rule"].strip()
     ):
-        raise ValueError("selected128 execution settings differ from frozen v1")
+        raise ValueError("selected128 execution settings differ from frozen v2")
     return document
 
 
@@ -2778,6 +2780,14 @@ def validate_selected128_formal_payload(
     require(payload.get("schema_version") == SCHEMA_VERSION, "schema mismatch")
     require(payload.get("definition") == "selected128", "definition mismatch")
     require(payload.get("num_npu") == 128, "NPU topology mismatch")
+    require(
+        payload.get("backing_requests_per_npu") == 128,
+        "top-level backing request count mismatch",
+    )
+    require(
+        payload.get("total_assignment_count") == 128 * 128,
+        "top-level assignment count mismatch",
+    )
     require(payload.get("selected_complete") is True, "selected shard incomplete")
     require(payload.get("source_stable_during_run") is True, "source changed")
     require(payload.get("config_stable_during_run") is True, "config changed")
@@ -2862,8 +2872,14 @@ def validate_selected128_formal_payload(
 
     spec = payload.get("experiment_spec")
     require(isinstance(spec, dict), "experiment spec missing")
+    require(
+        spec.get("experiment") == definition.experiment_name,
+        "spec experiment mismatch",
+    )
     require(spec.get("definition") == "selected128", "spec definition mismatch")
     require(spec.get("num_npu") == 128, "spec NPU mismatch")
+    require(spec.get("n_layers") == 16, "spec layer count mismatch")
+    require(spec.get("batch_size") == 1, "spec batch size mismatch")
     require(
         spec.get("campaign_spec_sha256") == expected_campaign_sha256,
         "spec campaign mismatch",
@@ -2875,6 +2891,28 @@ def validate_selected128_formal_payload(
     require(
         spec.get("runtime_identity") == SELECTED128_EXPECTED_RUNTIME_IDENTITY,
         "spec runtime identity mismatch",
+    )
+    scale = spec.get("scale_semantics")
+    require(isinstance(scale, dict), "spec scale semantics missing")
+    require(scale.get("num_npu") == 128, "spec scale NPU mismatch")
+    require(
+        scale.get("naked_128_means") == "128 NPU",
+        "spec scale interpretation mismatch",
+    )
+    require(
+        scale.get("backing_requests_per_npu") == 128,
+        "spec backing request count mismatch",
+    )
+    require(
+        scale.get("total_assignment_count") == 128 * 128,
+        "spec assignment count mismatch",
+    )
+    workload = spec.get("workload")
+    require(isinstance(workload, dict), "spec workload missing")
+    require(workload.get("seed") == 42, "spec workload seed mismatch")
+    require(
+        workload.get("requests_per_npu") == 128,
+        "spec workload backing request count mismatch",
     )
     require(config == _config_fingerprint(spec), "config fingerprint is not derived")
     expected_definition_fingerprint = _definition_fingerprint(definition)
@@ -2910,7 +2948,7 @@ def validate_selected128_formal_payload(
             "requests_per_npu": 128,
             "warmup_requests_per_npu": 8,
             "settle_ms": 500.0,
-            "measurement_ms": 8000.0,
+            "measurement_ms": SELECTED128_FORMAL_MEASUREMENT_MS,
             "block_ms": 500.0,
             "slo_alpha": 2.0,
             "calibration_mode": False,
@@ -2994,6 +3032,10 @@ def validate_selected128_formal_payload(
             f"{name} definition fingerprint",
         )
         require(row.get("num_npu") == 128, f"{name} NPU count")
+        require(
+            row.get("backing_requests_per_npu") == 128,
+            f"{name} backing request count",
+        )
         require(row.get("source_fingerprint") == source, f"{name} source")
         require(row.get("config_fingerprint") == config, f"{name} config")
         require(
@@ -3031,7 +3073,7 @@ def validate_selected128_formal_payload(
         )
         require(summary.get("slo_alpha") == 2.0, f"{name} primary alpha")
         require(
-            summary.get("measurement_duration_ms") == 8000.0,
+            summary.get("measurement_duration_ms") == SELECTED128_FORMAL_MEASUREMENT_MS,
             f"{name} measurement duration",
         )
         request_rows = summary.get("request_rows")
@@ -3506,7 +3548,7 @@ def main(argv=None):
                 or config.requests_per_npu != 128
                 or config.warmup_requests_per_npu != 8
                 or config.settle_ms != 500.0
-                or config.measurement_ms != 8000.0
+                or config.measurement_ms != SELECTED128_FORMAL_MEASUREMENT_MS
                 or config.block_ms != 500.0
                 or config.slo_alpha != 2.0
             ):

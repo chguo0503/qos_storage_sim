@@ -10,7 +10,9 @@ import subprocess
 import sys
 
 from ms_scale_control_experiment import (
+    SELECTED128_CAMPAIGN_NAME,
     SELECTED128_EXPECTED_RUNTIME_IDENTITY,
+    SELECTED128_FORMAL_MEASUREMENT_MS,
     SELECTED128_FORMAL_MAX_WORKERS,
     SELECTED128_SSUS,
     THREAD_LIMIT_ENVIRONMENT,
@@ -24,8 +26,8 @@ from ms_scale_control_experiment import (
 
 ROOT = Path(__file__).resolve().parent
 RUNNER = ROOT / "ms_scale_control_experiment.py"
-DEFAULT_CAMPAIGN_SPEC = ROOT / "campaigns/selected128_alpha_tuned_v1.json"
-DEFAULT_OUTPUT_DIR = ROOT / "results/ms_scale_control/selected128_alpha_tuned_v1_raw"
+DEFAULT_CAMPAIGN_SPEC = ROOT / f"campaigns/{SELECTED128_CAMPAIGN_NAME}.json"
+DEFAULT_OUTPUT_DIR = ROOT / f"results/ms_scale_control/{SELECTED128_CAMPAIGN_NAME}_raw"
 
 
 def parse_args(argv=None):
@@ -105,7 +107,7 @@ def main(argv=None):
             "--settle-ms",
             "500",
             "--measurement-ms",
-            "8000",
+            str(int(SELECTED128_FORMAL_MEASUREMENT_MS)),
             "--block-ms",
             "500",
             "--max-workers",

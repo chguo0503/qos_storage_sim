@@ -35,10 +35,10 @@ from ms_scale_control_experiment import (
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-DEFAULT_CAMPAIGN_SPEC = Path("campaigns/selected128_alpha_tuned_v1.json")
-DEFAULT_RAW_DIR = Path("results/ms_scale_control/selected128_alpha_tuned_v1_raw")
+DEFAULT_CAMPAIGN_SPEC = Path("campaigns/selected128_alpha_tuned_v2.json")
+DEFAULT_RAW_DIR = Path("results/ms_scale_control/selected128_alpha_tuned_v2_raw")
 DEFAULT_OUTPUT_DIR = Path(
-    "results/ms_scale_control/selected128_alpha_tuned_v1_public_raw"
+    "results/ms_scale_control/selected128_alpha_tuned_v2_public_raw"
 )
 MANIFEST_RELATIVE_PATH = Path("publication") / "manifest.json"
 PUBLICATION_SCHEMA_VERSION = 1

@@ -9,6 +9,7 @@ runner, so adding or running it cannot expand the runner's source closure.
 from __future__ import annotations
 
 import argparse
+from copy import deepcopy
 import csv
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -29,10 +30,10 @@ from ms_scale_control_experiment import (
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-DEFAULT_CAMPAIGN_SPEC = Path("campaigns/selected128_alpha_tuned_v1.json")
-DEFAULT_RAW_DIR = Path("results/ms_scale_control/selected128_alpha_tuned_v1_raw")
+DEFAULT_CAMPAIGN_SPEC = Path("campaigns/selected128_alpha_tuned_v2.json")
+DEFAULT_RAW_DIR = Path("results/ms_scale_control/selected128_alpha_tuned_v2_public_raw")
 DEFAULT_OUTPUT_DIR = Path(
-    "results/ms_scale_control/selected128_alpha_tuned_v1_analysis"
+    "results/ms_scale_control/selected128_alpha_tuned_v2_analysis"
 )
 EXPERIMENT = "128npu_selected_cir_control_alpha_tuned_v1"
 DEFINITION = "selected128"
@@ -45,7 +46,8 @@ SEED = 42
 BACKING_REQUESTS_PER_NPU = 128
 WARMUP_REQUESTS_PER_NPU = 8
 SETTLE_MS = 500.0
-MEASUREMENT_MS = 8_000.0
+MEASUREMENT_MS = 16_000.0
+DEFINITION_DEFAULT_MEASUREMENT_MS = 8_000.0
 BLOCK_MS = 500.0
 PRIMARY_ALPHA = 2.0
 SENSITIVITY_ALPHA = 1.5
@@ -408,7 +410,7 @@ def _expected_definition() -> dict[str, object]:
         "default_ssus": list(SSUS),
         "cases": [case.case_dict() for case in CASES],
         "default_requests_per_npu": BACKING_REQUESTS_PER_NPU,
-        "default_measurement_ms": MEASUREMENT_MS,
+        "default_measurement_ms": DEFINITION_DEFAULT_MEASUREMENT_MS,
         "adaptive": {
             "controller": "AdaptiveAdmissionSchemeBControllerV2_1",
             "explicit_spill_threshold": 0.75,
@@ -1602,7 +1604,7 @@ def _build_outputs(
     summary_digest = sha256(summary_text.encode()).hexdigest()
     manifest = {
         "schema_version": 1,
-        "analysis": "selected128_alpha_tuned_summary_v1",
+        "analysis": "selected128_alpha_tuned_summary_v2",
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "complete": True,
         "num_npu": NUM_NPU,
@@ -1718,6 +1720,7 @@ def _synthetic_documents() -> tuple[list[ShardDocument], CampaignDocument]:
         "num_npu": NUM_NPU,
         "scale_semantics": {
             "num_npu": NUM_NPU,
+            "naked_128_means": "128 NPU",
             "backing_requests_per_npu": BACKING_REQUESTS_PER_NPU,
             "total_assignment_count": NUM_NPU * BACKING_REQUESTS_PER_NPU,
         },
@@ -1867,8 +1870,8 @@ def _synthetic_documents() -> tuple[list[ShardDocument], CampaignDocument]:
                 "invariants": {name: True for name in EXPECTED_INVARIANTS},
                 "warmup_reached_ms": 500.0,
                 "measurement_start_ms": 1_000.0,
-                "measurement_end_ms": 9_000.0,
-                "drain_stop_ms": 9_100.0,
+                "measurement_end_ms": 1_000.0 + MEASUREMENT_MS,
+                "drain_stop_ms": 1_100.0 + MEASUREMENT_MS,
                 "tail_drain_ms": 100.0,
                 "request_rows": request_rows,
                 "request_counts_by_npu": [1] * NUM_NPU,
@@ -1876,7 +1879,7 @@ def _synthetic_documents() -> tuple[list[ShardDocument], CampaignDocument]:
                 "ttft_slo_attainment": 1.0,
                 "request_weighted_slo_attainment": 1.0,
                 "npu_utilizations": [0.5] * NUM_NPU,
-                "compute_ms_by_npu": [4_000.0] * NUM_NPU,
+                "compute_ms_by_npu": [0.5 * MEASUREMENT_MS] * NUM_NPU,
                 "mean_npu_utilization": 0.5,
                 "measurement_pressure_reports": pressure,
                 "measurement_control_evaluations": evaluations,
@@ -2037,6 +2040,51 @@ def _synthetic_summary_variant(
     ]
 
 
+def _reauthenticate_synthetic_spec(payload: dict[str, object]) -> None:
+    """Recompute dependent hashes after an adversarial spec mutation."""
+
+    config_fingerprint = _canonical_hash(
+        payload["experiment_spec"], b"ms-scale-control-config:v1\0"
+    )
+    payload["config_fingerprint"] = config_fingerprint
+    payload["ending_config_fingerprint"] = config_fingerprint
+    for row in payload["results"]:
+        row["config_fingerprint"] = config_fingerprint
+        row["case_fingerprint"] = _canonical_hash(
+            {
+                "case": row["case_spec"],
+                "num_ssu": row["num_ssu"],
+                "source_fingerprint": payload["source_fingerprint"],
+                "config_fingerprint": config_fingerprint,
+            },
+            b"ms-scale-control-case:v1\0",
+        )
+
+
+def _require_canonical_mutation_rejected(
+    payload: Mapping[str, object],
+    campaign_sha256: str,
+    mutate,
+    context: str,
+    *,
+    reauthenticate_spec: bool = False,
+) -> None:
+    mutated = deepcopy(payload)
+    mutate(mutated)
+    if reauthenticate_spec:
+        _reauthenticate_synthetic_spec(mutated)
+    rejected = False
+    try:
+        validate_selected128_formal_payload(
+            mutated,
+            expected_ssu=mutated["selected_ssus"][0],
+            expected_campaign_sha256=campaign_sha256,
+        )
+    except (AttributeError, KeyError, TypeError, ValueError):
+        rejected = True
+    _require(rejected, f"canonical formal validator accepted {context}")
+
+
 def _self_test() -> dict[str, object]:
     documents, campaign = _synthetic_documents()
     rows, provenance = _validate_shards(documents, campaign)
@@ -2076,8 +2124,8 @@ def _self_test() -> dict[str, object]:
         summary_updates={
             "warmup_reached_ms": 750.0,
             "measurement_start_ms": 1_250.0,
-            "measurement_end_ms": 9_250.0,
-            "drain_stop_ms": 9_350.0,
+            "measurement_end_ms": 1_250.0 + MEASUREMENT_MS,
+            "drain_stop_ms": 1_350.0 + MEASUREMENT_MS,
             "tail_drain_ms": 100.0,
         },
         request_time_shift_ms=250.0,
@@ -2094,8 +2142,8 @@ def _self_test() -> dict[str, object]:
         summary_updates={
             "warmup_reached_ms": 800.0,
             "measurement_start_ms": 1_300.0,
-            "measurement_end_ms": 9_300.0,
-            "drain_stop_ms": 9_400.0,
+            "measurement_end_ms": 1_300.0 + MEASUREMENT_MS,
+            "drain_stop_ms": 1_400.0 + MEASUREMENT_MS,
             "tail_drain_ms": 100.0,
         },
         request_time_shift_ms=300.0,
@@ -2136,8 +2184,8 @@ def _self_test() -> dict[str, object]:
         case_name="baseline",
         summary_updates={
             "measurement_start_ms": 1_001.0,
-            "measurement_end_ms": 9_001.0,
-            "drain_stop_ms": 9_101.0,
+            "measurement_end_ms": 1_001.0 + MEASUREMENT_MS,
+            "drain_stop_ms": 1_101.0 + MEASUREMENT_MS,
             "tail_drain_ms": 100.0,
         },
         request_time_shift_ms=1.0,
@@ -2173,6 +2221,50 @@ def _self_test() -> dict[str, object]:
     except SummaryError:
         rejected = True
     _require(rejected, "self-test failed to reject a false invariant")
+
+    canonical_payload = documents[0].payload
+    _require_canonical_mutation_rejected(
+        canonical_payload,
+        campaign.sha256,
+        lambda payload: payload.__setitem__("backing_requests_per_npu", 127),
+        "a wrong top-level backing request count",
+    )
+    _require_canonical_mutation_rejected(
+        canonical_payload,
+        campaign.sha256,
+        lambda payload: payload.__setitem__("total_assignment_count", 128 * 127),
+        "a wrong top-level assignment count",
+    )
+    _require_canonical_mutation_rejected(
+        canonical_payload,
+        campaign.sha256,
+        lambda payload: payload["results"][0].__setitem__(
+            "backing_requests_per_npu", 127
+        ),
+        "a wrong row backing request count",
+    )
+
+    def mutate_experiment(payload):
+        payload["experiment_spec"]["experiment"] = "wrong_experiment"
+
+    def mutate_scale_backing(payload):
+        payload["experiment_spec"]["scale_semantics"]["backing_requests_per_npu"] = 127
+
+    def mutate_workload_backing(payload):
+        payload["experiment_spec"]["workload"]["requests_per_npu"] = 127
+
+    for mutate, context in (
+        (mutate_experiment, "a reauthenticated wrong experiment name"),
+        (mutate_scale_backing, "a reauthenticated wrong scale backing"),
+        (mutate_workload_backing, "a reauthenticated wrong workload backing"),
+    ):
+        _require_canonical_mutation_rejected(
+            canonical_payload,
+            campaign.sha256,
+            mutate,
+            context,
+            reauthenticate_spec=True,
+        )
     return {
         "self_test": "passed",
         "valid_rows": len(rows),
@@ -2184,6 +2276,7 @@ def _self_test() -> dict[str, object]:
         "warmup_over_50pct_marked_for_review": True,
         "invalid_phase_timing_rejected": invalid_timing_rejected,
         "false_invariant_rejected": True,
+        "formal_scale_mutations_rejected": True,
         "portable_provenance_checked": bool(provenance["shards"]),
     }
 

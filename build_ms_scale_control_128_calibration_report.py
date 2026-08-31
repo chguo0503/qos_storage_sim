@@ -29,8 +29,6 @@ from ms_scale_control_experiment import (
     THREAD_LIMIT_ENVIRONMENT,
     _definition_fingerprint,
     _selected128_definition,
-    _source_fingerprint,
-    _source_manifest,
     runtime_merge_identity,
 )
 
@@ -51,6 +49,35 @@ TARGET_TOKEN = {
     0.68: "0680",
     0.6866666666666666: "0686667",
     0.70: "0700",
+}
+HISTORICAL_DEFINITION_FINGERPRINTS = {
+    0.68: "b3a74eb21c0ea953b06fd95e6c61bd1233b19714f8a0f523edf422a4604ae191",
+    0.6866666666666666: "d2535e6b4860ed6e1a574236ae3caa85476d6ee9f35350dd9668ed2cd0525266",
+    0.70: "3aa89bc0eb82c553951ee056e84f68fa050f1cdec030425b20c82f6a8fffa497",
+}
+HISTORICAL_SOURCE_FINGERPRINT = (
+    "7fc63b4110c9a7161be79945e03fa06c037f883ead61379b96cb51c7cc3ec900"
+)
+HISTORICAL_SOURCE_COMMIT = "426a3d843a66cface373b291c4e1ecc7f55774d5"
+HISTORICAL_SOURCE_MANIFEST = {
+    "adaptive_admission_scheme_b_v2_1.py": "7b336d145d898e2bcb646a560529b04da01231afa31a6f5136dda199727a18fb",
+    "authenticated_workload_inputs.py": "d3b2f9917108916164006b70a6f7f2687911484f3231da1cd3328211b86ac95f",
+    "continuous_batch_control.py": "fe7ee3933ba37362cf7b67e1c39c9f4720bd682a66bd008b57c06aa72076591f",
+    "continuous_batch_sim.py": "1aaa11b3d2b4cf3e8ad85786e41a7288f511ab355271cc2ce864e9a8e953a546",
+    "continuous_prefill_client.py": "04a8c4dc2d6430ff803b43127007c6fcb58d1279b4c260468425c3899ed0c9da",
+    "continuous_prefill_workload.py": "65c901ed1d63df88b4ccf35d309e586d563e470a3874ae0d1da2b221f2b5b5de",
+    "data": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+    "forecast_hotspot_policy.py": "60504451631cadfbca01be4ff636d8f08e3c3e6c20027cc801216dabb2f83139",
+    "ms_scale_control_experiment.py": "85b5719c655e34b7e041da6980137afbb205f62e0d5e07b59283ccfa0d5f1b54",
+    "policy_logic.py": "fb72249119635558a8db6efbc12e9dbc33e4a065327c558b15e49bb996f5d229",
+    "protected_floor_scheme_b.py": "517fb28e589a25117483b45ec17d37137768489e44d9af17ee74ffeb1af481ed",
+    "random_steady_state_workload.py": "70284f3ede4097453338e396ec0a0d252909be6999ec158d854d36b7df015607",
+    "scheme_b_prefill.py": "4cb650e8d8e9a0b08c8928fee3a9e25ea1c6204dd825a77b14a57764912ea740",
+    "sim.py": "4e94f0ca96786621b75bfe46a16183ab9696706b8ecbb3391bfd0813b67a5ff7",
+    "six_request_workload.py": "f5d3654d5ce3aa86858d4b6d8695054354d98b1ed84863dc63e05d3ab3fb2e26",
+    "slo_admission_scheme_b.py": "64774141a2d0c576a1643703d923baf23193327f2ed2153516e1f37bc8a174d8",
+    "slo_admission_scheme_b_v2.py": "48b9801f706f310d7592040ff6c077495a8ae56d16fd3047e4de5a240f9d6195",
+    "strategy_profiles.py": "d72d471d08fb0d28ab2412cc24fa69b52fd15677c859fd43bafbcf66bdddc2fb",
 }
 FORMAL_TARGET = 1.0 / 1.5 + 0.02
 SSUS = (16, 20, 24)
@@ -515,7 +542,7 @@ def _validate_source(
     manifest = payload.get("source_manifest")
     _require(
         manifest == expected_manifest,
-        f"{context}: source manifest differs from checkout",
+        f"{context}: source manifest differs from frozen calibration source",
     )
     recomputed = _canonical_hash(manifest, b"ms-scale-control-source:v1\0")
     _require(
@@ -1384,8 +1411,8 @@ def _validate_grid(
     _require(
         len(shards) == 9, f"expected exactly nine calibration shards, got {len(shards)}"
     )
-    expected_manifest = _source_manifest()
-    expected_source_fingerprint = _source_fingerprint()
+    expected_manifest = HISTORICAL_SOURCE_MANIFEST
+    expected_source_fingerprint = HISTORICAL_SOURCE_FINGERPRINT
     cells: dict[tuple[float, int], dict[str, object]] = {}
     evidence: dict[tuple[float, int], dict[str, object]] = {}
     for shard in shards:
@@ -2262,8 +2289,8 @@ def _synthetic_runtime() -> dict[str, object]:
 
 
 def _synthetic_documents() -> list[ShardDocument]:
-    source_manifest = _source_manifest()
-    source_fingerprint = _source_fingerprint()
+    source_manifest = dict(HISTORICAL_SOURCE_MANIFEST)
+    source_fingerprint = HISTORICAL_SOURCE_FINGERPRINT
     catalog_rows = []
     profile_keys = []
     for index in range(84):
@@ -2571,6 +2598,19 @@ def _synthetic_documents() -> list[ShardDocument]:
 
 def _self_test() -> dict[str, object]:
     _require(
+        _canonical_hash(HISTORICAL_SOURCE_MANIFEST, b"ms-scale-control-source:v1\0")
+        == HISTORICAL_SOURCE_FINGERPRINT,
+        "historical calibration source manifest fingerprint changed",
+    )
+    for target, expected_fingerprint in HISTORICAL_DEFINITION_FINGERPRINTS.items():
+        definition = _definition(target)
+        _require(
+            definition.experiment_name == EXPERIMENT
+            and definition.default_measurement_ms == 8_000.0
+            and _definition_fingerprint(definition) == expected_fingerprint,
+            f"historical definition identity changed for target {target}",
+        )
+    _require(
         _fraction(math.nextafter(1.0, math.inf), "self-test upper roundoff") == 1.0
         and _fraction(math.nextafter(0.0, -math.inf), "self-test lower roundoff")
         == 0.0,
@@ -2586,6 +2626,10 @@ def _self_test() -> dict[str, object]:
         "self-test accepted a material fraction-domain violation",
     )
     rule = _read_rule(DEFAULT_RULE_PATH)
+    _require(
+        rule.document["formal_source_commit"] == HISTORICAL_SOURCE_COMMIT,
+        "calibration rule no longer binds the frozen source commit",
+    )
     documents = _synthetic_documents()
     cells, evidence, common = _validate_grid(documents)
     _require(len(cells) == 9, "self-test did not produce nine cells")
@@ -2697,6 +2741,9 @@ def _self_test() -> dict[str, object]:
         "portable_json_csv_markdown_checked": True,
         "fraction_roundoff_clamped": True,
         "material_fraction_violation_rejected": True,
+        "historical_definition_fingerprints_checked": True,
+        "historical_source_fingerprint_checked": True,
+        "historical_source_commit_checked": True,
         "formal_campaign_modified": False,
     }
 

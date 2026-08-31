@@ -63,13 +63,29 @@ def _steady_resource_overlap_within_bounds(busy_ms, duration_ms):
 
 def _steady_accounting_numeric_contract():
     """Self-test the tolerance used for cumulative steady-state accounting."""
-    duration_ms = 8000.0
-    two_ulp_above = math.nextafter(
-        math.nextafter(duration_ms, math.inf), math.inf
+    duration_ms = 16000.0
+    two_ulp_above = math.nextafter(math.nextafter(duration_ms, math.inf), math.inf)
+    historical_duration_ms = 8000.0
+    historical_two_ulp_above = math.nextafter(
+        math.nextafter(historical_duration_ms, math.inf), math.inf
+    )
+    block_duration_ms = 500.0
+    block_two_ulp_above = math.nextafter(
+        math.nextafter(block_duration_ms, math.inf), math.inf
     )
     checks = {
         "two_ulp_residual_accepted": _steady_resource_overlap_within_bounds(
             two_ulp_above, duration_ms
+        ),
+        "historical_two_ulp_residual_accepted": (
+            _steady_resource_overlap_within_bounds(
+                historical_two_ulp_above, historical_duration_ms
+            )
+        ),
+        "stationarity_block_two_ulp_residual_accepted": (
+            _steady_resource_overlap_within_bounds(
+                block_two_ulp_above, block_duration_ms
+            )
         ),
         "positive_boundary_accepted": _steady_resource_overlap_within_bounds(
             duration_ms + STEADY_ACCOUNTING_TOLERANCE_MS, duration_ms
@@ -99,6 +115,14 @@ def _steady_accounting_numeric_contract():
         "tolerance_ms": STEADY_ACCOUNTING_TOLERANCE_MS,
         "tested_duration_ms": duration_ms,
         "two_ulp_residual_ms": two_ulp_above - duration_ms,
+        "historical_duration_ms": historical_duration_ms,
+        "historical_two_ulp_residual_ms": (
+            historical_two_ulp_above - historical_duration_ms
+        ),
+        "stationarity_block_duration_ms": block_duration_ms,
+        "stationarity_block_two_ulp_residual_ms": (
+            block_two_ulp_above - block_duration_ms
+        ),
         "checks": checks,
         "passed": True,
     }

@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "campaign": "selected128_alpha_tuned_v2",
+  "purpose": "Scale the selected 32-NPU CIR-control curve to 128 NPUs, evaluate alpha-specific Adaptive admission floors, and use a 16-second window that covers all 128 NPUs at the SSU=8 overload endpoint.",
+  "topology": {
+    "num_npu": 128,
+    "n_layers": 16,
+    "batch_size": 1,
+    "ssu_counts": [8, 12, 16, 20, 24, 40, 72],
+    "ssu_rationale": "Exact four-times mapping of the final 32-NPU points 2,3,4,5,6,10,18; it spans severe overload, the 20-24 SSU capacity knee, and a light-load endpoint."
+  },
+  "workload": {
+    "seed": 42,
+    "requests_per_npu": 128,
+    "scientific_prefix_requests_per_npu": 32,
+    "warmup_requests_per_npu": 8,
+    "settle_ms": 500.0,
+    "measurement_ms": 16000.0,
+    "stationarity_block_ms": 500.0
+  },
+  "common_cases": [
+    "baseline",
+    "layer_once_ttl_0ms",
+    "layer_once_ttl_2ms",
+    "layer_once_ttl_5ms"
+  ],
+  "adaptive": {
+    "interval_semantics": "event-gated minimum spacing between controller evaluations, not periodic CIR writes",
+    "intervals_ms": [25.0, 100.0, 200.0],
+    "cir_write_threshold_gbps": 0.0,
+    "explicit_spill_threshold": 0.75,
+    "background_reserve_fraction": 0.05,
+    "alpha_1p5_profile": {
+      "tuning_slo_alpha": 1.5,
+      "required_ratio": 0.6666666666666666,
+      "target_ratio": 0.6866666666666666,
+      "target_margin_ratio": 0.02
+    },
+    "alpha_2_profile": {
+      "tuning_slo_alpha": 2.0,
+      "required_ratio": 0.5,
+      "target_ratio": 0.52,
+      "target_margin_ratio": 0.02
+    }
+  },
+  "metrics": {
+    "primary_recorded_slo_alpha": 2.0,
+    "postprocessed_slo_alphas": [1.5, 2.0],
+    "slo_aggregation": "equal NPU",
+    "plots": [
+      "mean NPU utilization versus SSU count",
+      "TTFT SLO attainment at 1.5x ideal versus SSU count",
+      "TTFT SLO attainment at 2x ideal versus SSU count"
+    ]
+  },
+  "execution": {
+    "multiprocessing_start_method": "spawn",
+    "threads_per_blas_runtime": 1,
+    "required_environment": {
+      "OPENBLAS_NUM_THREADS": "1",
+      "OMP_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1"
+    },
+    "runtime_identity": {
+      "python_implementation": "CPython",
+      "python_version": "3.14.4",
+      "numpy_version": "2.5.2",
+      "blas_name": "scipy-openblas",
+      "blas_version": "0.3.34.0.0",
+      "openblas_configuration": "OpenBLAS 0.3.34.0.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY SkylakeX MAX_THREADS=64"
+    },
+    "formal_max_workers_per_shard": 3,
+    "formal_concurrent_shards": 2,
+    "checkpoint_rule": "one atomic JSON output per SSU; never let two processes share an output path"
+  }
+}
