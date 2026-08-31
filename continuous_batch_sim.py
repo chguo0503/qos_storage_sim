@@ -39,11 +39,69 @@ CIR_CONTROL = 2.5
 COMPUTE_SCHEDULE = 2.75
 CAUSAL_LAYER_CONTROL = 2.875
 _EPS = sim._EPS
+STEADY_ACCOUNTING_TOLERANCE_MS = 1e-8
 
 EXECUTION_MODEL = "full_prefill_layer_synchronous_microbatch_v1"
 BATCH_COMPUTE_MODEL = "sum_member_singleton_layer_ms"
 PARTIAL_BATCH_POLICY = "wait_for_full_then_drain_final_partial"
 PREFETCH_POLICY = "next_layer_at_batch_compute_start"
+
+
+def _steady_resource_overlap_within_bounds(busy_ms, duration_ms):
+    """Accept only finite resource accounting within a tiny absolute tolerance."""
+    busy_ms = float(busy_ms)
+    duration_ms = float(duration_ms)
+    return (
+        math.isfinite(busy_ms)
+        and math.isfinite(duration_ms)
+        and duration_ms >= 0.0
+        and -STEADY_ACCOUNTING_TOLERANCE_MS
+        <= busy_ms
+        <= duration_ms + STEADY_ACCOUNTING_TOLERANCE_MS
+    )
+
+
+def _steady_accounting_numeric_contract():
+    """Self-test the tolerance used for cumulative steady-state accounting."""
+    duration_ms = 8000.0
+    two_ulp_above = math.nextafter(
+        math.nextafter(duration_ms, math.inf), math.inf
+    )
+    checks = {
+        "two_ulp_residual_accepted": _steady_resource_overlap_within_bounds(
+            two_ulp_above, duration_ms
+        ),
+        "positive_boundary_accepted": _steady_resource_overlap_within_bounds(
+            duration_ms + STEADY_ACCOUNTING_TOLERANCE_MS, duration_ms
+        ),
+        "negative_boundary_accepted": _steady_resource_overlap_within_bounds(
+            -STEADY_ACCOUNTING_TOLERANCE_MS, duration_ms
+        ),
+        "positive_material_excess_rejected": not _steady_resource_overlap_within_bounds(
+            duration_ms + 2.0 * STEADY_ACCOUNTING_TOLERANCE_MS, duration_ms
+        ),
+        "negative_material_excess_rejected": not _steady_resource_overlap_within_bounds(
+            -2.0 * STEADY_ACCOUNTING_TOLERANCE_MS, duration_ms
+        ),
+        "nan_rejected": not _steady_resource_overlap_within_bounds(
+            math.nan, duration_ms
+        ),
+        "infinity_rejected": not _steady_resource_overlap_within_bounds(
+            math.inf, duration_ms
+        ),
+    }
+    if not all(checks.values()):
+        failed = [name for name, passed in checks.items() if not passed]
+        raise AssertionError(
+            "steady accounting numeric contract failed: " + ", ".join(failed)
+        )
+    return {
+        "tolerance_ms": STEADY_ACCOUNTING_TOLERANCE_MS,
+        "tested_duration_ms": duration_ms,
+        "two_ulp_residual_ms": two_ulp_above - duration_ms,
+        "checks": checks,
+        "passed": True,
+    }
 
 
 @dataclass(frozen=True)
@@ -2693,7 +2751,7 @@ def _build_stationarity_metrics(
         )
     )
     block_resource_bounds = all(
-        -1e-8 <= value <= duration_ms + 1e-8
+        _steady_resource_overlap_within_bounds(value, duration_ms)
         for row, (_, _, duration_ms) in zip(resource_rows, block_bounds)
         for field in (
             "ssd_busy_ms_by_ssu",
@@ -2928,10 +2986,12 @@ def _build_steady_state_summary(context: _Context, current_time_ms, events_proce
         == exact_measurement_request_ids,
         "no_backlog_exhaustion": not context.steady_backlog_exhausted,
         "compute_overlap_bounds": all(
-            -_EPS <= busy_ms <= duration_ms + _EPS for busy_ms in compute_ms_by_npu
+            _steady_resource_overlap_within_bounds(busy_ms, duration_ms)
+            for busy_ms in compute_ms_by_npu
         ),
         "ssd_overlap_bounds": all(
-            -_EPS <= busy_ms <= duration_ms + _EPS for busy_ms in disk_busy_ms_by_ssu
+            _steady_resource_overlap_within_bounds(busy_ms, duration_ms)
+            for busy_ms in disk_busy_ms_by_ssu
         ),
         "ssd_service_attribution": all(
             math.isclose(
@@ -2943,7 +3003,8 @@ def _build_steady_state_summary(context: _Context, current_time_ms, events_proce
             for ssu_id in range(context.num_ssu)
         ),
         "npu_link_overlap_bounds": all(
-            -_EPS <= busy_ms <= duration_ms + _EPS for busy_ms in link_busy_ms_by_npu
+            _steady_resource_overlap_within_bounds(busy_ms, duration_ms)
+            for busy_ms in link_busy_ms_by_npu
         ),
         "npu_link_service_attribution": all(
             math.isclose(
@@ -2974,7 +3035,27 @@ def _build_steady_state_summary(context: _Context, current_time_ms, events_proce
         diagnostics = {
             "measurement_start_ms": window_start_ms,
             "measurement_end_ms": window_end_ms,
+            "measurement_duration_ms": duration_ms,
             "drain_stop_ms": current_time_ms,
+            "measurement_ssd_busy_ms_by_ssu": disk_busy_ms_by_ssu,
+            "measurement_ssd_busy_excess_ms_by_ssu": [
+                busy_ms - duration_ms for busy_ms in disk_busy_ms_by_ssu
+            ],
+            "measurement_ssd_cumulative_busy_start_ms_by_ssu": list(
+                context.measurement_disk_busy_start_ms
+            ),
+            "measurement_ssd_cumulative_busy_end_ms_by_ssu": list(
+                context.measurement_disk_busy_end_ms
+            ),
+            "stationarity_whole_ssd_busy_ms_by_ssu": stationarity[
+                "whole_ssd_busy_ms"
+            ],
+            "ssd_overlap_tolerance_ms": STEADY_ACCOUNTING_TOLERANCE_MS,
+            "ssd_overlap_offending_ssu_ids": [
+                ssu_id
+                for ssu_id, busy_ms in enumerate(disk_busy_ms_by_ssu)
+                if not _steady_resource_overlap_within_bounds(busy_ms, duration_ms)
+            ],
             "completed_by_npu_at_stop": list(context.completed_by_npu),
             "request_counts_by_npu": request_counts_by_npu,
             "actual_cir_sum_gbps_by_ssu_at_stop": list(

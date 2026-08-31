@@ -43,6 +43,7 @@ from adaptive_admission_scheme_b_v2_1 import (
 from continuous_batch_sim import (
     CIRControlConfig,
     SteadyStateConfig,
+    _steady_accounting_numeric_contract,
     requests_from_continuous_prefill_workload,
     simulate_continuous_batch,
 )
@@ -1221,6 +1222,7 @@ def _init_worker(
         raise RuntimeError(
             f"worker start method {actual_method!r} != {mp_start_method!r}"
         )
+    _steady_accounting_numeric_contract()
     _validate_path_abi(definition)
     table, authentication = load_authenticated_bw_table(definition.num_npu)
     if authentication != input_authentication:
@@ -2471,6 +2473,7 @@ def _worker_probe():
             _WORKER_CONTEXT.input_authentication
         ),
         "path_abi": _validate_path_abi(_WORKER_CONTEXT.definition),
+        "steady_accounting_numeric_contract": _steady_accounting_numeric_contract(),
         "runtime": _runtime_provenance(_WORKER_CONTEXT.mp_start_method),
     }
 
