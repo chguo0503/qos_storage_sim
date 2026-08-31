@@ -14,6 +14,7 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from contextlib import redirect_stdout
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
+import fcntl
 import hashlib
 import io
 import json
@@ -69,6 +70,12 @@ ROOT = Path(__file__).resolve().parent
 SCHEMA_VERSION = 3
 DEFAULT_SEED = 42
 SCIENTIFIC_PREFIX_REQUESTS_PER_NPU = 32
+THREAD_LIMIT_ENVIRONMENT = (
+    "OPENBLAS_NUM_THREADS",
+    "OMP_NUM_THREADS",
+    "MKL_NUM_THREADS",
+    "NUMEXPR_NUM_THREADS",
+)
 
 
 @dataclass(frozen=True)
@@ -196,12 +203,54 @@ class AdaptiveDefinition:
         )
         if any(not math.isfinite(value) for value in finite):
             raise ValueError("Adaptive controller constants must be finite")
-        if not 0.0 <= self.explicit_spill_threshold <= 1.0:
-            raise ValueError("explicit_spill_threshold must be in [0, 1]")
+        if not 0.0 < self.explicit_spill_threshold <= 1.0:
+            raise ValueError("explicit_spill_threshold must be in (0, 1]")
         if not 0.0 <= self.background_reserve_fraction < 1.0:
             raise ValueError("background_reserve_fraction must be in [0, 1)")
-        if self.target_ratio <= 0.0 or self.required_ratio <= 0.0:
-            raise ValueError("Adaptive ratios must be positive")
+        if not 0.0 < self.required_ratio <= self.target_ratio <= 1.0:
+            raise ValueError("Adaptive ratios must satisfy 0 < required <= target <= 1")
+
+
+@dataclass(frozen=True, kw_only=True)
+class AdaptiveCase(Case):
+    """Adaptive case with an explicit SLO-specific controller profile."""
+
+    tuning_slo_alpha: float = 2.0
+    explicit_spill_threshold: float = 0.75
+    target_ratio: float = 0.52
+    required_ratio: float = 0.50
+    background_reserve_fraction: float = 0.05
+
+    def __post_init__(self):
+        super().__post_init__()
+        if self.kind != "adaptive":
+            raise ValueError("AdaptiveCase must use kind='adaptive'")
+        if not math.isfinite(self.tuning_slo_alpha) or self.tuning_slo_alpha <= 0.0:
+            raise ValueError("Adaptive tuning SLO alpha must be positive")
+        expected_required = 1.0 / self.tuning_slo_alpha
+        if not math.isclose(
+            self.required_ratio,
+            expected_required,
+            rel_tol=0.0,
+            abs_tol=1e-12,
+        ):
+            raise ValueError(
+                "Adaptive required_ratio must equal the reciprocal tuning alpha"
+            )
+        AdaptiveDefinition(
+            explicit_spill_threshold=self.explicit_spill_threshold,
+            target_ratio=self.target_ratio,
+            required_ratio=self.required_ratio,
+            background_reserve_fraction=self.background_reserve_fraction,
+        )
+
+    def controller_definition(self):
+        return AdaptiveDefinition(
+            explicit_spill_threshold=self.explicit_spill_threshold,
+            target_ratio=self.target_ratio,
+            required_ratio=self.required_ratio,
+            background_reserve_fraction=self.background_reserve_fraction,
+        )
 
 
 @dataclass(frozen=True)
@@ -357,6 +406,273 @@ PFO32_DEFINITION = ExperimentDefinition(
 )
 
 
+SELECTED128_SSUS = (8, 12, 16, 20, 24, 40, 72)
+SELECTED128_INTERVALS_MS = (25.0, 100.0, 200.0)
+SELECTED128_ALPHA1P5_REQUIRED_RATIO = 1.0 / 1.5
+SELECTED128_ALPHA1P5_TARGET_RATIO = SELECTED128_ALPHA1P5_REQUIRED_RATIO + 0.02
+SELECTED128_FORMAL_MAX_WORKERS = 3
+SELECTED128_EXPECTED_RUNTIME_IDENTITY = {
+    "python_implementation": "CPython",
+    "python_version": "3.14.4",
+    "numpy_version": "2.5.2",
+    "blas_name": "scipy-openblas",
+    "blas_version": "0.3.34.0.0",
+    "openblas_configuration": (
+        "OpenBLAS 0.3.34.0.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY "
+        "SkylakeX MAX_THREADS=64"
+    ),
+}
+
+
+def _selected128_definition(
+    *,
+    alpha1p5_target_ratio=SELECTED128_ALPHA1P5_TARGET_RATIO,
+    alpha1p5_spill_threshold=0.75,
+):
+    """Ten cases supporting seven plotted policies at each SLO threshold."""
+
+    cases = [
+        Case("baseline", "baseline", "baseline"),
+        Case("layer_once_ttl_0ms", "ttl", "layer_once", 0.0),
+        Case("layer_once_ttl_2ms", "ttl", "layer_once", 2.0),
+        Case("layer_once_ttl_5ms", "ttl", "layer_once", 5.0),
+    ]
+    for alpha_name, alpha, target_ratio, required_ratio in (
+        (
+            "a1p5",
+            1.5,
+            float(alpha1p5_target_ratio),
+            SELECTED128_ALPHA1P5_REQUIRED_RATIO,
+        ),
+        ("a2", 2.0, 0.52, 0.50),
+    ):
+        for interval_ms in SELECTED128_INTERVALS_MS:
+            interval_name = int(interval_ms)
+            cases.append(
+                AdaptiveCase(
+                    name=f"adaptive_{alpha_name}_t0_i{interval_name}ms",
+                    family=f"adaptive_alpha_{alpha_name}",
+                    kind="adaptive",
+                    pressure_ttl_ms=0.0,
+                    cir_write_threshold_gbps=0.0,
+                    min_interval_ms=interval_ms,
+                    tuning_slo_alpha=alpha,
+                    explicit_spill_threshold=(
+                        float(alpha1p5_spill_threshold) if alpha == 1.5 else 0.75
+                    ),
+                    target_ratio=target_ratio,
+                    required_ratio=required_ratio,
+                    background_reserve_fraction=0.05,
+                )
+            )
+    return ExperimentDefinition(
+        key="selected128",
+        experiment_name="128npu_selected_cir_control_alpha_tuned_v1",
+        num_npu=128,
+        n_layers=16,
+        batch_size=1,
+        default_ssus=SELECTED128_SSUS,
+        cases=tuple(cases),
+        default_requests_per_npu=128,
+        default_measurement_ms=8_000.0,
+        require_single_ssu_simulation=True,
+    )
+
+
+def _require_exact_keys(value, expected_keys, context):
+    if not isinstance(value, dict) or set(value) != set(expected_keys):
+        actual = sorted(value) if isinstance(value, dict) else type(value).__name__
+        raise ValueError(
+            f"{context} keys differ: expected {sorted(expected_keys)}, got {actual}"
+        )
+
+
+def validate_selected128_campaign_document(document):
+    """Strictly validate every semantic field in the formal v1 campaign."""
+
+    top_keys = {
+        "schema_version",
+        "campaign",
+        "purpose",
+        "topology",
+        "workload",
+        "common_cases",
+        "adaptive",
+        "metrics",
+        "execution",
+    }
+    _require_exact_keys(document, top_keys, "selected128 campaign")
+    if document["schema_version"] != 1:
+        raise ValueError("selected128 campaign schema_version must equal 1")
+    if document["campaign"] != "selected128_alpha_tuned_v1":
+        raise ValueError("selected128 campaign name is not the frozen v1 name")
+    if not isinstance(document["purpose"], str) or not document["purpose"].strip():
+        raise ValueError("selected128 campaign purpose must be non-empty")
+
+    topology = document["topology"]
+    _require_exact_keys(
+        topology,
+        {"num_npu", "n_layers", "batch_size", "ssu_counts", "ssu_rationale"},
+        "selected128 topology",
+    )
+    if {
+        "num_npu": topology["num_npu"],
+        "n_layers": topology["n_layers"],
+        "batch_size": topology["batch_size"],
+        "ssu_counts": topology["ssu_counts"],
+    } != {
+        "num_npu": 128,
+        "n_layers": 16,
+        "batch_size": 1,
+        "ssu_counts": list(SELECTED128_SSUS),
+    }:
+        raise ValueError("selected128 topology differs from the frozen definition")
+    if (
+        not isinstance(topology["ssu_rationale"], str)
+        or not topology["ssu_rationale"].strip()
+    ):
+        raise ValueError("selected128 SSU rationale must be non-empty")
+
+    workload = document["workload"]
+    _require_exact_keys(
+        workload,
+        {
+            "seed",
+            "requests_per_npu",
+            "scientific_prefix_requests_per_npu",
+            "warmup_requests_per_npu",
+            "settle_ms",
+            "measurement_ms",
+            "stationarity_block_ms",
+        },
+        "selected128 workload",
+    )
+    expected_workload = {
+        "seed": 42,
+        "requests_per_npu": 128,
+        "scientific_prefix_requests_per_npu": 32,
+        "warmup_requests_per_npu": 8,
+        "settle_ms": 500.0,
+        "measurement_ms": 8000.0,
+        "stationarity_block_ms": 500.0,
+    }
+    if workload != expected_workload:
+        raise ValueError("selected128 workload differs from the frozen formal run")
+
+    expected_common = [
+        "baseline",
+        "layer_once_ttl_0ms",
+        "layer_once_ttl_2ms",
+        "layer_once_ttl_5ms",
+    ]
+    if document["common_cases"] != expected_common:
+        raise ValueError("selected128 common case list differs from the frozen set")
+
+    adaptive = document["adaptive"]
+    _require_exact_keys(
+        adaptive,
+        {
+            "interval_semantics",
+            "intervals_ms",
+            "cir_write_threshold_gbps",
+            "explicit_spill_threshold",
+            "background_reserve_fraction",
+            "alpha_1p5_profile",
+            "alpha_2_profile",
+        },
+        "selected128 adaptive",
+    )
+    if (
+        not isinstance(adaptive["interval_semantics"], str)
+        or not adaptive["interval_semantics"].strip()
+        or adaptive["intervals_ms"] != list(SELECTED128_INTERVALS_MS)
+        or adaptive["cir_write_threshold_gbps"] != 0.0
+        or adaptive["explicit_spill_threshold"] != 0.75
+        or adaptive["background_reserve_fraction"] != 0.05
+    ):
+        raise ValueError("selected128 Adaptive common settings are not frozen v1")
+    profile_keys = {
+        "tuning_slo_alpha",
+        "required_ratio",
+        "target_ratio",
+        "target_margin_ratio",
+    }
+    for name, expected in (
+        (
+            "alpha_1p5_profile",
+            {
+                "tuning_slo_alpha": 1.5,
+                "required_ratio": SELECTED128_ALPHA1P5_REQUIRED_RATIO,
+                "target_ratio": SELECTED128_ALPHA1P5_TARGET_RATIO,
+                "target_margin_ratio": 0.02,
+            },
+        ),
+        (
+            "alpha_2_profile",
+            {
+                "tuning_slo_alpha": 2.0,
+                "required_ratio": 0.50,
+                "target_ratio": 0.52,
+                "target_margin_ratio": 0.02,
+            },
+        ),
+    ):
+        _require_exact_keys(adaptive[name], profile_keys, f"selected128 {name}")
+        if adaptive[name] != expected:
+            raise ValueError(f"selected128 {name} differs from the frozen profile")
+
+    metrics = document["metrics"]
+    _require_exact_keys(
+        metrics,
+        {
+            "primary_recorded_slo_alpha",
+            "postprocessed_slo_alphas",
+            "slo_aggregation",
+            "plots",
+        },
+        "selected128 metrics",
+    )
+    if metrics != {
+        "primary_recorded_slo_alpha": 2.0,
+        "postprocessed_slo_alphas": [1.5, 2.0],
+        "slo_aggregation": "equal NPU",
+        "plots": [
+            "mean NPU utilization versus SSU count",
+            "TTFT SLO attainment at 1.5x ideal versus SSU count",
+            "TTFT SLO attainment at 2x ideal versus SSU count",
+        ],
+    }:
+        raise ValueError("selected128 metrics differ from the frozen report contract")
+
+    execution = document["execution"]
+    _require_exact_keys(
+        execution,
+        {
+            "multiprocessing_start_method",
+            "threads_per_blas_runtime",
+            "required_environment",
+            "runtime_identity",
+            "formal_max_workers_per_shard",
+            "formal_concurrent_shards",
+            "checkpoint_rule",
+        },
+        "selected128 execution",
+    )
+    expected_environment = {name: "1" for name in THREAD_LIMIT_ENVIRONMENT}
+    if (
+        execution["multiprocessing_start_method"] != "spawn"
+        or execution["threads_per_blas_runtime"] != 1
+        or execution["required_environment"] != expected_environment
+        or execution["runtime_identity"] != SELECTED128_EXPECTED_RUNTIME_IDENTITY
+        or execution["formal_max_workers_per_shard"] != SELECTED128_FORMAL_MAX_WORKERS
+        or execution["formal_concurrent_shards"] != 2
+        or not isinstance(execution["checkpoint_rule"], str)
+        or not execution["checkpoint_rule"].strip()
+    ):
+        raise ValueError("selected128 execution settings differ from frozen v1")
+    return document
+
+
 def _report128_definition(
     *,
     astar_threshold_gbps=0.05,
@@ -444,6 +760,7 @@ class RunConfig:
     block_ms: float
     slo_alpha: float = 2.0
     campaign_spec_sha256: str | None = None
+    calibration_mode: bool = False
 
     def __post_init__(self):
         if not 0 <= self.seed < 2**64:
@@ -459,6 +776,8 @@ class RunConfig:
             raise ValueError("steady-state durations are invalid")
         if not math.isfinite(self.slo_alpha) or self.slo_alpha <= 0.0:
             raise ValueError("slo_alpha must be finite and positive")
+        if type(self.calibration_mode) is not bool:
+            raise ValueError("calibration_mode must be boolean")
         if self.campaign_spec_sha256 is not None and (
             len(self.campaign_spec_sha256) != 64
             or any(
@@ -654,6 +973,41 @@ def _seed_manifest(schedule, table):
     }
 
 
+def _numpy_blas_identity():
+    config = getattr(np.__config__, "CONFIG", {})
+    dependencies = config.get("Build Dependencies", {})
+    blas = dependencies.get("blas", {})
+    return {
+        "name": blas.get("name"),
+        "version": blas.get("version"),
+        "openblas_configuration": blas.get("openblas configuration"),
+    }
+
+
+def current_runtime_merge_identity():
+    blas = _numpy_blas_identity()
+    return {
+        "python_implementation": platform.python_implementation(),
+        "python_version": sys.version.split()[0],
+        "numpy_version": np.__version__,
+        "blas_name": blas["name"],
+        "blas_version": blas["version"],
+        "openblas_configuration": blas["openblas_configuration"],
+    }
+
+
+def runtime_merge_identity(runtime):
+    blas = runtime.get("numpy_blas_identity", {})
+    return {
+        "python_implementation": runtime.get("python_implementation"),
+        "python_version": runtime.get("python"),
+        "numpy_version": runtime.get("numpy"),
+        "blas_name": blas.get("name"),
+        "blas_version": blas.get("version"),
+        "openblas_configuration": blas.get("openblas_configuration"),
+    }
+
+
 def _experiment_spec(definition, schedule, config, input_authentication):
     steady_state = asdict(config)
     campaign_spec_sha256 = steady_state.pop("campaign_spec_sha256")
@@ -720,6 +1074,19 @@ def _experiment_spec(definition, schedule, config, input_authentication):
         },
         "source_files": list(_transitive_local_sources()) + ["data"],
     }
+    if definition.key == "selected128":
+        spec["adaptive_case_profiles"] = {
+            case.name: {
+                "tuning_slo_alpha": case.tuning_slo_alpha,
+                **asdict(case.controller_definition()),
+            }
+            for case in definition.cases
+            if isinstance(case, AdaptiveCase)
+        }
+        spec["thread_limit_environment"] = {
+            name: os.environ.get(name) for name in THREAD_LIMIT_ENVIRONMENT
+        }
+        spec["runtime_identity"] = current_runtime_merge_identity()
     pfo_cases = tuple(case for case in definition.cases if case.kind == "pfo")
     if pfo_cases:
         if not all(isinstance(case, PFOCase) for case in pfo_cases):
@@ -819,9 +1186,13 @@ def _runtime_provenance(mp_start_method, *, include_process=True):
         "python_full": sys.version,
         "python_implementation": platform.python_implementation(),
         "numpy": np.__version__,
+        "numpy_blas_identity": _numpy_blas_identity(),
         "platform": platform.platform(),
         "multiprocessing_start_method": mp_start_method,
         "cpu_count": os.cpu_count(),
+        "thread_limit_environment": {
+            name: os.environ.get(name) for name in THREAD_LIMIT_ENVIRONMENT
+        },
     }
     if include_process:
         payload.update(
@@ -1367,7 +1738,11 @@ def _simulate(definition, config, case, num_ssu, requests, prefix_statistics=Non
             cir_write_threshold_gbps=0.0,
             **common,
         )
-    adaptive = definition.adaptive
+    adaptive = (
+        case.controller_definition()
+        if isinstance(case, AdaptiveCase)
+        else definition.adaptive
+    )
     if case.kind == "adaptive":
         controller = AdaptiveAdmissionSchemeBControllerV2_1(
             paths,
@@ -1399,6 +1774,13 @@ def _simulate(definition, config, case, num_ssu, requests, prefix_statistics=Non
         enriched["adaptive_residual_mode_evaluations"] = dict(
             controller.residual_mode_evaluations
         )
+        enriched["adaptive_controller_profile"] = {
+            "controller": type(controller).__name__,
+            "explicit_spill_threshold": controller.explicit_spill_threshold,
+            "target_ratio": controller.target_ratio,
+            "required_ratio": controller.required_ratio,
+            "background_reserve_fraction": controller.background_reserve_fraction,
+        }
         enriched["adaptive_last_selected_fraction"] = (
             controller.last_allocation.selected_fraction
             if controller.last_allocation is not None
@@ -1589,6 +1971,22 @@ def _validate_summary(definition, case, num_ssu, summary):
             abs_tol=1e-12,
         ):
             raise AssertionError("Adaptive used the wrong decision interval")
+        expected_adaptive = (
+            case.controller_definition()
+            if isinstance(case, AdaptiveCase)
+            else definition.adaptive
+        )
+        expected_profile = {
+            "controller": expected_adaptive.controller,
+            "explicit_spill_threshold": expected_adaptive.explicit_spill_threshold,
+            "target_ratio": expected_adaptive.target_ratio,
+            "required_ratio": expected_adaptive.required_ratio,
+            "background_reserve_fraction": (
+                expected_adaptive.background_reserve_fraction
+            ),
+        }
+        if summary.get("adaptive_controller_profile") != expected_profile:
+            raise AssertionError("Adaptive used a controller profile unlike its case")
     elif case.kind == "pfo":
         if not isinstance(case, PFOCase):
             raise AssertionError("PFO summary was paired with a non-PFOCase")
@@ -2311,6 +2709,8 @@ def _build_payload(
         "campaign_spec_authentication": campaign_spec_authentication,
         "ending_campaign_spec_authentication": (ending_campaign_spec_authentication),
         "experiment_spec": spec,
+        "selected_ssus": list(selected_ssus),
+        "selected_cases": sorted({name for name, _num_ssu in selected_keys}),
         "selected_keys": [list(key) for key in sorted(selected_keys)],
         "schedule_metadata": seed_manifest,
         "pairing_audit": pairing_audit,
@@ -2332,6 +2732,347 @@ def _write_json(path, payload):
         encoding="utf-8",
     )
     temporary.replace(path)
+
+
+def acquire_output_lock(path, *, owner="runner"):
+    """Hold an advisory lock for an output's complete process lifetime."""
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    lock_path = path.with_suffix(path.suffix + f".{owner}.lock")
+    handle = lock_path.open("a+", encoding="utf-8")
+    try:
+        fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError as error:
+        handle.close()
+        raise RuntimeError(
+            f"output is already owned by another process: {path}"
+        ) from error
+    handle.seek(0)
+    handle.truncate()
+    handle.write(f"pid={os.getpid()} host={socket.gethostname()}\n")
+    handle.flush()
+    return handle
+
+
+def validate_selected128_formal_payload(
+    payload,
+    *,
+    expected_ssu,
+    expected_campaign_sha256,
+):
+    """Validate a completed formal selected128 shard without rerunning it."""
+
+    definition = _selected128_definition()
+    expected_cases = definition.case_by_name
+    expected_names = set(expected_cases)
+    expected_keys = {(name, int(expected_ssu)) for name in expected_names}
+
+    def require(condition, message):
+        if not condition:
+            raise ValueError(f"selected128 formal shard: {message}")
+
+    require(isinstance(payload, dict), "payload must be an object")
+    require(payload.get("schema_version") == SCHEMA_VERSION, "schema mismatch")
+    require(payload.get("definition") == "selected128", "definition mismatch")
+    require(payload.get("num_npu") == 128, "NPU topology mismatch")
+    require(payload.get("selected_complete") is True, "selected shard incomplete")
+    require(payload.get("source_stable_during_run") is True, "source changed")
+    require(payload.get("config_stable_during_run") is True, "config changed")
+    require(
+        payload.get("campaign_spec_stable_during_run") is True,
+        "campaign changed",
+    )
+    source = payload.get("source_fingerprint")
+    config = payload.get("config_fingerprint")
+    require(isinstance(source, str) and len(source) == 64, "source hash malformed")
+    require(
+        source == payload.get("ending_source_fingerprint"),
+        "ending source differs",
+    )
+    require(isinstance(config, str) and len(config) == 64, "config hash malformed")
+    require(
+        config == payload.get("ending_config_fingerprint"),
+        "ending config differs",
+    )
+    require(
+        payload.get("campaign_spec_sha256") == expected_campaign_sha256,
+        "campaign hash mismatch",
+    )
+    for field in (
+        "campaign_spec_authentication",
+        "ending_campaign_spec_authentication",
+    ):
+        authentication = payload.get(field)
+        require(isinstance(authentication, dict), f"{field} missing")
+        require(
+            authentication.get("sha256") == expected_campaign_sha256,
+            f"{field} hash mismatch",
+        )
+
+    require(
+        payload.get("selected_ssus") == [int(expected_ssu)],
+        "selected SSU mismatch",
+    )
+    require(
+        set(payload.get("selected_cases", ())) == expected_names
+        and len(payload.get("selected_cases", ())) == len(expected_names),
+        "selected cases mismatch",
+    )
+    selected_keys = payload.get("selected_keys")
+    require(isinstance(selected_keys, list), "selected keys missing")
+    normalized_selected = {
+        (str(key[0]), int(key[1]))
+        for key in selected_keys
+        if isinstance(key, list) and len(key) == 2
+    }
+    require(
+        len(normalized_selected) == len(selected_keys)
+        and normalized_selected == expected_keys,
+        "selected key matrix mismatch",
+    )
+
+    runtime = payload.get("runtime")
+    require(isinstance(runtime, dict), "parent runtime missing")
+    require(
+        runtime_merge_identity(runtime) == SELECTED128_EXPECTED_RUNTIME_IDENTITY,
+        "parent runtime identity mismatch",
+    )
+    expected_thread_environment = {name: "1" for name in THREAD_LIMIT_ENVIRONMENT}
+    require(
+        runtime.get("thread_limit_environment") == expected_thread_environment,
+        "parent thread environment mismatch",
+    )
+    execution = payload.get("execution", {})
+    require(
+        execution.get("multiprocessing_start_method") == "spawn",
+        "multiprocessing method mismatch",
+    )
+    require(
+        type(execution.get("requested_max_workers")) is int
+        and 1 <= execution["requested_max_workers"] <= SELECTED128_FORMAL_MAX_WORKERS,
+        "worker limit mismatch",
+    )
+    require(
+        execution.get("single_ssu_process_pool_required") is True,
+        "single-SSU process pool contract absent",
+    )
+
+    spec = payload.get("experiment_spec")
+    require(isinstance(spec, dict), "experiment spec missing")
+    require(spec.get("definition") == "selected128", "spec definition mismatch")
+    require(spec.get("num_npu") == 128, "spec NPU mismatch")
+    require(
+        spec.get("campaign_spec_sha256") == expected_campaign_sha256,
+        "spec campaign mismatch",
+    )
+    require(
+        spec.get("thread_limit_environment") == expected_thread_environment,
+        "spec thread environment mismatch",
+    )
+    require(
+        spec.get("runtime_identity") == SELECTED128_EXPECTED_RUNTIME_IDENTITY,
+        "spec runtime identity mismatch",
+    )
+    require(config == _config_fingerprint(spec), "config fingerprint is not derived")
+    expected_definition_fingerprint = _definition_fingerprint(definition)
+    require(
+        payload.get("definition_fingerprint") == expected_definition_fingerprint,
+        "definition fingerprint mismatch",
+    )
+    require(
+        spec.get("definition_fingerprint") == expected_definition_fingerprint,
+        "spec definition fingerprint mismatch",
+    )
+    source_manifest = payload.get("source_manifest")
+    require(isinstance(source_manifest, dict) and source_manifest, "source manifest")
+    require(
+        all(
+            isinstance(name, str)
+            and isinstance(digest, str)
+            and len(digest) == 64
+            and all(character in "0123456789abcdef" for character in digest)
+            for name, digest in source_manifest.items()
+        ),
+        "source manifest hashes malformed",
+    )
+    require(
+        source == _canonical_hash(source_manifest, b"ms-scale-control-source:v1\0"),
+        "source fingerprint is not derived from its manifest",
+    )
+    steady = spec.get("steady_state", {})
+    require(
+        steady
+        == {
+            "seed": 42,
+            "requests_per_npu": 128,
+            "warmup_requests_per_npu": 8,
+            "settle_ms": 500.0,
+            "measurement_ms": 8000.0,
+            "block_ms": 500.0,
+            "slo_alpha": 2.0,
+            "calibration_mode": False,
+        },
+        "formal steady-state config mismatch",
+    )
+    require(
+        spec.get("default_ssu_list") == list(SELECTED128_SSUS),
+        "spec SSU list mismatch",
+    )
+    spec_cases = spec.get("cases")
+    require(
+        isinstance(spec_cases, list)
+        and {case.get("name") for case in spec_cases} == expected_names
+        and len(spec_cases) == len(expected_names),
+        "spec case list mismatch",
+    )
+    require(
+        {case["name"]: case for case in spec_cases}
+        == {name: asdict(case) for name, case in expected_cases.items()},
+        "spec case parameters mismatch",
+    )
+
+    pairing = payload.get("pairing_audit", {}).get(str(expected_ssu), {})
+    require(pairing.get("all_available_rows_paired") is True, "inputs unpaired")
+    require(
+        set(pairing.get("cases", ())) == expected_names
+        and len(pairing.get("cases", ())) == len(expected_names),
+        "pairing case coverage mismatch",
+    )
+
+    rows = payload.get("results")
+    require(isinstance(rows, list), "results missing")
+    normalized_rows = {
+        (row.get("case"), row.get("num_ssu")) for row in rows if isinstance(row, dict)
+    }
+    require(
+        len(rows) == len(expected_keys)
+        and len(normalized_rows) == len(rows)
+        and normalized_rows == expected_keys,
+        "results are missing, duplicated, or unexpected",
+    )
+    fingerprint_fields = (
+        "catalog",
+        "recipe",
+        "schedule",
+        "assignment",
+        "prefix_32_assignment",
+        "full_assignment",
+        "workload",
+        "placement",
+        "trace",
+        "simulator",
+    )
+    for row in rows:
+        inputs = row.get("input_fingerprints")
+        require(
+            isinstance(inputs, dict) and set(inputs) == set(fingerprint_fields),
+            f"{row.get('case')} input fingerprint fields",
+        )
+        require(
+            all(
+                isinstance(digest, str)
+                and len(digest) == 64
+                and all(character in "0123456789abcdef" for character in digest)
+                for digest in inputs.values()
+            ),
+            f"{row.get('case')} input fingerprint digest",
+        )
+    for field in fingerprint_fields:
+        require(
+            len({row["input_fingerprints"][field] for row in rows}) == 1,
+            f"input fingerprint {field} is not paired",
+        )
+    for row in rows:
+        name = row["case"]
+        require(row.get("status") == "ok", f"{name} status is not ok")
+        require(row.get("definition") == "selected128", f"{name} definition")
+        require(
+            row.get("definition_fingerprint") == expected_definition_fingerprint,
+            f"{name} definition fingerprint",
+        )
+        require(row.get("num_npu") == 128, f"{name} NPU count")
+        require(row.get("source_fingerprint") == source, f"{name} source")
+        require(row.get("config_fingerprint") == config, f"{name} config")
+        require(
+            row.get("campaign_spec_sha256") == expected_campaign_sha256,
+            f"{name} campaign",
+        )
+        require(
+            row.get("case_spec") == asdict(expected_cases[name]),
+            f"{name} case spec",
+        )
+        require(
+            row.get("case_fingerprint")
+            == _case_fingerprint(expected_cases[name], expected_ssu, source, config),
+            f"{name} case fingerprint",
+        )
+        row_runtime = row.get("runtime")
+        require(isinstance(row_runtime, dict), f"{name} runtime missing")
+        require(
+            runtime_merge_identity(row_runtime)
+            == SELECTED128_EXPECTED_RUNTIME_IDENTITY,
+            f"{name} runtime identity",
+        )
+        require(
+            row_runtime.get("thread_limit_environment") == expected_thread_environment,
+            f"{name} thread environment",
+        )
+        summary = row.get("steady_summary")
+        require(isinstance(summary, dict), f"{name} summary missing")
+        invariants = summary.get("invariants")
+        require(
+            isinstance(invariants, dict)
+            and invariants
+            and all(value is True for value in invariants.values()),
+            f"{name} simulator invariant failed",
+        )
+        require(summary.get("slo_alpha") == 2.0, f"{name} primary alpha")
+        require(
+            summary.get("measurement_duration_ms") == 8000.0,
+            f"{name} measurement duration",
+        )
+        request_rows = summary.get("request_rows")
+        request_counts = summary.get("request_counts_by_npu")
+        require(
+            isinstance(request_rows, list)
+            and len(request_rows) == summary.get("measurement_request_count"),
+            f"{name} request row coverage",
+        )
+        require(
+            isinstance(request_counts, list)
+            and len(request_counts) == 128
+            and all(type(value) is int and value > 0 for value in request_counts)
+            and sum(request_counts) == len(request_rows),
+            f"{name} per-NPU request coverage",
+        )
+        require(
+            {request.get("npu_id") for request in request_rows} == set(range(128)),
+            f"{name} request NPU coverage",
+        )
+        if isinstance(expected_cases[name], AdaptiveCase):
+            expected_adaptive = expected_cases[name].controller_definition()
+            require(
+                summary.get("adaptive_controller_profile")
+                == {
+                    "controller": expected_adaptive.controller,
+                    "explicit_spill_threshold": (
+                        expected_adaptive.explicit_spill_threshold
+                    ),
+                    "target_ratio": expected_adaptive.target_ratio,
+                    "required_ratio": expected_adaptive.required_ratio,
+                    "background_reserve_fraction": (
+                        expected_adaptive.background_reserve_fraction
+                    ),
+                },
+                f"{name} actual Adaptive profile",
+            )
+    return {
+        "source_fingerprint": source,
+        "config_fingerprint": config,
+        "campaign_spec_sha256": expected_campaign_sha256,
+        "runtime_identity": SELECTED128_EXPECTED_RUNTIME_IDENTITY,
+        "result_count": len(rows),
+    }
 
 
 def _abort_process_pool(executor, futures):
@@ -2463,7 +3204,7 @@ def parse_args(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--definition",
-        choices=("legacy32", "confirm32", "pfo32", "report128"),
+        choices=("legacy32", "confirm32", "pfo32", "report128", "selected128"),
         default=None,
         help=(
             "required immutable experiment topology/policy definition; it is "
@@ -2473,6 +3214,8 @@ def parse_args(argv=None):
     parser.add_argument("--astar-threshold-gbps", type=float)
     parser.add_argument("--astar-interval-ms", type=float)
     parser.add_argument("--lstar-ttl-ms", type=float)
+    parser.add_argument("--selected-alpha1p5-target-ratio", type=float)
+    parser.add_argument("--selected-alpha1p5-spill-threshold", type=float)
     parser.add_argument(
         "--output",
         type=Path,
@@ -2512,19 +3255,45 @@ def parse_args(argv=None):
     modes.add_argument("--worker-probe-only", action="store_true")
     parser.add_argument("--rerun", action="store_true")
     parser.add_argument("--fresh", action="store_true")
+    parser.add_argument(
+        "--calibration",
+        action="store_true",
+        help="explicit non-formal selected128 tuning run; never accepted as report data",
+    )
     parser.add_argument("--list-cases", action="store_true")
     parser.add_argument("--list-definitions", action="store_true")
     return parser.parse_args(argv)
 
 
 def _definition_from_args(args):
-    custom = (
+    report128_custom = (
         args.astar_threshold_gbps,
         args.astar_interval_ms,
         args.lstar_ttl_ms,
     )
+    selected128_custom = (
+        args.selected_alpha1p5_target_ratio,
+        args.selected_alpha1p5_spill_threshold,
+    )
+    if args.definition == "selected128":
+        if any(value is not None for value in report128_custom):
+            raise ValueError("A*/L* overrides are valid only for report128")
+        return _selected128_definition(
+            alpha1p5_target_ratio=(
+                SELECTED128_ALPHA1P5_TARGET_RATIO
+                if args.selected_alpha1p5_target_ratio is None
+                else args.selected_alpha1p5_target_ratio
+            ),
+            alpha1p5_spill_threshold=(
+                0.75
+                if args.selected_alpha1p5_spill_threshold is None
+                else args.selected_alpha1p5_spill_threshold
+            ),
+        )
+    if any(value is not None for value in selected128_custom):
+        raise ValueError("selected Adaptive overrides require --definition selected128")
     if args.definition != "report128":
-        if any(value is not None for value in custom):
+        if any(value is not None for value in report128_custom):
             raise ValueError("A*/L* overrides are valid only for report128")
         return BASE_DEFINITIONS[args.definition]
     return _report128_definition(
@@ -2561,7 +3330,7 @@ def _pool_initargs(
 def main(argv=None):
     args = parse_args(argv)
     if args.list_definitions:
-        print("\n".join(("legacy32", "confirm32", "pfo32", "report128")))
+        print("\n".join(("legacy32", "confirm32", "pfo32", "report128", "selected128")))
         return 0
     if args.definition is None:
         raise ValueError(
@@ -2569,12 +3338,31 @@ def main(argv=None):
             "--requests-per-npu controls backing only"
         )
     definition = _definition_from_args(args)
-    _campaign_document, campaign_spec_authentication = _load_campaign_spec(
+    campaign_document, campaign_spec_authentication = _load_campaign_spec(
         args.campaign_spec
     )
     if args.list_cases:
         print("\n".join(definition.case_by_name))
         return 0
+    if definition.key == "selected128":
+        invalid_thread_limits = {
+            name: os.environ.get(name)
+            for name in THREAD_LIMIT_ENVIRONMENT
+            if os.environ.get(name) != "1"
+        }
+        if invalid_thread_limits:
+            raise ValueError(
+                "selected128 requires every BLAS/OpenMP thread limit to equal 1: "
+                f"{invalid_thread_limits}"
+            )
+        actual_runtime_identity = current_runtime_merge_identity()
+        if actual_runtime_identity != SELECTED128_EXPECTED_RUNTIME_IDENTITY:
+            raise ValueError(
+                "selected128 runtime identity differs from the frozen environment: "
+                f"{actual_runtime_identity}"
+            )
+    elif args.calibration:
+        raise ValueError("--calibration is valid only with --definition selected128")
     non_simulation = args.preflight_only or args.dry_run or args.worker_probe_only
     if not non_simulation and args.output is None:
         raise ValueError("--output is required for simulation shards")
@@ -2584,6 +3372,13 @@ def main(argv=None):
         raise ValueError("--rerun/--fresh apply only to simulation shards")
     if args.max_workers <= 0 or args.warmup_requests <= 0:
         raise ValueError("workers and warmup-requests must be positive")
+    if (
+        definition.key == "selected128"
+        and args.max_workers > SELECTED128_FORMAL_MAX_WORKERS
+    ):
+        raise ValueError(
+            f"selected128 max-workers cannot exceed {SELECTED128_FORMAL_MAX_WORKERS}"
+        )
     requests_per_npu = (
         definition.default_requests_per_npu
         if args.requests_per_npu is None
@@ -2613,11 +3408,11 @@ def main(argv=None):
     selected_ssus = tuple(sorted(set(args.ssu or definition.default_ssus)))
     if any(num_ssu <= 0 for num_ssu in selected_ssus):
         raise ValueError("SSU counts must be positive")
-    if definition.key == "report128" and any(
+    if definition.key in ("report128", "selected128") and any(
         num_ssu not in definition.default_ssus for num_ssu in selected_ssus
     ):
         raise ValueError(
-            "report128 SSU points are frozen at "
+            f"{definition.key} SSU points are frozen at "
             + ",".join(map(str, definition.default_ssus))
         )
     if (
@@ -2626,7 +3421,7 @@ def main(argv=None):
         and len(selected_ssus) != 1
     ):
         raise ValueError(
-            "report128 simulation requires exactly one --ssu per invocation "
+            f"{definition.key} simulation requires exactly one --ssu per invocation "
             "to bound worker RSS and preserve one paired cell per process-pool "
             "lifetime"
         )
@@ -2645,7 +3440,77 @@ def main(argv=None):
             if campaign_spec_authentication is None
             else campaign_spec_authentication["sha256"]
         ),
+        calibration_mode=args.calibration,
     )
+    if definition.key == "selected128":
+        selected_names = {case.name for case in selected_cases}
+        override_requested = any(
+            value is not None
+            for value in (
+                args.selected_alpha1p5_target_ratio,
+                args.selected_alpha1p5_spill_threshold,
+            )
+        )
+        if args.calibration:
+            allowed_calibration_cases = {
+                f"adaptive_a1p5_t0_i{int(interval)}ms"
+                for interval in SELECTED128_INTERVALS_MS
+            }
+            if args.campaign_spec is not None:
+                raise ValueError(
+                    "selected128 calibration cannot bind the formal campaign"
+                )
+            if args.fresh:
+                raise ValueError("selected128 calibration forbids --fresh")
+            if args.seed not in (43, 44):
+                raise ValueError(
+                    "selected128 calibration must use held-out seed 43 or 44"
+                )
+            if not args.case or args.family:
+                raise ValueError(
+                    "selected128 calibration requires explicit --case entries and no family"
+                )
+            if not selected_names <= allowed_calibration_cases:
+                raise ValueError(
+                    "selected128 calibration accepts only alpha1.5 Adaptive"
+                )
+            if (
+                config.requests_per_npu != 128
+                or config.warmup_requests_per_npu != 8
+                or config.settle_ms != 500.0
+                or not 0.0 < config.measurement_ms <= 4000.0
+                or config.block_ms != 500.0
+            ):
+                raise ValueError(
+                    "selected128 calibration durations/backing are outside bounds"
+                )
+        else:
+            if args.campaign_spec is None or campaign_document is None:
+                raise ValueError("formal selected128 requires --campaign-spec")
+            validate_selected128_campaign_document(campaign_document)
+            if override_requested:
+                raise ValueError("formal selected128 forbids Adaptive CLI overrides")
+            if args.rerun or args.fresh:
+                raise ValueError(
+                    "formal selected128 is resume-only; rerun/fresh are forbidden"
+                )
+            if args.mp_start_method != "spawn":
+                raise ValueError("formal selected128 requires spawn")
+            if selected_names != set(definition.case_by_name):
+                raise ValueError("formal selected128 requires all ten simulation cases")
+            if (
+                config.seed != 42
+                or config.requests_per_npu != 128
+                or config.warmup_requests_per_npu != 8
+                or config.settle_ms != 500.0
+                or config.measurement_ms != 8000.0
+                or config.block_ms != 500.0
+                or config.slo_alpha != 2.0
+            ):
+                raise ValueError("formal selected128 run config differs from campaign")
+    output_lock = None
+    if not non_simulation:
+        output_lock = acquire_output_lock(args.output, owner="runner")
     path_abi = _validate_path_abi(definition)
     with redirect_stdout(io.StringIO()):
         table, input_authentication = load_authenticated_bw_table(definition.num_npu)
