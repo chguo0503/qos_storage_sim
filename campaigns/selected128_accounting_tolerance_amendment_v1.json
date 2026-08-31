@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "amendment": "selected128_accounting_tolerance_amendment_v1",
+  "recorded_on": "2026-08-31",
+  "campaign": "selected128_alpha_tuned_v1",
+  "campaign_spec_sha256": "f9cd30e23075b7302cba828ecf3ecc42f45fbb2362074bfaef17a3a123b87c3b",
+  "superseded_formal_source": {
+    "commit": "426a3d843a66cface373b291c4e1ecc7f55774d5",
+    "source_fingerprint": "7fc63b4110c9a7161be79945e03fa06c037f883ead61379b96cb51c7cc3ec900",
+    "steady_accounting_tolerance_ms": 1e-12
+  },
+  "replacement_formal_source": {
+    "commit": "86902b6cd4fca1c0e105935f6d84629d3c3cbf98",
+    "source_fingerprint": "88f08dae857d10eecc9a0db4995dc4102f9ee1b6479ba1ed0a36f0f8d4a1b12e",
+    "steady_accounting_tolerance_ms": 1e-8
+  },
+  "triggering_evidence": {
+    "reproduction": "exact selected128 formal SSU=12 workload and runtime",
+    "measurement_duration_ms": 8000.0,
+    "offending_ssu_id": 8,
+    "cumulative_busy_start_ms": 11884.132268027324,
+    "cumulative_busy_end_ms": 19884.132268027326,
+    "derived_busy_ms": 8000.000000000002,
+    "excess_ms": 1.8189894035458565e-12,
+    "excess_ulps_at_measurement_duration": 2,
+    "all_other_simulator_invariants_passed": true,
+    "classification": "floating-point subtraction residual, not physical overlap"
+  },
+  "change_scope": {
+    "changed": [
+      "finite steady-state compute, SSD, and NPU-link overlap invariant tolerance",
+      "failure-only overlap diagnostics",
+      "spawn-worker numeric-contract gate and worker-probe evidence"
+    ],
+    "unchanged": [
+      "event ordering and scheduling",
+      "workload generation and random state",
+      "CIR controller decisions and writes",
+      "TTFT, SLO, utilization, and service-accounting values",
+      "campaign topology, cases, SSU counts, and measurement windows"
+    ],
+    "global_event_epsilon_changed": false,
+    "metric_clamping_or_recomputation_added": false
+  },
+  "numeric_contract": {
+    "accept": [
+      "the observed two-ULP residual",
+      "finite values at the inclusive +/-1e-8 ms bounds"
+    ],
+    "reject": [
+      "finite values outside +/-1e-8 ms bounds",
+      "NaN",
+      "positive or negative infinity",
+      "negative or non-finite measurement durations"
+    ]
+  },
+  "calibration_reuse_decision": {
+    "reuse_selected_alpha1p5_target_ratio": true,
+    "selected_target_ratio": 0.6866666666666666,
+    "reason": "All nine preregistered calibration cells passed the stricter 1e-12 ms overlap gate, and the replacement changes only invariant acceptance and diagnostics, not any calibration metric or controller behavior."
+  },
+  "formal_result_reuse_decision": {
+    "reuse_partial_results_from_superseded_source": false,
+    "reason": "The replacement run uses a fresh output root and one source fingerprint for all 70 formal cells."
+  }
+}
