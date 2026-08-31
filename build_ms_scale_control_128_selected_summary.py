@@ -50,6 +50,7 @@ BLOCK_MS = 500.0
 PRIMARY_ALPHA = 2.0
 SENSITIVITY_ALPHA = 1.5
 SLO_EPSILON = 1e-12
+WARMUP_REVIEW_GROWTH_FRACTION = 0.50
 THREAD_LIMIT_NAMES = (
     "OPENBLAS_NUM_THREADS",
     "OMP_NUM_THREADS",
@@ -753,6 +754,48 @@ def _slo_metrics(
     return equal_npu, request_weighted, counts
 
 
+def _validate_phase_timing(
+    summary: Mapping[str, object], context: str
+) -> dict[str, float]:
+    """Validate and return the five steady-state phase timing fields."""
+
+    timing = {
+        "warmup_reached_ms": _finite(
+            summary.get("warmup_reached_ms"), f"{context}/warmup"
+        ),
+        "measurement_start_ms": _finite(
+            summary.get("measurement_start_ms"), f"{context}/start"
+        ),
+        "measurement_end_ms": _finite(
+            summary.get("measurement_end_ms"), f"{context}/end"
+        ),
+        "drain_stop_ms": _finite(summary.get("drain_stop_ms"), f"{context}/drain"),
+        "tail_drain_ms": _finite(summary.get("tail_drain_ms"), f"{context}/tail drain"),
+    }
+    _require(
+        all(value >= 0.0 for value in timing.values()),
+        f"{context}: phase timestamps must be nonnegative",
+    )
+    warmup = timing["warmup_reached_ms"]
+    start = timing["measurement_start_ms"]
+    end = timing["measurement_end_ms"]
+    drain = timing["drain_stop_ms"]
+    tail = timing["tail_drain_ms"]
+    _require(
+        warmup <= start <= end <= drain,
+        f"{context}: invalid warmup/measurement/drain phase order",
+    )
+    _close(
+        start - warmup,
+        SETTLE_MS,
+        f"{context}/warmup-to-measurement settle",
+        tolerance=1e-8,
+    )
+    _close(end - start, MEASUREMENT_MS, f"{context}/window length", tolerance=1e-8)
+    _close(drain - end, tail, f"{context}/tail drain relation", tolerance=1e-8)
+    return timing
+
+
 def _validate_summary(
     summary: object,
     case: CaseSpec,
@@ -813,15 +856,10 @@ def _validate_summary(
         f"{context}: at least one simulator invariant failed: {invariants}",
     )
 
-    start = _finite(summary.get("measurement_start_ms"), f"{context}/start")
-    end = _finite(summary.get("measurement_end_ms"), f"{context}/end")
-    warmup = _finite(summary.get("warmup_reached_ms"), f"{context}/warmup")
-    drain = _finite(summary.get("drain_stop_ms"), f"{context}/drain")
-    tail = _finite(summary.get("tail_drain_ms"), f"{context}/tail drain")
-    _require(warmup + SETTLE_MS <= start + 1e-9, f"{context}: settle window is short")
-    _close(end - start, MEASUREMENT_MS, f"{context}/window length", tolerance=1e-8)
-    _require(drain >= end and tail >= 0.0, f"{context}: invalid drain timing")
-    _close(drain - end, tail, f"{context}/tail drain relation", tolerance=1e-8)
+    timing = _validate_phase_timing(summary, context)
+    start = timing["measurement_start_ms"]
+    end = timing["measurement_end_ms"]
+    drain = timing["drain_stop_ms"]
 
     request_rows = summary.get("request_rows")
     _require(
@@ -1316,6 +1354,105 @@ def _validate_shard_root(
     return num_ssu, spec, compact_rows, formal_identity
 
 
+def _warmup_cross_case_audit(
+    shard_by_ssu: Mapping[int, ShardDocument],
+) -> dict[str, object]:
+    """Compare every raw case's warmup time with its same-SSU baseline."""
+
+    by_ssu = []
+    review_cells = []
+    cell_count = 0
+    comparison_count = 0
+    for num_ssu in SSUS:
+        shard = shard_by_ssu[num_ssu]
+        context = _portable_path(shard.path)
+        timings_by_case: dict[str, dict[str, float]] = {}
+        for row in shard.payload["results"]:
+            case_name = str(row["case"])
+            timings_by_case[case_name] = _validate_phase_timing(
+                row["steady_summary"],
+                f"{context}/{case_name}/SSU{num_ssu}/warmup audit",
+            )
+        _require(
+            set(timings_by_case) == set(CASE_NAMES),
+            f"{context}: warmup audit case grid differs",
+        )
+        baseline_warmup = timings_by_case["baseline"]["warmup_reached_ms"]
+        _require(
+            baseline_warmup > 0.0,
+            f"{context}: baseline warmup must be positive for relative comparison",
+        )
+        case_audits = []
+        ssu_review_count = 0
+        for case in CASES:
+            timing = timings_by_case[case.name]
+            warmup = timing["warmup_reached_ms"]
+            ratio_to_baseline = warmup / baseline_warmup
+            growth_fraction = (warmup - baseline_warmup) / baseline_warmup
+            _require(
+                math.isfinite(ratio_to_baseline) and math.isfinite(growth_fraction),
+                f"{context}/{case.name}: warmup relative metrics are non-finite",
+            )
+            growth_percent = 100.0 * growth_fraction
+            _require(
+                math.isfinite(growth_percent),
+                f"{context}/{case.name}: warmup growth percent is non-finite",
+            )
+            requires_review = warmup > baseline_warmup * (
+                1.0 + WARMUP_REVIEW_GROWTH_FRACTION
+            )
+            entry = {
+                "case": case.name,
+                **timing,
+                "ratio_to_baseline": ratio_to_baseline,
+                "growth_fraction": growth_fraction,
+                "growth_percent": growth_percent,
+                "requires_review": requires_review,
+            }
+            case_audits.append(entry)
+            cell_count += 1
+            comparison_count += case.name != "baseline"
+            if requires_review:
+                ssu_review_count += 1
+                review_cells.append({"num_ssu": num_ssu, "case": case.name})
+        by_ssu.append(
+            {
+                "num_ssu": num_ssu,
+                "baseline_warmup_reached_ms": baseline_warmup,
+                "case_count": len(case_audits),
+                "comparison_count": len(case_audits) - 1,
+                "requires_review_count": ssu_review_count,
+                "any_requires_review": bool(ssu_review_count),
+                "cases": case_audits,
+            }
+        )
+    return {
+        "schema_version": 1,
+        "complete": True,
+        "source": "raw shard steady_summary phase timestamps",
+        "baseline_case": "baseline",
+        "review_rule": (
+            "requires_review iff warmup_reached_ms is strictly greater than "
+            "1.5 times the same-SSU baseline"
+        ),
+        "review_threshold_ratio": 1.0 + WARMUP_REVIEW_GROWTH_FRACTION,
+        "review_threshold_growth_fraction": WARMUP_REVIEW_GROWTH_FRACTION,
+        "review_operator": ">",
+        "review_is_scientific_invalidation": False,
+        "expected_settle_ms": SETTLE_MS,
+        "expected_measurement_ms": MEASUREMENT_MS,
+        "ssu_count": len(by_ssu),
+        "case_count_per_ssu": len(CASES),
+        "cell_count": cell_count,
+        "comparison_count": comparison_count,
+        "requires_review_count": len(review_cells),
+        "any_requires_review": bool(review_cells),
+        "status": "review_required" if review_cells else "passed",
+        "review_cells": review_cells,
+        "by_ssu": by_ssu,
+    }
+
+
 def _validate_shards(
     shards: Sequence[ShardDocument],
     campaign: CampaignDocument,
@@ -1387,6 +1524,7 @@ def _validate_shards(
         set(compact_by_key) == expected_keys, "70-row selected128 grid is incomplete"
     )
     ordered = [compact_by_key[(case.name, ssu)] for ssu in SSUS for case in CASES]
+    warmup_cross_case_audit = _warmup_cross_case_audit(shard_by_ssu)
     provenance = {
         "source_fingerprint": reference.payload["source_fingerprint"],
         "source_manifest": reference.payload["source_manifest"],
@@ -1405,6 +1543,7 @@ def _validate_shards(
         "thread_limit_environment": EXPECTED_THREAD_LIMITS,
         "runtime_identity": reference_identity["runtime_identity"],
         "experiment_spec": reference_spec,
+        "warmup_cross_case_audit": warmup_cross_case_audit,
         "shards": [
             {
                 "num_ssu": num_ssu,
@@ -1854,6 +1993,50 @@ def _synthetic_documents() -> tuple[list[ShardDocument], CampaignDocument]:
     return documents, campaign_document
 
 
+def _synthetic_summary_variant(
+    documents: Sequence[ShardDocument],
+    *,
+    case_name: str,
+    summary_updates: Mapping[str, object],
+    request_time_shift_ms: float = 0.0,
+) -> list[ShardDocument]:
+    """Copy the first synthetic shard and alter one summary for a negative test."""
+
+    first = documents[0]
+    payload = dict(first.payload)
+    results = []
+    matched = False
+    for original_row in first.payload["results"]:
+        if original_row["case"] != case_name:
+            results.append(original_row)
+            continue
+        matched = True
+        row = dict(original_row)
+        summary = dict(row["steady_summary"])
+        summary.update(summary_updates)
+        if request_time_shift_ms:
+            summary["request_rows"] = [
+                {
+                    **request,
+                    "admission_time_ms": (
+                        request["admission_time_ms"] + request_time_shift_ms
+                    ),
+                    "completion_time_ms": (
+                        request["completion_time_ms"] + request_time_shift_ms
+                    ),
+                }
+                for request in summary["request_rows"]
+            ]
+        row["steady_summary"] = summary
+        results.append(row)
+    _require(matched, f"synthetic variant case is absent: {case_name}")
+    payload["results"] = results
+    return [
+        ShardDocument(first.path, payload, first.sha256, first.size_bytes),
+        *documents[1:],
+    ]
+
+
 def _self_test() -> dict[str, object]:
     documents, campaign = _synthetic_documents()
     rows, provenance = _validate_shards(documents, campaign)
@@ -1868,6 +2051,107 @@ def _self_test() -> dict[str, object]:
         {row["alpha_2_equal_npu_slo_pct"] for row in rows} == {100.0},
         "self-test alpha2 metric differs",
     )
+    warmup_audit = provenance["warmup_cross_case_audit"]
+    _require(
+        warmup_audit["cell_count"] == len(SSUS) * len(CASES)
+        and warmup_audit["comparison_count"] == len(SSUS) * (len(CASES) - 1)
+        and warmup_audit["requires_review_count"] == 0
+        and warmup_audit["any_requires_review"] is False,
+        "self-test normal warmup audit differs",
+    )
+    _require(
+        all(
+            entry["ratio_to_baseline"] == 1.0
+            and entry["growth_fraction"] == 0.0
+            and entry["requires_review"] is False
+            for ssu_audit in warmup_audit["by_ssu"]
+            for entry in ssu_audit["cases"]
+        ),
+        "self-test normal warmup ratios differ",
+    )
+
+    boundary_documents = _synthetic_summary_variant(
+        documents,
+        case_name="layer_once_ttl_0ms",
+        summary_updates={
+            "warmup_reached_ms": 750.0,
+            "measurement_start_ms": 1_250.0,
+            "measurement_end_ms": 9_250.0,
+            "drain_stop_ms": 9_350.0,
+            "tail_drain_ms": 100.0,
+        },
+        request_time_shift_ms=250.0,
+    )
+    _boundary_rows, boundary_provenance = _validate_shards(boundary_documents, campaign)
+    _require(
+        boundary_provenance["warmup_cross_case_audit"]["requires_review_count"] == 0,
+        "self-test incorrectly marked the exact 50% warmup boundary",
+    )
+
+    review_documents = _synthetic_summary_variant(
+        documents,
+        case_name="layer_once_ttl_0ms",
+        summary_updates={
+            "warmup_reached_ms": 800.0,
+            "measurement_start_ms": 1_300.0,
+            "measurement_end_ms": 9_300.0,
+            "drain_stop_ms": 9_400.0,
+            "tail_drain_ms": 100.0,
+        },
+        request_time_shift_ms=300.0,
+    )
+    _review_rows, review_provenance = _validate_shards(review_documents, campaign)
+    review_audit = review_provenance["warmup_cross_case_audit"]
+    _require(
+        review_audit["requires_review_count"] == 1
+        and review_audit["review_cells"]
+        == [{"num_ssu": SSUS[0], "case": "layer_once_ttl_0ms"}]
+        and review_audit["status"] == "review_required"
+        and review_audit["complete"] is True
+        and review_audit["review_is_scientific_invalidation"] is False,
+        "self-test failed to mark the >50% warmup cell",
+    )
+    review_entry = next(
+        entry
+        for entry in review_audit["by_ssu"][0]["cases"]
+        if entry["case"] == "layer_once_ttl_0ms"
+    )
+    _close(
+        review_entry["ratio_to_baseline"],
+        1.6,
+        "self-test review warmup ratio",
+    )
+    _close(
+        review_entry["growth_fraction"],
+        0.6,
+        "self-test review warmup growth",
+    )
+    _require(
+        review_entry["requires_review"] is True,
+        "self-test >50% warmup entry is not marked",
+    )
+
+    invalid_timing_documents = _synthetic_summary_variant(
+        documents,
+        case_name="baseline",
+        summary_updates={
+            "measurement_start_ms": 1_001.0,
+            "measurement_end_ms": 9_001.0,
+            "drain_stop_ms": 9_101.0,
+            "tail_drain_ms": 100.0,
+        },
+        request_time_shift_ms=1.0,
+    )
+    invalid_timing_rejected = False
+    try:
+        _validate_shards(invalid_timing_documents, campaign)
+    except SummaryError:
+        invalid_timing_rejected = True
+    _require(
+        invalid_timing_rejected,
+        "self-test failed to reject invalid phase timing",
+    )
+
     first = documents[0]
     bad_payload = dict(first.payload)
     bad_results = list(first.payload["results"])
@@ -1895,6 +2179,10 @@ def _self_test() -> dict[str, object]:
         "ssu_count": len(SSUS),
         "case_count": len(CASES),
         "canonical_formal_validator": True,
+        "normal_warmup_audit_checked": True,
+        "warmup_exact_50pct_not_marked": True,
+        "warmup_over_50pct_marked_for_review": True,
+        "invalid_phase_timing_rejected": invalid_timing_rejected,
         "false_invariant_rejected": True,
         "portable_provenance_checked": bool(provenance["shards"]),
     }

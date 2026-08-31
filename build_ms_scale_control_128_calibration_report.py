@@ -65,6 +65,7 @@ BLOCK_MS = 500.0
 PRIMARY_ALPHA = 2.0
 SENSITIVITY_ALPHA = 1.5
 SLO_EPSILON = 1e-12
+FRACTION_TOLERANCE = 1e-12
 EXPECTED_THREADS = {name: "1" for name in THREAD_LIMIT_ENVIRONMENT}
 SHA256_RE = re.compile(r"[0-9a-f]{64}")
 CATEGORIES = frozenset(("SS", "SL", "LS", "LL"))
@@ -222,8 +223,11 @@ def _close(
 
 def _fraction(value: object, context: str) -> float:
     result = _finite(value, context)
-    _require(0.0 <= result <= 1.0, f"{context}: outside [0, 1]")
-    return result
+    _require(
+        -FRACTION_TOLERANCE <= result <= 1.0 + FRACTION_TOLERANCE,
+        f"{context}: outside [0, 1] beyond floating tolerance",
+    )
+    return min(1.0, max(0.0, result))
 
 
 def _sha256_value(value: object, context: str) -> str:
@@ -1357,7 +1361,6 @@ def _validate_shard(
         "config_fingerprint": payload["config_fingerprint"],
         "definition_fingerprint": expected_definition_fingerprint,
         "runtime_identity": SELECTED128_EXPECTED_RUNTIME_IDENTITY,
-        "hostname": payload["runtime"].get("hostname"),
         "normalized_spec_sha256": _canonical_hash(_normalized_spec(spec)),
         "schedule_metadata_sha256": _canonical_hash(payload["schedule_metadata"]),
         "input_authentication_sha256": _canonical_hash(input_authentication),
@@ -1475,9 +1478,6 @@ def _validate_grid(
         ],
         "path_abi_sha256": ordered_evidence[0]["path_abi_sha256"],
         "normalized_spec_sha256": ordered_evidence[0]["normalized_spec_sha256"],
-        "hostnames": sorted(
-            {item["hostname"] for item in ordered_evidence if item["hostname"]}
-        ),
         "target_summaries": target_summaries,
     }
     return ordered_cells, ordered_evidence, common
@@ -2570,6 +2570,21 @@ def _synthetic_documents() -> list[ShardDocument]:
 
 
 def _self_test() -> dict[str, object]:
+    _require(
+        _fraction(math.nextafter(1.0, math.inf), "self-test upper roundoff") == 1.0
+        and _fraction(math.nextafter(0.0, -math.inf), "self-test lower roundoff")
+        == 0.0,
+        "self-test did not clamp ulp-scale fraction roundoff",
+    )
+    material_fraction_rejected = False
+    try:
+        _fraction(1.0 + 1e-6, "self-test material fraction violation")
+    except CalibrationReportError:
+        material_fraction_rejected = True
+    _require(
+        material_fraction_rejected,
+        "self-test accepted a material fraction-domain violation",
+    )
     rule = _read_rule(DEFAULT_RULE_PATH)
     documents = _synthetic_documents()
     cells, evidence, common = _validate_grid(documents)
@@ -2680,6 +2695,8 @@ def _self_test() -> dict[str, object]:
         "two_challenger_tiebreak_checked": True,
         "gate_failure_no_decision_checked": True,
         "portable_json_csv_markdown_checked": True,
+        "fraction_roundoff_clamped": True,
+        "material_fraction_violation_rejected": True,
         "formal_campaign_modified": False,
     }
 
