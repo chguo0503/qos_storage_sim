@@ -1,0 +1,812 @@
+{
+  "baseline_semantics": {
+    "compute_barrier": "batch-size-one NPU starts a layer only after every placement command for that layer reaches its NPU link",
+    "explicit_per_npu_bandwidth_split": false,
+    "fairness_warning": "equal-looking service is emergent from symmetric FIFO traffic; baseline does not reserve one fair share per NPU",
+    "npu_backend": "one FCFS receive link at 50 GB/s per NPU",
+    "path0_cir_gbps": 0.20833333333333334,
+    "path0_pir": "infinite",
+    "routing": "every I/O uses Path 0",
+    "ssd_backend": "one non-preemptive command at 40 GB/s per SSD",
+    "surplus_rule": "when Path0 is the only active Path, it receives the SSD's work-conserving residual bandwidth up to SSD40"
+  },
+  "cases": [
+    {
+      "capacity": {
+        "blocks_per_positive_flow": 4,
+        "command_size_gb_by_npu_ssu": [
+          [
+            0.05,
+            0.05
+          ],
+          [
+            0.05,
+            0.05
+          ]
+        ],
+        "demands_gbps": [
+          [
+            20.0,
+            20.0
+          ],
+          [
+            20.0,
+            20.0
+          ]
+        ],
+        "fleet_aggregate_ssd_capacity_sufficient": true,
+        "fleet_raw_demand_gbps": 80.0,
+        "fleet_ssd_capacity_gbps": 80.0,
+        "max_nonpreemptive_ssd_command_ms": 1.25,
+        "overloaded_ssu_ids": [],
+        "per_npu_raw_demand_gbps": [
+          40.0,
+          40.0
+        ],
+        "per_ssu_raw_demand_gbps": [
+          40.0,
+          40.0
+        ],
+        "placement_raw_feasible": true
+      },
+      "case": "symmetric_uniform_full_load",
+      "case_fingerprint": "825f7b84844155ab89f632b5380812bf4d7c9531880ca3aa2797034bd0ee0338",
+      "comparison_case": null,
+      "description": "Every NPU demands 20 GB/s from each SSD; both SSDs see exactly 40 GB/s and both NPU links see 40 GB/s.",
+      "input_fingerprint": "e3526d38315ca24b87a082d3eeeb49d0d138bd0163a74e9b2362909c5eaeed52",
+      "lesson": "A symmetric, fine-grained saturated trace can make the fixed-Path0 baseline look perfectly fair and reach 100% mean NPU utilization.",
+      "measurement": {
+        "compute_ms_by_npu": [
+          19920.0,
+          19920.0
+        ],
+        "control_evaluations": 0,
+        "duration_ms": 19920.0,
+        "end_ms": 20015.0,
+        "fleet_latency": {
+          "equal_npu_weight_slo_attainment": 1.0,
+          "equal_npu_weight_ttft_ms_mean": 80.0,
+          "request_weighted_slo_attainment": 1.0,
+          "request_weighted_ttft_ms_mean": 80.0,
+          "request_weighted_ttft_ms_p99": 80.0
+        },
+        "invariants": {
+          "all_npus_sampled_for_slo": true,
+          "all_tagged_requests_completed": true,
+          "all_window_admissions_tagged": true,
+          "cir_capacity": true,
+          "compute_overlap_bounds": true,
+          "measurement_duration_exact": true,
+          "measurement_window_closed": true,
+          "no_backlog_exhaustion": true,
+          "npu_link_overlap_bounds": true,
+          "npu_link_service_attribution": true,
+          "one_command_per_ssd": true,
+          "ssd_overlap_bounds": true,
+          "ssd_service_attribution": true,
+          "tagged_admissions_inside_window": true,
+          "warmup_reached_all_npus": true
+        },
+        "npu_compute_mean_utilization": 1.0,
+        "npu_compute_utilization_by_npu": [
+          1.0,
+          1.0
+        ],
+        "npu_link_busy_ms_by_npu": [
+          15936.0,
+          15936.0
+        ],
+        "npu_link_mean_utilization": 0.8,
+        "npu_link_utilization_by_npu": [
+          0.8,
+          0.8
+        ],
+        "per_npu_latency": [
+          {
+            "barrier_wait_ms_max": 0.0,
+            "barrier_wait_ms_mean": 0.0,
+            "barrier_wait_ms_min": 0.0,
+            "ideal_ttft_ms": 80.0,
+            "normalized_ttft_mean": 1.0,
+            "npu_id": 0,
+            "request_count": 249,
+            "slo_attainment": 1.0,
+            "ttft_ms_max": 80.0,
+            "ttft_ms_mean": 80.0,
+            "ttft_ms_min": 80.0,
+            "ttft_ms_p99": 80.0
+          },
+          {
+            "barrier_wait_ms_max": 0.0,
+            "barrier_wait_ms_mean": 0.0,
+            "barrier_wait_ms_min": 0.0,
+            "ideal_ttft_ms": 80.0,
+            "normalized_ttft_mean": 1.0,
+            "npu_id": 1,
+            "request_count": 249,
+            "slo_attainment": 1.0,
+            "ttft_ms_max": 80.0,
+            "ttft_ms_mean": 80.0,
+            "ttft_ms_min": 80.0,
+            "ttft_ms_p99": 80.0
+          }
+        ],
+        "pressure_reports": 0,
+        "request_counts_by_npu": [
+          249,
+          249
+        ],
+        "ssd_busy_ms_by_ssu": [
+          19920.0,
+          19920.0
+        ],
+        "ssd_mean_utilization_all_ssus": 1.0,
+        "ssd_served_gbps_by_npu_ssu": [
+          [
+            20.000000000002846,
+            19.999999999999854
+          ],
+          [
+            20.000000000000636,
+            20.000000000003997
+          ]
+        ],
+        "ssd_served_gbps_by_ssu": [
+          40.0,
+          40.0
+        ],
+        "ssd_utilization_by_ssu": [
+          1.0,
+          1.0
+        ],
+        "start_ms": 95.0
+      },
+      "short_label": "均匀满载"
+    },
+    {
+      "capacity": {
+        "blocks_per_positive_flow": 4,
+        "command_size_gb_by_npu_ssu": [
+          [
+            0.075,
+            0.0
+          ],
+          [
+            0.075,
+            0.0
+          ]
+        ],
+        "demands_gbps": [
+          [
+            30.0,
+            0.0
+          ],
+          [
+            30.0,
+            0.0
+          ]
+        ],
+        "fleet_aggregate_ssd_capacity_sufficient": true,
+        "fleet_raw_demand_gbps": 60.0,
+        "fleet_ssd_capacity_gbps": 80.0,
+        "max_nonpreemptive_ssd_command_ms": 1.875,
+        "overloaded_ssu_ids": [
+          0
+        ],
+        "per_npu_raw_demand_gbps": [
+          30.0,
+          30.0
+        ],
+        "per_ssu_raw_demand_gbps": [
+          60.0,
+          0.0
+        ],
+        "placement_raw_feasible": false
+      },
+      "case": "same_ssu_hotspot_global_spare",
+      "case_fingerprint": "f768047b963cc8ea8ef64679ae83d4f377e913d2e5ec8e494de105e45ed5600b",
+      "comparison_case": null,
+      "description": "Both NPUs demand 30 GB/s from SSD0 only: fleet demand is 60 < 80 GB/s, but SSD0 sees 60 > 40 GB/s while SSD1 is idle.",
+      "input_fingerprint": "0d83c9d8dc837a7070d72d7c49abc8bc750d8de19cba84bba9adf9ecb3884402",
+      "lesson": "Fleet capacity is irrelevant when placement overloads one SSD; the idle SSD cannot serve blocks placed on the hotspot.",
+      "measurement": {
+        "compute_ms_by_npu": [
+          13280.0,
+          13280.0
+        ],
+        "control_evaluations": 0,
+        "duration_ms": 19920.0,
+        "end_ms": 20051.5,
+        "fleet_latency": {
+          "equal_npu_weight_slo_attainment": 1.0,
+          "equal_npu_weight_ttft_ms_mean": 120.0,
+          "request_weighted_slo_attainment": 1.0,
+          "request_weighted_ttft_ms_mean": 120.0,
+          "request_weighted_ttft_ms_p99": 120.0
+        },
+        "invariants": {
+          "all_npus_sampled_for_slo": true,
+          "all_tagged_requests_completed": true,
+          "all_window_admissions_tagged": true,
+          "cir_capacity": true,
+          "compute_overlap_bounds": true,
+          "measurement_duration_exact": true,
+          "measurement_window_closed": true,
+          "no_backlog_exhaustion": true,
+          "npu_link_overlap_bounds": true,
+          "npu_link_service_attribution": true,
+          "one_command_per_ssd": true,
+          "ssd_overlap_bounds": true,
+          "ssd_service_attribution": true,
+          "tagged_admissions_inside_window": true,
+          "warmup_reached_all_npus": true
+        },
+        "npu_compute_mean_utilization": 0.6666666666666666,
+        "npu_compute_utilization_by_npu": [
+          0.6666666666666666,
+          0.6666666666666666
+        ],
+        "npu_link_busy_ms_by_npu": [
+          7968.0,
+          7968.0
+        ],
+        "npu_link_mean_utilization": 0.4,
+        "npu_link_utilization_by_npu": [
+          0.4,
+          0.4
+        ],
+        "per_npu_latency": [
+          {
+            "barrier_wait_ms_max": 40.0,
+            "barrier_wait_ms_mean": 40.0,
+            "barrier_wait_ms_min": 40.0,
+            "ideal_ttft_ms": 80.0,
+            "normalized_ttft_mean": 1.5,
+            "npu_id": 0,
+            "request_count": 166,
+            "slo_attainment": 1.0,
+            "ttft_ms_max": 120.0,
+            "ttft_ms_mean": 120.0,
+            "ttft_ms_min": 120.0,
+            "ttft_ms_p99": 120.0
+          },
+          {
+            "barrier_wait_ms_max": 40.0,
+            "barrier_wait_ms_mean": 40.0,
+            "barrier_wait_ms_min": 40.0,
+            "ideal_ttft_ms": 80.0,
+            "normalized_ttft_mean": 1.5,
+            "npu_id": 1,
+            "request_count": 166,
+            "slo_attainment": 1.0,
+            "ttft_ms_max": 120.0,
+            "ttft_ms_mean": 120.0,
+            "ttft_ms_min": 120.0,
+            "ttft_ms_p99": 120.0
+          }
+        ],
+        "pressure_reports": 0,
+        "request_counts_by_npu": [
+          166,
+          166
+        ],
+        "ssd_busy_ms_by_ssu": [
+          19920.0,
+          0.0
+        ],
+        "ssd_mean_utilization_all_ssus": 0.5,
+        "ssd_served_gbps_by_npu_ssu": [
+          [
+            19.99999999999855,
+            0.0
+          ],
+          [
+            19.999999999998554,
+            0.0
+          ]
+        ],
+        "ssd_served_gbps_by_ssu": [
+          40.0,
+          0.0
+        ],
+        "ssd_utilization_by_ssu": [
+          1.0,
+          0.0
+        ],
+        "start_ms": 131.5
+      },
+      "short_label": "同盘热点"
+    },
+    {
+      "capacity": {
+        "blocks_per_positive_flow": 16,
+        "command_size_gb_by_npu_ssu": [
+          [
+            0.02375,
+            0.0
+          ],
+          [
+            0.0,
+            0.02375
+          ]
+        ],
+        "demands_gbps": [
+          [
+            38.0,
+            0.0
+          ],
+          [
+            0.0,
+            38.0
+          ]
+        ],
+        "fleet_aggregate_ssd_capacity_sufficient": true,
+        "fleet_raw_demand_gbps": 76.0,
+        "fleet_ssd_capacity_gbps": 80.0,
+        "max_nonpreemptive_ssd_command_ms": 0.59375,
+        "overloaded_ssu_ids": [],
+        "per_npu_raw_demand_gbps": [
+          38.0,
+          38.0
+        ],
+        "per_ssu_raw_demand_gbps": [
+          38.0,
+          38.0
+        ],
+        "placement_raw_feasible": true
+      },
+      "case": "complementary_placement",
+      "case_fingerprint": "647f68595756aa1e9f298b206b52acd6c0de91426bb744870c96cbc33726ae87",
+      "comparison_case": null,
+      "description": "NPU0 uses SSD0 and NPU1 uses SSD1 at 38 GB/s each; no SSD or NPU link is overloaded.",
+      "input_fingerprint": "8173c8fae7e974bb28f5285a51960899a7bbffed53e2de879b8d9b7c37a65701",
+      "lesson": "Disjoint placement removes SSD contention; sufficiently fine commands hide both SSD and NPU-link service behind compute.",
+      "measurement": {
+        "compute_ms_by_npu": [
+          19920.0,
+          19920.0
+        ],
+        "control_evaluations": 0,
+        "duration_ms": 19920.0,
+        "end_ms": 20009.975,
+        "fleet_latency": {
+          "equal_npu_weight_slo_attainment": 1.0,
+          "equal_npu_weight_ttft_ms_mean": 80.0,
+          "request_weighted_slo_attainment": 1.0,
+          "request_weighted_ttft_ms_mean": 80.0,
+          "request_weighted_ttft_ms_p99": 80.0
+        },
+        "invariants": {
+          "all_npus_sampled_for_slo": true,
+          "all_tagged_requests_completed": true,
+          "all_window_admissions_tagged": true,
+          "cir_capacity": true,
+          "compute_overlap_bounds": true,
+          "measurement_duration_exact": true,
+          "measurement_window_closed": true,
+          "no_backlog_exhaustion": true,
+          "npu_link_overlap_bounds": true,
+          "npu_link_service_attribution": true,
+          "one_command_per_ssd": true,
+          "ssd_overlap_bounds": true,
+          "ssd_service_attribution": true,
+          "tagged_admissions_inside_window": true,
+          "warmup_reached_all_npus": true
+        },
+        "npu_compute_mean_utilization": 1.0,
+        "npu_compute_utilization_by_npu": [
+          1.0,
+          1.0
+        ],
+        "npu_link_busy_ms_by_npu": [
+          15139.199999998289,
+          15139.199999998289
+        ],
+        "npu_link_mean_utilization": 0.7599999999999141,
+        "npu_link_utilization_by_npu": [
+          0.7599999999999141,
+          0.7599999999999141
+        ],
+        "per_npu_latency": [
+          {
+            "barrier_wait_ms_max": 4.547473508864641e-13,
+            "barrier_wait_ms_mean": 1.9404379932404343e-15,
+            "barrier_wait_ms_min": 0.0,
+            "ideal_ttft_ms": 80.0,
+            "normalized_ttft_mean": 1.0,
+            "npu_id": 0,
+            "request_count": 249,
+            "slo_attainment": 1.0,
+            "ttft_ms_max": 80.00000000000045,
+            "ttft_ms_mean": 80.0,
+            "ttft_ms_min": 79.99999999999818,
+            "ttft_ms_p99": 80.0
+          },
+          {
+            "barrier_wait_ms_max": 4.547473508864641e-13,
+            "barrier_wait_ms_mean": 1.9404379932404343e-15,
+            "barrier_wait_ms_min": 0.0,
+            "ideal_ttft_ms": 80.0,
+            "normalized_ttft_mean": 1.0,
+            "npu_id": 1,
+            "request_count": 249,
+            "slo_attainment": 1.0,
+            "ttft_ms_max": 80.00000000000045,
+            "ttft_ms_mean": 80.0,
+            "ttft_ms_min": 79.99999999999818,
+            "ttft_ms_p99": 80.0
+          }
+        ],
+        "pressure_reports": 0,
+        "request_counts_by_npu": [
+          249,
+          249
+        ],
+        "ssd_busy_ms_by_ssu": [
+          18924.0,
+          18924.0
+        ],
+        "ssd_mean_utilization_all_ssus": 0.95,
+        "ssd_served_gbps_by_npu_ssu": [
+          [
+            37.99999999997812,
+            0.0
+          ],
+          [
+            0.0,
+            37.99999999997812
+          ]
+        ],
+        "ssd_served_gbps_by_ssu": [
+          38.0,
+          38.0
+        ],
+        "ssd_utilization_by_ssu": [
+          0.95,
+          0.95
+        ],
+        "start_ms": 89.975
+      },
+      "short_label": "互补放置"
+    },
+    {
+      "capacity": {
+        "blocks_per_positive_flow": 1,
+        "command_size_gb_by_npu_ssu": [
+          [
+            0.3,
+            0.0
+          ],
+          [
+            0.1,
+            0.0
+          ]
+        ],
+        "demands_gbps": [
+          [
+            30.0,
+            0.0
+          ],
+          [
+            10.0,
+            0.0
+          ]
+        ],
+        "fleet_aggregate_ssd_capacity_sufficient": true,
+        "fleet_raw_demand_gbps": 40.0,
+        "fleet_ssd_capacity_gbps": 80.0,
+        "max_nonpreemptive_ssd_command_ms": 7.5,
+        "overloaded_ssu_ids": [],
+        "per_npu_raw_demand_gbps": [
+          30.0,
+          10.0
+        ],
+        "per_ssu_raw_demand_gbps": [
+          40.0,
+          0.0
+        ],
+        "placement_raw_feasible": true
+      },
+      "case": "heterogeneous_large_commands",
+      "case_fingerprint": "86369f9b0fc5d9d18b2b21482f5cafbfe5c73a62ec4062661c6ba086317ba3c4",
+      "comparison_case": "heterogeneous_fragmented_control",
+      "description": "SSD0 sees exactly 40 GB/s, split 30/10 by NPU; each positive flow is one non-preemptive 0.3/0.1-GB command per layer.",
+      "input_fingerprint": "e2c7db5f50b009e6f3abf3239ed5ab1d30b995c93a9bf28d31d9eaa5876bb3f7",
+      "lesson": "A large FIFO command creates head-of-line and layer-barrier wait. The fast NPU keeps the arithmetic mean high while the slow NPU has much worse utilization and TTFT.",
+      "measurement": {
+        "compute_ms_by_npu": [
+          14400.0,
+          19200.0
+        ],
+        "control_evaluations": 0,
+        "duration_ms": 19920.0,
+        "end_ms": 20043.5,
+        "fleet_latency": {
+          "equal_npu_weight_slo_attainment": 1.0,
+          "equal_npu_weight_ttft_ms_mean": 96.83333333333334,
+          "request_weighted_slo_attainment": 1.0,
+          "request_weighted_ttft_ms_mean": 94.85714285714286,
+          "request_weighted_ttft_ms_p99": 111.0
+        },
+        "invariants": {
+          "all_npus_sampled_for_slo": true,
+          "all_tagged_requests_completed": true,
+          "all_window_admissions_tagged": true,
+          "cir_capacity": true,
+          "compute_overlap_bounds": true,
+          "measurement_duration_exact": true,
+          "measurement_window_closed": true,
+          "no_backlog_exhaustion": true,
+          "npu_link_overlap_bounds": true,
+          "npu_link_service_attribution": true,
+          "one_command_per_ssd": true,
+          "ssd_overlap_bounds": true,
+          "ssd_service_attribution": true,
+          "tagged_admissions_inside_window": true,
+          "warmup_reached_all_npus": true
+        },
+        "npu_compute_mean_utilization": 0.8433734939759037,
+        "npu_compute_utilization_by_npu": [
+          0.7228915662650602,
+          0.963855421686747
+        ],
+        "npu_link_busy_ms_by_npu": [
+          8640.0,
+          3840.0
+        ],
+        "npu_link_mean_utilization": 0.3132530120481928,
+        "npu_link_utilization_by_npu": [
+          0.43373493975903615,
+          0.1927710843373494
+        ],
+        "per_npu_latency": [
+          {
+            "barrier_wait_ms_max": 31.0,
+            "barrier_wait_ms_mean": 30.666666666666668,
+            "barrier_wait_ms_min": 30.0,
+            "ideal_ttft_ms": 80.0,
+            "normalized_ttft_mean": 1.3833333333333333,
+            "npu_id": 0,
+            "request_count": 180,
+            "slo_attainment": 1.0,
+            "ttft_ms_max": 111.0,
+            "ttft_ms_mean": 110.66666666666667,
+            "ttft_ms_min": 110.0,
+            "ttft_ms_p99": 111.0
+          },
+          {
+            "barrier_wait_ms_max": 3.0,
+            "barrier_wait_ms_mean": 3.0,
+            "barrier_wait_ms_min": 3.0,
+            "ideal_ttft_ms": 80.0,
+            "normalized_ttft_mean": 1.0375,
+            "npu_id": 1,
+            "request_count": 240,
+            "slo_attainment": 1.0,
+            "ttft_ms_max": 83.0,
+            "ttft_ms_mean": 83.0,
+            "ttft_ms_min": 83.0,
+            "ttft_ms_p99": 83.0
+          }
+        ],
+        "pressure_reports": 0,
+        "request_counts_by_npu": [
+          180,
+          240
+        ],
+        "ssd_busy_ms_by_ssu": [
+          15600.0,
+          0.0
+        ],
+        "ssd_mean_utilization_all_ssus": 0.39156626506024095,
+        "ssd_served_gbps_by_npu_ssu": [
+          [
+            21.68674698795159,
+            0.0
+          ],
+          [
+            9.63855421686724,
+            0.0
+          ]
+        ],
+        "ssd_served_gbps_by_ssu": [
+          31.325301204819276,
+          0.0
+        ],
+        "ssd_utilization_by_ssu": [
+          0.7831325301204819,
+          0.0
+        ],
+        "start_ms": 123.5
+      },
+      "short_label": "异构大命令"
+    },
+    {
+      "capacity": {
+        "blocks_per_positive_flow": 4,
+        "command_size_gb_by_npu_ssu": [
+          [
+            0.075,
+            0.0
+          ],
+          [
+            0.025,
+            0.0
+          ]
+        ],
+        "demands_gbps": [
+          [
+            30.0,
+            0.0
+          ],
+          [
+            10.0,
+            0.0
+          ]
+        ],
+        "fleet_aggregate_ssd_capacity_sufficient": true,
+        "fleet_raw_demand_gbps": 40.0,
+        "fleet_ssd_capacity_gbps": 80.0,
+        "max_nonpreemptive_ssd_command_ms": 1.875,
+        "overloaded_ssu_ids": [],
+        "per_npu_raw_demand_gbps": [
+          30.0,
+          10.0
+        ],
+        "per_ssu_raw_demand_gbps": [
+          40.0,
+          0.0
+        ],
+        "placement_raw_feasible": true
+      },
+      "case": "heterogeneous_fragmented_control",
+      "case_fingerprint": "3821b070b8f065084506f3e8ec01fd4bd9c4ef63a1b1759ec4a8fa69993421da",
+      "comparison_case": "heterogeneous_large_commands",
+      "description": "The identical 30/10-GB/s work and placement, split into four commands per positive flow.",
+      "input_fingerprint": "b5328762e887dcff7fb2ab749978845566baa89925c5dfb8de40fcefc251bc4b",
+      "lesson": "With input capacity and placement held fixed, fragmentation alone removes the barrier bubble in this deterministic trace.",
+      "measurement": {
+        "compute_ms_by_npu": [
+          19920.0,
+          19920.0
+        ],
+        "control_evaluations": 0,
+        "duration_ms": 19920.0,
+        "end_ms": 20011.5,
+        "fleet_latency": {
+          "equal_npu_weight_slo_attainment": 1.0,
+          "equal_npu_weight_ttft_ms_mean": 80.0,
+          "request_weighted_slo_attainment": 1.0,
+          "request_weighted_ttft_ms_mean": 80.0,
+          "request_weighted_ttft_ms_p99": 80.0
+        },
+        "invariants": {
+          "all_npus_sampled_for_slo": true,
+          "all_tagged_requests_completed": true,
+          "all_window_admissions_tagged": true,
+          "cir_capacity": true,
+          "compute_overlap_bounds": true,
+          "measurement_duration_exact": true,
+          "measurement_window_closed": true,
+          "no_backlog_exhaustion": true,
+          "npu_link_overlap_bounds": true,
+          "npu_link_service_attribution": true,
+          "one_command_per_ssd": true,
+          "ssd_overlap_bounds": true,
+          "ssd_service_attribution": true,
+          "tagged_admissions_inside_window": true,
+          "warmup_reached_all_npus": true
+        },
+        "npu_compute_mean_utilization": 1.0,
+        "npu_compute_utilization_by_npu": [
+          1.0,
+          1.0
+        ],
+        "npu_link_busy_ms_by_npu": [
+          11952.0,
+          3984.0
+        ],
+        "npu_link_mean_utilization": 0.4,
+        "npu_link_utilization_by_npu": [
+          0.6,
+          0.2
+        ],
+        "per_npu_latency": [
+          {
+            "barrier_wait_ms_max": 0.0,
+            "barrier_wait_ms_mean": 0.0,
+            "barrier_wait_ms_min": 0.0,
+            "ideal_ttft_ms": 80.0,
+            "normalized_ttft_mean": 1.0,
+            "npu_id": 0,
+            "request_count": 249,
+            "slo_attainment": 1.0,
+            "ttft_ms_max": 80.0,
+            "ttft_ms_mean": 80.0,
+            "ttft_ms_min": 80.0,
+            "ttft_ms_p99": 80.0
+          },
+          {
+            "barrier_wait_ms_max": 0.0,
+            "barrier_wait_ms_mean": 0.0,
+            "barrier_wait_ms_min": 0.0,
+            "ideal_ttft_ms": 80.0,
+            "normalized_ttft_mean": 1.0,
+            "npu_id": 1,
+            "request_count": 249,
+            "slo_attainment": 1.0,
+            "ttft_ms_max": 80.0,
+            "ttft_ms_mean": 80.0,
+            "ttft_ms_min": 80.0,
+            "ttft_ms_p99": 80.0
+          }
+        ],
+        "pressure_reports": 0,
+        "request_counts_by_npu": [
+          249,
+          249
+        ],
+        "ssd_busy_ms_by_ssu": [
+          19920.0,
+          0.0
+        ],
+        "ssd_mean_utilization_all_ssus": 0.5,
+        "ssd_served_gbps_by_npu_ssu": [
+          [
+            29.999999999999755,
+            0.0
+          ],
+          [
+            10.00000000000072,
+            0.0
+          ]
+        ],
+        "ssd_served_gbps_by_ssu": [
+          40.0,
+          0.0
+        ],
+        "ssd_utilization_by_ssu": [
+          1.0,
+          0.0
+        ],
+        "start_ms": 91.5
+      },
+      "short_label": "异构小命令对照"
+    }
+  ],
+  "configuration": {
+    "batch_size": 1,
+    "block_ms": 240.0,
+    "compute_ms_per_layer": 10.0,
+    "cross_request_layer0_prefetch": true,
+    "ideal_ttft_ms": 80.0,
+    "measurement_cycle_basis_ms": [
+      80,
+      120,
+      332
+    ],
+    "measurement_cycle_lcm_ms": 19920.0,
+    "measurement_ms": 19920.0,
+    "n_layers": 8,
+    "npu_link_cap_gbps": 50.0,
+    "num_npu": 2,
+    "num_ssu": 2,
+    "requests_per_npu_prefix": 256,
+    "settle_ms": 0.0,
+    "slo_alpha": 2.0,
+    "ssd_cap_gbps": 40.0,
+    "submit_order_seed": 42,
+    "warmup_requests_per_npu": 1
+  },
+  "experiment": "baseline_2npu_2ssu_teaching",
+  "experiment_fingerprint": "76bc5022f5314ec13f7d0ec66f8c10137f0db274002daada68639f4b8fb76dd4",
+  "measurement_semantics": {
+    "barrier_identity": "batch_size=1, so barrier_wait = TTFT - 8*10ms compute exactly",
+    "saturation": "each NPU owns a finite 256-request prefix; steady invariants verify that the common measurement window never exhausts its backlog",
+    "status": "exact_deterministic_window_not_infinite_horizon",
+    "ttft": "exact admission-to-completion latency for requests admitted in the window",
+    "utilization": "exact overlap of SSD busy time, NPU-link busy time, and compute busy time with one common 19,920-ms window"
+  },
+  "schema_version": 1,
+  "source_fingerprint": "007742936bea4947e3f42d6cb18a5acbc9e216bc531d250613decc2dab9d2791"
+}

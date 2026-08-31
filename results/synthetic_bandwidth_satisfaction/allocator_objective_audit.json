@@ -1,0 +1,402 @@
+{
+  "schema_version": 1,
+  "experiment": "synthetic_bandwidth_satisfaction",
+  "experiment_profile": "general",
+  "generated_at_utc": "2026-08-29T16:54:01.453964+00:00",
+  "mode": "audit",
+  "invalid_data_plane_run_count": 0,
+  "complete": true,
+  "methodology": {
+    "demand_definition": "D[n,s]=per-layer placement GB / compute seconds",
+    "ssd_service": "exact SSD40 busy-time service overlap in the common window, attributed by NPU and SSU",
+    "npu_link_service": "exact physical NPU-link service overlap in the common window, attributed by source SSU; partial in-flight command bytes are not yet compute-visible",
+    "allocator_scope": "Scheme B only; routing policies have no grant allocator",
+    "npu_constraint_scope": "physical receive-link and Scheme-B allocator NPU caps are explicit",
+    "cir_warning": "CIR is a guaranteed arbitration share, not a hard rate cap; surplus is work-conserving",
+    "steady_warning": "delivered/target is a long-run repeated-template rate; it is not a claim that every flow stayed backlogged for the whole window",
+    "warm_slo_fluid_rule": "Layer0 has one compute interval of prefetch lead; repeated-template alpha-x SLO requires service/demand >= 1/alpha",
+    "scheme_b_slo_contract": {
+      "manifest_scope": "all not-yet-ready layers of each active request",
+      "control_interval_ms": 10.0,
+      "on_batch_boundary": false,
+      "path_mode": "one dedicated Path per NPU for every layer",
+      "shared_layer0_path": false
+    }
+  },
+  "config": {
+    "n_layers": 16,
+    "compute_ms": 10.0,
+    "requests_per_npu": 32,
+    "blocks_per_positive_npu_ssu_flow": 9,
+    "strategies": [
+      "baseline",
+      "layer_once",
+      "refresh8",
+      "scheme_b",
+      "scheme_b_slo"
+    ],
+    "submit_order_seed": 42,
+    "steady_state": {
+      "warmup_requests_per_npu": 1,
+      "settle_ms": 50.0,
+      "measurement_ms": 1000.0,
+      "slo_alpha": 2.0,
+      "block_ms": 250.0
+    },
+    "ssd_cap_gbps": 40.0,
+    "npu_cap_gbps": 50.0,
+    "allocator_npu_cap_gbps": 50.0,
+    "physical_npu_link_bw_gbps": 50.0,
+    "npu_constraints_effectively_disabled": false
+  },
+  "cases": [
+    {
+      "case": "deadline_feasible_scheme_objective",
+      "audit": {
+        "case": "deadline_feasible_scheme_objective",
+        "family": "heterogeneous",
+        "description": "Raw 80 GB/s is infeasible, but the warm 2x target is feasible; equal max-min can starve the 60-GB/s flow",
+        "case_fingerprint": "a53b20e80322cf462f9ac66795b2def0af1e827427543e8035e6b3819d9b6c70",
+        "num_npu": 3,
+        "num_ssu": 1,
+        "demands_gbps": [
+          [
+            60.0
+          ],
+          [
+            10.0
+          ],
+          [
+            10.0
+          ]
+        ],
+        "per_npu_demand_gbps": [
+          60.0,
+          10.0,
+          10.0
+        ],
+        "per_ssu_demand_gbps": [
+          80.0
+        ],
+        "total_demand_gbps": 80.0,
+        "ssd_cap_gbps": 40.0,
+        "npu_cap_gbps": 50.0,
+        "allocator_npu_cap_gbps": 50.0,
+        "raw_full_hide_feasible": false,
+        "warm_2x_required_service_ratio": 0.5,
+        "warm_2x_fluid_capacity_feasible": true,
+        "overloaded_ssu_ids": [
+          0
+        ],
+        "overloaded_npu_ids": [
+          0
+        ],
+        "scheme_b": {
+          "grants_gbps": [
+            [
+              20.0
+            ],
+            [
+              10.0
+            ],
+            [
+              10.0
+            ]
+          ],
+          "per_npu_grant_gbps": [
+            20.0,
+            10.0,
+            10.0
+          ],
+          "per_ssu_grant_gbps": [
+            40.0
+          ],
+          "total_grant_gbps": 40.0,
+          "demand_weighted_grant_satisfaction": 0.5,
+          "active_flow_grant_satisfaction_mean": 0.7777777777777777,
+          "active_flow_grant_satisfaction_p10": 0.4666666666666667,
+          "active_flow_grant_satisfaction_min": 0.3333333333333333,
+          "coflow_grant_satisfaction_by_npu": [
+            0.3333333333333333,
+            1.0,
+            1.0
+          ],
+          "coflow_grant_satisfaction_jain": 0.8596491228070172,
+          "planned_warm_2x_slo_attainment": 0.6666666666666666,
+          "full_demand_exact_when_raw_feasible": true,
+          "target_hash": "5cdbd0380bc30cd21a730f0417ba45823da34c3775e3d98f02f9b04fe0129848"
+        },
+        "scheme_b_slo": {
+          "grants_gbps": [
+            [
+              30.0
+            ],
+            [
+              5.0
+            ],
+            [
+              5.0
+            ]
+          ],
+          "per_npu_grant_gbps": [
+            30.0,
+            5.0,
+            5.0
+          ],
+          "per_ssu_grant_gbps": [
+            40.0
+          ],
+          "total_grant_gbps": 40.0,
+          "demand_weighted_grant_satisfaction": 0.5,
+          "active_flow_grant_satisfaction_mean": 0.5,
+          "active_flow_grant_satisfaction_p10": 0.5,
+          "active_flow_grant_satisfaction_min": 0.5,
+          "coflow_grant_satisfaction_by_npu": [
+            0.5,
+            0.5,
+            0.5
+          ],
+          "coflow_grant_satisfaction_jain": 1.0,
+          "planned_warm_2x_slo_attainment": 1.0,
+          "full_demand_exact_when_raw_feasible": true,
+          "target_hash": "aca813b71a5771f88a582b608fefa122a8cccc2f37498782767079884ce28f08"
+        },
+        "routing_allocator": {
+          "baseline": "not_applicable:routing_policy_without_grant_allocator",
+          "layer_once": "not_applicable:routing_policy_without_grant_allocator",
+          "refresh8": "not_applicable:routing_policy_without_grant_allocator"
+        },
+        "diagnosis": "capacity_allows_warm_2x_but_scheme_b_objective_can_miss_it"
+      },
+      "data_plane_runs": []
+    },
+    {
+      "case": "npu50_control",
+      "audit": {
+        "case": "npu50_control",
+        "family": "npu_cap",
+        "description": "Each SSU sees only 30 GB/s, but one NPU requests 60 GB/s in aggregate",
+        "case_fingerprint": "dcb931445e22f5445c4f0d32d90e42dc658978a7bf87133eeaa77e18e634340a",
+        "num_npu": 1,
+        "num_ssu": 2,
+        "demands_gbps": [
+          [
+            30.0,
+            30.0
+          ]
+        ],
+        "per_npu_demand_gbps": [
+          60.0
+        ],
+        "per_ssu_demand_gbps": [
+          30.0,
+          30.0
+        ],
+        "total_demand_gbps": 60.0,
+        "ssd_cap_gbps": 40.0,
+        "npu_cap_gbps": 50.0,
+        "allocator_npu_cap_gbps": 50.0,
+        "raw_full_hide_feasible": false,
+        "warm_2x_required_service_ratio": 0.5,
+        "warm_2x_fluid_capacity_feasible": true,
+        "overloaded_ssu_ids": [],
+        "overloaded_npu_ids": [
+          0
+        ],
+        "scheme_b": {
+          "grants_gbps": [
+            [
+              25.0,
+              25.0
+            ]
+          ],
+          "per_npu_grant_gbps": [
+            50.0
+          ],
+          "per_ssu_grant_gbps": [
+            25.0,
+            25.0
+          ],
+          "total_grant_gbps": 50.0,
+          "demand_weighted_grant_satisfaction": 0.8333333333333334,
+          "active_flow_grant_satisfaction_mean": 0.8333333333333334,
+          "active_flow_grant_satisfaction_p10": 0.8333333333333334,
+          "active_flow_grant_satisfaction_min": 0.8333333333333334,
+          "coflow_grant_satisfaction_by_npu": [
+            0.8333333333333334
+          ],
+          "coflow_grant_satisfaction_jain": 1.0,
+          "planned_warm_2x_slo_attainment": 1.0,
+          "full_demand_exact_when_raw_feasible": true,
+          "target_hash": "614bdeb218d6635682a33bcdb501d2f966f4825738572c69d3d2238c35c2695e"
+        },
+        "scheme_b_slo": {
+          "grants_gbps": [
+            [
+              25.0,
+              25.0
+            ]
+          ],
+          "per_npu_grant_gbps": [
+            50.0
+          ],
+          "per_ssu_grant_gbps": [
+            25.0,
+            25.0
+          ],
+          "total_grant_gbps": 50.0,
+          "demand_weighted_grant_satisfaction": 0.8333333333333334,
+          "active_flow_grant_satisfaction_mean": 0.8333333333333334,
+          "active_flow_grant_satisfaction_p10": 0.8333333333333334,
+          "active_flow_grant_satisfaction_min": 0.8333333333333334,
+          "coflow_grant_satisfaction_by_npu": [
+            0.8333333333333334
+          ],
+          "coflow_grant_satisfaction_jain": 1.0,
+          "planned_warm_2x_slo_attainment": 1.0,
+          "full_demand_exact_when_raw_feasible": true,
+          "target_hash": "614bdeb218d6635682a33bcdb501d2f966f4825738572c69d3d2238c35c2695e"
+        },
+        "routing_allocator": {
+          "baseline": "not_applicable:routing_policy_without_grant_allocator",
+          "layer_once": "not_applicable:routing_policy_without_grant_allocator",
+          "refresh8": "not_applicable:routing_policy_without_grant_allocator"
+        },
+        "diagnosis": "raw_infeasible_but_warm_2x_capacity_feasible"
+      },
+      "data_plane_runs": []
+    },
+    {
+      "case": "npu50_link_stress",
+      "audit": {
+        "case": "npu50_link_stress",
+        "family": "npu_cap",
+        "description": "Eight SSUs each see only 10 GB/s, while one NPU requests 80 GB/s in aggregate",
+        "case_fingerprint": "bcd56ee89f3842c9123855a52bb82e14446b1eac10200390e92d4851f285ab8f",
+        "num_npu": 1,
+        "num_ssu": 8,
+        "demands_gbps": [
+          [
+            10.0,
+            10.0,
+            10.0,
+            10.0,
+            10.0,
+            10.0,
+            10.0,
+            10.0
+          ]
+        ],
+        "per_npu_demand_gbps": [
+          80.0
+        ],
+        "per_ssu_demand_gbps": [
+          10.0,
+          10.0,
+          10.0,
+          10.0,
+          10.0,
+          10.0,
+          10.0,
+          10.0
+        ],
+        "total_demand_gbps": 80.0,
+        "ssd_cap_gbps": 40.0,
+        "npu_cap_gbps": 50.0,
+        "allocator_npu_cap_gbps": 50.0,
+        "raw_full_hide_feasible": false,
+        "warm_2x_required_service_ratio": 0.5,
+        "warm_2x_fluid_capacity_feasible": true,
+        "overloaded_ssu_ids": [],
+        "overloaded_npu_ids": [
+          0
+        ],
+        "scheme_b": {
+          "grants_gbps": [
+            [
+              6.25,
+              6.25,
+              6.25,
+              6.25,
+              6.25,
+              6.25,
+              6.25,
+              6.25
+            ]
+          ],
+          "per_npu_grant_gbps": [
+            50.0
+          ],
+          "per_ssu_grant_gbps": [
+            6.25,
+            6.25,
+            6.25,
+            6.25,
+            6.25,
+            6.25,
+            6.25,
+            6.25
+          ],
+          "total_grant_gbps": 50.0,
+          "demand_weighted_grant_satisfaction": 0.625,
+          "active_flow_grant_satisfaction_mean": 0.625,
+          "active_flow_grant_satisfaction_p10": 0.625,
+          "active_flow_grant_satisfaction_min": 0.625,
+          "coflow_grant_satisfaction_by_npu": [
+            0.625
+          ],
+          "coflow_grant_satisfaction_jain": 1.0,
+          "planned_warm_2x_slo_attainment": 1.0,
+          "full_demand_exact_when_raw_feasible": true,
+          "target_hash": "7b8465d583d924aa3b1e940d72ef04d3f28fa7496ebe4a82716dba7e472f979d"
+        },
+        "scheme_b_slo": {
+          "grants_gbps": [
+            [
+              6.25,
+              6.25,
+              6.25,
+              6.25,
+              6.25,
+              6.25,
+              6.25,
+              6.25
+            ]
+          ],
+          "per_npu_grant_gbps": [
+            50.0
+          ],
+          "per_ssu_grant_gbps": [
+            6.25,
+            6.25,
+            6.25,
+            6.25,
+            6.25,
+            6.25,
+            6.25,
+            6.25
+          ],
+          "total_grant_gbps": 50.0,
+          "demand_weighted_grant_satisfaction": 0.625,
+          "active_flow_grant_satisfaction_mean": 0.625,
+          "active_flow_grant_satisfaction_p10": 0.625,
+          "active_flow_grant_satisfaction_min": 0.625,
+          "coflow_grant_satisfaction_by_npu": [
+            0.625
+          ],
+          "coflow_grant_satisfaction_jain": 1.0,
+          "planned_warm_2x_slo_attainment": 1.0,
+          "full_demand_exact_when_raw_feasible": true,
+          "target_hash": "7b8465d583d924aa3b1e940d72ef04d3f28fa7496ebe4a82716dba7e472f979d"
+        },
+        "routing_allocator": {
+          "baseline": "not_applicable:routing_policy_without_grant_allocator",
+          "layer_once": "not_applicable:routing_policy_without_grant_allocator",
+          "refresh8": "not_applicable:routing_policy_without_grant_allocator"
+        },
+        "diagnosis": "raw_infeasible_but_warm_2x_capacity_feasible"
+      },
+      "data_plane_runs": []
+    }
+  ]
+}

@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "experiment": "synthetic_bandwidth_satisfaction",
+  "generated_at_utc": "2026-08-29T16:34:23.347294+00:00",
+  "mode": "both",
+  "invalid_data_plane_run_count": 1,
+  "methodology": {
+    "demand_definition": "D[n,s]=per-layer placement GB / compute seconds",
+    "ssd_service": "exact SSD40 busy-time service overlap in the common window, attributed by NPU and SSU",
+    "npu_link_delivery": "exact physical NPU-link service overlap in the common window, attributed by source SSU",
+    "allocator_scope": "Scheme B only; routing policies have no grant allocator",
+    "cir_warning": "CIR is a guaranteed arbitration share, not a hard rate cap; surplus is work-conserving",
+    "steady_warning": "delivered/target is a long-run repeated-template rate; it is not a claim that every flow stayed backlogged for the whole window",
+    "warm_slo_fluid_rule": "Layer0 has one compute interval of prefetch lead; repeated-template alpha-x SLO requires service/demand >= 1/alpha"
+  },
+  "config": {
+    "n_layers": 16,
+    "compute_ms": 10.0,
+    "requests_per_npu": 128,
+    "blocks_per_positive_npu_ssu_flow": 9,
+    "strategies": [
+      "layer_once"
+    ],
+    "submit_order_seed": 42,
+    "steady_state": {
+      "warmup_requests_per_npu": 1,
+      "settle_ms": 50.0,
+      "measurement_ms": 1000.0,
+      "slo_alpha": 2.0,
+      "block_ms": 250.0
+    },
+    "ssd_cap_gbps": 40.0,
+    "npu_cap_gbps": 50.0,
+    "physical_npu_link_bw_gbps": 50.0
+  },
+  "cases": [
+    {
+      "case": "hotspot_raw_infeasible",
+      "audit": {
+        "case": "hotspot_raw_infeasible",
+        "family": "hotspot",
+        "description": "Fleet demand 70 < fleet capacity 80, but fixed placement puts 60 GB/s on SSU0",
+        "case_fingerprint": "e3cc73d1c8dc1cb6c918e8aea702587c3f0eea241b1e078c7f3ae7f4d1595702",
+        "num_npu": 4,
+        "num_ssu": 2,
+        "demands_gbps": [
+          [
+            20.0,
+            0.0
+          ],
+          [
+            20.0,
+            0.0
+          ],
+          [
+            20.0,
+            0.0
+          ],
+          [
+            0.0,
+            10.0
+          ]
+        ],
+        "per_npu_demand_gbps": [
+          20.0,
+          20.0,
+          20.0,
+          10.0
+        ],
+        "per_ssu_demand_gbps": [
+          60.0,
+          10.0
+        ],
+        "total_demand_gbps": 70.0,
+        "ssd_cap_gbps": 40.0,
+        "npu_cap_gbps": 50.0,
+        "raw_full_hide_feasible": false,
+        "warm_2x_required_service_ratio": 0.5,
+        "warm_2x_fluid_capacity_feasible": true,
+        "overloaded_ssu_ids": [
+          0
+        ],
+        "overloaded_npu_ids": [],
+        "scheme_b": {
+          "grants_gbps": [
+            [
+              13.333333333333334,
+              0.0
+            ],
+            [
+              13.333333333333334,
+              0.0
+            ],
+            [
+              13.333333333333334,
+              0.0
+            ],
+            [
+              0.0,
+              10.0
+            ]
+          ],
+          "per_npu_grant_gbps": [
+            13.333333333333334,
+            13.333333333333334,
+            13.333333333333334,
+            10.0
+          ],
+          "per_ssu_grant_gbps": [
+            40.0,
+            10.0
+          ],
+          "total_grant_gbps": 50.0,
+          "demand_weighted_grant_satisfaction": 0.7142857142857143,
+          "active_flow_grant_satisfaction_mean": 0.75,
+          "active_flow_grant_satisfaction_p10": 0.6666666666666667,
+          "active_flow_grant_satisfaction_min": 0.6666666666666667,
+          "coflow_grant_satisfaction_by_npu": [
+            0.6666666666666667,
+            0.6666666666666667,
+            0.6666666666666667,
+            1.0
+          ],
+          "coflow_grant_satisfaction_jain": 0.9642857142857142,
+          "planned_warm_2x_slo_attainment": 1.0,
+          "full_demand_exact_when_raw_feasible": true,
+          "target_hash": "bd168394e24a28dc9fd69dba8bd06bec5a1b3e44da284aaac6826b93bdcc1daa"
+        },
+        "routing_allocator": {
+          "baseline": "not_applicable:routing_policy_without_grant_allocator",
+          "layer_once": "not_applicable:routing_policy_without_grant_allocator",
+          "refresh8": "not_applicable:routing_policy_without_grant_allocator"
+        },
+        "diagnosis": "raw_infeasible_but_warm_2x_capacity_feasible"
+      },
+      "data_plane_runs": [
+        {
+          "status": "invalid",
+          "case": "hotspot_raw_infeasible",
+          "strategy": "layer_once",
+          "failure_type": "AssertionError",
+          "failure": "steady-state invariant failed: {'warmup_reached_all_npus': True, 'measurement_window_closed': True, 'measurement_duration_exact': True, 'all_npus_sampled_for_slo': True, 'all_tagged_requests_completed': True, 'tagged_admissions_inside_window': True, 'all_window_admissions_tagged': True, 'no_backlog_exhaustion': False, 'compute_overlap_bounds': True, 'ssd_overlap_bounds': True, 'ssd_service_attribution': True, 'npu_link_overlap_bounds': True, 'npu_link_service_attribution': True, 'one_command_per_ssd': True, 'cir_capacity': True}; diagnostics: {'measurement_start_ms': 328.77777777777493, 'measurement_end_ms': 1328.7777777777749, 'drain_stop_ms': 20920.44444442731, 'completed_by_npu_at_stop': [128, 5, 128, 128], 'request_counts_by_npu': [4, 3, 4, 6]}",
+          "interpretation": "No metric is reported. The finite saturated prefix or another steady-state invariant failed; this can indicate extreme tail latency/starvation and must not be converted into a numeric policy result."
+        }
+      ]
+    }
+  ]
+}

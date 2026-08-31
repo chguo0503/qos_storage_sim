@@ -70,6 +70,7 @@ NPU_LINK_COMPLETION = 2
 CLIENT_SUBMISSION = 3
 DISK_SCHEDULE = 4
 _EPS = 1e-12
+_MAX_CIR_WRITE_THRESHOLD_GBPS = 0.05
 
 
 @dataclass(frozen=True)
@@ -635,6 +636,10 @@ class DiskState:
         self.surplus_bw_integral = 0.0
         self.total_bw_integral = 0.0
         self.completed_bytes_gb = 0.0
+        # Exact service accounting, including commands that cross an external
+        # measurement boundary.  Completion counters alone cannot attribute a
+        # partial command to the interval in which its bytes were transferred.
+        self.served_gb_by_npu = defaultdict(float)
         self.scheduler = None
 
 def _static_qos_service_rates(backlogged_paths, disk_bw, group_weights):
@@ -677,10 +682,29 @@ class DiskIOScheduler:
         disk_bw,
         qos_config=None,
         oracle_priority=None,
+        *,
+        pressure_ttl_ms=0.0,
+        cir_write_threshold_gbps=0.0,
     ):
+        pressure_ttl_ms = float(pressure_ttl_ms)
+        cir_write_threshold_gbps = float(cir_write_threshold_gbps)
+        if not math.isfinite(pressure_ttl_ms) or pressure_ttl_ms < 0.0:
+            raise ValueError("pressure_ttl_ms 必须是非负有限值")
+        if (
+            not math.isfinite(cir_write_threshold_gbps)
+            or cir_write_threshold_gbps < 0.0
+            or cir_write_threshold_gbps > _MAX_CIR_WRITE_THRESHOLD_GBPS
+        ):
+            raise ValueError(
+                "cir_write_threshold_gbps 必须是 [0, 0.05] 内的有限值"
+            )
         self.state = disk_state
         self.policy = policy
         self.disk_bw = float(disk_bw)
+        self.pressure_ttl_ms = pressure_ttl_ms
+        self.cir_write_threshold_gbps = cir_write_threshold_gbps
+        self._pressure_cache = None
+        self._pressure_cache_time = None
         self.paths = {}
         self.group_weights = ()
         self.oracle_heap = []
@@ -724,6 +748,7 @@ class DiskIOScheduler:
         self.dispatch_cycles = 0
         self.dispatch_events = 0
         self.pressure_reports = 0
+        self.pressure_cache_hits = 0
         self.pending_dispatch_time = None
         self.dispatch_generation = 0
         self.total_queue_wait_ms = 0.0
@@ -732,27 +757,54 @@ class DiskIOScheduler:
         disk_state.scheduler = self
 
     def report_path_pressure_analysis(self, current_time):
-        self.pressure_reports += 1
         self.settle(current_time)
-        return PathPressureSnapshot(
-            counts=self._path_io_counts,
+        if (
+            self.pressure_ttl_ms > 0.0
+            and self._pressure_cache is not None
+            and current_time
+            < self._pressure_cache_time + self.pressure_ttl_ms
+        ):
+            self.pressure_cache_hits += 1
+            return self._pressure_cache
+        self.pressure_reports += 1
+        snapshot = PathPressureSnapshot(
+            counts=tuple(self._path_io_counts),
             group_io_counts=tuple(self._group_io_counts),
             active_paths_per_group=tuple(self._active_paths_per_group),
             active_path_weights=tuple(self._active_path_weights),
             active_group_weight_sum=self._active_group_weight_sum,
             active_cir_sum=self._active_cir_sum,
         )
+        if self.pressure_ttl_ms > 0.0:
+            self._pressure_cache = snapshot
+            self._pressure_cache_time = float(current_time)
+        return snapshot
 
-    def update_path_cirs(self, path_cirs, current_time):
+    def update_path_cirs(self, path_cirs, current_time, *, forced_path_ids=()):
         """Atomically replace the runtime CIR table for the next arbitration.
 
         An in-flight SSD command remains non-preemptive at ``disk_bw`` and keeps
         its already scheduled completion time.  Only a later command selection
         observes the new CIRs.  Virtual-finish history is deliberately retained.
+        ``forced_path_ids`` lets a fleet-wide planner commit exact compensating
+        entries that would otherwise be suppressed by this disk's write threshold.
         """
         path_cirs = tuple(float(cir) for cir in path_cirs)
         if self.policy != POLICY_QOS_STATIC_CIR:
             raise RuntimeError("runtime CIR updates require the QoS policy")
+        try:
+            forced_path_ids = tuple(forced_path_ids)
+        except TypeError as exc:
+            raise ValueError("forced Path IDs must be an iterable of integers") from exc
+        if any(
+            isinstance(path_id, (bool, np.bool_))
+            or not isinstance(path_id, (int, np.integer))
+            for path_id in forced_path_ids
+        ):
+            raise ValueError("forced Path IDs must be integers")
+        forced_path_ids = frozenset(int(path_id) for path_id in forced_path_ids)
+        if any(path_id not in self.paths for path_id in forced_path_ids):
+            raise ValueError("forced Path ID is outside the runtime CIR table")
         if len(path_cirs) != len(self.paths):
             raise ValueError("runtime CIR table has the wrong Path count")
         if any(cir < 0.0 for cir in path_cirs):
@@ -765,16 +817,83 @@ class DiskIOScheduler:
         ):
             raise ValueError("runtime Path CIR exceeds its PIR")
 
-        changes = [
-            (path_id, cir)
-            for path_id, cir in enumerate(path_cirs)
-            if abs(self.paths[path_id].cir - cir) > _EPS
-        ]
+        if self.cir_write_threshold_gbps <= 0.0:
+            # Preserve the original zero-threshold path, including comparison
+            # tolerance and Path-ID write order, for exact default regression.
+            changes = [
+                (path_id, cir)
+                for path_id, cir in enumerate(path_cirs)
+                if abs(self.paths[path_id].cir - cir) > _EPS
+            ]
+        else:
+            threshold = max(_EPS, self.cir_write_threshold_gbps)
+            selected = {}
+            compensating_decreases = []
+            for path_id, cir in enumerate(path_cirs):
+                old_cir = self.paths[path_id].cir
+                delta = cir - old_cir
+                active_set_change = (old_cir > 0.0) != (cir > 0.0)
+                forced_change = path_id in forced_path_ids and abs(delta) > _EPS
+                if forced_change or active_set_change or abs(delta) > threshold:
+                    selected[path_id] = (path_id, cir, delta)
+                elif delta < 0.0:
+                    compensating_decreases.append((path_id, cir, delta))
+
+            if selected:
+                def resulting_cir_sum():
+                    return math.fsum(
+                        selected[path_id][1]
+                        if path_id in selected
+                        else self.paths[path_id].cir
+                        for path_id in range(len(self.paths))
+                    )
+
+                proposed_sum = resulting_cir_sum()
+                if proposed_sum > self.disk_bw + _EPS:
+                    # A sparse mix of old and new registers can exceed capacity
+                    # even when both complete tables are valid.  Largest
+                    # suppressed decreases first gives the minimum number of
+                    # additional writes needed to restore the capacity bound.
+                    compensating_decreases.sort(
+                        key=lambda change: (change[2], change[0])
+                    )
+                    for change in compensating_decreases:
+                        selected[change[0]] = change
+                        proposed_sum = resulting_cir_sum()
+                        if proposed_sum <= self.disk_bw + _EPS:
+                            break
+                if proposed_sum > self.disk_bw + _EPS:
+                    raise AssertionError(
+                        "sparse CIR update cannot preserve SSD capacity"
+                    )
+
+            # A real register sequence must release capacity before consuming
+            # it.  Within each direction Path ID keeps the order deterministic.
+            changes = [
+                (path_id, cir)
+                for path_id, cir, _ in sorted(
+                    selected.values(),
+                    key=lambda change: (
+                        0 if change[2] < 0.0 else 1,
+                        change[0],
+                    ),
+                )
+            ]
         if not changes:
             return 0
         self.settle(current_time)
         for path_id, cir in changes:
             self.paths[path_id].cir = cir
+        # A pressure snapshot also carries active_cir_sum.  Any real register
+        # write therefore invalidates it even when its TTL has not expired.
+        self._pressure_cache = None
+        self._pressure_cache_time = None
+        if (
+            self.cir_write_threshold_gbps > 0.0
+            and math.fsum(path.cir for path in self.paths.values())
+            > self.disk_bw + _EPS
+        ):
+            raise AssertionError("sparse CIR update exceeded SSD capacity")
         self._active_cir_sum = sum(
             self.paths[path_id].cir
             for path_id, count in enumerate(self._path_io_counts)
@@ -810,6 +929,9 @@ class DiskIOScheduler:
             self.state.busy_time += duration
             flow = self.state.active_flows[0]
             used_bw = flow.bw if flow.active else 0.0
+            self.state.served_gb_by_npu[flow.npu_id] += (
+                used_bw * duration / 1000.0
+            )
             self.state.surplus_bw_integral += max(0.0, self.disk_bw - used_bw) * duration
             self.state.total_bw_integral += self.disk_bw * duration
         else:

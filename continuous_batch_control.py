@@ -17,6 +17,7 @@ import numpy as np
 
 Matrix = Sequence[Sequence[float]]
 CapSpec = Union[float, Sequence[float]]
+RatioSpec = Union[float, Sequence[float]]
 GrantMatrix = Tuple[Tuple[float, ...], ...]
 _EPS = 1e-12
 
@@ -141,3 +142,138 @@ def allocate_grants(
     npu_limits = _capacities(npu_caps, npu_count, "npu_caps")
     ssd_limits = _capacities(ssd_caps, ssu_count, "ssd_caps")
     return _allocate_equal(demand_array, ssd_limits, npu_limits)
+
+
+def _coflow_fraction_fill(
+    shape: np.ndarray,
+    ssd_limits: Tuple[float, ...],
+    npu_limits: Tuple[float, ...],
+) -> np.ndarray:
+    """Max-min fill one scalar fraction of each NPU's demand vector.
+
+    A row is a request coflow.  Increasing its scalar fraction consumes every
+    positive ``(NPU, SSU)`` entry in that row proportionally.  When one SSU or
+    the row's NPU link saturates, every coflow using that resource freezes;
+    coflows on disjoint resources continue filling.
+    """
+    npu_count, ssu_count = shape.shape
+    fractions = np.zeros(npu_count, dtype=float)
+    grants = np.zeros_like(shape)
+    npu_caps = np.asarray(npu_limits, dtype=float)
+    ssd_caps = np.asarray(ssd_limits, dtype=float)
+    npu_used = np.zeros(npu_count, dtype=float)
+    ssd_used = np.zeros(ssu_count, dtype=float)
+    row_work = shape.sum(axis=1)
+    active = row_work > _EPS
+    scale = max(1.0, float(npu_caps.max()), float(ssd_caps.max()))
+
+    while active.any():
+        active_ids = np.flatnonzero(active)
+        active_shape = shape[active_ids]
+        active_row_work = row_work[active_ids]
+        ssd_rate = active_shape.sum(axis=0)
+
+        fraction_step = float(np.min(1.0 - fractions[active_ids]))
+        npu_step = float(
+            np.min(
+                (npu_caps[active_ids] - npu_used[active_ids])
+                / active_row_work
+            )
+        )
+        ssd_steps = np.full(ssu_count, np.inf, dtype=float)
+        np.divide(
+            ssd_caps - ssd_used,
+            ssd_rate,
+            out=ssd_steps,
+            where=ssd_rate > _EPS,
+        )
+        step = max(0.0, min(fraction_step, npu_step, float(ssd_steps.min())))
+
+        increments = np.minimum(1.0 - fractions[active_ids], step)
+        fractions[active_ids] += increments
+        grant_increments = increments[:, None] * active_shape
+        grants[active_ids] += grant_increments
+        npu_used[active_ids] += grant_increments.sum(axis=1)
+        ssd_used += grant_increments.sum(axis=0)
+
+        tolerance = _EPS * max(scale, abs(step))
+        completed = fractions >= 1.0 - _EPS
+        saturated_npus = npu_caps - npu_used <= tolerance
+        saturated_ssus = ssd_caps - ssd_used <= tolerance
+        blocked_by_ssu = (
+            (shape[:, saturated_ssus] > _EPS).any(axis=1)
+            if saturated_ssus.any()
+            else np.zeros(npu_count, dtype=bool)
+        )
+        frozen = completed | saturated_npus | blocked_by_ssu
+        if step <= _EPS and not np.any(active & frozen):
+            break
+        active &= ~frozen
+
+    return grants
+
+
+def allocate_coflow_grants(
+    demand: Matrix,
+    target_ratios: RatioSpec = 0.5,
+    ssd_caps: CapSpec = 40.0,
+    npu_caps: CapSpec = 50.0,
+) -> GrantMatrix:
+    """Return deterministic threshold-first normalized coflow grants.
+
+    ``target_ratios[n]`` is the service ratio request ``n`` needs for its SLO.
+    Stage one max-min fills each complete request vector toward that threshold.
+    Stage two uses residual SSD/NPU capacity to fill the remaining full-hide
+    demand, again with one proportional scalar per request.  Thus a request's
+    flows cannot receive mutually inconsistent completion ratios.
+
+    If all SLO targets are feasible, stage one reserves every target exactly
+    before any request receives above-target bandwidth.  If they are
+    infeasible, this routine is normalized max-min fair; it deliberately does
+    not solve the NP-hard maximum-count SLO admission problem.
+    """
+    demand_array = np.asarray(demand, dtype=float)
+    if demand_array.size == 0:
+        return tuple(tuple() for _ in range(len(demand)))
+    if demand_array.ndim != 2:
+        raise ValueError("demand must be rectangular")
+    if np.any(demand_array < 0.0) or not np.all(np.isfinite(demand_array)):
+        raise ValueError("demand must contain finite non-negative values")
+
+    npu_count, ssu_count = demand_array.shape
+    npu_limits = _capacities(npu_caps, npu_count, "npu_caps")
+    ssd_limits = _capacities(ssd_caps, ssu_count, "ssd_caps")
+    if isinstance(target_ratios, Real):
+        ratios = (float(target_ratios),) * npu_count
+    else:
+        ratios = tuple(float(value) for value in target_ratios)
+    if len(ratios) != npu_count:
+        raise ValueError(f"target_ratios must have {npu_count} entries")
+    if any(
+        ratio < 0.0 or ratio > 1.0 or not math.isfinite(ratio)
+        for ratio in ratios
+    ):
+        raise ValueError("target_ratios must contain finite values in [0, 1]")
+
+    target_shape = demand_array * np.asarray(ratios, dtype=float)[:, None]
+    target_grants = _coflow_fraction_fill(
+        target_shape,
+        ssd_limits,
+        npu_limits,
+    )
+    residual_ssd = tuple(
+        max(0.0, limit - used)
+        for limit, used in zip(ssd_limits, target_grants.sum(axis=0))
+    )
+    residual_npu = tuple(
+        max(0.0, limit - used)
+        for limit, used in zip(npu_limits, target_grants.sum(axis=1))
+    )
+    residual_shape = np.maximum(0.0, demand_array - target_grants)
+    extra_grants = _coflow_fraction_fill(
+        residual_shape,
+        residual_ssd,
+        residual_npu,
+    )
+    grants = target_grants + extra_grants
+    return tuple(tuple(float(value) for value in row) for row in grants)

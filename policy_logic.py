@@ -24,7 +24,11 @@ import hashlib
 import json
 from typing import Iterable, Sequence
 
-from continuous_batch_control import GrantMatrix, allocate_grants
+from continuous_batch_control import (
+    GrantMatrix,
+    allocate_coflow_grants,
+    allocate_grants,
+)
 
 
 PATH_COUNT = 256
@@ -55,6 +59,7 @@ __all__ = (
     "dedicated_path_id",
     "cold_start_hybrid_path_id",
     "plan_scheme_b",
+    "plan_slo_aware_scheme_b",
     "plan_causal_scheme_b",
     "oracle_priority_key",
     "validate_scheme_b_plan",
@@ -605,6 +610,88 @@ def plan_scheme_b(
         path_cirs_by_ssu=_path_cirs_from_grants(
             grants,
             path_by_npu,
+            num_ssu=num_ssu,
+            path_count=path_count,
+        ),
+        target_hash=_target_hash(
+            tuple(row.request_id for row in rows), demands, grants
+        ),
+    )
+
+
+def plan_slo_aware_scheme_b(
+    manifests: Iterable[ManifestDemand],
+    *,
+    num_npu: int,
+    num_ssu: int,
+    slo_alpha: float = 2.0,
+    ssd_cap_gbps: float = SSD_CAP_GBPS,
+    npu_cap_gbps: float = NPU_CAP_GBPS,
+    path_count: int = PATH_COUNT,
+    group_count: int = GROUP_COUNT,
+    path_by_npu: Sequence[int] | None = None,
+) -> SchemeBPlan:
+    """Allocate one synchronized progress ratio per request coflow.
+
+    The original Scheme B progressively fills every ``(NPU, SSU)`` flow in
+    absolute GB/s.  That can over-serve a request's small, non-critical SSU
+    flows while its largest flow misses the request-level I/O barrier.  This
+    variant first reserves the ``1 / slo_alpha`` coflow progress needed by the
+    warm TTFT target, then uses residual capacity toward full demand.  SSD and
+    NPU capacity constraints remain hard limits.
+    """
+    if slo_alpha <= 0.0:
+        raise ValueError("slo_alpha must be positive")
+    rows = tuple(sorted(manifests, key=lambda row: row.request_id))
+    work = [[0.0] * num_ssu for _ in range(num_npu)]
+    compute_s = [0.0] * num_npu
+    for row in rows:
+        if row.npu_id < 0 or row.npu_id >= num_npu:
+            raise ValueError("manifest NPU is outside the configured fleet")
+        if len(row.work_by_ssu_gb) != num_ssu:
+            raise ValueError("manifest work vector has the wrong SSU count")
+        if row.compute_budget_s < 0.0:
+            raise ValueError("manifest compute budget cannot be negative")
+        compute_s[row.npu_id] += row.compute_budget_s
+        for ssu_id, amount in enumerate(row.work_by_ssu_gb):
+            if amount < 0.0:
+                raise ValueError("manifest work cannot be negative")
+            work[row.npu_id][ssu_id] += amount
+    demands = tuple(
+        tuple(
+            amount / compute_s[npu_id] if compute_s[npu_id] > 0.0 else 0.0
+            for amount in work[npu_id]
+        )
+        for npu_id in range(num_npu)
+    )
+    grants = allocate_coflow_grants(
+        demands,
+        target_ratios=min(1.0, 1.0 / float(slo_alpha)),
+        ssd_caps=ssd_cap_gbps,
+        npu_caps=npu_cap_gbps,
+    )
+    selected_paths = (
+        tuple(map(int, path_by_npu))
+        if path_by_npu is not None
+        else tuple(
+            dedicated_path_id(
+                npu_id,
+                path_count=path_count,
+                group_count=group_count,
+            )
+            for npu_id in range(num_npu)
+        )
+    )
+    if len(selected_paths) != num_npu or len(set(selected_paths)) != num_npu:
+        raise ValueError("Scheme B requires one unique Path per NPU")
+    return SchemeBPlan(
+        active_request_ids=tuple(row.request_id for row in rows),
+        demands_gbps=demands,
+        grants_gbps=grants,
+        path_by_npu=selected_paths,
+        path_cirs_by_ssu=_path_cirs_from_grants(
+            grants,
+            selected_paths,
             num_ssu=num_ssu,
             path_count=path_count,
         ),
