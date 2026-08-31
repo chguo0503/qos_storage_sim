@@ -3732,7 +3732,6 @@ def main(argv=None):
             selected_keys=selected_keys,
             selected_ssus=selected_ssus,
         )
-        _write_json(args.output, payload)
         if not all(
             entry["all_available_rows_paired"]
             for entry in payload["pairing_audit"].values()
@@ -3744,6 +3743,7 @@ def main(argv=None):
             raise RuntimeError("config changed during experiment")
         if not payload["campaign_spec_stable_during_run"]:
             raise RuntimeError("campaign spec changed during experiment")
+        _write_json(args.output, payload)
         return payload
 
     if pending:
