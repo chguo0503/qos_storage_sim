@@ -830,6 +830,12 @@ class _Context:
         self.measurement_npu_ssu_served_end_gb: Optional[
             tuple[tuple[float, ...], ...]
         ] = None
+        self.measurement_fragmented_npu_ssu_served_start_gb: Optional[
+            tuple[tuple[float, ...], ...]
+        ] = None
+        self.measurement_fragmented_npu_ssu_served_end_gb: Optional[
+            tuple[tuple[float, ...], ...]
+        ] = None
         self.measurement_link_busy_start_ms: Optional[tuple[float, ...]] = None
         self.measurement_link_busy_end_ms: Optional[tuple[float, ...]] = None
         self.measurement_npu_ssu_link_start_gb: Optional[
@@ -855,6 +861,9 @@ class _Context:
             steady_state is not None and steady_state.timeline_diagnostics
         )
         self.timeline_ssd_enqueued_gb = [
+            [0.0] * num_ssu for _ in range(num_npu)
+        ]
+        self.timeline_ssd_enqueued_compensation_gb = [
             [0.0] * num_ssu for _ in range(num_npu)
         ]
         self.timeline_ssd_enqueued_blocks = [
@@ -1105,13 +1114,116 @@ def _measurement_control_metrics(context: _Context, duration_ms: float):
     }
 
 
-def _project_ssd_active_remaining_gb(flow, current_time_ms: float):
-    """Project one active SSD command without mutating its progress fields."""
+def _project_ssd_active_served_gb(flow, current_time_ms: float):
+    """Project active service from the command's immutable activation edge."""
     if flow is None:
         return 0.0
-    elapsed_ms = max(0.0, current_time_ms - flow.start_time)
-    served_gb = max(0.0, flow.bw) * elapsed_ms / 1000.0
-    return max(0.0, float(flow.remaining_gb) - served_gb)
+    activation_time_ms = float(flow.ssd_activation_time)
+    if current_time_ms >= flow.end_time:
+        return float(flow.total_gb)
+    elapsed_ms = max(0.0, float(current_time_ms) - activation_time_ms)
+    served_gb = max(0.0, float(flow.bw)) * elapsed_ms / 1000.0
+    return min(float(flow.total_gb), max(0.0, served_gb))
+
+
+def _project_ssd_active_remaining_gb(flow, current_time_ms: float):
+    """Project one active SSD command without mutable settle fragmentation."""
+    if flow is None:
+        return 0.0
+    return max(
+        0.0,
+        float(flow.total_gb)
+        - _project_ssd_active_served_gb(flow, current_time_ms),
+    )
+
+
+def _project_ssd_service_by_npu(context: _Context, current_time_ms: float):
+    """Stable cumulative SSD service for every NPU x SSU cell.
+
+    Completed bytes are added once per non-preemptive command with compensated
+    summation.  At a boundary at most one active command exists per SSD, and
+    its serviced prefix is reconstructed from its immutable activation edge.
+    The result is therefore invariant to the number of intervening ``settle``
+    calls.
+    """
+    values = [
+        [
+            float(disk.completed_gb_by_npu.get(npu_id, 0.0))
+            for disk in context.disks
+        ]
+        for npu_id in range(context.num_npu)
+    ]
+    for ssu_id, disk in enumerate(context.disks):
+        if not disk.active_flows:
+            continue
+        flow = disk.active_flows[0]
+        values[flow.npu_id][ssu_id] = math.fsum(
+            (
+                values[flow.npu_id][ssu_id],
+                _project_ssd_active_served_gb(flow, current_time_ms),
+            )
+        )
+    return values
+
+
+def _project_fragmented_ssd_service_by_npu(
+    context: _Context,
+    current_time_ms: float,
+):
+    """Retain the old settle-fragmented projection for residual diagnostics."""
+    values = [
+        [
+            float(disk.served_gb_by_npu.get(npu_id, 0.0))
+            for disk in context.disks
+        ]
+        for npu_id in range(context.num_npu)
+    ]
+    for ssu_id, disk in enumerate(context.disks):
+        if not disk.active_flows:
+            continue
+        flow = disk.active_flows[0]
+        service_end_ms = min(current_time_ms, flow.end_time)
+        duration_ms = max(0.0, service_end_ms - disk.last_event_time)
+        values[flow.npu_id][ssu_id] += flow.bw * duration_ms / 1000.0
+    return values
+
+
+def _project_physical_ssd_outstanding_by_npu(
+    context: _Context,
+    current_time_ms: float,
+):
+    """Enumerate the physical pending/active SSD queues by NPU and SSU."""
+    terms = [
+        [[] for _ in range(context.num_ssu)]
+        for _ in range(context.num_npu)
+    ]
+    blocks = [
+        [0] * context.num_ssu for _ in range(context.num_npu)
+    ]
+    for ssu_id, disk in enumerate(context.disks):
+        scheduler = disk.scheduler
+        if scheduler.policy == sim.POLICY_QOS_STATIC_CIR:
+            pending_flows = (
+                flow
+                for path in scheduler.paths.values()
+                for flow in path.pending
+            )
+        else:
+            pending_flows = (flow for _, flow in scheduler.oracle_heap)
+        for flow in pending_flows:
+            terms[flow.npu_id][ssu_id].append(float(flow.total_gb))
+            blocks[flow.npu_id][ssu_id] += int(flow.block_count)
+        if disk.active_flows:
+            flow = disk.active_flows[0]
+            terms[flow.npu_id][ssu_id].append(
+                _project_ssd_active_remaining_gb(flow, current_time_ms)
+            )
+            blocks[flow.npu_id][ssu_id] += int(flow.block_count)
+    outstanding_gb = [
+        [math.fsum(cell_terms) for cell_terms in row]
+        for row in terms
+    ]
+    return outstanding_gb, blocks
 
 
 def _project_ssd_snapshot(context: _Context, current_time_ms: float):
@@ -1213,21 +1325,7 @@ def _project_npu_snapshot(context: _Context, current_time_ms: float):
 
 def _project_timeline_ssd_service(context: _Context, current_time_ms: float):
     """Project exact cumulative SSD bytes for every NPU x SSU cell."""
-    values = [
-        [
-            float(disk.served_gb_by_npu.get(npu_id, 0.0))
-            for disk in context.disks
-        ]
-        for npu_id in range(context.num_npu)
-    ]
-    for ssu_id, disk in enumerate(context.disks):
-        if not disk.active_flows:
-            continue
-        flow = disk.active_flows[0]
-        service_end_ms = min(current_time_ms, flow.end_time)
-        duration_ms = max(0.0, service_end_ms - disk.last_event_time)
-        values[flow.npu_id][ssu_id] += flow.bw * duration_ms / 1000.0
-    return values
+    return _project_ssd_service_by_npu(context, current_time_ms)
 
 
 def _project_timeline_link_service(context: _Context, current_time_ms: float):
@@ -1392,17 +1490,13 @@ def _timeline_path_state(context: _Context, current_time_ms: float):
                 "remaining_gb": _project_ssd_active_remaining_gb(
                     active, current_time_ms
                 ),
-                # ``flow.start_time`` is the most recent scheduler-settle edge,
-                # not the immutable command activation edge.  Queue wait is
-                # fixed exactly once in ``_activate_flow``, so their sum is the
-                # true non-preemptive SSD command start time.
-                "command_start_time_ms": float(
-                    active.enqueue_time + active.ssd_queue_wait_ms
-                ),
+                # ``flow.start_time`` remains the most recent scheduler-settle
+                # edge for compatibility; this field is the immutable physical
+                # command activation edge used for progress reconstruction.
+                "command_start_time_ms": float(active.ssd_activation_time),
                 "command_age_ms": max(
                     0.0,
-                    current_time_ms
-                    - (active.enqueue_time + active.ssd_queue_wait_ms),
+                    current_time_ms - active.ssd_activation_time,
                 ),
                 "physical_service_gbps": float(active.bw),
                 "non_preemptive": True,
@@ -1430,12 +1524,37 @@ def _timeline_path_state(context: _Context, current_time_ms: float):
     }
 
 
-def _capture_timeline_snapshot(context: _Context, current_time_ms: float):
+def _capture_timeline_snapshot(
+    context: _Context,
+    current_time_ms: float,
+    *,
+    ssd_snapshot=None,
+):
     ssd_served = _project_timeline_ssd_service(context, current_time_ms)
+    fragmented_ssd_served = _project_fragmented_ssd_service_by_npu(
+        context, current_time_ms
+    )
     link_served = _project_timeline_link_service(context, current_time_ms)
-    ssd_outstanding_gb = [
+    (
+        ssd_outstanding_gb,
+        ssd_outstanding_blocks,
+    ) = _project_physical_ssd_outstanding_by_npu(
+        context, current_time_ms
+    )
+    stable_counter_ssd_outstanding_gb = [
         [
             max(0.0, context.timeline_ssd_enqueued_gb[npu][ssu] - ssd_served[npu][ssu])
+            for ssu in range(context.num_ssu)
+        ]
+        for npu in range(context.num_npu)
+    ]
+    fragmented_counter_ssd_outstanding_gb = [
+        [
+            max(
+                0.0,
+                context.timeline_ssd_enqueued_gb[npu][ssu]
+                - fragmented_ssd_served[npu][ssu],
+            )
             for ssu in range(context.num_ssu)
         ]
         for npu in range(context.num_npu)
@@ -1462,7 +1581,7 @@ def _capture_timeline_snapshot(context: _Context, current_time_ms: float):
         ]
         for npu in range(context.num_npu)
     ]
-    ssd_outstanding_blocks = [
+    counter_ssd_outstanding_blocks = [
         [
             context.timeline_ssd_enqueued_blocks[npu][ssu]
             - context.timeline_ssd_completed_blocks[npu][ssu]
@@ -1470,6 +1589,95 @@ def _capture_timeline_snapshot(context: _Context, current_time_ms: float):
         ]
         for npu in range(context.num_npu)
     ]
+    if ssd_snapshot is None:
+        ssd_snapshot = _project_ssd_snapshot(context, current_time_ms)
+    ssd_accounting_residuals = []
+    for ssu in range(context.num_ssu):
+        enqueued_total = math.fsum(
+            context.timeline_ssd_enqueued_gb[npu][ssu]
+            for npu in range(context.num_npu)
+        )
+        stable_service_total = math.fsum(
+            ssd_served[npu][ssu] for npu in range(context.num_npu)
+        )
+        fragmented_service_total = math.fsum(
+            fragmented_ssd_served[npu][ssu]
+            for npu in range(context.num_npu)
+        )
+        physical_queue_total = math.fsum(
+            ssd_outstanding_gb[npu][ssu]
+            for npu in range(context.num_npu)
+        )
+        stable_counter_queue_total = math.fsum(
+            stable_counter_ssd_outstanding_gb[npu][ssu]
+            for npu in range(context.num_npu)
+        )
+        fragmented_counter_queue_total = math.fsum(
+            fragmented_counter_ssd_outstanding_gb[npu][ssu]
+            for npu in range(context.num_npu)
+        )
+        per_npu_queue_identity = [
+            math.fsum(
+                (
+                    context.timeline_ssd_enqueued_gb[npu][ssu],
+                    -ssd_served[npu][ssu],
+                    -ssd_outstanding_gb[npu][ssu],
+                )
+            )
+            for npu in range(context.num_npu)
+        ]
+        max_identity_npu = max(
+            range(context.num_npu),
+            key=lambda npu: abs(per_npu_queue_identity[npu]),
+        )
+        ssd_accounting_residuals.append(
+            {
+                "ssu_id": ssu,
+                "stable_service_minus_busy_counter_gb": (
+                    stable_service_total
+                    - ssd_snapshot["cumulative_served_gb_by_ssu"][ssu]
+                ),
+                "fragmented_service_minus_stable_gb": (
+                    fragmented_service_total - stable_service_total
+                ),
+                "physical_queue_minus_scheduler_gb": (
+                    physical_queue_total
+                    - ssd_snapshot["outstanding_gb_by_ssu"][ssu]
+                ),
+                "enqueue_minus_service_minus_physical_queue_gb": math.fsum(
+                    (enqueued_total, -stable_service_total, -physical_queue_total)
+                ),
+                "counter_queue_minus_physical_queue_gb": (
+                    stable_counter_queue_total - physical_queue_total
+                ),
+                "fragmented_counter_queue_minus_physical_queue_gb": (
+                    fragmented_counter_queue_total - physical_queue_total
+                ),
+                "maximum_abs_npu_queue_identity_residual_gb": abs(
+                    per_npu_queue_identity[max_identity_npu]
+                ),
+                "maximum_abs_npu_queue_identity_residual_npu_id": (
+                    max_identity_npu
+                ),
+                "physical_queue_block_minus_scheduler_blocks": (
+                    sum(
+                        ssd_outstanding_blocks[npu][ssu]
+                        for npu in range(context.num_npu)
+                    )
+                    - ssd_snapshot["outstanding_blocks_by_ssu"][ssu]
+                ),
+                "counter_queue_block_minus_physical_blocks": (
+                    sum(
+                        counter_ssd_outstanding_blocks[npu][ssu]
+                        for npu in range(context.num_npu)
+                    )
+                    - sum(
+                        ssd_outstanding_blocks[npu][ssu]
+                        for npu in range(context.num_npu)
+                    )
+                ),
+            }
+        )
     link_outstanding_blocks = [
         [
             context.timeline_link_enqueued_blocks[npu][ssu]
@@ -1654,13 +1862,17 @@ def _capture_timeline_snapshot(context: _Context, current_time_ms: float):
             for npu in range(context.num_npu)
         ]
     return {
-        "schema": "steady_timeline_boundary_v2",
+        "schema": "steady_timeline_boundary_v3",
+        "ssd_accounting_residuals_by_ssu": ssd_accounting_residuals,
         "npu_rows": npu_rows,
         "npu_ssu": {
             "ssd_enqueued_cumulative_gb": [
                 list(row) for row in context.timeline_ssd_enqueued_gb
             ],
             "ssd_served_cumulative_gb": ssd_served,
+            "ssd_served_fragmented_diagnostic_cumulative_gb": (
+                fragmented_ssd_served
+            ),
             "ssd_outstanding_gb": ssd_outstanding_gb,
             "ssd_outstanding_blocks": ssd_outstanding_blocks,
             "link_enqueued_cumulative_gb": [
@@ -1825,7 +2037,9 @@ def _capture_stationarity_snapshot(
     }
     if context.timeline_diagnostics:
         snapshot["timeline"] = _capture_timeline_snapshot(
-            context, current_time_ms
+            context,
+            current_time_ms,
+            ssd_snapshot=ssd,
         )
     return snapshot
 
@@ -1844,7 +2058,17 @@ def _register_submit(context: _Context, flow: sim.BlockIOFlow):
     context.block_states[block_id] = 1
     context.submitted_blocks += 1
     if context.timeline_diagnostics:
-        context.timeline_ssd_enqueued_gb[flow.npu_id][flow.disk_id] += flow.total_gb
+        total, compensation = sim.DiskState._kahan_add(
+            context.timeline_ssd_enqueued_gb[flow.npu_id][flow.disk_id],
+            context.timeline_ssd_enqueued_compensation_gb[flow.npu_id][
+                flow.disk_id
+            ],
+            flow.total_gb,
+        )
+        context.timeline_ssd_enqueued_gb[flow.npu_id][flow.disk_id] = total
+        context.timeline_ssd_enqueued_compensation_gb[flow.npu_id][
+            flow.disk_id
+        ] = compensation
         context.timeline_ssd_enqueued_blocks[flow.npu_id][flow.disk_id] += (
             flow.block_count
         )
@@ -2589,18 +2813,24 @@ def _schedule_control_if_due(context: _Context, current_time_ms: float):
 
 
 def _handle_steady_measurement_start(context: _Context, current_time_ms: float):
-    # Account partial commands exactly at the common window boundary.  A
-    # completed-byte counter would miss a command that straddles either edge;
-    # busy-time overlap is exact because every active SSD command runs at the
-    # physical ``disk_bw_gbps`` rate.
+    # Settle the physical busy counter at the common window boundary.  Stable
+    # NPU attribution below combines once-per-command completed bytes with the
+    # immutable active-command prefix, so a straddling command is neither lost
+    # nor fragmented by unrelated scheduler observations.
     for disk in context.disks:
         disk.scheduler.settle(current_time_ms)
     context.measurement_disk_busy_start_ms = tuple(
         disk.busy_time for disk in context.disks
     )
+    stable_ssd_service = _project_ssd_service_by_npu(context, current_time_ms)
     context.measurement_npu_ssu_served_start_gb = tuple(
-        tuple(disk.served_gb_by_npu.get(npu_id, 0.0) for disk in context.disks)
-        for npu_id in range(context.num_npu)
+        tuple(row) for row in stable_ssd_service
+    )
+    fragmented_ssd_service = _project_fragmented_ssd_service_by_npu(
+        context, current_time_ms
+    )
+    context.measurement_fragmented_npu_ssu_served_start_gb = tuple(
+        tuple(row) for row in fragmented_ssd_service
     )
     for npu in context.npus:
         _settle_npu_link(context, npu, current_time_ms)
@@ -2675,9 +2905,15 @@ def _handle_steady_measurement_end(context: _Context, current_time_ms: float):
     context.measurement_disk_busy_end_ms = tuple(
         disk.busy_time for disk in context.disks
     )
+    stable_ssd_service = _project_ssd_service_by_npu(context, current_time_ms)
     context.measurement_npu_ssu_served_end_gb = tuple(
-        tuple(disk.served_gb_by_npu.get(npu_id, 0.0) for disk in context.disks)
-        for npu_id in range(context.num_npu)
+        tuple(row) for row in stable_ssd_service
+    )
+    fragmented_ssd_service = _project_fragmented_ssd_service_by_npu(
+        context, current_time_ms
+    )
+    context.measurement_fragmented_npu_ssu_served_end_gb = tuple(
+        tuple(row) for row in fragmented_ssd_service
     )
     for npu in context.npus:
         _settle_npu_link(context, npu, current_time_ms)
@@ -3298,6 +3534,7 @@ def _timeline_stationarity_invariants(context: _Context, snapshots):
             for field in (
                 "ssd_enqueued_cumulative_gb",
                 "ssd_served_cumulative_gb",
+                "ssd_served_fragmented_diagnostic_cumulative_gb",
                 "ssd_outstanding_gb",
                 "ssd_outstanding_blocks",
                 "link_enqueued_cumulative_gb",
@@ -3325,6 +3562,7 @@ def _timeline_stationarity_invariants(context: _Context, snapshots):
         for field in (
             "ssd_enqueued_cumulative_gb",
             "ssd_served_cumulative_gb",
+            "ssd_served_fragmented_diagnostic_cumulative_gb",
             "ssd_outstanding_gb",
             "ssd_outstanding_blocks",
             "link_enqueued_cumulative_gb",
@@ -3392,17 +3630,13 @@ def _timeline_stationarity_invariants(context: _Context, snapshots):
             rel_tol=1e-10,
             abs_tol=1e-8,
         )
-        and math.isclose(
-            math.fsum(
-                snapshot["timeline"]["npu_ssu"]["ssd_outstanding_blocks"][
-                    npu
-                ][ssu]
-                for npu in range(context.num_npu)
-            ),
-            snapshot["ssd_outstanding_blocks_by_ssu"][ssu],
-            rel_tol=0.0,
-            abs_tol=0.0,
+        and sum(
+            snapshot["timeline"]["npu_ssu"]["ssd_outstanding_blocks"][npu][
+                ssu
+            ]
+            for npu in range(context.num_npu)
         )
+        == snapshot["ssd_outstanding_blocks_by_ssu"][ssu]
         for snapshot in snapshots
         for ssu in range(context.num_ssu)
     ) and all(
@@ -3414,16 +3648,10 @@ def _timeline_stationarity_invariants(context: _Context, snapshots):
             rel_tol=1e-10,
             abs_tol=1e-8,
         )
-        and math.isclose(
-            math.fsum(
-                snapshot["timeline"]["npu_ssu"]["link_outstanding_blocks"][
-                    npu
-                ]
-            ),
-            snapshot["npu_link_outstanding_blocks_by_npu"][npu],
-            rel_tol=0.0,
-            abs_tol=0.0,
+        and sum(
+            snapshot["timeline"]["npu_ssu"]["link_outstanding_blocks"][npu]
         )
+        == snapshot["npu_link_outstanding_blocks_by_npu"][npu]
         for snapshot in snapshots
         for npu in range(context.num_npu)
     )
@@ -3513,6 +3741,15 @@ def _timeline_stationarity_invariants(context: _Context, snapshots):
                     cumulative_monotonic &= (
                         enqueue_delta >= -1e-8 and served_delta >= -1e-8
                     )
+                fragmented_service_delta = (
+                    end_matrix[
+                        "ssd_served_fragmented_diagnostic_cumulative_gb"
+                    ][npu_id][ssu_id]
+                    - start_matrix[
+                        "ssd_served_fragmented_diagnostic_cumulative_gb"
+                    ][npu_id][ssu_id]
+                )
+                cumulative_monotonic &= fragmented_service_delta >= -1e-8
     dispatch_replay = all(
         record.get("prediction_matches_actual") is True
         and record.get("expected_path_id") == record.get("actual_path_id")
@@ -3829,14 +4066,20 @@ def _build_stationarity_metrics(
         and _vectors_close(
             first["ssd_cumulative_served_gb_by_ssu"],
             [
-                sum(row[ssu_id] for row in context.measurement_npu_ssu_served_start_gb)
+                math.fsum(
+                    row[ssu_id]
+                    for row in context.measurement_npu_ssu_served_start_gb
+                )
                 for ssu_id in range(context.num_ssu)
             ],
         )
         and _vectors_close(
             last["ssd_cumulative_served_gb_by_ssu"],
             [
-                sum(row[ssu_id] for row in context.measurement_npu_ssu_served_end_gb)
+                math.fsum(
+                    row[ssu_id]
+                    for row in context.measurement_npu_ssu_served_end_gb
+                )
                 for ssu_id in range(context.num_ssu)
             ],
         )
@@ -3865,7 +4108,7 @@ def _build_stationarity_metrics(
         and _vectors_close(
             whole_ssd_served_gb,
             [
-                sum(row[ssu_id] for row in npu_ssu_served_gb)
+                math.fsum(row[ssu_id] for row in npu_ssu_served_gb)
                 for ssu_id in range(context.num_ssu)
             ],
         )
@@ -4011,6 +4254,180 @@ def _timeline_state_durations(
     return rows, block_rows, partition_ok
 
 
+def _timeline_carry_in_batch_rows(
+    context: _Context,
+    window_start_ms: float,
+):
+    """Export only batches active at the left-limit measurement boundary.
+
+    Full layer intervals for admissions inside the measurement window already
+    live in ``request_rows``.  A NPU executes batches serially, so at most one
+    earlier-admitted batch can be active at that boundary.  A batch whose
+    completion event is exactly at the boundary is included because snapshots
+    are captured before same-time workload events; its half-open interval
+    contribution is still zero.  Exporting just that carry-in batch avoids
+    duplicating all interval history while making the state-duration totals
+    independently reproducible.
+    """
+
+    batches = [
+        batch
+        for batch in context.microbatches
+        if batch.admission_time_ms < window_start_ms <= batch.completion_time_ms
+    ]
+    rows = [
+        {
+            "batch_id": int(batch.batch_id),
+            "request_ids": [int(value) for value in batch.member_request_ids],
+            "npu_id": int(batch.npu_id),
+            "admission_time_ms": float(batch.admission_time_ms),
+            "completion_time_ms": float(batch.completion_time_ms),
+            "layer_count": len(batch.layer_metrics),
+            "per_layer_compute_ms": (
+                float(context.requests[batch.member_request_ids[0]].per_layer_compute_ms)
+                if len(batch.member_request_ids) == 1
+                and batch.member_request_ids[0] in context.requests
+                else None
+            ),
+            "ideal_compute_ms": (
+                float(
+                    context.n_layers
+                    * context.requests[
+                        batch.member_request_ids[0]
+                    ].per_layer_compute_ms
+                )
+                if len(batch.member_request_ids) == 1
+                and batch.member_request_ids[0] in context.requests
+                else None
+            ),
+            "io_ready_time_ms": [
+                float(metric.io_ready_time_ms) for metric in batch.layer_metrics
+            ],
+            "compute_start_ms": [
+                float(metric.compute_start_ms) for metric in batch.layer_metrics
+            ],
+            "compute_end_ms": [
+                float(metric.compute_end_ms) for metric in batch.layer_metrics
+            ],
+            "compute_duration_ms": [
+                float(metric.compute_duration_ms) for metric in batch.layer_metrics
+            ],
+            "io_barrier_wait_ms": [
+                float(metric.io_barrier_wait_ms) for metric in batch.layer_metrics
+            ],
+        }
+        for batch in batches
+    ]
+
+    expected_ids = [batch.batch_id for batch in batches]
+    exported_ids = [row["batch_id"] for row in rows]
+    definition_exact = exported_ids == expected_ids and all(
+        row["admission_time_ms"] < window_start_ms <= row["completion_time_ms"]
+        for row in rows
+    )
+    npu_ids = [row["npu_id"] for row in rows]
+    unique_per_npu = len(npu_ids) == len(set(npu_ids))
+    batch_size_one = all(len(batch.member_request_ids) == 1 for batch in batches)
+    layer_shape_exact = all(
+        row["layer_count"] == context.n_layers
+        and all(
+            len(row[field]) == context.n_layers
+            for field in (
+                "io_ready_time_ms",
+                "compute_start_ms",
+                "compute_end_ms",
+                "compute_duration_ms",
+                "io_barrier_wait_ms",
+            )
+        )
+        for row in rows
+    )
+    request_identity_exact = all(
+        tuple(row["request_ids"]) == batch.member_request_ids
+        and all(
+            request_id in context.requests
+            and context.requests[request_id].batch_id == batch.batch_id
+            and context.requests[request_id].manifest.npu_id == batch.npu_id
+            and math.isclose(
+                context.requests[request_id].admission_time_ms,
+                batch.admission_time_ms,
+                rel_tol=0.0,
+                abs_tol=1e-9,
+            )
+            and math.isclose(
+                context.requests[request_id].completion_time_ms,
+                batch.completion_time_ms,
+                rel_tol=0.0,
+                abs_tol=1e-9,
+            )
+            for request_id in batch.member_request_ids
+        )
+        for row, batch in zip(rows, batches)
+    )
+    interval_closure = True
+    compute_budget_exact = True
+    for batch in batches:
+        per_layer_compute_ms = (
+            float(context.requests[batch.member_request_ids[0]].per_layer_compute_ms)
+            if len(batch.member_request_ids) == 1
+            and batch.member_request_ids[0] in context.requests
+            else math.nan
+        )
+        barrier_start_ms = float(batch.admission_time_ms)
+        for expected_layer, metric in enumerate(batch.layer_metrics):
+            values = (
+                metric.io_ready_time_ms,
+                metric.compute_start_ms,
+                metric.compute_end_ms,
+                metric.compute_duration_ms,
+                metric.io_barrier_wait_ms,
+            )
+            interval_closure &= metric.layer == expected_layer and all(
+                math.isfinite(value) for value in values
+            )
+            if not all(math.isfinite(value) for value in values):
+                break
+            expected_compute_start_ms = max(
+                float(metric.io_ready_time_ms),
+                barrier_start_ms,
+            )
+            interval_closure &= (
+                metric.compute_start_ms == expected_compute_start_ms
+                and metric.compute_end_ms >= metric.compute_start_ms
+                and metric.io_barrier_wait_ms
+                == max(0.0, metric.compute_start_ms - barrier_start_ms)
+                and math.isclose(
+                    metric.compute_end_ms - metric.compute_start_ms,
+                    metric.compute_duration_ms,
+                    rel_tol=0.0,
+                    abs_tol=1e-9,
+                )
+            )
+            compute_budget_exact &= metric.compute_duration_ms == per_layer_compute_ms
+            barrier_start_ms = metric.compute_end_ms
+        interval_closure &= barrier_start_ms == batch.completion_time_ms
+        compute_budget_exact &= (
+            math.isfinite(per_layer_compute_ms)
+            and math.isclose(
+                math.fsum(
+                    metric.compute_duration_ms for metric in batch.layer_metrics
+                ),
+                context.n_layers * per_layer_compute_ms,
+                rel_tol=0.0,
+                abs_tol=1e-9,
+            )
+        )
+    return rows, {
+        "timeline_carry_in_definition_exact": definition_exact,
+        "timeline_carry_in_unique_per_npu": unique_per_npu,
+        "timeline_carry_in_batch_size_one": batch_size_one,
+        "timeline_carry_in_layer_shape_exact": layer_shape_exact,
+        "timeline_carry_in_request_identity_exact": request_identity_exact,
+        "timeline_carry_in_compute_budget_exact": compute_budget_exact,
+        "timeline_carry_in_interval_closure": interval_closure,
+    }
+
+
 def _build_steady_state_summary(context: _Context, current_time_ms, events_processed):
     config = context.steady_state
     window_start_ms = context.measurement_start_ms
@@ -4021,6 +4438,8 @@ def _build_steady_state_summary(context: _Context, current_time_ms, events_proce
         or context.measurement_disk_busy_end_ms is None
         or context.measurement_npu_ssu_served_start_gb is None
         or context.measurement_npu_ssu_served_end_gb is None
+        or context.measurement_fragmented_npu_ssu_served_start_gb is None
+        or context.measurement_fragmented_npu_ssu_served_end_gb is None
         or context.measurement_link_busy_start_ms is None
         or context.measurement_link_busy_end_ms is None
         or context.measurement_npu_ssu_link_start_gb is None
@@ -4061,6 +4480,26 @@ def _build_steady_state_summary(context: _Context, current_time_ms, events_proce
             context.measurement_npu_ssu_served_start_gb,
             context.measurement_npu_ssu_served_end_gb,
         )
+    ]
+    fragmented_npu_ssu_served_gb = [
+        [
+            max(0.0, end_gb - start_gb)
+            for start_gb, end_gb in zip(start_row, end_row)
+        ]
+        for start_row, end_row in zip(
+            context.measurement_fragmented_npu_ssu_served_start_gb,
+            context.measurement_fragmented_npu_ssu_served_end_gb,
+        )
+    ]
+    ssd_service_attribution_residual_gb_by_ssu = [
+        math.fsum(row[ssu_id] for row in npu_ssu_served_gb)
+        - disk_served_gb_by_ssu[ssu_id]
+        for ssu_id in range(context.num_ssu)
+    ]
+    fragmented_ssd_service_minus_stable_gb_by_ssu = [
+        math.fsum(row[ssu_id] for row in fragmented_npu_ssu_served_gb)
+        - math.fsum(row[ssu_id] for row in npu_ssu_served_gb)
+        for ssu_id in range(context.num_ssu)
     ]
     npu_ssu_served_gbps = [
         [served_gb * 1000.0 / duration_ms for served_gb in row]
@@ -4128,6 +4567,14 @@ def _build_steady_state_summary(context: _Context, current_time_ms, events_proce
         )
         if context.timeline_diagnostics
         else ([], [], True)
+    )
+    (
+        timeline_carry_in_batches,
+        timeline_carry_in_invariants,
+    ) = (
+        _timeline_carry_in_batch_rows(context, window_start_ms)
+        if context.timeline_diagnostics
+        else ([], {})
     )
 
     request_rows = []
@@ -4200,6 +4647,117 @@ def _build_steady_state_summary(context: _Context, current_time_ms, events_proce
         link_busy_ms_by_npu=link_busy_ms_by_npu,
         npu_ssu_link_served_gb=npu_ssu_link_served_gb,
     )
+    timeline_ssd_accounting_maxima = {}
+    if context.timeline_diagnostics:
+        residual_fields = (
+            "stable_service_minus_busy_counter_gb",
+            "fragmented_service_minus_stable_gb",
+            "physical_queue_minus_scheduler_gb",
+            "enqueue_minus_service_minus_physical_queue_gb",
+            "counter_queue_minus_physical_queue_gb",
+            "fragmented_counter_queue_minus_physical_queue_gb",
+            "maximum_abs_npu_queue_identity_residual_gb",
+        )
+        for field in residual_fields:
+            candidates = [
+                (
+                    snapshot,
+                    row,
+                    float(row[field]),
+                )
+                for snapshot in stationarity["snapshots"]
+                for row in snapshot["timeline"][
+                    "ssd_accounting_residuals_by_ssu"
+                ]
+            ]
+            snapshot, row, residual = max(
+                candidates,
+                key=lambda candidate: abs(candidate[2]),
+            )
+            timeline_ssd_accounting_maxima[field] = {
+                "signed_gb": residual,
+                "signed_decimal_bytes": residual * 1e9,
+                "absolute_gb": abs(residual),
+                "absolute_decimal_bytes": abs(residual) * 1e9,
+                "boundary": int(snapshot["boundary"]),
+                "elapsed_ms": float(snapshot["time_ms"] - window_start_ms),
+                "ssu_id": int(row["ssu_id"]),
+            }
+            if field == "maximum_abs_npu_queue_identity_residual_gb":
+                timeline_ssd_accounting_maxima[field]["npu_id"] = int(
+                    row["maximum_abs_npu_queue_identity_residual_npu_id"]
+                )
+        block_residual_fields = (
+            "physical_queue_block_minus_scheduler_blocks",
+            "counter_queue_block_minus_physical_blocks",
+        )
+        for field in block_residual_fields:
+            candidates = [
+                (snapshot, row, int(row[field]))
+                for snapshot in stationarity["snapshots"]
+                for row in snapshot["timeline"][
+                    "ssd_accounting_residuals_by_ssu"
+                ]
+            ]
+            snapshot, row, residual = max(
+                candidates,
+                key=lambda candidate: abs(candidate[2]),
+            )
+            timeline_ssd_accounting_maxima[field] = {
+                "signed_blocks": residual,
+                "absolute_blocks": abs(residual),
+                "boundary": int(snapshot["boundary"]),
+                "elapsed_ms": float(snapshot["time_ms"] - window_start_ms),
+                "ssu_id": int(row["ssu_id"]),
+            }
+    measurement_ssd_accounting_maxima = {}
+    for name, residuals in (
+        (
+            "stable_service_minus_busy_counter",
+            ssd_service_attribution_residual_gb_by_ssu,
+        ),
+        (
+            "fragmented_service_minus_stable",
+            fragmented_ssd_service_minus_stable_gb_by_ssu,
+        ),
+    ):
+        ssu_id = max(
+            range(context.num_ssu),
+            key=lambda index: abs(residuals[index]),
+        )
+        residual = float(residuals[ssu_id])
+        measurement_ssd_accounting_maxima[name] = {
+            "signed_gb": residual,
+            "signed_decimal_bytes": residual * 1e9,
+            "absolute_gb": abs(residual),
+            "absolute_decimal_bytes": abs(residual) * 1e9,
+            "ssu_id": int(ssu_id),
+        }
+    measurement_ssd_accounting_residuals = {
+        "schema": "steady_ssd_accounting_residuals_v1",
+        "service_absolute_tolerance_gb": 1e-8,
+        "block_tolerance": 0,
+        "decimal_bytes_per_gb": 1e9,
+        "stable_service_minus_busy_counter_gb_by_ssu": list(
+            ssd_service_attribution_residual_gb_by_ssu
+        ),
+        "stable_service_minus_busy_counter_decimal_bytes_by_ssu": [
+            residual * 1e9
+            for residual in ssd_service_attribution_residual_gb_by_ssu
+        ],
+        "fragmented_service_minus_stable_gb_by_ssu": list(
+            fragmented_ssd_service_minus_stable_gb_by_ssu
+        ),
+        "fragmented_service_minus_stable_decimal_bytes_by_ssu": [
+            residual * 1e9
+            for residual in fragmented_ssd_service_minus_stable_gb_by_ssu
+        ],
+        "busy_time_compensation_ms_by_ssu_at_stop": [
+            float(disk.busy_time_compensation) for disk in context.disks
+        ],
+        "measurement_maxima": measurement_ssd_accounting_maxima,
+        "timeline_maxima": timeline_ssd_accounting_maxima,
+    }
     block_rows = []
     for block, (compute_ms, bounds, resources) in enumerate(
         zip(block_compute_ms, block_bounds, stationarity["block_resources"])
@@ -4257,13 +4815,8 @@ def _build_steady_state_summary(context: _Context, current_time_ms, events_proce
             for busy_ms in disk_busy_ms_by_ssu
         ),
         "ssd_service_attribution": all(
-            math.isclose(
-                sum(row[ssu_id] for row in npu_ssu_served_gb),
-                disk_served_gb_by_ssu[ssu_id],
-                rel_tol=0.0,
-                abs_tol=1e-8,
-            )
-            for ssu_id in range(context.num_ssu)
+            math.isclose(residual, 0.0, rel_tol=0.0, abs_tol=1e-8)
+            for residual in ssd_service_attribution_residual_gb_by_ssu
         ),
         "npu_link_overlap_bounds": all(
             _steady_resource_overlap_within_bounds(busy_ms, duration_ms)
@@ -4362,6 +4915,7 @@ def _build_steady_state_summary(context: _Context, current_time_ms, events_proce
                         block["compute_ms_by_npu"]
                     )
                 ),
+                **timeline_carry_in_invariants,
             }
         )
     if not all(invariants.values()):
@@ -4389,6 +4943,9 @@ def _build_steady_state_summary(context: _Context, current_time_ms, events_proce
                 for ssu_id, busy_ms in enumerate(disk_busy_ms_by_ssu)
                 if not _steady_resource_overlap_within_bounds(busy_ms, duration_ms)
             ],
+            "measurement_ssd_accounting_residuals": (
+                measurement_ssd_accounting_residuals
+            ),
             "completed_by_npu_at_stop": list(context.completed_by_npu),
             "request_counts_by_npu": request_counts_by_npu,
             "actual_cir_sum_gbps_by_ssu_at_stop": list(
@@ -4453,12 +5010,46 @@ def _build_steady_state_summary(context: _Context, current_time_ms, events_proce
                 "null for baseline and layer-once"
             ),
             "realized_service": (
-                "difference of exact cumulative NPU-by-SSU service bytes between "
-                "two left-limit boundaries divided by interval duration"
+                "difference of settle-fragmentation-independent cumulative "
+                "NPU-by-SSU service bytes between two left-limit boundaries, "
+                "divided by interval duration"
             ),
             "ssd_served_awaiting_link_enqueue": (
                 "bytes already serviced within the active non-streaming SSD "
                 "command but not visible to the NPU link until command completion"
+            ),
+        },
+        "timeline_ssd_accounting_semantics": {
+            "schema": "steady_timeline_boundary_v3",
+            "ssd_served_cumulative_gb": (
+                "compensated whole-command completion totals per NPU and SSU, "
+                "plus the at-most-one active command prefix reconstructed from "
+                "its immutable activation time and total_gb"
+            ),
+            "ssd_outstanding_gb": (
+                "direct math.fsum enumeration of every physical pending command "
+                "total_gb plus the active command's immutable projected remainder; "
+                "never derived by subtracting cumulative counters"
+            ),
+            "ssd_outstanding_blocks": (
+                "exact integer enumeration of every pending and active command's "
+                "block_count"
+            ),
+            "busy_service_reference": (
+                "independent compensated SSD busy-time counter multiplied by the "
+                "physical SSD bandwidth"
+            ),
+            "fragmented_service_diagnostic": (
+                "historical observer-fragmentation-dependent per-settle service "
+                "accumulation, exposed as "
+                "ssd_served_fragmented_diagnostic_cumulative_gb and retained "
+                "only for accounting residuals; it is not a scientific output "
+                "or actual-service/conservation input, and is checked only for "
+                "shape, finiteness, nonnegativity, and monotonicity"
+            ),
+            "queue_identity": (
+                "compensated enqueued_gb minus stable cumulative service minus "
+                "direct physical outstanding_gb"
             ),
         },
         "timeline_adaptive_deadline_input": False,
@@ -4473,6 +5064,19 @@ def _build_steady_state_summary(context: _Context, current_time_ms, events_proce
             timeline_block_state_durations
             if context.timeline_diagnostics
             else []
+        ),
+        "timeline_carry_in_batches_schema": "steady_timeline_carry_in_batch_v1",
+        "timeline_carry_in_batches": (
+            timeline_carry_in_batches if context.timeline_diagnostics else []
+        ),
+        "timeline_carry_in_batch_semantics": (
+            "exact batches satisfying admission_time_ms < measurement_start_ms "
+            "<= completion_time_ms under the before-same-time-events left-limit "
+            "snapshot order; equality contributes zero elapsed time; at most "
+            "one per NPU; half-open interval intersections use "
+            "max(0, min(end, window_end) - "
+            "max(start, window_start)); admissions inside the measurement "
+            "window remain exclusively in request_rows"
         ),
         "timeline_state_duration_semantics": (
             "exact intersections of every microbatch layer compute interval and "
@@ -4539,6 +5143,12 @@ def _build_steady_state_summary(context: _Context, current_time_ms, events_proce
         "measurement_ssd_served_gbps_by_ssu": disk_served_gbps_by_ssu,
         "measurement_npu_ssu_ssd_served_gb": npu_ssu_served_gb,
         "measurement_npu_ssu_ssd_served_gbps": npu_ssu_served_gbps,
+        "measurement_fragmented_npu_ssu_ssd_served_gb": (
+            fragmented_npu_ssu_served_gb
+        ),
+        "measurement_ssd_accounting_residuals": (
+            measurement_ssd_accounting_residuals
+        ),
         "measurement_npu_link_mean_utilization": float(np.mean(link_utilizations)),
         "measurement_npu_link_utilizations": link_utilizations,
         "measurement_npu_link_busy_ms_by_npu": link_busy_ms_by_npu,

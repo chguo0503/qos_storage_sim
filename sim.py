@@ -529,6 +529,7 @@ class BlockIOFlow:
     bw: float = field(default=0.0, init=False)  # 当前 SSD 命令服务阶段的速率。
     start_time: float = field(init=False)  # 最近一次开始按当前带宽传输的时刻。
     end_time: float = field(default=float("inf"), init=False)  # 预计完成时刻。
+    ssd_activation_time: float = field(default=float("inf"), init=False)
     queue: "PathQueue | None" = field(default=None, init=False)  # 反向指向选中的 Path。
     link_enqueue_time: float = field(default=float("inf"), init=False)
     link_start_time: float = field(default=float("inf"), init=False)
@@ -631,16 +632,56 @@ class DiskState:
         self.active_flows = []
         self.generation = 0
         self.busy_time = 0.0
+        self.busy_time_compensation = 0.0
         self.idle_time = 0.0
         self.last_event_time = 0.0
         self.surplus_bw_integral = 0.0
         self.total_bw_integral = 0.0
         self.completed_bytes_gb = 0.0
-        # Exact service accounting, including commands that cross an external
-        # measurement boundary.  Completion counters alone cannot attribute a
-        # partial command to the interval in which its bytes were transferred.
+        self.completed_bytes_compensation_gb = 0.0
+        # Stable attribution is accumulated once per completed command.  A
+        # read-only boundary projector adds the one possible active-command
+        # prefix, so its precision does not depend on how often ``settle`` was
+        # called while that command ran.
+        self.completed_gb_by_npu = defaultdict(float)
+        self.completed_gb_by_npu_compensation = defaultdict(float)
+        # Retain the historical settle-fragmented counter as an explicit
+        # diagnostic cross-check.  Scientific boundary accounting no longer
+        # uses it because tens of millions of tiny additions can lose bytes of
+        # precision even though the simulated command stream is unchanged.
         self.served_gb_by_npu = defaultdict(float)
         self.scheduler = None
+
+    @staticmethod
+    def _kahan_add(total, compensation, value):
+        """Return a compensated sum update for non-negative counters."""
+        adjusted = float(value) - float(compensation)
+        updated = float(total) + adjusted
+        return updated, (updated - float(total)) - adjusted
+
+    def add_busy_time(self, duration_ms):
+        self.busy_time, self.busy_time_compensation = self._kahan_add(
+            self.busy_time,
+            self.busy_time_compensation,
+            duration_ms,
+        )
+
+    def record_completed_command(self, flow):
+        self.completed_bytes_gb, self.completed_bytes_compensation_gb = (
+            self._kahan_add(
+                self.completed_bytes_gb,
+                self.completed_bytes_compensation_gb,
+                flow.total_gb,
+            )
+        )
+        npu_id = flow.npu_id
+        total, compensation = self._kahan_add(
+            self.completed_gb_by_npu[npu_id],
+            self.completed_gb_by_npu_compensation[npu_id],
+            flow.total_gb,
+        )
+        self.completed_gb_by_npu[npu_id] = total
+        self.completed_gb_by_npu_compensation[npu_id] = compensation
 
 def _static_qos_service_rates(backlogged_paths, disk_bw, group_weights):
     """按当前有效 CIR 计算离散仲裁长期服务率，不并行传输 I/O。
@@ -926,7 +967,7 @@ class DiskIOScheduler:
             return
         duration = current_time - self.state.last_event_time
         if self.state.active_flows:
-            self.state.busy_time += duration
+            self.state.add_busy_time(duration)
             flow = self.state.active_flows[0]
             used_bw = flow.bw if flow.active else 0.0
             self.state.served_gb_by_npu[flow.npu_id] += (
@@ -944,15 +985,22 @@ class DiskIOScheduler:
         self._account_until(current_time)
         if self.state.active_flows:
             flow = self.state.active_flows[0]
-            elapsed_ms = max(0.0, current_time - flow.start_time)
-            if flow.active and flow.bw > 0.0 and elapsed_ms > 0.0:
-                flow.remaining_gb -= min(
-                    flow.remaining_gb, flow.bw * elapsed_ms / 1000.0
+            # A non-preemptive SSD command has one immutable service origin
+            # and one theoretical completion edge.  Reconstruct progress from
+            # those values instead of repeatedly subtracting tiny fragments;
+            # otherwise unrelated settle calls can leave a positive residual
+            # at the already-scheduled completion event.
+            service_end = min(float(current_time), float(flow.end_time))
+            elapsed_ms = max(0.0, service_end - flow.ssd_activation_time)
+            if flow.active and flow.bw > 0.0:
+                served_gb = min(
+                    float(flow.total_gb),
+                    flow.bw * elapsed_ms / 1000.0,
                 )
-            flow.start_time = current_time
-            if flow.remaining_gb <= _EPS:
+                flow.remaining_gb = max(0.0, float(flow.total_gb) - served_gb)
+            if current_time >= flow.end_time:
                 flow.remaining_gb = 0.0
-                flow.end_time = current_time
+            flow.start_time = current_time
 
     def _activate_flow(self, flow, current_time):
         if self.state.active_flows:
@@ -963,6 +1011,7 @@ class DiskIOScheduler:
         self.max_queue_wait_ms = max(self.max_queue_wait_ms, wait_ms)
         flow.active = True
         flow.start_time = current_time
+        flow.ssd_activation_time = current_time
         flow.bw = 0.0
         flow.end_time = float("inf")
         self.state.active_flows.append(flow)
@@ -1122,12 +1171,13 @@ class DiskIOScheduler:
         if not self.state.active_flows:
             return []
         flow = self.state.active_flows[0]
-        if flow.remaining_gb > _EPS:
+        if current_time < flow.end_time:
             return []
+        flow.remaining_gb = 0.0
         self.state.active_flows.clear()
         self.outstanding_blocks -= flow.block_count
         flow.active = False
-        self.state.completed_bytes_gb += flow.total_gb
+        self.state.record_completed_command(flow)
         path = flow.queue
         if path is not None:
             path.complete(flow)

@@ -1,0 +1,161 @@
+{
+  "schema": "ssd_accounting_failure_diagnosis_v1",
+  "sanitized": true,
+  "contains_hostname": false,
+  "contains_pid": false,
+  "contains_private_path": false,
+  "tested_old_source": {
+    "git_commit": "71e5f06577f6f8c4826ddb38e5029e5f5a3a97d4",
+    "git_subject": "Add exact NPU SSU timeline diagnostics",
+    "source_fingerprint": "88161e7a08d573d0ceea29e29f8a456136ee39709800d7e6e34b0e4cfc8a6ced"
+  },
+  "case": {
+    "strategy": "baseline",
+    "num_npu": 32,
+    "num_ssu": 3,
+    "n_layers": 16,
+    "seed": 42,
+    "workload_mode": "iid_uniform_profile_catalog_v1",
+    "backing_requests_per_npu": 256,
+    "warmup_requests_per_npu": 8,
+    "settle_ms": 500.0,
+    "measurement_ms": 64000.0,
+    "block_ms": 500.0,
+    "slo_alpha": 2.0,
+    "timeline_diagnostics": true
+  },
+  "execution_counts": {
+    "events_processed": 209888095,
+    "measurement_request_count": 2877,
+    "stationarity_boundary_count": 129,
+    "boundary_ssu_row_count": 387,
+    "rows_over_absolute_1e_8_gb": 126
+  },
+  "failed_invariants": [
+    "ssd_service_attribution",
+    "timeline_independent_queue_attribution"
+  ],
+  "all_other_timeline_invariants_passed": true,
+  "legacy_whole_window_service_minus_busy": {
+    "gb_by_ssu": [
+      1.0983058018609881e-08,
+      1.0190888133365661e-08,
+      1.0106759873451665e-08
+    ],
+    "decimal_bytes_by_ssu": [
+      10.983058018609881,
+      10.190888133365661,
+      10.106759873451665
+    ],
+    "builtin_sum_and_math_fsum_identical": true,
+    "absolute_tolerance_gb": 1e-08,
+    "relative_tolerance": 0.0
+  },
+  "maximum_boundary_fragmented_service_minus_busy": {
+    "boundary": 109,
+    "elapsed_ms": 54500.0,
+    "ssu_id": 0,
+    "enqueued_gb": 2373.7861862182617,
+    "fragmented_cell_service_gb": 2373.6932250774075,
+    "busy_service_gb": 2373.693225060778,
+    "signed_residual_gb": 1.6629655874567106e-08,
+    "signed_residual_decimal_bytes": 16.629655874567106,
+    "counter_derived_queue_gb": 0.09296115640981384,
+    "physical_queue_gb": 0.09296115748410536,
+    "queue_residual_gb": -1.0742915168560074e-09,
+    "queue_block_residual": 0
+  },
+  "maximum_boundary_counter_queue_minus_physical": {
+    "boundary": 112,
+    "elapsed_ms": 56000.0,
+    "ssu_id": 1,
+    "enqueued_gb": 2673.3783264160156,
+    "fragmented_cell_service_gb": 2671.8986905652446,
+    "busy_service_gb": 2671.8986905497427,
+    "service_residual_gb": 1.5501882444368675e-08,
+    "counter_derived_queue_gb": 1.4796358528855933,
+    "physical_queue_gb": 1.479635866272729,
+    "signed_residual_gb": -1.338713562226701e-08,
+    "signed_residual_decimal_bytes": -13.38713562226701,
+    "queue_block_residual": 0
+  },
+  "physical_chain_closure": {
+    "equation": "enqueued_gb - busy_service_gb - physical_outstanding_gb",
+    "maximum_absolute_row": {
+      "boundary": 109,
+      "elapsed_ms": 54500.0,
+      "ssu_id": 0,
+      "signed_residual_gb": -2.6353919047039653e-13,
+      "signed_residual_decimal_bytes": -0.00026353919047039653
+    },
+    "queue_block_residual_values": [
+      0
+    ],
+    "old_fragmented_service_error_to_physical_closure_ratio": 63101.26340179041
+  },
+  "completion_risk_assessment": {
+    "synthetic_one_command_one_million_settles_on_old_source": {
+      "command_total_gb": 1.23456789,
+      "disk_bw_gbps": 40.0,
+      "settle_fragment_count": 1000000,
+      "internal_completion_epsilon_gb": 1e-12,
+      "oracle": {
+        "remaining_gb_at_theoretical_completion": 2.1120623475921188e-12,
+        "completion_returned_command": false
+      },
+      "static_cir": {
+        "remaining_gb_at_theoretical_completion": 2.1120623475921188e-12,
+        "completion_returned_command": false
+      },
+      "classification": "latent mutable-progress numerical correctness bug"
+    },
+    "same_synthetic_case_on_v3_replacement": {
+      "oracle_completion_returned_command": true,
+      "static_cir_completion_returned_command": true,
+      "both_remaining_gb_at_theoretical_completion": 0.0,
+      "both_refused_completion_at_next_float_below_end": true
+    },
+    "realistic_old_source_baseline_8s_ssu3": {
+      "status": "returned_without_completion_assertion",
+      "completed_command_count": 14286656,
+      "empty_completion_at_or_after_end_count": 0,
+      "instrumented_due_settle_observation_count": 14286653,
+      "pre_clamp_positive_raw_mutable_remaining_count": 3140249,
+      "pre_clamp_over_internal_epsilon_count": 0,
+      "maximum_pre_clamp_raw_mutable_remaining_at_due": {
+        "gb": 1.818993089833243e-14,
+        "decimal_bytes": 1.818993089833243e-05,
+        "settle_fragments": 1
+      },
+      "maximum_pre_clamp_raw_immutable_formula_remaining_at_due": {
+        "gb": 1.818993089833243e-14,
+        "decimal_bytes": 1.818993089833243e-05,
+        "settle_fragments": 1
+      },
+      "post_clamp_positive_remaining_at_expiry_count": 0,
+      "post_clamp_over_internal_epsilon_count": 0,
+      "settle_fragments_per_command": {
+        "minimum": 1,
+        "p50": 1,
+        "p99": 15,
+        "maximum": 71
+      }
+    },
+    "interpretation": "The old mutable subtraction algorithm has a real latent failure at extreme fragmentation, but the observed baseline 8-second formal-shaped trace was far below that fragmentation regime and had zero empty completion events. Its largest positive pre-clamp residual was 0.0000182 decimal byte, was identical to the immutable-formula rounding residual, and was well below the 0.001-byte internal epsilon. Cross-strategy trajectory equivalence must be checked before declaring every old strategy trace unaffected."
+  },
+  "equations": {
+    "old_fragmented_service": "S_fragmented[n,s,t] = sum_k(bw * settle_delta_t[k] / 1000)",
+    "old_counter_queue": "Q_counter[n,s,t] = max(E_compensated[n,s,t] - S_fragmented[n,s,t], 0)",
+    "independent_busy_service": "S_busy[s,t] = disk_bw_gbps * B_scheduler[s,t] / 1000 (the tested old source did not yet use compensated busy-time accumulation)",
+    "direct_physical_queue": "Q_physical[n,s,t] = fsum(pending_command.total_gb) + active_command.remaining_gb",
+    "replacement_stable_service": "S_stable[n,s,t] = C_completed_kahan[n,s] + active_prefix_from_immutable_activation[n,s,t]",
+    "replacement_queue_identity": "E_compensated[n,s,t] - S_stable[n,s,t] - Q_physical[n,s,t]"
+  },
+  "diagnosis": {
+    "classification": "settle-fragmentation-dependent floating-point accounting defect; mutable-progress completion risk is assessed separately",
+    "not_fixed_by_math_fsum_at_final_reduction": true,
+    "tolerance_was_not_widened": true,
+    "physical_scheduler_state_lost_no_blocks": true,
+    "reason": "The old per-NPU service observer accumulates one floating-point term at every settle edge. Its drift grows with observer/event fragmentation and is then amplified by subtracting two large cumulative counters to infer a small queue. The independently maintained busy-time plus directly enumerated physical queue closes to 0.000264 decimal byte at the worst row."
+  }
+}

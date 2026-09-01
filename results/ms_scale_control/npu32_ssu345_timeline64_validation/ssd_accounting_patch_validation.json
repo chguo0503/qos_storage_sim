@@ -1,0 +1,260 @@
+{
+  "schema": "ssd_accounting_patch_validation_v1",
+  "sanitized": true,
+  "contains_hostname": false,
+  "contains_pid": false,
+  "contains_private_path": false,
+  "old_source": {
+    "git_commit": "71e5f06577f6f8c4826ddb38e5029e5f5a3a97d4",
+    "source_fingerprint": "88161e7a08d573d0ceea29e29f8a456136ee39709800d7e6e34b0e4cfc8a6ced"
+  },
+  "final_frozen_source": {
+    "source_fingerprint": "76658d5aac81f11a8f9fddcfeaed6692821aefde3892cdc0d7dd564563242568",
+    "file_sha256": {
+      "sim.py": "5f3a9bb82c5740a86c9c916e01495326a0bf4363fb6a5312cb99ac747e8600fd",
+      "continuous_batch_sim.py": "ae5c37aa6733e81fcc0e624404a89a154594448712a9b1ff94c39a2ba36c162e",
+      "ssd_accounting_checks.py": "7b444b82b674b65d06ce21240ca954372c33ff259e55cbdb765328843ad91b6c"
+    },
+    "timeline_schema": "steady_timeline_boundary_v3",
+    "ssd_residual_schema": "steady_ssd_accounting_residuals_v1",
+    "carry_in_schema": "steady_timeline_carry_in_batch_v1"
+  },
+  "trajectory_comparison_scope": {
+    "common_configuration": {
+      "num_npu": 32,
+      "num_ssu": 3,
+      "n_layers": 16,
+      "seed": 42,
+      "backing_requests_per_npu": 256,
+      "warmup_requests_per_npu": 8,
+      "settle_ms": 500.0,
+      "block_ms": 500.0,
+      "timeline_diagnostics": true
+    },
+    "compared_sha256_payloads": [
+      "request_rows",
+      "timeline_dispatch_probe_records",
+      "timeline_route_probe_records",
+      "timeline_control_trigger_records",
+      "adaptive_decision_diagnostics",
+      "discrete_event_and_control_counters",
+      "measurement_and_stop_cir_edges",
+      "combined_payload"
+    ],
+    "compared_scalars": [
+      "mean_npu_utilization",
+      "ttft_slo_attainment",
+      "mean_ttft_ms",
+      "p99_ttft_ms"
+    ],
+    "intentionally_not_compared": [
+      "source_fingerprint",
+      "new timeline and residual schema metadata",
+      "stable and fragmented SSD accounting diagnostics",
+      "busy-time compensation diagnostics",
+      "physical outstanding queue diagnostics",
+      "timeline carry-in export and its producer invariants"
+    ],
+    "reason_not_compared": "These fields are the intended observer/schema replacement and do not exist with the same meaning in the old source. They are validated independently below."
+  },
+  "trajectory_equivalence": {
+    "all_three_cases_exact_on_every_compared_hash": true,
+    "all_three_cases_exact_on_every_compared_scalar_and_counter": true,
+    "cases": {
+      "baseline": {
+        "measurement_ms": 2000.0,
+        "patched_run_source_fingerprint": "8aae13d42d9578b0536f7efc0469c8edb4a191e2e62c27534b2362bf168622c9",
+        "events_processed": 41394489,
+        "measurement_request_count": 86,
+        "dispatch_probe_count": 10000,
+        "route_probe_count": 99,
+        "control_trigger_count": 0,
+        "adaptive_decision_count": 0,
+        "false_invariants_old": [],
+        "false_invariants_patched": [],
+        "hashes": {
+          "request": "66de6849419c238bd389ceec47a3366ae08f75b5d53376fe322f8c0f5faca473",
+          "dispatch": "91aaf586e29bd4696c899dfec34c84b859a4c78e1d302efd7ab083acdc214961",
+          "route": "14fe6c65bc6f6cbe6885dbe3ff59e35c284dfeee74a8c3634faf548bca202778",
+          "control_trigger": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "adaptive": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "discrete_counters": "b59ea6db94212f98a4dbe870a3ef9e46eedfcbf63703564dd16572521267ec40",
+          "cir_edges": "8ace5417cc775849b5a21798fd27b65890bfb09babea2c0734efa7ed32a7cd28",
+          "combined": "ce01dc7ae13b075e89e5f40ebd8ffb0d9915456146755ab6219c6e0a3d77b999"
+        },
+        "scalars": {
+          "mean_npu_utilization": 0.5772903366960027,
+          "ttft_slo_attainment": 0.5208333333333333,
+          "mean_ttft_ms": 769.1798612667889,
+          "p99_ttft_ms": 2289.7683449022657
+        }
+      },
+      "layer_once_ttl_5ms": {
+        "measurement_ms": 2000.0,
+        "patched_run_source_fingerprint": "8aae13d42d9578b0536f7efc0469c8edb4a191e2e62c27534b2362bf168622c9",
+        "events_processed": 38254224,
+        "measurement_request_count": 96,
+        "dispatch_probe_count": 10000,
+        "route_probe_count": 123,
+        "control_trigger_count": 0,
+        "adaptive_decision_count": 0,
+        "pressure_reports": 6885,
+        "pressure_cache_hits": 23784,
+        "false_invariants_old": [],
+        "false_invariants_patched": [],
+        "hashes": {
+          "request": "0ece771e25ff79963651797704b5cfc5670e4d65ca5d6227f64c0d76619a0ef3",
+          "dispatch": "2fea96df8a30f9c4dcff60449ab29461edd65f8d326931dfeef24fb8d1f63605",
+          "route": "7a296e467184c54e80880de35194786adf91f3cf24cbc13573a59baa20df21c4",
+          "control_trigger": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "adaptive": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "discrete_counters": "3cbbb9041d9a6ff852eb57799f2b82a9d179d7cd8f41572f6e686ff7e9f8e411",
+          "cir_edges": "8ace5417cc775849b5a21798fd27b65890bfb09babea2c0734efa7ed32a7cd28",
+          "combined": "819cb6e4c0ad6c77bcf82889d9f0eeae55375bcf755c36171eb261f31b031182"
+        },
+        "scalars": {
+          "mean_npu_utilization": 0.5906181051608221,
+          "ttft_slo_attainment": 0.6666666666666666,
+          "mean_ttft_ms": 722.8369874297114,
+          "p99_ttft_ms": 2385.810595438647
+        }
+      },
+      "adaptive_t0_i100ms": {
+        "measurement_ms": 8000.0,
+        "patched_run_source_fingerprint": "949f41f8491cb521a227445b69ca79a1d212161dfef8a3ea1c60f5edc4d10019",
+        "events_processed": 66643422,
+        "measurement_request_count": 352,
+        "dispatch_probe_count": 10000,
+        "route_probe_count": 150,
+        "control_trigger_count": 3265,
+        "adaptive_decision_count": 243,
+        "control_evaluations": 243,
+        "cir_commits": 243,
+        "cir_write_transactions": 729,
+        "cir_path_writes": 21679,
+        "false_invariants_old": [],
+        "false_invariants_patched": [],
+        "hashes": {
+          "request": "67fd495579fba2b456dc2ca888426626ef6dabf9d99282237872beda29f726f8",
+          "dispatch": "da4d8ee1a1260b4b2be1b2abf13ae61af35c543ed58feb9bfb8d3c7e9beacc45",
+          "route": "8f4d1366e6b10fae38b1b1abb4bdc28a39e94c8736bcea1a7122a966d65f8bb7",
+          "control_trigger": "a72e5513402bbdd8d8f4ecce5dcf9c386f798c4fd75c68241e002c812cadb85c",
+          "adaptive": "08b2ff39ae9f359bab0028d997ff4c0f67f7fc036dad52f75640c37fbc0f2c34",
+          "discrete_counters": "4d1301bbea0521fed8c6c2d2b93902172d848fbf384821fdd6766232ddc1a145",
+          "cir_edges": "d9281f596c89e7f2f07f96b6d4fb0c30687a10f235607f8c929c5d81d596bfa9",
+          "combined": "ab1efa593698d71b961523517565e5924475ff64217d5b4a4e9c4af533ac2be9"
+        },
+        "scalars": {
+          "mean_npu_utilization": 0.6020182622109003,
+          "ttft_slo_attainment": 0.7245579507298258,
+          "mean_ttft_ms": 719.402726138543,
+          "p99_ttft_ms": 3231.640128739511
+        }
+      }
+    },
+    "post_comparison_source_note": "The final frozen source differs from the Baseline/Layer-once comparison source only by additional diagnostics and carry-in summary production, and from the Adaptive comparison source only by the inclusive left-limit carry-in definition and its tests. These execute after the event loop and do not feed any compared trajectory field."
+  },
+  "fragmentation_completion_validation": {
+    "old_one_million_fragment_counterexample": {
+      "command_total_gb": 1.23456789,
+      "disk_bw_gbps": 40.0,
+      "fragment_count": 1000000,
+      "remaining_gb_at_theoretical_completion": 2.1120623475921188e-12,
+      "internal_epsilon_gb": 1e-12,
+      "oracle_completed": false,
+      "static_cir_completed": false
+    },
+    "final_regression": {
+      "fragment_counts": [250000, 1000000],
+      "policies": ["oracle", "static_cir"],
+      "refuses_completion_at_next_float_below_end": true,
+      "completes_at_exact_theoretical_end": true,
+      "remaining_gb_after_completion": 0.0,
+      "fragmented_and_unfragmented_midpoint_service_exactly_equal": true,
+      "whole_command_and_busy_counters_close": true
+    },
+    "realistic_old_baseline_8s": {
+      "completed_command_count": 14286656,
+      "empty_completion_at_or_after_end_count": 0,
+      "pre_clamp_positive_raw_remaining_count": 3140249,
+      "pre_clamp_over_internal_epsilon_count": 0,
+      "maximum_pre_clamp_raw_remaining_gb": 1.818993089833243e-14,
+      "maximum_pre_clamp_raw_remaining_decimal_bytes": 1.818993089833243e-05,
+      "settle_fragments_min_p50_p99_max": [1, 1, 15, 71]
+    }
+  },
+  "actual_des_ssd_accounting_validation": {
+    "configuration": {
+      "strategy": "baseline",
+      "num_npu": 32,
+      "num_ssu": 3,
+      "n_layers": 16,
+      "measurement_ms": 8000.0,
+      "seed": 42
+    },
+    "accounting_algorithm_source_fingerprint": "3ae6bd019fcd367060da43c33dc0272aec12396ad050af8d61aed46e8a0ccab3",
+    "events_processed": 57196749,
+    "measurement_request_count": 353,
+    "false_invariants": [],
+    "measurement_stable_service_minus_busy_gb_by_ssu": [0.0, 0.0, 0.0],
+    "measurement_fragmented_minus_stable_decimal_bytes_by_ssu": [
+      0.23817392502678558,
+      0.6003233465889934,
+      0.5654214874084573
+    ],
+    "timeline_maximum_absolute_residuals": {
+      "stable_service_minus_busy_gb": 1.1368683772161603e-13,
+      "stable_service_minus_busy_decimal_bytes": 0.00011368683772161603,
+      "physical_queue_minus_scheduler_gb": 2.1649348980190553e-15,
+      "enqueue_minus_stable_service_minus_physical_queue_gb": 5.4539706084710815e-14,
+      "maximum_per_npu_queue_identity_gb": 1.7139067942650854e-15,
+      "physical_queue_block_residual": 0,
+      "counter_queue_block_residual": 0
+    }
+  },
+  "actual_des_carry_in_validation": {
+    "final_source_fingerprint": "76658d5aac81f11a8f9fddcfeaed6692821aefde3892cdc0d7dd564563242568",
+    "configuration": {
+      "strategy": "baseline",
+      "num_npu": 2,
+      "num_ssu": 2,
+      "n_layers": 16,
+      "measurement_ms": 4000.0,
+      "block_ms": 500.0,
+      "seed": 42
+    },
+    "events_processed": 2433867,
+    "stationarity_boundary_count": 9,
+    "false_invariants": [],
+    "carry_in_row_count": 2,
+    "strict_crossing_row_count": 1,
+    "completion_equal_to_start_left_limit_row_count": 1,
+    "npu_ids": [1, 0],
+    "request_id_lengths": [1, 1],
+    "layer_counts": [16, 16],
+    "per_layer_compute_ms": [141.33578827944143, 135.967080955643],
+    "ideal_compute_ms": [2261.372612471063, 2175.473295290288],
+    "all_seven_carry_in_invariants": true,
+    "left_limit_definition": "admission_time_ms < measurement_start_ms <= completion_time_ms",
+    "interval_overlap": "half-open; completion equality contributes zero elapsed milliseconds"
+  },
+  "observer_equivalence_status": {
+    "accounting_failure_classification": "settle-fragmentation-dependent observer accounting defect",
+    "accounting_replacement_changed_tested_event_or_policy_trajectories": false,
+    "tested_baseline_layer_once_and_adaptive_trajectories_exact": true,
+    "completion_fix_classification": "latent mutable-progress numerical correctness fix",
+    "global_observer_only_claim": false,
+    "reason_global_claim_is_false": "The immutable-progress completion rule intentionally changes behavior in the artificial extreme-fragmentation counterexample, although it did not alter any compared formal-shaped trajectory.",
+    "old_formal_artifact_acceptance": "Old long-run artifacts that fail SSD accounting gates must be rerun with the frozen source even when their event trajectory is likely scientifically unchanged."
+  },
+  "verification": {
+    "python_compile": true,
+    "ssd_and_carry_checks": "4/4 passed, including four 250k/1M policy subcases and a left-limit equality case",
+    "adaptive_controller_checks": "9/9 passed",
+    "forecast_policy_checks": "4/4 passed",
+    "protected_floor_checks": "10/10 passed",
+    "actual_des_all_invariants": true,
+    "remote_mirror_compile_and_ssd_checks": true,
+    "diff_whitespace_check": true
+  }
+}
