@@ -222,6 +222,7 @@ class CIRControlSnapshot:
     num_ssu: int
     active_requests: tuple[ControlRequestView, ...]
     current_path_cirs_by_ssu: tuple[tuple[float, ...], ...]
+    trigger_reasons: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -326,6 +327,9 @@ class SteadyStateConfig:
     measurement_ms: float = 2_000.0
     slo_alpha: float = 2.0
     block_ms: float = 500.0
+    timeline_diagnostics: bool = False
+    timeline_dispatch_probe_ms: float = 50.0
+    timeline_dispatch_probe_limit: int = 10_000
 
 
 class SteadyStateInvariantError(AssertionError):
@@ -843,6 +847,53 @@ class _Context:
         self.measurement_stationarity_snapshots: list[dict] = []
         self.steady_backlog_exhausted = False
 
+        # The timeline observer is deliberately fixed-size and disabled by
+        # default.  It never calls a scheduler API, consumes RNG state, or
+        # inserts an event.  Boundary snapshots below only read these counters,
+        # so enabling it cannot change the simulated decision order.
+        self.timeline_diagnostics = bool(
+            steady_state is not None and steady_state.timeline_diagnostics
+        )
+        self.timeline_ssd_enqueued_gb = [
+            [0.0] * num_ssu for _ in range(num_npu)
+        ]
+        self.timeline_ssd_enqueued_blocks = [
+            [0] * num_ssu for _ in range(num_npu)
+        ]
+        self.timeline_ssd_completed_blocks = [
+            [0] * num_ssu for _ in range(num_npu)
+        ]
+        self.timeline_link_enqueued_gb = [
+            [0.0] * num_ssu for _ in range(num_npu)
+        ]
+        self.timeline_link_enqueued_blocks = [
+            [0] * num_ssu for _ in range(num_npu)
+        ]
+        self.timeline_link_completed_blocks = [
+            [0] * num_ssu for _ in range(num_npu)
+        ]
+        self.timeline_activated_compute_ms = [0.0] * num_npu
+        self.timeline_activated_io_gb = [
+            [0.0] * num_ssu for _ in range(num_npu)
+        ]
+        self.timeline_route_plans = [[0] * num_ssu for _ in range(num_npu)]
+        self.timeline_route_pressure_fresh = [
+            [0] * num_ssu for _ in range(num_npu)
+        ]
+        self.timeline_route_pressure_cache = [
+            [0] * num_ssu for _ in range(num_npu)
+        ]
+        timeline_group_count = (
+            len(qos_configs_by_ssu[0].group_weights) if qos_configs_by_ssu else 0
+        )
+        self.timeline_route_blocks_by_group = [
+            [[0] * timeline_group_count for _ in range(num_ssu)]
+            for _ in range(num_npu)
+        ]
+        self.timeline_route_probe_records: list[dict] = []
+        self.timeline_control_triggers: list[dict] = []
+        self.timeline_dispatch_probe_records: list[dict] = []
+
         self.microbatches: list[_MicrobatchState] = []
         self.next_batch_id = 0
         for request in requests:
@@ -1160,6 +1211,595 @@ def _project_npu_snapshot(context: _Context, current_time_ms: float):
     }
 
 
+def _project_timeline_ssd_service(context: _Context, current_time_ms: float):
+    """Project exact cumulative SSD bytes for every NPU x SSU cell."""
+    values = [
+        [
+            float(disk.served_gb_by_npu.get(npu_id, 0.0))
+            for disk in context.disks
+        ]
+        for npu_id in range(context.num_npu)
+    ]
+    for ssu_id, disk in enumerate(context.disks):
+        if not disk.active_flows:
+            continue
+        flow = disk.active_flows[0]
+        service_end_ms = min(current_time_ms, flow.end_time)
+        duration_ms = max(0.0, service_end_ms - disk.last_event_time)
+        values[flow.npu_id][ssu_id] += flow.bw * duration_ms / 1000.0
+    return values
+
+
+def _project_timeline_link_service(context: _Context, current_time_ms: float):
+    """Project exact cumulative NPU-link bytes for every NPU x SSU cell."""
+    values = [
+        [
+            float(npu.link_served_gb_by_ssu.get(ssu_id, 0.0))
+            for ssu_id in range(context.num_ssu)
+        ]
+        for npu in context.npus
+    ]
+    for npu in context.npus:
+        flow = npu.link_active_flow
+        if flow is None:
+            continue
+        service_end_ms = min(current_time_ms, flow.link_end_time)
+        duration_ms = max(0.0, service_end_ms - npu.link_last_account_ms)
+        values[npu.npu_id][flow.disk_id] += (
+            context.npu_bw_gbps * duration_ms / 1000.0
+        )
+    return values
+
+
+def _timeline_compute_inventory_ms(
+    context: _Context,
+    npu: _NPUState,
+    current_time_ms: float,
+):
+    """Activated, unfinished compute Q(t); queued future requests are excluded."""
+    batch = npu.active_batch
+    if batch is None:
+        return 0.0
+    per_layer_ms = _batch_compute_duration_ms(context, batch)
+    if npu.compute_active is not None:
+        batch_id, layer = npu.compute_active
+        if batch_id != batch.batch_id:
+            raise AssertionError("timeline observed a mismatched compute batch")
+        remaining_current_ms = max(
+            0.0, batch.layer_metrics[layer].compute_end_ms - current_time_ms
+        )
+        return remaining_current_ms + (context.n_layers - layer - 1) * per_layer_ms
+    next_layer = batch.compute_done_up_to + 1
+    return max(0, context.n_layers - next_layer) * per_layer_ms
+
+
+def _timeline_pipeline_state(context: _Context, npu: _NPUState):
+    if npu.compute_active is not None:
+        return "compute"
+    batch = npu.active_batch
+    if batch is not None:
+        layer = batch.compute_done_up_to + 1
+        if layer < context.n_layers and all(
+            context.requests[request_id].io_ready[layer]
+            for request_id in batch.member_request_ids
+        ):
+            return "ready_not_running"
+        return "io_barrier"
+    if npu.batch_dispatch_pending or npu.admission_queue:
+        return "between_batches"
+    if npu.future_arrivals > 0:
+        return "waiting_arrival"
+    return "drained"
+
+
+def _timeline_active_request_ids(npu: _NPUState):
+    active = (
+        () if npu.active_batch is None else npu.active_batch.member_request_ids
+    )
+    prefetch = (
+        ()
+        if npu.layer0_prefetch_request_id is None
+        else (npu.layer0_prefetch_request_id,)
+    )
+    return tuple(dict.fromkeys(active + prefetch))
+
+
+def _timeline_request_physical_remaining(
+    context: _Context,
+    request: _RequestState,
+    current_time_ms: float,
+):
+    """Bytes not yet delivered on the NPU link, including partial transfers."""
+    remaining = [0.0] * context.num_ssu
+    for layer in range(context.n_layers):
+        if request.io_ready[layer]:
+            continue
+        for ssu_id, _, work_gb in _state_placement_groups(request, layer):
+            remaining[ssu_id] += work_gb
+        if request.completed_gb_by_layer_ssu:
+            for ssu_id, delivered_gb in enumerate(
+                request.completed_gb_by_layer_ssu[layer]
+            ):
+                remaining[ssu_id] -= delivered_gb
+    npu = context.npus[request.manifest.npu_id]
+    flow = npu.link_active_flow
+    if flow is not None and flow.request_id == request.manifest.request_id:
+        service_end_ms = min(current_time_ms, flow.link_end_time)
+        elapsed_ms = max(0.0, service_end_ms - flow.link_start_time)
+        partial_gb = min(
+            flow.total_gb, context.npu_bw_gbps * elapsed_ms / 1000.0
+        )
+        remaining[flow.disk_id] -= partial_gb
+    return [max(0.0, value) for value in remaining]
+
+
+def _timeline_path_state(context: _Context, current_time_ms: float):
+    rows = []
+    active_commands = []
+    pressure_state = []
+    for ssu_id, disk in enumerate(context.disks):
+        scheduler = disk.scheduler
+        rates = {}
+        if scheduler.policy == sim.POLICY_QOS_STATIC_CIR:
+            backlogged = [path for path in scheduler.paths.values() if path.pending]
+            rates = sim._static_qos_service_rates(
+                backlogged, scheduler.disk_bw, scheduler.group_weights
+            )
+            for path in scheduler.paths.values():
+                if path.io_count() <= 0:
+                    continue
+                head = path.peek()
+                active = path.active_flow
+                rows.append(
+                    {
+                        "ssu_id": ssu_id,
+                        "path_id": path.path_id,
+                        "group_id": path.group_id,
+                        "cir_gbps": float(path.cir),
+                        "path_weight": float(path.path_weight),
+                        "virtual_finish": float(path.virtual_finish),
+                        "estimated_next_arbitration_rate_gbps": float(
+                            rates.get(path, 0.0)
+                        ),
+                        "pending_blocks": int(path.pending_io_count),
+                        "pending_gb": float(path.pending_gb),
+                        "active_remaining_gb": _project_ssd_active_remaining_gb(
+                            active, current_time_ms
+                        ),
+                        "head_wait_age_ms": (
+                            max(0.0, current_time_ms - head.enqueue_time)
+                            if head is not None
+                            else None
+                        ),
+                        "head_npu_id": head.npu_id if head is not None else None,
+                        "head_request_id": (
+                            head.request_id if head is not None else None
+                        ),
+                        "head_layer": head.layer if head is not None else None,
+                    }
+                )
+        active = disk.active_flows[0] if disk.active_flows else None
+        active_commands.append(
+            None
+            if active is None
+            else {
+                "ssu_id": ssu_id,
+                "npu_id": active.npu_id,
+                "request_id": active.request_id,
+                "layer": active.layer,
+                "block_idx": active.block_idx,
+                "path_id": active.queue_id,
+                "remaining_gb": _project_ssd_active_remaining_gb(
+                    active, current_time_ms
+                ),
+                # ``flow.start_time`` is the most recent scheduler-settle edge,
+                # not the immutable command activation edge.  Queue wait is
+                # fixed exactly once in ``_activate_flow``, so their sum is the
+                # true non-preemptive SSD command start time.
+                "command_start_time_ms": float(
+                    active.enqueue_time + active.ssd_queue_wait_ms
+                ),
+                "command_age_ms": max(
+                    0.0,
+                    current_time_ms
+                    - (active.enqueue_time + active.ssd_queue_wait_ms),
+                ),
+                "physical_service_gbps": float(active.bw),
+                "non_preemptive": True,
+            }
+        )
+        cache_time = scheduler._pressure_cache_time
+        pressure_state.append(
+            {
+                "ssu_id": ssu_id,
+                "reports_cumulative": int(scheduler.pressure_reports),
+                "cache_hits_cumulative": int(scheduler.pressure_cache_hits),
+                "cache_time_ms": cache_time,
+                "cache_age_ms": (
+                    None
+                    if cache_time is None
+                    else max(0.0, current_time_ms - cache_time)
+                ),
+                "ttl_ms": float(scheduler.pressure_ttl_ms),
+            }
+        )
+    return {
+        "sparse_ssu_path_rows": rows,
+        "active_command_by_ssu": active_commands,
+        "pressure_state_by_ssu": pressure_state,
+    }
+
+
+def _capture_timeline_snapshot(context: _Context, current_time_ms: float):
+    ssd_served = _project_timeline_ssd_service(context, current_time_ms)
+    link_served = _project_timeline_link_service(context, current_time_ms)
+    ssd_outstanding_gb = [
+        [
+            max(0.0, context.timeline_ssd_enqueued_gb[npu][ssu] - ssd_served[npu][ssu])
+            for ssu in range(context.num_ssu)
+        ]
+        for npu in range(context.num_npu)
+    ]
+    link_outstanding_gb = [
+        [
+            max(
+                0.0,
+                context.timeline_link_enqueued_gb[npu][ssu]
+                - link_served[npu][ssu],
+            )
+            for ssu in range(context.num_ssu)
+        ]
+        for npu in range(context.num_npu)
+    ]
+    # SSD commands are non-streaming: partially serviced bytes remain inside
+    # the active SSD command and are enqueued to the NPU link only when the
+    # whole command completes.  Keep this real intermediate stage explicit.
+    ssd_served_awaiting_link_enqueue_gb = [
+        [
+            ssd_served[npu][ssu]
+            - context.timeline_link_enqueued_gb[npu][ssu]
+            for ssu in range(context.num_ssu)
+        ]
+        for npu in range(context.num_npu)
+    ]
+    ssd_outstanding_blocks = [
+        [
+            context.timeline_ssd_enqueued_blocks[npu][ssu]
+            - context.timeline_ssd_completed_blocks[npu][ssu]
+            for ssu in range(context.num_ssu)
+        ]
+        for npu in range(context.num_npu)
+    ]
+    link_outstanding_blocks = [
+        [
+            context.timeline_link_enqueued_blocks[npu][ssu]
+            - context.timeline_link_completed_blocks[npu][ssu]
+            for ssu in range(context.num_ssu)
+        ]
+        for npu in range(context.num_npu)
+    ]
+    client_unissued_gb = [
+        [0.0] * context.num_ssu for _ in range(context.num_npu)
+    ]
+    for state in context.submission_states.values():
+        client_unissued_gb[state.npu_id][state.disk_id] += math.fsum(
+            size_gb for _, size_gb in state.blocks[state.cursor :]
+        )
+
+    controller_remaining = [
+        [0.0] * context.num_ssu for _ in range(context.num_npu)
+    ]
+    physical_remaining = [
+        [0.0] * context.num_ssu for _ in range(context.num_npu)
+    ]
+    controller_compute_ms = [0.0] * context.num_npu
+    controller_request_ids = [None] * context.num_npu
+    controller_prefetch_only = [None] * context.num_npu
+    npu_rows = []
+    for npu in context.npus:
+        request_ids = _timeline_active_request_ids(npu)
+        for request_id in request_ids:
+            request = context.requests[request_id]
+            view = _control_request_view(context, request)
+            remaining_work, compute_ms = view.remaining_work_gb_by_ssu, (
+                view.remaining_compute_budget_ms
+            )
+            if compute_ms > 0.0 and any(value > 0.0 for value in remaining_work):
+                if controller_request_ids[npu.npu_id] is not None:
+                    raise AssertionError(
+                        "timeline observed two controller demands on one NPU"
+                    )
+                controller_request_ids[npu.npu_id] = request_id
+                controller_prefetch_only[npu.npu_id] = bool(view.prefetch_only)
+                controller_compute_ms[npu.npu_id] = float(compute_ms)
+                controller_remaining[npu.npu_id] = list(map(float, remaining_work))
+            request_physical = _timeline_request_physical_remaining(
+                context, request, current_time_ms
+            )
+            for ssu_id, value in enumerate(request_physical):
+                physical_remaining[npu.npu_id][ssu_id] += value
+
+        batch = npu.active_batch
+        active_request_id = (
+            None if batch is None else int(batch.member_request_ids[0])
+        )
+        active_request = (
+            None if active_request_id is None else context.requests[active_request_id]
+        )
+        current_compute_layer = None
+        next_compute_layer = None
+        compute_start_ms = None
+        compute_end_ms = None
+        if npu.compute_active is not None:
+            _, current_compute_layer = npu.compute_active
+            metric = batch.layer_metrics[current_compute_layer]
+            compute_start_ms = metric.compute_start_ms
+            compute_end_ms = metric.compute_end_ms
+            candidate = current_compute_layer + 1
+            if candidate < context.n_layers:
+                next_compute_layer = candidate
+        elif batch is not None:
+            candidate = batch.compute_done_up_to + 1
+            if candidate < context.n_layers:
+                next_compute_layer = candidate
+        profile = (
+            {}
+            if active_request is None
+            else _request_profile_metadata(active_request.manifest.load)
+        )
+        ideal_ttft_ms = (
+            None
+            if active_request is None
+            else context.n_layers * active_request.per_layer_compute_ms
+        )
+        elapsed_ttft_ms = (
+            None
+            if active_request is None
+            else max(0.0, current_time_ms - active_request.admission_time_ms)
+        )
+        npu_rows.append(
+            {
+                "npu_id": npu.npu_id,
+                "pipeline_state": _timeline_pipeline_state(context, npu),
+                "compute_inventory_q_ms": _timeline_compute_inventory_ms(
+                    context, npu, current_time_ms
+                ),
+                "activated_compute_cumulative_ms": float(
+                    context.timeline_activated_compute_ms[npu.npu_id]
+                ),
+                "active_request_id": active_request_id,
+                "active_batch_id": None if batch is None else batch.batch_id,
+                "current_compute_layer": current_compute_layer,
+                "next_compute_layer": next_compute_layer,
+                "compute_done_up_to": (
+                    None if batch is None else batch.compute_done_up_to
+                ),
+                "compute_start_ms": compute_start_ms,
+                "compute_end_ms": compute_end_ms,
+                "next_compute_layer_io_ready": (
+                    None
+                    if active_request is None or next_compute_layer is None
+                    else bool(active_request.io_ready[next_compute_layer])
+                ),
+                "waiting_on_io_layer": (
+                    next_compute_layer
+                    if _timeline_pipeline_state(context, npu) == "io_barrier"
+                    else None
+                ),
+                "prefetch_request_id": npu.layer0_prefetch_request_id,
+                "controller_request_id": controller_request_ids[npu.npu_id],
+                "controller_prefetch_only": controller_prefetch_only[npu.npu_id],
+                "admission_time_ms": (
+                    None if active_request is None else active_request.admission_time_ms
+                ),
+                "elapsed_ttft_ms": elapsed_ttft_ms,
+                "ideal_ttft_ms": ideal_ttft_ms,
+                "slo_alpha1p5_slack_ms": (
+                    None
+                    if ideal_ttft_ms is None
+                    else 1.5 * ideal_ttft_ms - elapsed_ttft_ms
+                ),
+                "slo_alpha2_slack_ms": (
+                    None
+                    if ideal_ttft_ms is None
+                    else 2.0 * ideal_ttft_ms - elapsed_ttft_ms
+                ),
+                "category": (
+                    None if active_request is None else active_request.category
+                ),
+                "sequence": (
+                    None
+                    if active_request is None
+                    else int(active_request.manifest.load["stream_id"])
+                ),
+                **profile,
+            }
+        )
+
+    controller_demand = [
+        [
+            (
+                controller_remaining[npu][ssu]
+                / (controller_compute_ms[npu] / 1000.0)
+                if controller_compute_ms[npu] > 0.0
+                else 0.0
+            )
+            for ssu in range(context.num_ssu)
+        ]
+        for npu in range(context.num_npu)
+    ]
+    physical_demand = [
+        [
+            (
+                physical_remaining[npu][ssu]
+                / (controller_compute_ms[npu] / 1000.0)
+                if controller_compute_ms[npu] > 0.0
+                else 0.0
+            )
+            for ssu in range(context.num_ssu)
+        ]
+        for npu in range(context.num_npu)
+    ]
+    installed_cir = None
+    if context.npu_dedicated_paths is not None:
+        installed_cir = [
+            [
+                float(
+                    context.disks[ssu].scheduler.paths[
+                        context.npu_dedicated_paths[npu]
+                    ].cir
+                )
+                for ssu in range(context.num_ssu)
+            ]
+            for npu in range(context.num_npu)
+        ]
+    return {
+        "schema": "steady_timeline_boundary_v2",
+        "npu_rows": npu_rows,
+        "npu_ssu": {
+            "ssd_enqueued_cumulative_gb": [
+                list(row) for row in context.timeline_ssd_enqueued_gb
+            ],
+            "ssd_served_cumulative_gb": ssd_served,
+            "ssd_outstanding_gb": ssd_outstanding_gb,
+            "ssd_outstanding_blocks": ssd_outstanding_blocks,
+            "link_enqueued_cumulative_gb": [
+                list(row) for row in context.timeline_link_enqueued_gb
+            ],
+            "link_served_cumulative_gb": link_served,
+            "link_outstanding_gb": link_outstanding_gb,
+            "link_outstanding_blocks": link_outstanding_blocks,
+            "ssd_served_awaiting_link_enqueue_gb": (
+                ssd_served_awaiting_link_enqueue_gb
+            ),
+            "client_unissued_gb": client_unissued_gb,
+            "activated_io_cumulative_gb": [
+                list(row) for row in context.timeline_activated_io_gb
+            ],
+            "physical_remaining_gb": physical_remaining,
+            "controller_declared_remaining_gb": controller_remaining,
+            "controller_remaining_compute_ms": list(controller_compute_ms),
+            "physical_demand_gbps": physical_demand,
+            "controller_demand_gbps": controller_demand,
+            "installed_dedicated_path_cir_gbps": installed_cir,
+            "route_plans_cumulative": [
+                list(row) for row in context.timeline_route_plans
+            ],
+            "route_pressure_fresh_cumulative": [
+                list(row) for row in context.timeline_route_pressure_fresh
+            ],
+            "route_pressure_cache_cumulative": [
+                list(row) for row in context.timeline_route_pressure_cache
+            ],
+            "route_blocks_by_group_cumulative": [
+                [[int(value) for value in groups] for groups in row]
+                for row in context.timeline_route_blocks_by_group
+            ],
+        },
+        **_timeline_path_state(context, current_time_ms),
+    }
+
+
+def _prepare_timeline_dispatch_probe(
+    context: _Context,
+    scheduler: sim.DiskIOScheduler,
+    current_time_ms: float,
+):
+    """Predict one QoS winner read-only inside a bounded measurement probe."""
+    config = context.steady_state
+    if (
+        not context.timeline_diagnostics
+        or not context.measurement_open
+        or context.measurement_start_ms is None
+        or current_time_ms
+        >= context.measurement_start_ms + config.timeline_dispatch_probe_ms
+        or len(context.timeline_dispatch_probe_records)
+        >= config.timeline_dispatch_probe_limit
+        or scheduler.policy != sim.POLICY_QOS_STATIC_CIR
+        or scheduler.state.active_flows
+    ):
+        return None
+    backlogged = [path for path in scheduler.paths.values() if path.pending]
+    if not backlogged:
+        return None
+    rates = sim._static_qos_service_rates(
+        backlogged, scheduler.disk_bw, scheduler.group_weights
+    )
+    candidates = []
+    for path in backlogged:
+        head = path.peek()
+        rate = float(rates.get(path, 0.0))
+        if head is None or rate <= _EPS or path.pir <= _EPS:
+            continue
+        finish = float(path.virtual_finish + head.total_gb / rate)
+        candidates.append((path, head, rate, finish))
+    if not candidates:
+        return None
+    minimum_finish = min(candidate[3] for candidate in candidates)
+    tied = [
+        candidate
+        for candidate in candidates
+        if candidate[3] <= minimum_finish + _EPS
+    ]
+    path_count = len(scheduler.paths)
+    winner = min(
+        tied,
+        key=lambda candidate: (
+            (candidate[0].path_id - scheduler.qos_rr_cursor) % path_count,
+            candidate[0].path_id,
+            candidate[3],
+        ),
+    )
+    return {
+        "ssu_id": scheduler.state.disk_id,
+        "time_ms": float(current_time_ms),
+        "rr_cursor_before": int(scheduler.qos_rr_cursor),
+        "candidate_path_count": len(candidates),
+        "minimum_finish_tag": float(minimum_finish),
+        "finish_tie_count": len(tied),
+        "expected_path_id": int(winner[0].path_id),
+        "winner_finish_tag_before": float(winner[3]),
+        "winner_estimated_arbitration_rate_gbps": float(winner[2]),
+        "winner_cir_gbps": float(winner[0].cir),
+        "winner_group_id": int(winner[0].group_id),
+        "winner_path_weight": float(winner[0].path_weight),
+        "winner_pending_blocks_before": int(winner[0].pending_io_count),
+        "winner_pending_gb_before": float(winner[0].pending_gb),
+        "selection_rule": "minimum_virtual_finish_then_round_robin",
+    }
+
+
+def _finish_timeline_dispatch_probe(
+    context: _Context,
+    scheduler: sim.DiskIOScheduler,
+    probe,
+    flow,
+):
+    if probe is None:
+        return
+    if flow is None or flow.queue_id != probe["expected_path_id"]:
+        raise AssertionError(
+            "read-only timeline arbitration replay disagreed with scheduler"
+        )
+    path = scheduler.paths[flow.queue_id]
+    probe.update(
+        {
+            "actual_path_id": int(flow.queue_id),
+            "winner_npu_id": int(flow.npu_id),
+            "winner_request_id": int(flow.request_id),
+            "winner_layer": int(flow.layer),
+            "winner_block_idx": int(flow.block_idx),
+            "winner_queue_wait_ms": float(flow.ssd_queue_wait_ms),
+            "winner_command_gb": float(flow.total_gb),
+            "winner_virtual_finish_after": float(path.virtual_finish),
+            "physical_command_service_gbps": float(flow.bw),
+            "physical_command_non_preemptive": True,
+            "prediction_matches_actual": True,
+        }
+    )
+    context.timeline_dispatch_probe_records.append(probe)
+
+
 def _capture_stationarity_snapshot(
     context: _Context,
     boundary: int,
@@ -1168,7 +1808,7 @@ def _capture_stationarity_snapshot(
     """Capture a left-limit boundary without settling any simulated resource."""
     ssd = _project_ssd_snapshot(context, current_time_ms)
     npu = _project_npu_snapshot(context, current_time_ms)
-    return {
+    snapshot = {
         "boundary": int(boundary),
         "time_ms": float(current_time_ms),
         "ssd_cumulative_busy_ms_by_ssu": ssd["cumulative_busy_ms_by_ssu"],
@@ -1183,6 +1823,11 @@ def _capture_stationarity_snapshot(
         "npu_link_outstanding_blocks_by_npu": npu["link_outstanding_blocks_by_npu"],
         "npu_link_outstanding_gb_by_npu": npu["link_outstanding_gb_by_npu"],
     }
+    if context.timeline_diagnostics:
+        snapshot["timeline"] = _capture_timeline_snapshot(
+            context, current_time_ms
+        )
+    return snapshot
 
 
 def _register_submit(context: _Context, flow: sim.BlockIOFlow):
@@ -1198,6 +1843,11 @@ def _register_submit(context: _Context, flow: sim.BlockIOFlow):
         raise AssertionError("block submitted more than once")
     context.block_states[block_id] = 1
     context.submitted_blocks += 1
+    if context.timeline_diagnostics:
+        context.timeline_ssd_enqueued_gb[flow.npu_id][flow.disk_id] += flow.total_gb
+        context.timeline_ssd_enqueued_blocks[flow.npu_id][flow.disk_id] += (
+            flow.block_count
+        )
     if flow.layer == 0 and flow.queue_id >= 0:
         request_state.layer0_path_cirs_at_submit[(flow.disk_id, flow.queue_id)] = (
             context.disks[flow.disk_id].scheduler.paths[flow.queue_id].cir
@@ -1304,6 +1954,11 @@ def _start_layer_io(
     request.pending_blocks[layer] = sum(
         len(blocks) for _, blocks, _ in placement_groups
     )
+    if context.timeline_diagnostics:
+        for ssu_id, _, work_gb in placement_groups:
+            context.timeline_activated_io_gb[request.manifest.npu_id][
+                ssu_id
+            ] += work_gb
     if not placement_groups:
         _mark_layer_io_ready(context, request, layer, current_time_ms)
         return
@@ -1378,6 +2033,131 @@ def _start_batch_layer_io(
         )
 
 
+def _record_timeline_route_plan(
+    context: _Context,
+    state: _SubmissionState,
+    window_start: int,
+    current_time_ms: float,
+    rule: str,
+    pressure_source: Optional[str],
+    pressure=None,
+):
+    """Record cumulative routing facts plus a bounded causal input sample."""
+    if not context.timeline_diagnostics:
+        return
+    npu_id = state.npu_id
+    ssu_id = state.disk_id
+    context.timeline_route_plans[npu_id][ssu_id] += 1
+    if pressure_source == "fresh":
+        context.timeline_route_pressure_fresh[npu_id][ssu_id] += 1
+    elif pressure_source == "cache":
+        context.timeline_route_pressure_cache[npu_id][ssu_id] += 1
+    groups = context.timeline_route_blocks_by_group[npu_id][ssu_id]
+    if not groups:
+        return
+    scheduler = context.disks[ssu_id].scheduler
+    selected_path_ids = tuple(state.planned_path_ids[window_start:])
+    for path_id in selected_path_ids:
+        groups[scheduler.paths[path_id].group_id] += 1
+
+    config = context.steady_state
+    if (
+        not context.measurement_open
+        or context.measurement_start_ms is None
+        or current_time_ms
+        >= context.measurement_start_ms + config.timeline_dispatch_probe_ms
+        or len(context.timeline_route_probe_records)
+        >= config.timeline_dispatch_probe_limit
+    ):
+        return
+    block_slice = state.blocks[window_start : window_start + len(selected_path_ids)]
+    allowed = tuple(int(path_id) for path_id in state.allowed_path_ids)
+    cache_time = scheduler._pressure_cache_time
+    context.timeline_route_probe_records.append(
+        {
+            "time_ms": float(current_time_ms),
+            "rule": str(rule),
+            "npu_id": int(npu_id),
+            "ssu_id": int(ssu_id),
+            "request_id": int(state.request_id),
+            "layer": int(state.layer),
+            "category": str(state.category),
+            "start_offset": int(state.start_offset),
+            "pressure_source": pressure_source,
+            "pressure_snapshot_time_ms": (
+                None
+                if pressure is None
+                else float(current_time_ms if cache_time is None else cache_time)
+            ),
+            "pressure_age_ms": (
+                None
+                if pressure is None or cache_time is None
+                else max(0.0, float(current_time_ms - cache_time))
+            ),
+            "pressure_ttl_ms": float(scheduler.pressure_ttl_ms),
+            "allowed_path_ids": allowed,
+            "allowed_path_pressure_counts": (
+                None
+                if pressure is None
+                else tuple(int(pressure.counts[path_id]) for path_id in allowed)
+            ),
+            "allowed_path_cir_gbps": tuple(
+                float(scheduler.paths[path_id].cir) for path_id in allowed
+            ),
+            "allowed_path_pir_gbps_or_null": tuple(
+                (
+                    float(scheduler.paths[path_id].pir)
+                    if math.isfinite(scheduler.paths[path_id].pir)
+                    else None
+                )
+                for path_id in allowed
+            ),
+            "allowed_path_weights": tuple(
+                float(scheduler.paths[path_id].path_weight) for path_id in allowed
+            ),
+            "allowed_path_group_ids": tuple(
+                int(scheduler.paths[path_id].group_id) for path_id in allowed
+            ),
+            "disk_bw_gbps": float(scheduler.disk_bw),
+            "path_count": len(scheduler.paths),
+            "paths_per_group": (
+                len(scheduler.paths) // len(scheduler.group_weights)
+            ),
+            "group_weights": tuple(float(value) for value in scheduler.group_weights),
+            "group_io_counts": (
+                None
+                if pressure is None
+                else tuple(int(value) for value in pressure.group_io_counts)
+            ),
+            "active_paths_per_group": (
+                None
+                if pressure is None
+                else tuple(
+                    int(value) for value in pressure.active_paths_per_group
+                )
+            ),
+            "active_path_weights": (
+                None
+                if pressure is None
+                else tuple(float(value) for value in pressure.active_path_weights)
+            ),
+            "active_group_weight_sum": (
+                None if pressure is None else float(pressure.active_group_weight_sum)
+            ),
+            "active_cir_sum_gbps": (
+                None if pressure is None else float(pressure.active_cir_sum)
+            ),
+            "block_indices": tuple(int(index) for index, _ in block_slice),
+            "block_sizes_gb": tuple(float(size_gb) for _, size_gb in block_slice),
+            "selected_path_ids": selected_path_ids,
+            "selected_group_ids": tuple(
+                int(scheduler.paths[path_id].group_id)
+                for path_id in selected_path_ids
+            ),
+        }
+    )
+
+
 def _plan_paths(context: _Context, state: _SubmissionState, current_time_ms):
     window_start = len(state.planned_path_ids)
     if (
@@ -1388,16 +2168,40 @@ def _plan_paths(context: _Context, state: _SubmissionState, current_time_ms):
         state.planned_path_ids.extend(
             context.layer0_path_id for _ in range(window_start, len(state.blocks))
         )
+        _record_timeline_route_plan(
+            context,
+            state,
+            window_start,
+            current_time_ms,
+            "reserved_layer0_path",
+            None,
+        )
         return
     if context.npu_dedicated_paths is not None:
         state.planned_path_ids.extend(
             state.allowed_path_ids[0] for _ in range(window_start, len(state.blocks))
+        )
+        _record_timeline_route_plan(
+            context,
+            state,
+            window_start,
+            current_time_ms,
+            "npu_dedicated_path",
+            None,
         )
         return
     mode = context.client_io_config.path_selection_mode
     if mode == sim.PATH_SELECTION_FIXED_PATH_ZERO:
         state.planned_path_ids.extend(
             policy_baseline_path_ids(len(state.blocks) - window_start)
+        )
+        _record_timeline_route_plan(
+            context,
+            state,
+            window_start,
+            current_time_ms,
+            "fixed_path_zero",
+            None,
         )
         return
 
@@ -1409,6 +2213,12 @@ def _plan_paths(context: _Context, state: _SubmissionState, current_time_ms):
     )
     scheduler = context.disks[state.disk_id].scheduler
     sizes = tuple(size_gb for _, size_gb in state.blocks[window_start:window_end])
+    cache_hit = bool(
+        scheduler.pressure_ttl_ms > 0.0
+        and scheduler._pressure_cache is not None
+        and current_time_ms
+        < scheduler._pressure_cache_time + scheduler.pressure_ttl_ms
+    )
     pressure = scheduler.report_path_pressure_analysis(current_time_ms)
     state.planned_path_ids.extend(
         sim._select_qos_paths_from_analysis(
@@ -1421,6 +2231,15 @@ def _plan_paths(context: _Context, state: _SubmissionState, current_time_ms):
                 start_offset=state.start_offset,
             ),
         )
+    )
+    _record_timeline_route_plan(
+        context,
+        state,
+        window_start,
+        current_time_ms,
+        "pressure_aware_once_per_layer",
+        "cache" if cache_hit else "fresh",
+        pressure,
     )
 
 
@@ -1539,9 +2358,21 @@ def _queue_control_event(
             context.last_control_ms + context.control.min_interval_ms,
         )
     reasons = context.control_reasons_by_time[scheduled_time_ms]
-    if not reasons:
+    coalesced = bool(reasons)
+    if not coalesced:
         context.push_event(scheduled_time_ms, CIR_CONTROL, 0)
     reasons.add(reason)
+    if context.timeline_diagnostics:
+        context.timeline_control_triggers.append(
+            {
+                "raw_time_ms": float(current_time_ms),
+                "effective_time_ms": float(scheduled_time_ms),
+                "reason": str(reason),
+                "rate_limited": scheduled_time_ms > current_time_ms + _EPS,
+                "coalesced": coalesced,
+                "min_interval_ms": float(context.control.min_interval_ms),
+            }
+        )
 
 
 def _queue_causal_control_event(context: _Context, current_time_ms: float):
@@ -1594,6 +2425,10 @@ def _handle_batch_dispatch(
     context.next_batch_id += 1
     context.microbatches.append(batch)
     npu.active_batch = batch
+    if context.timeline_diagnostics:
+        context.timeline_activated_compute_ms[npu_id] += (
+            context.n_layers * _batch_compute_duration_ms(context, batch)
+        )
     npu.max_batch_size = max(npu.max_batch_size, len(member_ids))
     npu.first_admission_ms = min(npu.first_admission_ms, current_time_ms)
     for request_id in member_ids:
@@ -2121,6 +2956,7 @@ def _handle_control(context: _Context, current_time_ms: float):
         num_ssu=context.num_ssu,
         active_requests=active_requests,
         current_path_cirs_by_ssu=current_cirs,
+        trigger_reasons=tuple(sorted(reasons)),
     )
     decision = context.control.callback(snapshot)
     _apply_cir_decision(context, decision, current_time_ms)
@@ -2265,6 +3101,14 @@ def _enqueue_link_io(context: _Context, flow: sim.BlockIOFlow, current_time_ms: 
     flow.link_enqueue_time = current_time_ms
     npu.link_pending.append(flow)
     npu.link_pending_gb += flow.total_gb
+    if context.timeline_diagnostics:
+        context.timeline_ssd_completed_blocks[flow.npu_id][flow.disk_id] += (
+            flow.block_count
+        )
+        context.timeline_link_enqueued_gb[flow.npu_id][flow.disk_id] += flow.total_gb
+        context.timeline_link_enqueued_blocks[flow.npu_id][flow.disk_id] += (
+            flow.block_count
+        )
     npu.max_link_outstanding = max(
         npu.max_link_outstanding,
         len(npu.link_pending) + int(npu.link_active_flow is not None),
@@ -2331,6 +3175,10 @@ def _handle_link_completion(
     _settle_npu_link(context, npu, current_time_ms)
     npu.link_active_flow = None
     npu.link_completed_gb += flow.total_gb
+    if context.timeline_diagnostics:
+        context.timeline_link_completed_blocks[flow.npu_id][flow.disk_id] += (
+            flow.block_count
+        )
     request = context.requests[flow.request_id]
     request.io_count += 1
     request.completed_gb_by_layer_ssu[flow.layer][flow.disk_id] += flow.total_gb
@@ -2438,6 +3286,254 @@ def _vectors_close(left, right, *, abs_tol=1e-8):
 def _nonnegative_delta(end, start):
     delta = float(end) - float(start)
     return max(0.0, delta) if delta >= -1e-8 else delta
+
+
+def _timeline_stationarity_invariants(context: _Context, snapshots):
+    if not context.timeline_diagnostics:
+        return {}
+    shape_ok = all(
+        len(snapshot.get("timeline", {}).get("npu_rows", ())) == context.num_npu
+        and all(
+            len(row) == context.num_ssu
+            for field in (
+                "ssd_enqueued_cumulative_gb",
+                "ssd_served_cumulative_gb",
+                "ssd_outstanding_gb",
+                "ssd_outstanding_blocks",
+                "link_enqueued_cumulative_gb",
+                "link_served_cumulative_gb",
+                "link_outstanding_gb",
+                "link_outstanding_blocks",
+                "ssd_served_awaiting_link_enqueue_gb",
+                "client_unissued_gb",
+                "activated_io_cumulative_gb",
+                "controller_declared_remaining_gb",
+                "physical_remaining_gb",
+                "controller_demand_gbps",
+                "physical_demand_gbps",
+            )
+            for row in snapshot["timeline"]["npu_ssu"][field]
+        )
+        for snapshot in snapshots
+    )
+    if not shape_ok:
+        return {"timeline_snapshot_shapes": False}
+
+    nonnegative = all(
+        math.isfinite(float(value)) and float(value) >= -1e-8
+        for snapshot in snapshots
+        for field in (
+            "ssd_enqueued_cumulative_gb",
+            "ssd_served_cumulative_gb",
+            "ssd_outstanding_gb",
+            "ssd_outstanding_blocks",
+            "link_enqueued_cumulative_gb",
+            "link_served_cumulative_gb",
+            "link_outstanding_gb",
+            "link_outstanding_blocks",
+            "ssd_served_awaiting_link_enqueue_gb",
+            "client_unissued_gb",
+            "activated_io_cumulative_gb",
+            "controller_declared_remaining_gb",
+            "physical_remaining_gb",
+            "controller_demand_gbps",
+            "physical_demand_gbps",
+        )
+        for row in snapshot["timeline"]["npu_ssu"][field]
+        for value in row
+    ) and all(
+        row["compute_inventory_q_ms"] >= -1e-8
+        and row["activated_compute_cumulative_ms"] >= -1e-8
+        for snapshot in snapshots
+        for row in snapshot["timeline"]["npu_rows"]
+    )
+
+    service_attribution = all(
+        math.isclose(
+            math.fsum(
+                snapshot["timeline"]["npu_ssu"][
+                    "ssd_served_cumulative_gb"
+                ][npu_id][ssu_id]
+                for npu_id in range(context.num_npu)
+            ),
+            snapshot["ssd_cumulative_served_gb_by_ssu"][ssu_id],
+            rel_tol=1e-10,
+            abs_tol=1e-8,
+        )
+        for snapshot in snapshots
+        for ssu_id in range(context.num_ssu)
+    ) and all(
+        math.isclose(
+            math.fsum(
+                snapshot["timeline"]["npu_ssu"][
+                    "link_served_cumulative_gb"
+                ][npu_id]
+            ),
+            snapshot["npu_link_cumulative_served_gb_by_npu"][npu_id],
+            rel_tol=1e-10,
+            abs_tol=1e-8,
+        )
+        for snapshot in snapshots
+        for npu_id in range(context.num_npu)
+    )
+
+    # Close the observer's NPU-by-SSU queues against independently maintained
+    # aggregate scheduler/NPU state.  Unlike the temporal identity below,
+    # these comparisons do not reuse the observer's enqueued counters.
+    independent_queue_attribution = all(
+        math.isclose(
+            math.fsum(
+                snapshot["timeline"]["npu_ssu"]["ssd_outstanding_gb"][npu][
+                    ssu
+                ]
+                for npu in range(context.num_npu)
+            ),
+            snapshot["ssd_outstanding_gb_by_ssu"][ssu],
+            rel_tol=1e-10,
+            abs_tol=1e-8,
+        )
+        and math.isclose(
+            math.fsum(
+                snapshot["timeline"]["npu_ssu"]["ssd_outstanding_blocks"][
+                    npu
+                ][ssu]
+                for npu in range(context.num_npu)
+            ),
+            snapshot["ssd_outstanding_blocks_by_ssu"][ssu],
+            rel_tol=0.0,
+            abs_tol=0.0,
+        )
+        for snapshot in snapshots
+        for ssu in range(context.num_ssu)
+    ) and all(
+        math.isclose(
+            math.fsum(
+                snapshot["timeline"]["npu_ssu"]["link_outstanding_gb"][npu]
+            ),
+            snapshot["npu_link_outstanding_gb_by_npu"][npu],
+            rel_tol=1e-10,
+            abs_tol=1e-8,
+        )
+        and math.isclose(
+            math.fsum(
+                snapshot["timeline"]["npu_ssu"]["link_outstanding_blocks"][
+                    npu
+                ]
+            ),
+            snapshot["npu_link_outstanding_blocks_by_npu"][npu],
+            rel_tol=0.0,
+            abs_tol=0.0,
+        )
+        for snapshot in snapshots
+        for npu in range(context.num_npu)
+    )
+
+    # Every activated byte is in exactly one physical stage: not yet issued by
+    # the client, unserved inside the SSD command/queue, already serviced but
+    # awaiting non-streaming command completion, inside the NPU link, or
+    # already delivered.
+    io_stage_conservation = True
+    remaining_work_bounds = True
+    for snapshot in snapshots:
+        matrix = snapshot["timeline"]["npu_ssu"]
+        for npu in range(context.num_npu):
+            for ssu in range(context.num_ssu):
+                undelivered_activated = (
+                    matrix["client_unissued_gb"][npu][ssu]
+                    + matrix["ssd_outstanding_gb"][npu][ssu]
+                    + matrix["ssd_served_awaiting_link_enqueue_gb"][npu][ssu]
+                    + matrix["link_outstanding_gb"][npu][ssu]
+                )
+                io_stage_conservation &= math.isclose(
+                    matrix["activated_io_cumulative_gb"][npu][ssu],
+                    undelivered_activated
+                    + matrix["link_served_cumulative_gb"][npu][ssu],
+                    rel_tol=1e-10,
+                    abs_tol=1e-8,
+                )
+                physical = matrix["physical_remaining_gb"][npu][ssu]
+                declared = matrix["controller_declared_remaining_gb"][npu][ssu]
+                remaining_work_bounds &= (
+                    physical + 1e-8 >= undelivered_activated
+                    and declared + 1e-8 >= physical
+                )
+
+    queue_conservation = True
+    compute_inventory_conservation = True
+    cumulative_monotonic = True
+    for start, end in zip(snapshots, snapshots[1:]):
+        start_matrix = start["timeline"]["npu_ssu"]
+        end_matrix = end["timeline"]["npu_ssu"]
+        for npu_id in range(context.num_npu):
+            start_npu = start["timeline"]["npu_rows"][npu_id]
+            end_npu = end["timeline"]["npu_rows"][npu_id]
+            busy_delta = (
+                end["npu_compute_cumulative_busy_ms_by_npu"][npu_id]
+                - start["npu_compute_cumulative_busy_ms_by_npu"][npu_id]
+            )
+            activated_delta = (
+                end_npu["activated_compute_cumulative_ms"]
+                - start_npu["activated_compute_cumulative_ms"]
+            )
+            expected_busy = (
+                activated_delta
+                + start_npu["compute_inventory_q_ms"]
+                - end_npu["compute_inventory_q_ms"]
+            )
+            compute_inventory_conservation &= math.isclose(
+                busy_delta,
+                expected_busy,
+                rel_tol=1e-10,
+                abs_tol=1e-7,
+            )
+            for ssu_id in range(context.num_ssu):
+                for prefix in ("ssd", "link"):
+                    enqueued = f"{prefix}_enqueued_cumulative_gb"
+                    served = f"{prefix}_served_cumulative_gb"
+                    outstanding = f"{prefix}_outstanding_gb"
+                    enqueue_delta = (
+                        end_matrix[enqueued][npu_id][ssu_id]
+                        - start_matrix[enqueued][npu_id][ssu_id]
+                    )
+                    served_delta = (
+                        end_matrix[served][npu_id][ssu_id]
+                        - start_matrix[served][npu_id][ssu_id]
+                    )
+                    expected_outstanding = (
+                        start_matrix[outstanding][npu_id][ssu_id]
+                        + enqueue_delta
+                        - served_delta
+                    )
+                    queue_conservation &= math.isclose(
+                        end_matrix[outstanding][npu_id][ssu_id],
+                        expected_outstanding,
+                        rel_tol=1e-10,
+                        abs_tol=1e-8,
+                    )
+                    cumulative_monotonic &= (
+                        enqueue_delta >= -1e-8 and served_delta >= -1e-8
+                    )
+    dispatch_replay = all(
+        record.get("prediction_matches_actual") is True
+        and record.get("expected_path_id") == record.get("actual_path_id")
+        for record in context.timeline_dispatch_probe_records
+    )
+    return {
+        "timeline_snapshot_shapes": shape_ok,
+        "timeline_values_nonnegative": nonnegative,
+        "timeline_service_attribution": service_attribution,
+        "timeline_independent_queue_attribution": (
+            independent_queue_attribution
+        ),
+        "timeline_io_stage_conservation": io_stage_conservation,
+        "timeline_remaining_work_bounds": remaining_work_bounds,
+        "timeline_cumulative_monotonic": cumulative_monotonic,
+        "timeline_ssd_link_queue_conservation": queue_conservation,
+        "timeline_compute_inventory_conservation": (
+            compute_inventory_conservation
+        ),
+        "timeline_dispatch_replay_exact": dispatch_replay,
+    }
 
 
 def _build_stationarity_metrics(
@@ -2796,6 +3892,7 @@ def _build_stationarity_metrics(
         "stationarity_legacy_edges_match": legacy_edges_match,
         "stationarity_whole_window_match": whole_window_match,
         "stationarity_block_resource_bounds": block_resource_bounds,
+        **_timeline_stationarity_invariants(context, snapshots),
     }
     return {
         "snapshots": snapshots,
@@ -2807,6 +3904,111 @@ def _build_stationarity_metrics(
         "whole_link_busy_ms": whole_link_busy_ms,
         "whole_link_served_gb": whole_link_served_gb,
     }
+
+
+def _timeline_state_durations(
+    context: _Context,
+    window_start_ms: float,
+    window_end_ms: float,
+    block_bounds,
+):
+    """Exact per-NPU compute/barrier/complement durations, including carry-in."""
+
+    duration_ms = window_end_ms - window_start_ms
+    compute_ms = [0.0] * context.num_npu
+    barrier_ms = [0.0] * context.num_npu
+    block_compute_ms = [
+        [0.0] * context.num_npu for _ in range(len(block_bounds))
+    ]
+    block_barrier_ms = [
+        [0.0] * context.num_npu for _ in range(len(block_bounds))
+    ]
+    intervals_complete = True
+    for batch in context.microbatches:
+        barrier_start_ms = batch.admission_time_ms
+        for metric in batch.layer_metrics:
+            if not (
+                math.isfinite(barrier_start_ms)
+                and math.isfinite(metric.compute_start_ms)
+                and math.isfinite(metric.compute_end_ms)
+            ):
+                # An incomplete interval wholly outside the window is harmless;
+                # any potentially overlapping interval invalidates attribution.
+                if (
+                    math.isfinite(barrier_start_ms)
+                    and barrier_start_ms < window_end_ms
+                ):
+                    intervals_complete = False
+                break
+            barrier_ms[batch.npu_id] += _window_overlap_ms(
+                barrier_start_ms,
+                metric.compute_start_ms,
+                window_start_ms,
+                window_end_ms,
+            )
+            compute_ms[batch.npu_id] += _window_overlap_ms(
+                metric.compute_start_ms,
+                metric.compute_end_ms,
+                window_start_ms,
+                window_end_ms,
+            )
+            for block, (block_start_ms, block_end_ms, _) in enumerate(
+                block_bounds
+            ):
+                block_barrier_ms[block][batch.npu_id] += _window_overlap_ms(
+                    barrier_start_ms,
+                    metric.compute_start_ms,
+                    block_start_ms,
+                    block_end_ms,
+                )
+                block_compute_ms[block][batch.npu_id] += _window_overlap_ms(
+                    metric.compute_start_ms,
+                    metric.compute_end_ms,
+                    block_start_ms,
+                    block_end_ms,
+                )
+            barrier_start_ms = metric.compute_end_ms
+
+    rows = []
+    partition_ok = intervals_complete
+    for npu_id in range(context.num_npu):
+        classified_ms = compute_ms[npu_id] + barrier_ms[npu_id]
+        partition_ok &= classified_ms <= duration_ms + 1e-7
+        other_ms = max(0.0, duration_ms - classified_ms)
+        rows.append(
+            {
+                "npu_id": npu_id,
+                "compute_ms": compute_ms[npu_id],
+                "io_barrier_ms": barrier_ms[npu_id],
+                "other_ms": other_ms,
+                "measurement_ms": duration_ms,
+                "compute_fraction": compute_ms[npu_id] / duration_ms,
+                "io_barrier_fraction": barrier_ms[npu_id] / duration_ms,
+                "other_fraction": other_ms / duration_ms,
+            }
+        )
+    block_rows = []
+    for block, (start_ms, end_ms, block_duration_ms) in enumerate(block_bounds):
+        other_ms = []
+        for npu_id in range(context.num_npu):
+            classified_ms = (
+                block_compute_ms[block][npu_id]
+                + block_barrier_ms[block][npu_id]
+            )
+            partition_ok &= classified_ms <= block_duration_ms + 1e-7
+            other_ms.append(max(0.0, block_duration_ms - classified_ms))
+        block_rows.append(
+            {
+                "block": block,
+                "start_ms": start_ms,
+                "end_ms": end_ms,
+                "duration_ms": block_duration_ms,
+                "compute_ms_by_npu": block_compute_ms[block],
+                "io_barrier_ms_by_npu": block_barrier_ms[block],
+                "other_ms_by_npu": other_ms,
+            }
+        )
+    return rows, block_rows, partition_ok
 
 
 def _build_steady_state_summary(context: _Context, current_time_ms, events_processed):
@@ -2916,17 +4118,28 @@ def _build_steady_state_summary(context: _Context, current_time_ms, events_proce
                 )
 
     block_compute_ms = [sum(row) for row in block_compute_ms_by_npu]
+    (
+        timeline_state_durations,
+        timeline_block_state_durations,
+        timeline_state_partition_ok,
+    ) = (
+        _timeline_state_durations(
+            context, window_start_ms, window_end_ms, block_bounds
+        )
+        if context.timeline_diagnostics
+        else ([], [], True)
+    )
 
     request_rows = []
     outcomes_by_npu = [[] for _ in range(context.num_npu)]
     for request_id in sorted(context.measurement_request_ids):
         request = context.requests[request_id]
+        batch = context.microbatches[request.batch_id]
         ideal_ttft_ms = context.n_layers * request.per_layer_compute_ms
         ttft_ms = request.completion_time_ms - request.admission_time_ms
         slo_met = ttft_ms <= config.slo_alpha * ideal_ttft_ms + _EPS
         outcomes_by_npu[request.manifest.npu_id].append(slo_met)
-        request_rows.append(
-            {
+        row = {
                 "request_id": request_id,
                 "npu_id": request.manifest.npu_id,
                 "sequence": int(request.manifest.load["stream_id"]),
@@ -2938,7 +4151,33 @@ def _build_steady_state_summary(context: _Context, current_time_ms, events_proce
                 "ideal_ttft_ms": ideal_ttft_ms,
                 "slo_met": bool(slo_met),
             }
-        )
+        if context.timeline_diagnostics:
+            row["io_barrier_ms"] = batch.io_barrier_wait_ms
+            row["ttft_accounting_error_ms"] = (
+                ttft_ms - ideal_ttft_ms - batch.io_barrier_wait_ms
+            )
+            per_layer_work = [0.0] * context.num_ssu
+            for ssu_id, size_gb in _manifest_layer(request.manifest, 0):
+                per_layer_work[ssu_id] += size_gb
+            row["timeline_layers"] = {
+                "io_start_time_ms": [
+                    metric.io_start_time_ms for metric in batch.layer_metrics
+                ],
+                "io_ready_time_ms": [
+                    metric.io_ready_time_ms for metric in batch.layer_metrics
+                ],
+                "compute_start_ms": [
+                    metric.compute_start_ms for metric in batch.layer_metrics
+                ],
+                "compute_end_ms": [
+                    metric.compute_end_ms for metric in batch.layer_metrics
+                ],
+                "io_barrier_wait_ms": [
+                    metric.io_barrier_wait_ms for metric in batch.layer_metrics
+                ],
+                "per_layer_work_gb_by_ssu": per_layer_work,
+            }
+        request_rows.append(row)
 
     request_counts_by_npu = [len(rows) for rows in outcomes_by_npu]
     all_npus_sampled = all(request_counts_by_npu)
@@ -3053,8 +4292,78 @@ def _build_steady_state_summary(context: _Context, current_time_ms, events_proce
         "cir_entry_write_counter_consistency": (
             context.cir_path_writes == sum(context.cir_path_writes_by_ssu)
         ),
+        "timeline_dispatch_probe_nonempty": (
+            not context.timeline_diagnostics
+            or config.timeline_dispatch_probe_ms == 0.0
+            or config.timeline_dispatch_probe_limit == 0
+            or bool(context.timeline_dispatch_probe_records)
+        ),
+        "timeline_route_probe_nonempty": (
+            not context.timeline_diagnostics
+            or config.timeline_dispatch_probe_ms == 0.0
+            or config.timeline_dispatch_probe_limit == 0
+            or bool(context.timeline_route_probe_records)
+        ),
         **stationarity["invariants"],
     }
+    if context.timeline_diagnostics:
+        invariants.update(
+            {
+                "request_ttft_compute_barrier_decomposition": all(
+                    abs(row["ttft_accounting_error_ms"]) <= 1e-7
+                    for row in request_rows
+                ),
+                "timeline_state_duration_partition": (
+                    timeline_state_partition_ok
+                    and all(
+                        math.isclose(
+                            row["compute_ms"]
+                            + row["io_barrier_ms"]
+                            + row["other_ms"],
+                            duration_ms,
+                            rel_tol=0.0,
+                            abs_tol=1e-7,
+                        )
+                        for row in timeline_state_durations
+                    )
+                ),
+                "timeline_state_compute_matches_utilization": all(
+                    math.isclose(
+                        row["compute_ms"],
+                        compute_ms_by_npu[row["npu_id"]],
+                        rel_tol=0.0,
+                        abs_tol=1e-7,
+                    )
+                    for row in timeline_state_durations
+                ),
+                "timeline_block_state_duration_partition": all(
+                    math.isclose(
+                        compute_ms + barrier_ms + other_ms,
+                        block["duration_ms"],
+                        rel_tol=0.0,
+                        abs_tol=1e-7,
+                    )
+                    for block in timeline_block_state_durations
+                    for compute_ms, barrier_ms, other_ms in zip(
+                        block["compute_ms_by_npu"],
+                        block["io_barrier_ms_by_npu"],
+                        block["other_ms_by_npu"],
+                    )
+                ),
+                "timeline_block_state_compute_matches_stationarity": all(
+                    math.isclose(
+                        compute_ms,
+                        block_compute_ms_by_npu[block["block"]][npu_id],
+                        rel_tol=0.0,
+                        abs_tol=1e-7,
+                    )
+                    for block in timeline_block_state_durations
+                    for npu_id, compute_ms in enumerate(
+                        block["compute_ms_by_npu"]
+                    )
+                ),
+            }
+        )
     if not all(invariants.values()):
         diagnostics = {
             "measurement_start_ms": window_start_ms,
@@ -3128,6 +4437,84 @@ def _build_steady_state_summary(context: _Context, current_time_ms, events_proce
         "measurement_duration_ms": duration_ms,
         "stationarity_boundary_semantics": (
             "read-only left-limit snapshot before workload events at the same time"
+        ),
+        "timeline_diagnostics_enabled": context.timeline_diagnostics,
+        "timeline_demand_semantics": {
+            "controller_demand": (
+                "remaining full-manifest bytes for every not-ready layer divided "
+                "by remaining not-ready-layer compute; this is the Adaptive input"
+            ),
+            "physical_demand": (
+                "bytes not yet delivered by the NPU link divided by the same "
+                "remaining compute; diagnostic only and never a controller input"
+            ),
+            "installed_cir": (
+                "dedicated-Path arbitration guarantee, not realized service; "
+                "null for baseline and layer-once"
+            ),
+            "realized_service": (
+                "difference of exact cumulative NPU-by-SSU service bytes between "
+                "two left-limit boundaries divided by interval duration"
+            ),
+            "ssd_served_awaiting_link_enqueue": (
+                "bytes already serviced within the active non-streaming SSD "
+                "command but not visible to the NPU link until command completion"
+            ),
+        },
+        "timeline_adaptive_deadline_input": False,
+        "timeline_adaptive_deadline_note": (
+            "alpha1.5/alpha2 slack is recorded for diagnosis only; the Adaptive "
+            "controller does not read admission time, elapsed TTFT, or deadline"
+        ),
+        "timeline_state_durations_ms_by_npu": (
+            timeline_state_durations if context.timeline_diagnostics else []
+        ),
+        "timeline_block_state_durations_ms": (
+            timeline_block_state_durations
+            if context.timeline_diagnostics
+            else []
+        ),
+        "timeline_state_duration_semantics": (
+            "exact intersections of every microbatch layer compute interval and "
+            "its preceding I/O-barrier interval with the measurement window; "
+            "includes carry-in, and other is the exact window complement"
+        ),
+        "timeline_control_trigger_records": (
+            context.timeline_control_triggers
+            if context.timeline_diagnostics
+            else []
+        ),
+        "timeline_route_probe_records": (
+            context.timeline_route_probe_records
+            if context.timeline_diagnostics
+            else []
+        ),
+        "timeline_dispatch_probe_ms": (
+            config.timeline_dispatch_probe_ms
+            if context.timeline_diagnostics
+            else 0.0
+        ),
+        "timeline_dispatch_probe_limit": (
+            config.timeline_dispatch_probe_limit
+            if context.timeline_diagnostics
+            else 0
+        ),
+        "timeline_dispatch_probe_truncated": (
+            context.timeline_diagnostics
+            and len(context.timeline_dispatch_probe_records)
+            >= config.timeline_dispatch_probe_limit
+            and config.timeline_dispatch_probe_limit > 0
+        ),
+        "timeline_route_probe_truncated": (
+            context.timeline_diagnostics
+            and len(context.timeline_route_probe_records)
+            >= config.timeline_dispatch_probe_limit
+            and config.timeline_dispatch_probe_limit > 0
+        ),
+        "timeline_dispatch_probe_records": (
+            context.timeline_dispatch_probe_records
+            if context.timeline_diagnostics
+            else []
         ),
         "measurement_stationarity_boundary_count": len(stationarity["snapshots"]),
         "measurement_stationarity_boundaries": stationarity["snapshots"],
@@ -3725,15 +5112,21 @@ def simulate_continuous_batch(
         )
     if cross_request_layer0_prefetch and batch_size != 1:
         raise ValueError("cross-request Layer-0 prefetch requires batch_size=1")
-    if steady_state is not None and (
-        batch_size != 1
-        or steady_state.warmup_requests_per_npu <= 0
-        or steady_state.settle_ms < 0.0
-        or steady_state.measurement_ms <= 0.0
-        or steady_state.slo_alpha <= 0.0
-        or steady_state.block_ms <= 0.0
-    ):
-        raise ValueError("steady-state measurement configuration is invalid")
+    if steady_state is not None:
+        if (
+            batch_size != 1
+            or steady_state.warmup_requests_per_npu <= 0
+            or steady_state.settle_ms < 0.0
+            or steady_state.measurement_ms <= 0.0
+            or steady_state.slo_alpha <= 0.0
+            or steady_state.block_ms <= 0.0
+            or type(steady_state.timeline_diagnostics) is not bool
+            or not math.isfinite(steady_state.timeline_dispatch_probe_ms)
+            or steady_state.timeline_dispatch_probe_ms < 0.0
+            or isinstance(steady_state.timeline_dispatch_probe_limit, bool)
+            or steady_state.timeline_dispatch_probe_limit < 0
+        ):
+            raise ValueError("steady-state measurement configuration is invalid")
     if policy not in sim.SUPPORTED_POLICIES:
         raise ValueError(f"unsupported policy: {policy}")
     if len({request.request_id for request in requests}) != len(requests):
@@ -3909,7 +5302,13 @@ def simulate_continuous_batch(
             if generation != scheduler.dispatch_generation:
                 context.stale_events += 1
             else:
-                scheduler.dispatch(current_time_ms, context.event_heap)
+                timeline_probe = _prepare_timeline_dispatch_probe(
+                    context, scheduler, current_time_ms
+                )
+                dispatched = scheduler.dispatch(current_time_ms, context.event_heap)
+                _finish_timeline_dispatch_probe(
+                    context, scheduler, timeline_probe, dispatched
+                )
         else:
             raise RuntimeError(f"unknown event type: {event_type}")
 

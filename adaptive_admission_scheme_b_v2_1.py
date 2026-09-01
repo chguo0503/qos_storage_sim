@@ -17,6 +17,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import math
+from numbers import Real
 from typing import Sequence
 
 import numpy as np
@@ -40,6 +41,310 @@ from slo_admission_scheme_b_v2 import (
 
 RESIDUAL_MODE_COFLOW = "v1_coflow_residual"
 RESIDUAL_MODE_EXPLICIT = "v2_explicit_selected_spill"
+
+SELECTION_MODE_PREFERRED = "all_preferred_targets_feasible"
+SELECTION_MODE_REQUIRED = "all_required_targets_feasible"
+SELECTION_MODE_GREEDY = "greedy_overload"
+
+REJECTION_EMPTY_DEMAND = "empty_demand"
+REJECTION_NPU_CAPACITY = "npu_target_exceeds_capacity"
+REJECTION_SSU_CAPACITY = "ssu_admission_capacity_exceeded"
+
+_EPS = 1e-12
+
+
+@dataclass(frozen=True)
+class AdmissionCandidateScore:
+    """Stable multidimensional-packing score for one greedy candidate."""
+
+    npu_id: int
+    normalized_total: float
+    normalized_dominant: float
+
+
+@dataclass(frozen=True)
+class AdmissionAttemptDiagnostic:
+    """One exact invocation of the allocator's inner ``admit`` operation."""
+
+    attempt_index: int
+    npu_id: int
+    stage: str
+    accepted: bool
+    rejection_reason: str | None
+    target_gbps_by_ssu: tuple[float, ...]
+    target_sum_gbps: float
+    npu_capacity_gbps: float
+    admission_remaining_before_gbps_by_ssu: tuple[float, ...]
+    admission_remaining_after_gbps_by_ssu: tuple[float, ...]
+    violating_ssu_ids: tuple[int, ...]
+
+
+@dataclass(frozen=True)
+class AdmissionSelectionReplay:
+    """Pure replay of only the V1/V2 shared admission-selection stage."""
+
+    selection_mode: str
+    effective_target_ratio: float
+    active_npu_ids: tuple[int, ...]
+    candidate_scores: tuple[AdmissionCandidateScore, ...]
+    candidate_order: tuple[int, ...]
+    attempts: tuple[AdmissionAttemptDiagnostic, ...]
+    selected_npu_ids: tuple[int, ...]
+    rejected_npu_ids: tuple[int, ...]
+    capacity_rejections: tuple[AdmissionAttemptDiagnostic, ...]
+
+
+@dataclass(frozen=True)
+class AdaptiveAdmissionDiagnostic:
+    """One causally available, independently replayed controller evaluation."""
+
+    snapshot_time_ms: float
+    snapshot_evaluation: int
+    trigger_reasons: tuple[str, ...]
+    layer_jobs_since_previous: int
+    request_by_npu: tuple[tuple[int, int], ...]
+    prefetch_only_by_npu: tuple[tuple[int, bool], ...]
+    remaining_work_gb_by_npu_ssu: Matrix
+    remaining_compute_s_by_npu: tuple[float, ...]
+    controller_demand_gbps_by_npu_ssu: Matrix
+    previous_selected_request_by_npu: tuple[tuple[int, int], ...]
+    previous_pinned_npu_ids: tuple[int, ...]
+    selection_mode: str
+    effective_target_ratio: float
+    active_npu_ids: tuple[int, ...]
+    candidate_normalized_scores: tuple[AdmissionCandidateScore, ...]
+    candidate_order: tuple[int, ...]
+    admission_attempts: tuple[AdmissionAttemptDiagnostic, ...]
+    selected_npu_ids: tuple[int, ...]
+    rejected_npu_ids: tuple[int, ...]
+    capacity_rejections: tuple[AdmissionAttemptDiagnostic, ...]
+    selected_fraction: float
+    residual_mode: str
+    grants_gbps_by_npu_ssu: GrantMatrix
+    v2_effective_floor_ratio: float | None
+    v2_floor_grants_gbps: GrantMatrix | None
+    v2_background_grants_gbps: GrantMatrix | None
+    v2_selected_tail_grants_gbps: GrantMatrix | None
+    v2_spill_tail_grants_gbps: GrantMatrix | None
+
+
+def _expanded_caps(spec: CapSpec, count: int, name: str) -> tuple[float, ...]:
+    if isinstance(spec, Real):
+        values = (float(spec),) * count
+    else:
+        values = tuple(float(value) for value in spec)
+    if len(values) != count:
+        raise ValueError(f"{name} must have {count} entries")
+    if any(value < 0.0 or not math.isfinite(value) for value in values):
+        raise ValueError(f"{name} must contain finite non-negative values")
+    return values
+
+
+def replay_admission_selection(
+    demand: Matrix,
+    *,
+    target_ratio: float = 0.52,
+    required_ratio: float = 0.5,
+    background_reserve_fraction: float = 0.05,
+    pinned_npu_ids: Sequence[int] = (),
+    ssd_caps: CapSpec = 40.0,
+    npu_caps: CapSpec = 50.0,
+) -> AdmissionSelectionReplay:
+    """Replay the shared V1/V2 admission stage without changing any state.
+
+    The implementation deliberately mirrors ``allocate_slo_admission_grants``
+    and ``allocate_slo_admission_grants_v2``.  It stops before residual grant
+    allocation and exposes every capacity decision made by their inner
+    ``admit`` operation.
+    """
+
+    demand_array = np.asarray(demand, dtype=float)
+    if demand_array.size == 0:
+        return AdmissionSelectionReplay(
+            selection_mode=SELECTION_MODE_PREFERRED,
+            effective_target_ratio=float(target_ratio),
+            active_npu_ids=(),
+            candidate_scores=(),
+            candidate_order=(),
+            attempts=(),
+            selected_npu_ids=(),
+            rejected_npu_ids=(),
+            capacity_rejections=(),
+        )
+    if demand_array.ndim != 2:
+        raise ValueError("demand must be rectangular")
+    if np.any(demand_array < 0.0) or not np.all(np.isfinite(demand_array)):
+        raise ValueError("demand must contain finite non-negative values")
+
+    ratio = float(target_ratio)
+    required = float(required_ratio)
+    reserve = float(background_reserve_fraction)
+    if not 0.0 < ratio <= 1.0 or not math.isfinite(ratio):
+        raise ValueError("target_ratio must be finite and in (0, 1]")
+    if not 0.0 < required <= ratio or not math.isfinite(required):
+        raise ValueError("required_ratio must be finite and in (0, target_ratio]")
+    if not 0.0 <= reserve < 1.0 or not math.isfinite(reserve):
+        raise ValueError(
+            "background_reserve_fraction must be finite and in [0, 1)"
+        )
+
+    num_npu, num_ssu = demand_array.shape
+    ssd_limits = np.asarray(
+        _expanded_caps(ssd_caps, num_ssu, "ssd_caps"), dtype=float
+    )
+    npu_limits = np.asarray(
+        _expanded_caps(npu_caps, num_npu, "npu_caps"), dtype=float
+    )
+    pinned = tuple(dict.fromkeys(int(npu) for npu in pinned_npu_ids))
+    if any(npu < 0 or npu >= num_npu for npu in pinned):
+        raise ValueError("pinned_npu_ids contains an invalid NPU")
+
+    preferred_targets = ratio * demand_array
+    required_targets = required * demand_array
+    active_npu_ids = tuple(
+        int(npu) for npu in np.flatnonzero(demand_array.sum(axis=1) > _EPS)
+    )
+
+    def all_fit(targets: np.ndarray) -> bool:
+        return bool(
+            np.all(targets.sum(axis=0) <= ssd_limits + _EPS)
+            and np.all(targets.sum(axis=1) <= npu_limits + _EPS)
+        )
+
+    if all_fit(preferred_targets):
+        targets = preferred_targets
+        selection_mode = SELECTION_MODE_PREFERRED
+        effective_target_ratio = ratio
+        selected = list(active_npu_ids)
+    elif all_fit(required_targets):
+        targets = required_targets
+        selection_mode = SELECTION_MODE_REQUIRED
+        effective_target_ratio = required
+        selected = list(active_npu_ids)
+    else:
+        targets = preferred_targets
+        selection_mode = SELECTION_MODE_GREEDY
+        effective_target_ratio = ratio
+        selected = []
+
+    safe_ssd_limits = np.maximum(ssd_limits, _EPS)
+    all_scores = tuple(
+        AdmissionCandidateScore(
+            npu_id=npu,
+            normalized_total=float((targets[npu] / safe_ssd_limits).sum()),
+            normalized_dominant=float(
+                (targets[npu] / safe_ssd_limits).max(initial=0.0)
+            ),
+        )
+        for npu in active_npu_ids
+    )
+
+    if selection_mode != SELECTION_MODE_GREEDY:
+        return AdmissionSelectionReplay(
+            selection_mode=selection_mode,
+            effective_target_ratio=float(effective_target_ratio),
+            active_npu_ids=active_npu_ids,
+            candidate_scores=all_scores,
+            candidate_order=(),
+            attempts=(),
+            selected_npu_ids=tuple(selected),
+            rejected_npu_ids=(),
+            capacity_rejections=(),
+        )
+
+    admission_remaining = (1.0 - reserve) * ssd_limits
+    selected_set: set[int] = set()
+    attempts: list[AdmissionAttemptDiagnostic] = []
+    last_rejection_by_npu: dict[int, AdmissionAttemptDiagnostic] = {}
+
+    def admit(npu_id: int, stage: str) -> bool:
+        target = targets[npu_id]
+        remaining_before = tuple(float(value) for value in admission_remaining)
+        target_sum = float(target.sum())
+        violating_ssu_ids: tuple[int, ...] = ()
+        if demand_array[npu_id].sum() <= _EPS:
+            rejection_reason = REJECTION_EMPTY_DEMAND
+        elif target_sum > npu_limits[npu_id] + _EPS:
+            rejection_reason = REJECTION_NPU_CAPACITY
+        else:
+            violating_ssu_ids = tuple(
+                int(ssu)
+                for ssu in np.flatnonzero(target > admission_remaining + _EPS)
+            )
+            rejection_reason = (
+                REJECTION_SSU_CAPACITY if violating_ssu_ids else None
+            )
+        accepted = rejection_reason is None
+        remaining_after = (
+            tuple(
+                float(remaining - amount)
+                for remaining, amount in zip(admission_remaining, target)
+            )
+            if accepted
+            else remaining_before
+        )
+        attempt = AdmissionAttemptDiagnostic(
+            attempt_index=len(attempts),
+            npu_id=npu_id,
+            stage=stage,
+            accepted=accepted,
+            rejection_reason=rejection_reason,
+            target_gbps_by_ssu=tuple(float(value) for value in target),
+            target_sum_gbps=target_sum,
+            npu_capacity_gbps=float(npu_limits[npu_id]),
+            admission_remaining_before_gbps_by_ssu=remaining_before,
+            admission_remaining_after_gbps_by_ssu=remaining_after,
+            violating_ssu_ids=violating_ssu_ids,
+        )
+        attempts.append(attempt)
+        if not accepted:
+            last_rejection_by_npu[npu_id] = attempt
+            return False
+        admission_remaining[:] -= target
+        selected.append(npu_id)
+        selected_set.add(npu_id)
+        last_rejection_by_npu.pop(npu_id, None)
+        return True
+
+    for npu_id in pinned:
+        admit(npu_id, "pinned")
+
+    candidate_scores = tuple(
+        score
+        for score in all_scores
+        if score.npu_id not in selected_set
+    )
+    ordered_scores = tuple(
+        sorted(
+            candidate_scores,
+            key=lambda score: (
+                score.normalized_total,
+                score.normalized_dominant,
+                score.npu_id,
+            ),
+        )
+    )
+    candidate_order = tuple(score.npu_id for score in ordered_scores)
+    for npu_id in candidate_order:
+        admit(npu_id, "greedy_candidate")
+
+    rejected_npu_ids = tuple(
+        npu for npu in active_npu_ids if npu not in selected_set
+    )
+    capacity_rejections = tuple(
+        last_rejection_by_npu[npu] for npu in rejected_npu_ids
+    )
+    return AdmissionSelectionReplay(
+        selection_mode=selection_mode,
+        effective_target_ratio=float(effective_target_ratio),
+        active_npu_ids=active_npu_ids,
+        candidate_scores=candidate_scores,
+        candidate_order=candidate_order,
+        attempts=tuple(attempts),
+        selected_npu_ids=tuple(selected),
+        rejected_npu_ids=rejected_npu_ids,
+        capacity_rejections=capacity_rejections,
+    )
 
 
 @dataclass(frozen=True)
@@ -130,6 +435,7 @@ class AdaptiveAdmissionSchemeBControllerV2_1:
         background_reserve_fraction: float = 0.05,
         ssd_cap_gbps: float = sim.DISK_BW,
         npu_cap_gbps: float = sim.NPU_BW_LIMIT,
+        record_diagnostics: bool = False,
     ):
         self.path_by_npu = tuple(int(path_id) for path_id in path_by_npu)
         if len(set(self.path_by_npu)) != len(self.path_by_npu):
@@ -145,6 +451,8 @@ class AdaptiveAdmissionSchemeBControllerV2_1:
         self.background_reserve_fraction = float(background_reserve_fraction)
         self.ssd_cap_gbps = float(ssd_cap_gbps)
         self.npu_cap_gbps = float(npu_cap_gbps)
+        self.record_diagnostics = bool(record_diagnostics)
+        self.diagnostics: list[AdaptiveAdmissionDiagnostic] = []
         self.selected_request_by_npu: dict[int, int] = {}
         self.last_allocation: AdaptiveAdmissionAllocation | None = None
         self.evaluations = 0
@@ -173,6 +481,7 @@ class AdaptiveAdmissionSchemeBControllerV2_1:
         work = [[0.0] * snapshot.num_ssu for _ in range(snapshot.num_npu)]
         compute_s = [0.0] * snapshot.num_npu
         request_by_npu: dict[int, int] = {}
+        prefetch_only_by_npu: dict[int, bool] = {}
         for request in snapshot.active_requests:
             remaining_work, compute_ms = self._remaining_manifest(request)
             if compute_ms <= 0.0 or not any(value > 0.0 for value in remaining_work):
@@ -180,6 +489,7 @@ class AdaptiveAdmissionSchemeBControllerV2_1:
             if request.npu_id in request_by_npu:
                 raise ValueError("admission controller requires batch-1 active coflows")
             request_by_npu[request.npu_id] = request.request_id
+            prefetch_only_by_npu[request.npu_id] = bool(request.prefetch_only)
             compute_s[request.npu_id] = compute_ms / 1000.0
             work[request.npu_id] = list(remaining_work)
         demands = tuple(
@@ -194,6 +504,16 @@ class AdaptiveAdmissionSchemeBControllerV2_1:
             for npu, request_id in self.selected_request_by_npu.items()
             if request_by_npu.get(npu) == request_id
         )
+        previous_selected_request_by_npu = (
+            tuple(
+                sorted(
+                    (int(npu), int(request_id))
+                    for npu, request_id in self.selected_request_by_npu.items()
+                )
+            )
+            if self.record_diagnostics
+            else ()
+        )
         allocation = allocate_adaptive_admission_grants(
             demands,
             explicit_spill_threshold=self.explicit_spill_threshold,
@@ -204,6 +524,92 @@ class AdaptiveAdmissionSchemeBControllerV2_1:
             ssd_caps=self.ssd_cap_gbps,
             npu_caps=self.npu_cap_gbps,
         )
+        diagnostic: AdaptiveAdmissionDiagnostic | None = None
+        if self.record_diagnostics:
+            replay = replay_admission_selection(
+                demands,
+                target_ratio=self.target_ratio,
+                required_ratio=self.required_ratio,
+                background_reserve_fraction=self.background_reserve_fraction,
+                pinned_npu_ids=pinned,
+                ssd_caps=self.ssd_cap_gbps,
+                npu_caps=self.npu_cap_gbps,
+            )
+            if replay.selected_npu_ids != allocation.selected_npu_ids:
+                raise AssertionError(
+                    "diagnostic admission replay diverged from allocator: "
+                    f"replay={replay.selected_npu_ids}, "
+                    f"allocator={allocation.selected_npu_ids}"
+                )
+            trigger_reasons_value = getattr(snapshot, "trigger_reasons", ())
+            if trigger_reasons_value is None:
+                trigger_reasons = ()
+            elif isinstance(trigger_reasons_value, str):
+                trigger_reasons = (trigger_reasons_value,)
+            else:
+                try:
+                    trigger_reasons = tuple(
+                        str(reason) for reason in trigger_reasons_value
+                    )
+                except TypeError:
+                    trigger_reasons = (str(trigger_reasons_value),)
+            v2 = allocation.v2_allocation
+            diagnostic = AdaptiveAdmissionDiagnostic(
+                snapshot_time_ms=float(snapshot.time_ms),
+                snapshot_evaluation=int(snapshot.evaluation),
+                trigger_reasons=trigger_reasons,
+                layer_jobs_since_previous=int(snapshot.layer_jobs_since_previous),
+                request_by_npu=tuple(
+                    sorted(
+                        (int(npu), int(request_id))
+                        for npu, request_id in request_by_npu.items()
+                    )
+                ),
+                prefetch_only_by_npu=tuple(
+                    sorted(
+                        (int(npu), bool(prefetch_only))
+                        for npu, prefetch_only in prefetch_only_by_npu.items()
+                    )
+                ),
+                remaining_work_gb_by_npu_ssu=tuple(
+                    tuple(float(value) for value in row) for row in work
+                ),
+                remaining_compute_s_by_npu=tuple(
+                    float(value) for value in compute_s
+                ),
+                controller_demand_gbps_by_npu_ssu=demands,
+                previous_selected_request_by_npu=previous_selected_request_by_npu,
+                previous_pinned_npu_ids=tuple(int(npu) for npu in pinned),
+                selection_mode=replay.selection_mode,
+                effective_target_ratio=replay.effective_target_ratio,
+                active_npu_ids=replay.active_npu_ids,
+                candidate_normalized_scores=replay.candidate_scores,
+                candidate_order=replay.candidate_order,
+                admission_attempts=replay.attempts,
+                selected_npu_ids=tuple(
+                    int(npu) for npu in allocation.selected_npu_ids
+                ),
+                rejected_npu_ids=replay.rejected_npu_ids,
+                capacity_rejections=replay.capacity_rejections,
+                selected_fraction=allocation.selected_fraction,
+                residual_mode=allocation.residual_mode,
+                grants_gbps_by_npu_ssu=allocation.grants_gbps,
+                v2_effective_floor_ratio=(
+                    v2.effective_floor_ratio if v2 is not None else None
+                ),
+                v2_floor_grants_gbps=(
+                    v2.floor_grants_gbps if v2 is not None else None
+                ),
+                v2_background_grants_gbps=(
+                    v2.background_grants_gbps if v2 is not None else None
+                ),
+                v2_selected_tail_grants_gbps=(
+                    v2.selected_tail_grants_gbps if v2 is not None else None
+                ),
+                v2_spill_tail_grants_gbps=(
+                    v2.spill_tail_grants_gbps if v2 is not None else None
+                ),
+            )
         self.selected_request_by_npu = {
             npu: request_by_npu[npu]
             for npu in allocation.selected_npu_ids
@@ -219,5 +625,7 @@ class AdaptiveAdmissionSchemeBControllerV2_1:
         self.last_allocation = allocation
         self.evaluations += 1
         self.residual_mode_evaluations[allocation.residual_mode] += 1
-        return CIRControlDecision(tuple(tables))
-
+        decision = CIRControlDecision(tuple(tables))
+        if diagnostic is not None:
+            self.diagnostics.append(diagnostic)
+        return decision

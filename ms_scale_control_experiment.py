@@ -762,6 +762,9 @@ class RunConfig:
     measurement_ms: float
     block_ms: float
     slo_alpha: float = 2.0
+    timeline_diagnostics: bool = False
+    timeline_dispatch_probe_ms: float = 50.0
+    timeline_dispatch_probe_limit: int = 10_000
     campaign_spec_sha256: str | None = None
     calibration_mode: bool = False
 
@@ -772,15 +775,33 @@ class RunConfig:
             raise ValueError("finite backing must preserve the scientific prefix")
         if not 0 < self.warmup_requests_per_npu < self.requests_per_npu:
             raise ValueError("warmup must be positive and below finite backing")
-        durations = (self.settle_ms, self.measurement_ms, self.block_ms)
+        durations = (
+            self.settle_ms,
+            self.measurement_ms,
+            self.block_ms,
+            self.timeline_dispatch_probe_ms,
+        )
         if any(not math.isfinite(value) for value in durations):
             raise ValueError("steady-state durations must be finite")
-        if self.settle_ms < 0.0 or self.measurement_ms <= 0.0 or self.block_ms <= 0.0:
+        if (
+            self.settle_ms < 0.0
+            or self.measurement_ms <= 0.0
+            or self.block_ms <= 0.0
+            or self.timeline_dispatch_probe_ms < 0.0
+        ):
             raise ValueError("steady-state durations are invalid")
         if not math.isfinite(self.slo_alpha) or self.slo_alpha <= 0.0:
             raise ValueError("slo_alpha must be finite and positive")
         if type(self.calibration_mode) is not bool:
             raise ValueError("calibration_mode must be boolean")
+        if type(self.timeline_diagnostics) is not bool:
+            raise ValueError("timeline_diagnostics must be boolean")
+        if (
+            isinstance(self.timeline_dispatch_probe_limit, bool)
+            or not isinstance(self.timeline_dispatch_probe_limit, int)
+            or self.timeline_dispatch_probe_limit < 0
+        ):
+            raise ValueError("timeline dispatch probe limit must be nonnegative")
         if self.campaign_spec_sha256 is not None and (
             len(self.campaign_spec_sha256) != 64
             or any(
@@ -797,6 +818,9 @@ class RunConfig:
             measurement_ms=self.measurement_ms,
             slo_alpha=self.slo_alpha,
             block_ms=self.block_ms,
+            timeline_diagnostics=self.timeline_diagnostics,
+            timeline_dispatch_probe_ms=self.timeline_dispatch_probe_ms,
+            timeline_dispatch_probe_limit=self.timeline_dispatch_probe_limit,
         )
 
 
@@ -1014,6 +1038,13 @@ def runtime_merge_identity(runtime):
 def _experiment_spec(definition, schedule, config, input_authentication):
     steady_state = asdict(config)
     campaign_spec_sha256 = steady_state.pop("campaign_spec_sha256")
+    # Preserve the authenticated schema/fingerprint of every legacy run when
+    # the observer is disabled.  Probe settings have no behavioural meaning in
+    # that mode; publish them only for an explicitly diagnostic experiment.
+    if not config.timeline_diagnostics:
+        steady_state.pop("timeline_diagnostics")
+        steady_state.pop("timeline_dispatch_probe_ms")
+        steady_state.pop("timeline_dispatch_probe_limit")
     spec = {
         "schema_version": SCHEMA_VERSION,
         "experiment": definition.experiment_name,
@@ -1756,6 +1787,7 @@ def _simulate(definition, config, case, num_ssu, requests, prefix_statistics=Non
             background_reserve_fraction=adaptive.background_reserve_fraction,
             ssd_cap_gbps=sim.DISK_BW,
             npu_cap_gbps=sim.NPU_BW_LIMIT,
+            record_diagnostics=config.timeline_diagnostics,
         )
         summary = simulate_continuous_batch(
             requests,
@@ -1789,6 +1821,16 @@ def _simulate(definition, config, case, num_ssu, requests, prefix_statistics=Non
             controller.last_allocation.selected_fraction
             if controller.last_allocation is not None
             else None
+        )
+        enriched["adaptive_decision_diagnostic_schema"] = (
+            "adaptive_admission_decision_v1"
+            if config.timeline_diagnostics
+            else None
+        )
+        enriched["adaptive_decision_diagnostics"] = (
+            [asdict(record) for record in controller.diagnostics]
+            if config.timeline_diagnostics
+            else []
         )
         return enriched
     if case.kind != "pfo" or not isinstance(case, PFOCase):
@@ -2221,6 +2263,22 @@ def _validate_summary(definition, case, num_ssu, summary):
             raise AssertionError("zero-deadband PFO unexpectedly held a CIR change")
     else:
         raise AssertionError(f"unvalidated case kind: {case.kind}")
+    if summary.get("timeline_diagnostics_enabled"):
+        boundaries = summary.get("measurement_stationarity_boundaries", [])
+        if not boundaries or any("timeline" not in row for row in boundaries):
+            raise AssertionError("timeline diagnostics are missing a boundary")
+        if case.kind == "adaptive":
+            records = summary.get("adaptive_decision_diagnostics", [])
+            if (
+                summary.get("adaptive_decision_diagnostic_schema")
+                != "adaptive_admission_decision_v1"
+                or len(records) != int(summary["control_evaluations"])
+                or any(
+                    record.get("snapshot_evaluation") != index
+                    for index, record in enumerate(records, start=1)
+                )
+            ):
+                raise AssertionError("Adaptive decision timeline is incomplete")
     return summary
 
 
@@ -3294,6 +3352,24 @@ def parse_args(argv=None):
     parser.add_argument("--settle-ms", type=float, default=500.0)
     parser.add_argument("--measurement-ms", type=float)
     parser.add_argument("--block-ms", type=float, default=500.0)
+    parser.add_argument(
+        "--timeline-diagnostics",
+        action="store_true",
+        help=(
+            "record read-only 0.5s NPU/SSU demand, service, queue, Path, "
+            "control, and bounded dispatch-replay diagnostics"
+        ),
+    )
+    parser.add_argument(
+        "--timeline-dispatch-probe-ms",
+        type=float,
+        default=50.0,
+    )
+    parser.add_argument(
+        "--timeline-dispatch-probe-limit",
+        type=int,
+        default=10_000,
+    )
     modes = parser.add_mutually_exclusive_group()
     modes.add_argument("--preflight-only", action="store_true")
     modes.add_argument("--dry-run", action="store_true")
@@ -3480,6 +3556,9 @@ def main(argv=None):
         settle_ms=args.settle_ms,
         measurement_ms=measurement_ms,
         block_ms=args.block_ms,
+        timeline_diagnostics=args.timeline_diagnostics,
+        timeline_dispatch_probe_ms=args.timeline_dispatch_probe_ms,
+        timeline_dispatch_probe_limit=args.timeline_dispatch_probe_limit,
         campaign_spec_sha256=(
             None
             if campaign_spec_authentication is None
@@ -3550,6 +3629,7 @@ def main(argv=None):
                 or config.settle_ms != 500.0
                 or config.measurement_ms != SELECTED128_FORMAL_MEASUREMENT_MS
                 or config.block_ms != 500.0
+                or config.timeline_diagnostics
                 or config.slo_alpha != 2.0
             ):
                 raise ValueError("formal selected128 run config differs from campaign")
