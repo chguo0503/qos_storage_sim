@@ -211,6 +211,15 @@ class ControlRequestView:
     remaining_work_gb_by_ssu: tuple[float, ...] = ()
     remaining_compute_budget_ms: float = 0.0
     prefetch_only: bool = False
+    # ``arrival_time_ms`` is an observed input timestamp.  The other two
+    # fields are deliberately absent for a cross-request Layer-0 prefetch:
+    # admission has not happened yet, so assigning it an admission time or an
+    # absolute deadline would expose a fictional future fact.  The deadline is
+    # specifically for this simulator's admission-to-completion TTFT; callers
+    # must use arrival_time_ms separately for an arrival-to-completion SLO.
+    admission_time_ms: Optional[float] = None
+    hard_deadline_time_ms: Optional[float] = None
+    arrival_time_ms: Optional[float] = None
 
 
 @dataclass(frozen=True)
@@ -223,6 +232,13 @@ class CIRControlSnapshot:
     active_requests: tuple[ControlRequestView, ...]
     current_path_cirs_by_ssu: tuple[tuple[float, ...], ...]
     trigger_reasons: tuple[str, ...] = ()
+    # One immutable row per SSU and one count per hardware QoS Path.  The
+    # scheduler's public pressure API may return a TTL-cached row; the three
+    # cumulative counters make that observation cost explicit.
+    path_outstanding_io_counts_by_ssu: tuple[tuple[int, ...], ...] = ()
+    pressure_queries_cumulative_by_ssu: tuple[int, ...] = ()
+    pressure_reads_cumulative_by_ssu: tuple[int, ...] = ()
+    pressure_cache_hits_cumulative_by_ssu: tuple[int, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -245,6 +261,13 @@ class CIRControlConfig:
     The custom initializer keeps the original positional form
     ``CIRControlConfig(every_layers, callback)`` compatible while also allowing
     ``CIRControlConfig(callback=callback, interval_ms=10.0)``.
+
+    When explicitly set, ``hard_ttft_ideal_multiplier`` configures the absolute
+    deadline exported for admitted requests as
+    ``admission + multiplier * n_layers * C``.  It defaults to ``None`` so an
+    old controller is not silently assigned a new SLO.  The resulting deadline
+    is an admission-to-completion budget, matching this simulator's current
+    TTFT metric, and is not an arrival-to-completion production latency promise.
     """
 
     every_layers: Optional[int]
@@ -252,6 +275,7 @@ class CIRControlConfig:
     interval_ms: Optional[float]
     on_batch_boundary: bool
     min_interval_ms: float
+    hard_ttft_ideal_multiplier: Optional[float]
 
     def __init__(
         self,
@@ -261,6 +285,7 @@ class CIRControlConfig:
         interval_ms=None,
         on_batch_boundary=True,
         min_interval_ms=0.0,
+        hard_ttft_ideal_multiplier=None,
     ):
         if callback is None:
             raise ValueError("a CIR control callback is required")
@@ -276,6 +301,15 @@ class CIRControlConfig:
             raise ValueError("interval_ms must be positive")
         if float(min_interval_ms) < 0.0:
             raise ValueError("min_interval_ms cannot be negative")
+        if hard_ttft_ideal_multiplier is not None:
+            hard_ttft_ideal_multiplier = float(hard_ttft_ideal_multiplier)
+            if (
+                not math.isfinite(hard_ttft_ideal_multiplier)
+                or hard_ttft_ideal_multiplier <= 0.0
+            ):
+                raise ValueError(
+                    "hard_ttft_ideal_multiplier must be positive and finite"
+                )
         object.__setattr__(
             self, "every_layers", int(every_layers) if layer_mode else None
         )
@@ -285,6 +319,11 @@ class CIRControlConfig:
         )
         object.__setattr__(self, "on_batch_boundary", bool(on_batch_boundary))
         object.__setattr__(self, "min_interval_ms", float(min_interval_ms))
+        object.__setattr__(
+            self,
+            "hard_ttft_ideal_multiplier",
+            hard_ttft_ideal_multiplier,
+        )
 
 
 @dataclass(frozen=True)
@@ -330,6 +369,13 @@ class SteadyStateConfig:
     timeline_diagnostics: bool = False
     timeline_dispatch_probe_ms: float = 50.0
     timeline_dispatch_probe_limit: int = 10_000
+    # Optional, read-only profile-cycle trend probe.  ``generation`` is
+    # supplied by each request's load metadata; it is deliberately not
+    # inferred from a request-ID layout because the simulator is otherwise
+    # agnostic to how callers allocate IDs.  A zero period plus an empty NPU
+    # tuple disables the probe and preserves the legacy output byte-for-byte.
+    profile_cycle_probe_npu_ids: tuple[int, ...] = ()
+    profile_cycle_period: int = 0
 
 
 class SteadyStateInvariantError(AssertionError):
@@ -793,6 +839,12 @@ class _Context:
         self.next_wall_control_ms: Optional[float] = None
         self.last_control_ms: Optional[float] = None
         self.control_evaluations = 0
+        # Controller pressure telemetry is kept separate from client-routing
+        # pressure reads.  A query can be served by the scheduler's TTL cache,
+        # so queries, fresh reads, and cache hits are all counted explicitly.
+        self.cir_control_pressure_queries_by_ssu = [0] * num_ssu
+        self.cir_control_pressure_reads_by_ssu = [0] * num_ssu
+        self.cir_control_pressure_cache_hits_by_ssu = [0] * num_ssu
         self.cir_commits = 0
         self.cir_path_writes = 0
         # ``cir_commits`` is the legacy fleet-wide epoch count.  The two
@@ -852,6 +904,59 @@ class _Context:
         self.measurement_actual_cir_end: Optional[dict] = None
         self.measurement_stationarity_snapshots: list[dict] = []
         self.steady_backlog_exhausted = False
+
+        # The profile-cycle frontier observer is independent of the dense
+        # timeline diagnostics.  It records only at request-completion
+        # frontiers, performs no scheduler calls, consumes no RNG state, and
+        # inserts no event.  Input validation has already established that all
+        # probe NPUs carry the same consecutive generation sequence.
+        self.profile_cycle_probe_npu_ids = (
+            tuple(steady_state.profile_cycle_probe_npu_ids)
+            if steady_state is not None
+            else ()
+        )
+        self.profile_cycle_period = (
+            int(steady_state.profile_cycle_period)
+            if steady_state is not None
+            else 0
+        )
+        self.profile_cycle_probe_enabled = bool(
+            self.profile_cycle_probe_npu_ids
+        )
+        self.profile_generation_by_request_id = (
+            {
+                request.request_id: int(request.load["generation"])
+                for request in requests
+                if "generation" in request.load
+            }
+            if self.profile_cycle_probe_enabled
+            else {}
+        )
+        self.profile_request_id_by_npu_generation = (
+            {
+                (request.npu_id, int(request.load["generation"])): request.request_id
+                for request in requests
+                if request.npu_id in self.profile_cycle_probe_npu_ids
+            }
+            if self.profile_cycle_probe_enabled
+            else {}
+        )
+        self.profile_cycle_last_completed_generation_by_npu: list[Optional[int]] = [
+            None
+        ] * num_npu
+        self.profile_cycle_next_frontier_generation: Optional[int] = None
+        self.profile_cycle_frontier_snapshots: list[dict] = []
+        self.profile_cycle_pending_frontiers: list[dict] = []
+        self.profile_cycle_ssd_submitted_gb = (
+            [[0.0] * num_ssu for _ in range(num_npu)]
+            if self.profile_cycle_probe_enabled
+            else []
+        )
+        self.profile_cycle_ssd_submitted_compensation_gb = (
+            [[0.0] * num_ssu for _ in range(num_npu)]
+            if self.profile_cycle_probe_enabled
+            else []
+        )
 
         # The timeline observer is deliberately fixed-size and disabled by
         # default.  It never calls a scheduler API, consumes RNG state, or
@@ -983,6 +1088,30 @@ def _record_actual_cir_state(context: _Context):
     return state
 
 
+def _cir_control_pressure_metrics(context: _Context):
+    """Return controller-only telemetry lookup costs for result provenance."""
+    queries_by_ssu = tuple(map(int, context.cir_control_pressure_queries_by_ssu))
+    reads_by_ssu = tuple(map(int, context.cir_control_pressure_reads_by_ssu))
+    cache_hits_by_ssu = tuple(
+        map(int, context.cir_control_pressure_cache_hits_by_ssu)
+    )
+    if any(
+        queries != reads + cache_hits
+        for queries, reads, cache_hits in zip(
+            queries_by_ssu, reads_by_ssu, cache_hits_by_ssu
+        )
+    ):
+        raise AssertionError("CIR-control pressure counters diverged")
+    return {
+        "cir_control_pressure_queries": sum(queries_by_ssu),
+        "cir_control_pressure_queries_by_ssu": list(queries_by_ssu),
+        "cir_control_pressure_reads": sum(reads_by_ssu),
+        "cir_control_pressure_reads_by_ssu": list(reads_by_ssu),
+        "cir_control_pressure_cache_hits": sum(cache_hits_by_ssu),
+        "cir_control_pressure_cache_hits_by_ssu": list(cache_hits_by_ssu),
+    }
+
+
 def _control_counter_snapshot(context: _Context):
     """Capture cumulative control-plane counters at one exact wall-time edge."""
     pressure_reports_by_ssu = tuple(
@@ -994,6 +1123,15 @@ def _control_counter_snapshot(context: _Context):
     return {
         "pressure_reports_by_ssu": pressure_reports_by_ssu,
         "pressure_cache_hits_by_ssu": pressure_cache_hits_by_ssu,
+        "cir_control_pressure_queries_by_ssu": tuple(
+            map(int, context.cir_control_pressure_queries_by_ssu)
+        ),
+        "cir_control_pressure_reads_by_ssu": tuple(
+            map(int, context.cir_control_pressure_reads_by_ssu)
+        ),
+        "cir_control_pressure_cache_hits_by_ssu": tuple(
+            map(int, context.cir_control_pressure_cache_hits_by_ssu)
+        ),
         "control_evaluations": int(context.control_evaluations),
         "cir_commits": int(context.cir_commits),
         "cir_write_transactions_by_ssu": tuple(
@@ -1066,6 +1204,28 @@ def _measurement_control_metrics(context: _Context, duration_ms: float):
         reports + hits for reports, hits in zip(pressure_by_ssu, cache_hits_by_ssu)
     )
     pressure_requests = pressure_reports + cache_hits
+    control_pressure_queries_by_ssu = _counter_vector_delta(
+        end["cir_control_pressure_queries_by_ssu"],
+        start["cir_control_pressure_queries_by_ssu"],
+        "cir_control_pressure_queries_by_ssu",
+    )
+    control_pressure_reads_by_ssu = _counter_vector_delta(
+        end["cir_control_pressure_reads_by_ssu"],
+        start["cir_control_pressure_reads_by_ssu"],
+        "cir_control_pressure_reads_by_ssu",
+    )
+    control_pressure_cache_hits_by_ssu = _counter_vector_delta(
+        end["cir_control_pressure_cache_hits_by_ssu"],
+        start["cir_control_pressure_cache_hits_by_ssu"],
+        "cir_control_pressure_cache_hits_by_ssu",
+    )
+    control_pressure_queries = sum(control_pressure_queries_by_ssu)
+    control_pressure_reads = sum(control_pressure_reads_by_ssu)
+    control_pressure_cache_hits = sum(control_pressure_cache_hits_by_ssu)
+    if control_pressure_queries != (
+        control_pressure_reads + control_pressure_cache_hits
+    ):
+        raise AssertionError("CIR-control pressure query accounting diverged")
     control_evaluations = _counter_delta(
         end["control_evaluations"],
         start["control_evaluations"],
@@ -1090,6 +1250,20 @@ def _measurement_control_metrics(context: _Context, duration_ms: float):
             hits / requests if requests else 0.0
             for hits, requests in zip(cache_hits_by_ssu, pressure_requests_by_ssu)
         ],
+        "measurement_cir_control_pressure_queries": control_pressure_queries,
+        "measurement_cir_control_pressure_queries_by_ssu": list(
+            control_pressure_queries_by_ssu
+        ),
+        "measurement_cir_control_pressure_reads": control_pressure_reads,
+        "measurement_cir_control_pressure_reads_by_ssu": list(
+            control_pressure_reads_by_ssu
+        ),
+        "measurement_cir_control_pressure_cache_hits": (
+            control_pressure_cache_hits
+        ),
+        "measurement_cir_control_pressure_cache_hits_by_ssu": list(
+            control_pressure_cache_hits_by_ssu
+        ),
         "measurement_control_evaluations": control_evaluations,
         "measurement_control_evaluation_rate_hz": control_evaluations / duration_s,
         "measurement_cir_commits": cir_commits,
@@ -1320,6 +1494,352 @@ def _project_npu_snapshot(context: _Context, current_time_ms: float):
         "link_cumulative_served_gb_by_npu": tuple(link_served_gb),
         "link_outstanding_blocks_by_npu": tuple(link_outstanding_blocks),
         "link_outstanding_gb_by_npu": tuple(link_outstanding_gb),
+    }
+
+
+def _project_physical_link_outstanding_by_npu_ssu(
+    context: _Context,
+    current_time_ms: float,
+):
+    """Enumerate queued/active NPU-link bytes without observer counters."""
+    terms = [
+        [[] for _ in range(context.num_ssu)]
+        for _ in range(context.num_npu)
+    ]
+    blocks = [
+        [0] * context.num_ssu for _ in range(context.num_npu)
+    ]
+    for npu in context.npus:
+        for flow in npu.link_pending:
+            terms[npu.npu_id][flow.disk_id].append(float(flow.total_gb))
+            blocks[npu.npu_id][flow.disk_id] += int(flow.block_count)
+        flow = npu.link_active_flow
+        if flow is not None:
+            terms[npu.npu_id][flow.disk_id].append(
+                _project_link_active_remaining_gb(context, flow, current_time_ms)
+            )
+            blocks[npu.npu_id][flow.disk_id] += int(flow.block_count)
+    return (
+        [[math.fsum(cell) for cell in row] for row in terms],
+        blocks,
+    )
+
+
+def _project_client_unissued_by_npu_ssu(context: _Context):
+    """Enumerate bytes materialized for issue but not submitted to an SSD."""
+    terms = [
+        [[] for _ in range(context.num_ssu)]
+        for _ in range(context.num_npu)
+    ]
+    blocks = [
+        [0] * context.num_ssu for _ in range(context.num_npu)
+    ]
+    for state in context.submission_states.values():
+        remaining = state.blocks[state.cursor :]
+        terms[state.npu_id][state.disk_id].extend(
+            float(size_gb) for _, size_gb in remaining
+        )
+        blocks[state.npu_id][state.disk_id] += len(remaining)
+    return (
+        [[math.fsum(cell) for cell in row] for row in terms],
+        blocks,
+    )
+
+
+def _project_ssd_served_awaiting_link_by_npu_ssu(
+    context: _Context,
+    current_time_ms: float,
+):
+    """Bytes in a non-streaming active SSD command not yet link-visible."""
+    values = [
+        [0.0] * context.num_ssu for _ in range(context.num_npu)
+    ]
+    for ssu_id, disk in enumerate(context.disks):
+        if disk.active_flows:
+            flow = disk.active_flows[0]
+            values[flow.npu_id][ssu_id] = _project_ssd_active_served_gb(
+                flow, current_time_ms
+            )
+    return values
+
+
+def _profile_generation_for_request(context: _Context, request_id: int):
+    return context.profile_generation_by_request_id.get(request_id)
+
+
+def _profile_cycle_npu_row(context: _Context, npu: _NPUState):
+    batch = npu.active_batch
+    active_ids = () if batch is None else batch.member_request_ids
+    current_layer = None
+    next_layer = None
+    if npu.compute_active is not None:
+        _, current_layer = npu.compute_active
+        if current_layer + 1 < context.n_layers:
+            next_layer = current_layer + 1
+    elif batch is not None:
+        candidate = batch.compute_done_up_to + 1
+        if candidate < context.n_layers:
+            next_layer = candidate
+    prefetch_id = npu.layer0_prefetch_request_id
+    prefetch = None
+    if prefetch_id is not None:
+        request = context.requests[prefetch_id]
+        prefetch = {
+            "request_id": int(prefetch_id),
+            "generation": _profile_generation_for_request(context, prefetch_id),
+            "layer": 0,
+            "io_started": bool(request.io_started[0]),
+            "io_ready": bool(request.io_ready[0]),
+            "pending_blocks": int(request.pending_blocks[0]),
+        }
+    queue_head_id = npu.admission_queue[0] if npu.admission_queue else None
+    return {
+        "npu_id": int(npu.npu_id),
+        "last_completed_generation": (
+            context.profile_cycle_last_completed_generation_by_npu[npu.npu_id]
+        ),
+        "pipeline_state": _timeline_pipeline_state(context, npu),
+        "active_request_ids": [int(request_id) for request_id in active_ids],
+        "active_generations": [
+            _profile_generation_for_request(context, request_id)
+            for request_id in active_ids
+        ],
+        "current_compute_layer": current_layer,
+        "next_compute_layer": next_layer,
+        "compute_done_up_to": None if batch is None else batch.compute_done_up_to,
+        "prefetched_layer0": prefetch,
+        "admission_queue_head_request_id": (
+            None if queue_head_id is None else int(queue_head_id)
+        ),
+        "admission_queue_head_generation": (
+            None
+            if queue_head_id is None
+            else _profile_generation_for_request(context, queue_head_id)
+        ),
+    }
+
+
+def _matrix_totals(values, num_npu: int, num_ssu: int):
+    return {
+        "by_npu": [math.fsum(row) for row in values],
+        "by_ssu": [
+            math.fsum(values[npu_id][ssu_id] for npu_id in range(num_npu))
+            for ssu_id in range(num_ssu)
+        ],
+        "fleet": math.fsum(math.fsum(row) for row in values),
+    }
+
+
+def _request_profile_and_placement_forcing_sha256(request: _RequestState):
+    """Fingerprint request inputs that determine compute and placed I/O work."""
+    digest = hashlib.sha256(b"profile-placement-forcing-v1\0")
+    digest.update(
+        repr(
+            (
+                request.category,
+                request.per_layer_compute_ms,
+                request.manifest.placement,
+            )
+        ).encode()
+    )
+    return digest.hexdigest()
+
+
+def _profile_cycle_forcing_identity(
+    context: _Context,
+    frontier_generation: int,
+):
+    """Expose adjacent exact profile+placement vectors for trend diagnosis."""
+    period = context.profile_cycle_period
+
+    def cycle(first_generation):
+        last_generation = first_generation + period - 1
+        request_ids = {}
+        request_hashes = {}
+        digest = hashlib.sha256(b"profile-cycle-forcing-vector-v1\0")
+        for npu_id in context.profile_cycle_probe_npu_ids:
+            ids = []
+            hashes = []
+            for slot, generation in enumerate(
+                range(first_generation, last_generation + 1)
+            ):
+                request_id = context.profile_request_id_by_npu_generation.get(
+                    (npu_id, generation)
+                )
+                if request_id is None:
+                    return None
+                forcing_hash = _request_profile_and_placement_forcing_sha256(
+                    context.requests[request_id]
+                )
+                ids.append(int(request_id))
+                hashes.append(forcing_hash)
+                digest.update(repr((npu_id, slot, forcing_hash)).encode())
+            request_ids[str(npu_id)] = ids
+            request_hashes[str(npu_id)] = hashes
+        return {
+            "first_generation": int(first_generation),
+            "last_generation": int(last_generation),
+            "request_ids_by_probe_npu": request_ids,
+            "request_forcing_sha256_by_probe_npu": request_hashes,
+            "fleet_profile_and_placement_forcing_sha256": digest.hexdigest(),
+        }
+
+    current_first = frontier_generation - period + 1
+    previous = cycle(current_first - period)
+    current = cycle(current_first)
+    following = cycle(current_first + period)
+    previous_matches = (
+        None
+        if previous is None or current is None
+        else previous["fleet_profile_and_placement_forcing_sha256"]
+        == current["fleet_profile_and_placement_forcing_sha256"]
+    )
+    following_matches = (
+        None
+        if following is None or current is None
+        else following["fleet_profile_and_placement_forcing_sha256"]
+        == current["fleet_profile_and_placement_forcing_sha256"]
+    )
+    return {
+        "current_cycle": current,
+        "previous_cycle": previous,
+        "following_cycle": following,
+        "previous_cycle_matches_current": previous_matches,
+        "following_cycle_matches_current": following_matches,
+        "profile_period_also_repeats_exact_placement_forcing": (
+            previous_matches is True and following_matches is True
+        ),
+        "interpretation": (
+            "frontiers are long-term trend/drift samples; matching these "
+            "fingerprints alone does not establish a repeating simulator state"
+        ),
+    }
+
+
+def _capture_profile_cycle_frontier(
+    context: _Context,
+    *,
+    frontier_generation: int,
+    trigger_npu_id: int,
+    trigger_request_id: int,
+    current_time_ms: float,
+):
+    """Capture one pure-read post-completion profile-cycle frontier."""
+    ssd_gb, ssd_blocks = _project_physical_ssd_outstanding_by_npu(
+        context, current_time_ms
+    )
+    link_gb, link_blocks = _project_physical_link_outstanding_by_npu_ssu(
+        context, current_time_ms
+    )
+    client_gb, client_blocks = _project_client_unissued_by_npu_ssu(context)
+    ssd_to_link_gb = _project_ssd_served_awaiting_link_by_npu_ssu(
+        context, current_time_ms
+    )
+    pipeline_gb = [
+        [
+            math.fsum(
+                (
+                    client_gb[npu_id][ssu_id],
+                    ssd_gb[npu_id][ssu_id],
+                    ssd_to_link_gb[npu_id][ssu_id],
+                    link_gb[npu_id][ssu_id],
+                )
+            )
+            for ssu_id in range(context.num_ssu)
+        ]
+        for npu_id in range(context.num_npu)
+    ]
+    npu_projection = _project_npu_snapshot(context, current_time_ms)
+    probe_generations = [
+        context.profile_cycle_last_completed_generation_by_npu[npu_id]
+        for npu_id in context.profile_cycle_probe_npu_ids
+    ]
+    if any(generation is None for generation in probe_generations):
+        raise AssertionError("profile-cycle frontier reached with an incomplete probe")
+    phase_slots = [
+        (int(generation) + 1) % context.profile_cycle_period
+        for generation in probe_generations
+    ]
+    relative_generations = [
+        int(generation) - int(frontier_generation)
+        for generation in probe_generations
+    ]
+    return {
+        "schema": "steady_profile_cycle_frontier_v1",
+        "frontier_generation": int(frontier_generation),
+        "cycle_index": (
+            (frontier_generation + 1) // context.profile_cycle_period - 1
+        ),
+        "time_ms": float(current_time_ms),
+        "elapsed_measurement_ms": float(
+            current_time_ms - context.measurement_start_ms
+        ),
+        "trigger_npu_id": int(trigger_npu_id),
+        "trigger_request_id": int(trigger_request_id),
+        "last_completed_generation_by_probe_npu": {
+            str(npu_id): int(generation)
+            for npu_id, generation in zip(
+                context.profile_cycle_probe_npu_ids, probe_generations
+            )
+        },
+        "completed_phase_slot_by_probe_npu": {
+            str(npu_id): int(slot)
+            for npu_id, slot in zip(
+                context.profile_cycle_probe_npu_ids, phase_slots
+            )
+        },
+        "relative_generation_by_probe_npu": {
+            str(npu_id): relative_generation
+            for npu_id, relative_generation in zip(
+                context.profile_cycle_probe_npu_ids, relative_generations
+            )
+        },
+        "generation_phase_spread": int(
+            max(probe_generations) - min(probe_generations)
+        ),
+        "profile_and_placement_forcing": _profile_cycle_forcing_identity(
+            context, frontier_generation
+        ),
+        "npu_compute_cumulative_busy_ms_by_npu": list(
+            npu_projection["compute_cumulative_busy_ms_by_npu"]
+        ),
+        "completed_requests_cumulative_by_npu": list(context.completed_by_npu),
+        "npu_state": [
+            _profile_cycle_npu_row(context, npu) for npu in context.npus
+        ],
+        "inventory": {
+            "ssd_submitted_cumulative_gb_by_npu_ssu": [
+                list(row) for row in context.profile_cycle_ssd_submitted_gb
+            ],
+            "ssd_submitted_cumulative_gb_totals": _matrix_totals(
+                context.profile_cycle_ssd_submitted_gb,
+                context.num_npu,
+                context.num_ssu,
+            ),
+            "ssd_outstanding_gb_by_npu_ssu": ssd_gb,
+            "ssd_outstanding_blocks_by_npu_ssu": ssd_blocks,
+            "ssd_outstanding_gb_totals": _matrix_totals(
+                ssd_gb, context.num_npu, context.num_ssu
+            ),
+            "npu_link_outstanding_gb_by_npu_ssu": link_gb,
+            "npu_link_outstanding_blocks_by_npu_ssu": link_blocks,
+            "npu_link_outstanding_gb_totals": _matrix_totals(
+                link_gb, context.num_npu, context.num_ssu
+            ),
+            "client_unissued_gb_by_npu_ssu": client_gb,
+            "client_unissued_blocks_by_npu_ssu": client_blocks,
+            "client_unissued_gb_totals": _matrix_totals(
+                client_gb, context.num_npu, context.num_ssu
+            ),
+            "ssd_served_awaiting_link_enqueue_gb_by_npu_ssu": ssd_to_link_gb,
+            "ssd_served_awaiting_link_enqueue_gb_totals": _matrix_totals(
+                ssd_to_link_gb, context.num_npu, context.num_ssu
+            ),
+            "total_physical_io_outstanding_gb_by_npu_ssu": pipeline_gb,
+            "total_physical_io_outstanding_gb_totals": _matrix_totals(
+                pipeline_gb, context.num_npu, context.num_ssu
+            ),
+        },
     }
 
 
@@ -2057,6 +2577,18 @@ def _register_submit(context: _Context, flow: sim.BlockIOFlow):
         raise AssertionError("block submitted more than once")
     context.block_states[block_id] = 1
     context.submitted_blocks += 1
+    if context.profile_cycle_probe_enabled:
+        total, compensation = sim.DiskState._kahan_add(
+            context.profile_cycle_ssd_submitted_gb[flow.npu_id][flow.disk_id],
+            context.profile_cycle_ssd_submitted_compensation_gb[flow.npu_id][
+                flow.disk_id
+            ],
+            flow.total_gb,
+        )
+        context.profile_cycle_ssd_submitted_gb[flow.npu_id][flow.disk_id] = total
+        context.profile_cycle_ssd_submitted_compensation_gb[flow.npu_id][
+            flow.disk_id
+        ] = compensation
     if context.timeline_diagnostics:
         total, compensation = sim.DiskState._kahan_add(
             context.timeline_ssd_enqueued_gb[flow.npu_id][flow.disk_id],
@@ -2852,6 +3384,20 @@ def _handle_steady_measurement_start(context: _Context, current_time_ms: float):
     context.measurement_start_ms = current_time_ms
     context.measurement_end_ms = current_time_ms + context.steady_state.measurement_ms
     context.measurement_open = True
+    if context.profile_cycle_probe_enabled:
+        completed = [
+            context.profile_cycle_last_completed_generation_by_npu[npu_id]
+            for npu_id in context.profile_cycle_probe_npu_ids
+        ]
+        if any(generation is None for generation in completed):
+            raise AssertionError(
+                "steady warm-up opened before every profile-cycle probe completed"
+            )
+        minimum_generation = min(completed)
+        period = context.profile_cycle_period
+        context.profile_cycle_next_frontier_generation = (
+            ((minimum_generation + 1) // period + 1) * period - 1
+        )
     block_bounds = _steady_block_bounds(
         context.measurement_start_ms,
         context.measurement_end_ms,
@@ -2884,6 +3430,78 @@ def _handle_steady_measurement_start(context: _Context, current_time_ms: float):
         STEADY_MEASUREMENT_END,
         0,
     )
+
+
+def _observe_profile_request_completion(
+    context: _Context,
+    npu: _NPUState,
+    batch: _MicrobatchState,
+    current_time_ms: float,
+):
+    """Advance and, if due, sample the optional profile-cycle frontier."""
+    if (
+        not context.profile_cycle_probe_enabled
+        or npu.npu_id not in context.profile_cycle_probe_npu_ids
+    ):
+        return
+    if len(batch.member_request_ids) != 1:
+        raise AssertionError("profile-cycle probe requires singleton batches")
+    request_id = batch.member_request_ids[0]
+    generation = context.profile_generation_by_request_id[request_id]
+    previous = context.profile_cycle_last_completed_generation_by_npu[npu.npu_id]
+    if previous is not None and generation != previous + 1:
+        raise AssertionError(
+            "profile-cycle request generations did not complete consecutively"
+        )
+    context.profile_cycle_last_completed_generation_by_npu[npu.npu_id] = generation
+    if not context.measurement_open:
+        return
+    frontier = context.profile_cycle_next_frontier_generation
+    if frontier is None:
+        raise AssertionError("profile-cycle frontier was not initialized")
+    minimum_generation = min(
+        context.profile_cycle_last_completed_generation_by_npu[probe_npu_id]
+        for probe_npu_id in context.profile_cycle_probe_npu_ids
+    )
+    while minimum_generation >= frontier:
+        context.profile_cycle_pending_frontiers.append(
+            {
+                "frontier_generation": int(frontier),
+                "trigger_npu_id": int(npu.npu_id),
+                "trigger_request_id": int(request_id),
+                "time_ms": float(current_time_ms),
+            }
+        )
+        frontier += context.profile_cycle_period
+    context.profile_cycle_next_frontier_generation = frontier
+
+
+def _flush_profile_cycle_frontiers(
+    context: _Context,
+    current_time_ms: float,
+):
+    """Capture pending frontiers at the normalized post-timestamp cut."""
+    pending = context.profile_cycle_pending_frontiers
+    if not pending:
+        return
+    if any(
+        not math.isclose(
+            row["time_ms"], current_time_ms, rel_tol=0.0, abs_tol=_EPS
+        )
+        for row in pending
+    ):
+        raise AssertionError("profile-cycle frontier crossed two unflushed timestamps")
+    context.profile_cycle_frontier_snapshots.extend(
+        _capture_profile_cycle_frontier(
+            context,
+            frontier_generation=row["frontier_generation"],
+            trigger_npu_id=row["trigger_npu_id"],
+            trigger_request_id=row["trigger_request_id"],
+            current_time_ms=current_time_ms,
+        )
+        for row in pending
+    )
+    pending.clear()
 
 
 def _handle_steady_stationarity_sample(
@@ -2973,6 +3591,9 @@ def _complete_microbatch(
     _queue_control_event(context, current_time_ms, "batch_boundary")
     _queue_causal_control_event(context, current_time_ms)
     _schedule_batch_dispatch(context, npu, current_time_ms)
+    # Mark the frontier after successor dispatch is queued.  The event loop
+    # captures it only after every business event at this timestamp drains.
+    _observe_profile_request_completion(context, npu, batch, current_time_ms)
     if context.steady_warmup_reached_ms is not None and not npu.admission_queue:
         context.steady_backlog_exhausted = True
 
@@ -3035,6 +3656,18 @@ def _control_request_view(context: _Context, request: _RequestState):
         and compute_done_up_to + 1 < context.n_layers
         and not request.io_ready[compute_done_up_to + 1]
     )
+    admission_time_ms = (
+        float(request.admission_time_ms) if request.admitted else None
+    )
+    hard_deadline_time_ms = (
+        None
+        if admission_time_ms is None
+        or context.control.hard_ttft_ideal_multiplier is None
+        else admission_time_ms
+        + context.control.hard_ttft_ideal_multiplier
+        * context.n_layers
+        * request.per_layer_compute_ms
+    )
     return ControlRequestView(
         request_id=request.manifest.request_id,
         npu_id=request.manifest.npu_id,
@@ -3049,7 +3682,45 @@ def _control_request_view(context: _Context, request: _RequestState):
             remaining_io_layers * request.per_layer_compute_ms
         ),
         prefetch_only=batch is None,
+        admission_time_ms=admission_time_ms,
+        hard_deadline_time_ms=hard_deadline_time_ms,
+        arrival_time_ms=float(request.manifest.arrival_time_ms),
     )
+
+
+def _control_path_pressure_snapshot(
+    context: _Context,
+    current_time_ms: float,
+):
+    """Read count-only QoS telemetry without consulting future event state.
+
+    ``report_path_pressure_analysis`` exposes only outstanding logical-I/O
+    counts and aggregate QoS weights.  In particular, this projection never
+    reads a flow's simulator-private completion time.  The scheduler may serve
+    a query from its configured TTL cache, so fresh reads and cache hits are
+    distinguished instead of treating every controller evaluation as a
+    hardware pressure-table read.
+    """
+    rows = []
+    for ssu_id, disk in enumerate(context.disks):
+        scheduler = disk.scheduler
+        reads_before = int(scheduler.pressure_reports)
+        cache_hits_before = int(getattr(scheduler, "pressure_cache_hits", 0))
+        pressure = scheduler.report_path_pressure_analysis(current_time_ms)
+        reads_after = int(scheduler.pressure_reports)
+        cache_hits_after = int(getattr(scheduler, "pressure_cache_hits", 0))
+        fresh_reads = reads_after - reads_before
+        cache_hits = cache_hits_after - cache_hits_before
+        if fresh_reads < 0 or cache_hits < 0 or fresh_reads + cache_hits != 1:
+            raise AssertionError("one pressure query must produce one observation")
+        context.cir_control_pressure_queries_by_ssu[ssu_id] += 1
+        context.cir_control_pressure_reads_by_ssu[ssu_id] += fresh_reads
+        context.cir_control_pressure_cache_hits_by_ssu[ssu_id] += cache_hits
+        row = tuple(int(value) for value in pressure.counts)
+        if len(row) != len(scheduler.paths) or any(value < 0 for value in row):
+            raise AssertionError("CIR-control Path pressure shape is invalid")
+        rows.append(row)
+    return tuple(rows)
 
 
 def _apply_cir_decision(
@@ -3184,6 +3855,7 @@ def _handle_control(context: _Context, current_time_ms: float):
         tuple(path.cir for path in disk.scheduler.paths.values())
         for disk in context.disks
     )
+    path_pressure = _control_path_pressure_snapshot(context, current_time_ms)
     snapshot = CIRControlSnapshot(
         time_ms=current_time_ms,
         evaluation=context.control_evaluations,
@@ -3193,6 +3865,16 @@ def _handle_control(context: _Context, current_time_ms: float):
         active_requests=active_requests,
         current_path_cirs_by_ssu=current_cirs,
         trigger_reasons=tuple(sorted(reasons)),
+        path_outstanding_io_counts_by_ssu=path_pressure,
+        pressure_queries_cumulative_by_ssu=tuple(
+            context.cir_control_pressure_queries_by_ssu
+        ),
+        pressure_reads_cumulative_by_ssu=tuple(
+            context.cir_control_pressure_reads_by_ssu
+        ),
+        pressure_cache_hits_cumulative_by_ssu=tuple(
+            context.cir_control_pressure_cache_hits_by_ssu
+        ),
     )
     decision = context.control.callback(snapshot)
     _apply_cir_decision(context, decision, current_time_ms)
@@ -5052,10 +5734,15 @@ def _build_steady_state_summary(context: _Context, current_time_ms, events_proce
                 "direct physical outstanding_gb"
             ),
         },
-        "timeline_adaptive_deadline_input": False,
+        "timeline_adaptive_deadline_input": bool(
+            context.control is not None
+            and context.control.hard_ttft_ideal_multiplier is not None
+        ),
         "timeline_adaptive_deadline_note": (
-            "alpha1.5/alpha2 slack is recorded for diagnosis only; the Adaptive "
-            "controller does not read admission time, elapsed TTFT, or deadline"
+            "this flag records whether the public CIRControlSnapshot carries "
+            "an explicitly configured admission-based hard deadline; it does "
+            "not prove that a particular callback consumes that field, and "
+            "the alpha1.5/alpha2 timeline slack remains diagnostic only"
         ),
         "timeline_state_durations_ms_by_npu": (
             timeline_state_durations if context.timeline_diagnostics else []
@@ -5122,6 +5809,70 @@ def _build_steady_state_summary(context: _Context, current_time_ms, events_proce
         ),
         "measurement_stationarity_boundary_count": len(stationarity["snapshots"]),
         "measurement_stationarity_boundaries": stationarity["snapshots"],
+        **(
+            {
+                "profile_cycle_frontier_trend": {
+                    "schema": "steady_profile_cycle_frontier_series_v1",
+                    "probe_npu_ids": list(
+                        context.profile_cycle_probe_npu_ids
+                    ),
+                    "period_generations": context.profile_cycle_period,
+                    "generation_source": "request.load['generation']",
+                    "request_id_layout_assumed": False,
+                    "boundary_definition": (
+                        "generation g closes a configured profile cycle exactly when "
+                        "(g + 1) % period_generations == 0; a frontier is "
+                        "recorded after every probe NPU has completed at "
+                        "least g"
+                    ),
+                    "measurement_membership": (
+                        "frontier-triggering completion is processed while the "
+                        "half-open measurement window is open"
+                    ),
+                    "same_timestamp_semantics": (
+                        "the triggering completion queues a marker only; the "
+                        "pure-read snapshot is captured after the complete "
+                        "transitive closure of business events at that timestamp "
+                        "has drained, immediately before simulated time advances"
+                    ),
+                    "physical_io_outstanding_semantics": (
+                        "client-unissued plus physical SSD remaining plus the "
+                        "serviced prefix of each active non-streaming SSD "
+                        "command awaiting link enqueue plus physical NPU-link "
+                        "remaining; a fully delivered/ready prefetched Layer-0 "
+                        "has zero outstanding bytes and remains visible in "
+                        "npu_state.prefetched_layer0 or, after dispatch consumes "
+                        "that descriptor, in npu_state.active_generations"
+                    ),
+                    "ssd_submitted_cumulative_semantics": (
+                        "compensated cumulative GB submitted since simulation "
+                        "start while the probe is enabled; adjacent frontier "
+                        "differences expose actual per-NPU/per-SSU placement work"
+                    ),
+                    "interpretation": (
+                        "profile-cycle frontiers are long-term trend/drift "
+                        "samples, not proof of a repeating simulator state; "
+                        "request-ID-dependent placement is exposed and checked "
+                        "separately in every snapshot"
+                    ),
+                    "snapshot_count": len(
+                        context.profile_cycle_frontier_snapshots
+                    ),
+                    "snapshots": context.profile_cycle_frontier_snapshots,
+                    "all_snapshots_profile_period_repeats_exact_placement_forcing": (
+                        bool(context.profile_cycle_frontier_snapshots)
+                        and all(
+                            snapshot["profile_and_placement_forcing"][
+                                "profile_period_also_repeats_exact_placement_forcing"
+                            ]
+                            for snapshot in context.profile_cycle_frontier_snapshots
+                        )
+                    ),
+                }
+            }
+            if context.profile_cycle_probe_enabled
+            else {}
+        ),
         "measurement_control_counter_window": (
             "half-open [measurement_start_ms, measurement_end_ms)"
         ),
@@ -5254,9 +6005,15 @@ def _build_steady_state_summary(context: _Context, current_time_ms, events_proce
             int(getattr(disk.scheduler, "pressure_cache_hits", 0))
             for disk in context.disks
         ],
+        **_cir_control_pressure_metrics(context),
         "control_evaluations": context.control_evaluations,
         "control_min_interval_ms": (
             context.control.min_interval_ms if context.control is not None else None
+        ),
+        "control_hard_ttft_ideal_multiplier": (
+            context.control.hard_ttft_ideal_multiplier
+            if context.control is not None
+            else None
         ),
         "cir_commits": context.cir_commits,
         "cir_write_transactions": sum(context.cir_write_transactions_by_ssu),
@@ -5614,6 +6371,7 @@ def _build_summary(context: _Context, requests, current_time_ms, events_processe
             int(getattr(disk.scheduler, "pressure_cache_hits", 0))
             for disk in context.disks
         ],
+        **_cir_control_pressure_metrics(context),
         "control_evaluations": context.control_evaluations,
         "control_trigger": (
             "none"
@@ -5633,6 +6391,11 @@ def _build_summary(context: _Context, requests, current_time_ms, events_processe
         ),
         "control_min_interval_ms": (
             context.control.min_interval_ms if context.control is not None else None
+        ),
+        "control_hard_ttft_ideal_multiplier": (
+            context.control.hard_ttft_ideal_multiplier
+            if context.control is not None
+            else None
         ),
         "cir_commits": context.cir_commits,
         "cir_write_transactions": sum(context.cir_write_transactions_by_ssu),
@@ -5723,6 +6486,22 @@ def simulate_continuous_batch(
     if cross_request_layer0_prefetch and batch_size != 1:
         raise ValueError("cross-request Layer-0 prefetch requires batch_size=1")
     if steady_state is not None:
+        profile_cycle_probe_ids = tuple(
+            steady_state.profile_cycle_probe_npu_ids
+        )
+        profile_cycle_period_value = steady_state.profile_cycle_period
+        profile_cycle_period_is_int = (
+            not isinstance(profile_cycle_period_value, bool)
+            and isinstance(profile_cycle_period_value, (int, np.integer))
+        )
+        profile_cycle_probe_pair_valid = (
+            (not profile_cycle_probe_ids and profile_cycle_period_value == 0)
+            or (
+                bool(profile_cycle_probe_ids)
+                and profile_cycle_period_is_int
+                and profile_cycle_period_value > 0
+            )
+        )
         if (
             batch_size != 1
             or steady_state.warmup_requests_per_npu <= 0
@@ -5735,6 +6514,16 @@ def simulate_continuous_batch(
             or steady_state.timeline_dispatch_probe_ms < 0.0
             or isinstance(steady_state.timeline_dispatch_probe_limit, bool)
             or steady_state.timeline_dispatch_probe_limit < 0
+            or not profile_cycle_period_is_int
+            or not profile_cycle_probe_pair_valid
+            or len(set(profile_cycle_probe_ids)) != len(profile_cycle_probe_ids)
+            or any(
+                isinstance(npu_id, bool)
+                or not isinstance(npu_id, (int, np.integer))
+                or npu_id < 0
+                or npu_id >= num_npu
+                for npu_id in profile_cycle_probe_ids
+            )
         ):
             raise ValueError("steady-state measurement configuration is invalid")
     if policy not in sim.SUPPORTED_POLICIES:
@@ -5756,6 +6545,48 @@ def simulate_continuous_batch(
         for ssu_id, size_gb in layer
     ):
         raise ValueError("request placement contains an invalid block")
+    if steady_state is not None and steady_state.profile_cycle_probe_npu_ids:
+        generation_sequences = []
+        for probe_npu_id in steady_state.profile_cycle_probe_npu_ids:
+            ordered = sorted(
+                (
+                    request
+                    for request in requests
+                    if request.npu_id == probe_npu_id
+                ),
+                key=lambda request: (
+                    request.arrival_time_ms,
+                    request.request_id,
+                ),
+            )
+            if not ordered:
+                raise ValueError("profile-cycle trend probe NPU has no requests")
+            generations = []
+            for request in ordered:
+                generation = request.load.get("generation")
+                if (
+                    isinstance(generation, bool)
+                    or not isinstance(generation, (int, np.integer))
+                    or generation < 0
+                ):
+                    raise ValueError(
+                        "profile-cycle trend probe requests require nonnegative "
+                        "integer load['generation'] metadata"
+                    )
+                generations.append(int(generation))
+            if any(
+                right != left + 1
+                for left, right in zip(generations, generations[1:])
+            ):
+                raise ValueError(
+                    "profile-cycle trend probe generations must be consecutive "
+                    "in per-NPU arrival order"
+                )
+            generation_sequences.append(tuple(generations))
+        if len(set(generation_sequences)) != 1:
+            raise ValueError(
+                "profile-cycle trend probe NPUs must share one generation sequence"
+            )
 
     disk_qos_configs: tuple[sim.StaticQoSConfig, ...] = ()
     dedicated_paths = None
@@ -5921,6 +6752,18 @@ def simulate_continuous_batch(
                 )
         else:
             raise RuntimeError(f"unknown event type: {event_type}")
+
+        # Frontier observation is not an event.  Drain the entire timestamp's
+        # business-event closure first so equal-time heap tie-break order
+        # cannot manufacture a per-NPU phase asymmetry in the snapshot.
+        if (
+            context.profile_cycle_pending_frontiers
+            and (
+                not context.event_heap
+                or abs(context.event_heap[0][0] - current_time_ms) > _EPS
+            )
+        ):
+            _flush_profile_cycle_frontiers(context, current_time_ms)
 
         if (
             steady_state is not None
