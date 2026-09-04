@@ -80,14 +80,15 @@ def _x(blocks, document):
     ]
 
 
-def _save(fig, result_dir, stem):
+def _save(fig, result_dir, stem, *, write_pdf=False):
     fig.tight_layout()
     fig.savefig(result_dir / f"{stem}.png", dpi=220, bbox_inches="tight")
-    fig.savefig(result_dir / f"{stem}.pdf", bbox_inches="tight")
+    if write_pdf:
+        fig.savefig(result_dir / f"{stem}.pdf", bbox_inches="tight")
     plt.close(fig)
 
 
-def plot01(rows, result_dir):
+def plot01(rows, result_dir, *, write_pdf=False):
     fig, ax = plt.subplots(figsize=(9.5, 4.8))
     for case, document in rows.items():
         blocks = _blocks(document)
@@ -107,10 +108,10 @@ def plot01(rows, result_dir):
     ax.grid(color="#D8DEE9", linewidth=0.7, alpha=0.8)
     ax.legend(ncol=2, frameon=False, loc="lower right")
     ax.set_title("32 NPU / 5 SSU: compute-area utilization in 500 ms blocks")
-    _save(fig, result_dir, "01_npu_utilization_timeline")
+    _save(fig, result_dir, "01_npu_utilization_timeline", write_pdf=write_pdf)
 
 
-def plot02(rows, result_dir):
+def plot02(rows, result_dir, *, write_pdf=False):
     fig, axes = plt.subplots(2, 1, figsize=(9.5, 7.2), sharex=True)
     for case, document in rows.items():
         blocks = _blocks(document)
@@ -130,10 +131,10 @@ def plot02(rows, result_dir):
     axes[1].set_xlabel("Time in 4 s measurement window (s)")
     axes[1].legend(ncol=2, frameon=False, loc="lower right")
     fig.suptitle("V/B benefit and cost by fixed NPU cohort", fontsize=13)
-    _save(fig, result_dir, "02_high_low_npu_utilization_timeline")
+    _save(fig, result_dir, "02_high_low_npu_utilization_timeline", write_pdf=write_pdf)
 
 
-def plot03(rows, result_dir):
+def plot03(rows, result_dir, *, write_pdf=False):
     columns = 2
     nrows = math.ceil(len(rows) / columns)
     fig, axes = plt.subplots(nrows, columns, figsize=(11.2, 3.3 * nrows), sharex=True, sharey=True)
@@ -158,10 +159,10 @@ def plot03(rows, result_dir):
             ax.set_xlabel("Time in measurement window (s)")
     axes[0].legend(ncol=3, frameon=False, loc="lower right")
     fig.suptitle("Per-SSU service utilization in 500 ms blocks", fontsize=13)
-    _save(fig, result_dir, "03_ssu_utilization_timeline")
+    _save(fig, result_dir, "03_ssu_utilization_timeline", write_pdf=write_pdf)
 
 
-def plot04(rows, result_dir):
+def plot04(rows, result_dir, *, write_pdf=False):
     columns = 2
     nrows = math.ceil(len(rows) / columns)
     fig, axes = plt.subplots(nrows, columns, figsize=(11.2, 3.25 * nrows), sharex=True, sharey=True)
@@ -193,7 +194,7 @@ def plot04(rows, result_dir):
             ax.set_xlabel("Admission time in measurement window (s)")
     axes[0].legend(ncol=3, frameon=False, loc="upper right")
     fig.suptitle("Request latency guard over the same 4 s windows", fontsize=13)
-    _save(fig, result_dir, "04_ttft_over_ideal_timeline")
+    _save(fig, result_dir, "04_ttft_over_ideal_timeline", write_pdf=write_pdf)
 
 
 def write_csv(rows, result_dir):
@@ -231,15 +232,17 @@ def write_csv(rows, result_dir):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--result-dir", type=Path, default=DEFAULT_DIR)
+    parser.add_argument("--pdf", action="store_true", help="also write PDF copies")
     args = parser.parse_args()
     rows = _load(args.result_dir)
     _style()
-    plot01(rows, args.result_dir)
-    plot02(rows, args.result_dir)
-    plot03(rows, args.result_dir)
-    plot04(rows, args.result_dir)
+    plot01(rows, args.result_dir, write_pdf=args.pdf)
+    plot02(rows, args.result_dir, write_pdf=args.pdf)
+    plot03(rows, args.result_dir, write_pdf=args.pdf)
+    plot04(rows, args.result_dir, write_pdf=args.pdf)
     write_csv(rows, args.result_dir)
-    print(f"wrote 01-04 PNG/PDF and summary.csv to {args.result_dir}")
+    formats = "PNG/PDF" if args.pdf else "PNG"
+    print(f"wrote 01-04 {formats} and summary.csv to {args.result_dir}")
 
 
 if __name__ == "__main__":

@@ -87,8 +87,8 @@ duration-aware 为 10.230399；LL=36 为 8.176001；request-boundary 无违规�
 
 ### 5.1 旧结果其实是 18:14，不是 28:4
 
-`VB_EXPERIMENT_REPRODUCTION.md` 中的 `+3.447908 pp` 来自 **18 个大 V NPU + 14 个
-小 V NPU**。旧实验的 Baseline 大 V 利用率只有 93.470698%，V/B 可提高到
+已归档旧实验中的 `+3.447908 pp` 来自 **18 个大 V NPU + 14 个小 V NPU**。
+旧实验的 Baseline 大 V 利用率只有 93.470698%，V/B 可提高到
 99.990363%。本次 28:4 下，Baseline 的大 V 已是 99.623315%。
 
 满足 guard 的 37.6191/2.3809 配置可精确分解为：
@@ -200,7 +200,8 @@ MPLBACKEND=Agg python plot_vb_fixed_split_npu32_ssu5_4s.py
 
 - `run_vb_fixed_split_npu32_ssu5_experiment.py`：matched trace、28:4 lane 和仿真；
 - `vb_pool_policy.py`：LL/LS Path 表与 V/B 分类；
-- `plot_vb_fixed_split_npu32_ssu5_4s.py`：01--04 PNG/PDF 与 `summary.csv`；
+- `plot_vb_fixed_split_npu32_ssu5_4s.py`：默认生成 01--04 PNG 与 `summary.csv`，
+  传入 `--pdf` 时额外生成 PDF；
 - `results/vb_fixed_split_npu32_ssu5_28high_4low_4s/*.json`：完整原始结果。
 
 共同源码哈希：

@@ -1,66 +1,112 @@
-# QoS Storage Simulator — Adaptive V2.1 steady-state package
+# QoS Storage Simulator — current minimal project
 
-本目录只保留当前 warm/full-load 调查的核心仿真器、真实 `data`、Adaptive
-V2.1 策略、正式对照结果及其分析证据。历史 cold/warm、routing 和
-full-prefill 实验已经移出项目。
+This checkout intentionally contains one experiment only:
 
-## 最终结论与结果
-
-- [完整中文报告](BASELINE_QOS_STEADY_STATE_REPORT.pdf)
-- [报告 Markdown](BASELINE_QOS_STEADY_STATE_REPORT.md)
-- [128-NPU Adaptive 结果](results/steady_state_128npu_adaptive_v2_1/report.md)
-- [32→128 联合分析](results/steady_state_128npu_admission_v1/scale_analysis.md)
-- [2 NPU × 2 SSU baseline 实验](results/baseline_2npu_teaching/report.md)
-- [Ring placement 审计](results/ring_ownership_scale/analysis.md)
-- [合成带宽满足度审计](results/synthetic_bandwidth_satisfaction/results.md)
-- [32-NPU CIR 控制：平均 NPU 利用率](results/ms_scale_control/selected_settings_alpha1p5_ssu2_5_plots/01_mean_npu_utilization_vs_ssu.png)
-- [32-NPU CIR 控制：TTFT SLO 1.5×](results/ms_scale_control/selected_settings_alpha1p5_ssu2_5_plots/02_ttft_slo_alpha1p5_vs_ssu.png)
-- [32-NPU CIR 控制：TTFT SLO 2×](results/ms_scale_control/selected_settings_alpha1p5_ssu2_5_plots/03_ttft_slo_alpha2_vs_ssu.png)
-- [32-NPU CIR 控制：49 行汇总](results/ms_scale_control/selected_settings_alpha1p5_ssu2_5_analysis/summary.csv)
-
-128 NPU、16 层、batch=1、真实 `data` 的最终 Adaptive V2.1 结果：
-
-| SSU | Baseline util / SLO | Adaptive util / SLO |
-|---:|---:|---:|
-| 24 | 32.76% / 25.00% | 32.51% / 52.10% |
-| 40 | 51.60% / 50.00% | 51.57% / 82.45% |
-| 70 | 88.93% / 77.33% | 90.85% / 98.88% |
-
-## 当前实现
-
-- `sim.py`：SSD40 命令级仲裁和基础数据面。
-- `continuous_batch_sim.py`：warm/full-load、NPU50 和测量窗口。
-- `policy_logic.py`、`continuous_batch_control.py`：策略与 grant 分配基础。
-- `slo_admission_scheme_b.py`：V1 request admission/coflow residual。
-- `slo_admission_scheme_b_v2.py`：V2 selected-first explicit spill。
-- `adaptive_admission_scheme_b_v2_1.py`：按当前 selected fraction 自适应选择
-  V1/V2 residual，25 ms event-gated 控制。
-
-主要 runner：
-
-```bash
-python steady_state_128npu_adaptive_v2_1_experiment.py --help
-python steady_state_32npu_adaptive_v2_1_experiment.py --help
-python steady_state_128npu_admission_experiment.py --help
-python steady_state_128npu_admission_v2_experiment.py --help
+```text
+32 NPU / 5 SSU / 16 layers / seed 42
+warm-up + 500 ms settle, followed by a 4 s measurement window
+28 fixed high-V NPU lanes + 4 fixed low-V NPU lanes
+Baseline versus four static V/B LL/LS allocations
+TTFT / ideal TTFT guard = 8
 ```
 
-重新生成联合分析：
+Historical campaigns, intermediate plots, abandoned strategies, and local
+environments were moved outside this repository on 2026-09-04. They are not
+needed to understand or reproduce the retained result.
 
-```bash
-python analyze_steady_state_128npu_scale.py
-python analyze_ring_ownership_scale.py
+## Read this first
+
+1. [`VB_FIXED_SPLIT_28_HIGH_4_LOW_4S_REPORT.md`](VB_FIXED_SPLIT_28_HIGH_4_LOW_4S_REPORT.md)
+   contains the result and its statistical limits.
+2. [`VB_POLICY_IMPLEMENTATION_AND_HARDWARE_FEASIBILITY.md`](VB_POLICY_IMPLEMENTATION_AND_HARDWARE_FEASIBILITY.md)
+   states exactly what the retained V/B policy does and does not model.
+3. [`CURRENT_PROJECT_MANIFEST.md`](CURRENT_PROJECT_MANIFEST.md) lists the complete
+   dependency closure and hashes. The JSON files record only a smaller legacy
+   source-hash subset.
+
+The most important result is not “V/B wins.” For this one seed, Baseline is
+already at 92.908964% fleet NPU utilization. The only V/B setting that both
+passes `TTFT/ideal <= 8` and improves utilization reaches 93.009984%, a gain of
+only 0.101019 percentage points. One seed and eight 500 ms blocks do not prove
+that this small gain is stable.
+
+## Repository map
+
+```text
+run_vb_fixed_split_npu32_ssu5_experiment.py  matched runner and CLI
+plot_vb_fixed_split_npu32_ssu5_4s.py         regenerates summary + 01–04 PNG
+vb_pool_policy.py                            V/B values and LL/LS QoS tables
+continuous_batch_sim.py, sim.py              event model and SSU scheduler
+authenticated_workload_inputs.py             validates the profile table
+continuous_prefill_*.py                       workload and routing adapters
+random_steady_state_workload.py               deterministic catalog draw
+six_request_workload.py                       request construction helper
+policy_logic.py, continuous_batch_control.py  Path planning/control primitives
+strategy_profiles.py                          Baseline static QoS table
+data                                          authenticated 84-profile input
+ssd_accounting_checks.py                      storage-accounting regressions
+test_continuous_batch_profile_cycle_frontier.py  steady-window regression
+results/vb_fixed_split_npu32_ssu5_28high_4low_4s/
 ```
 
-## 保留边界
+Only NumPy and matplotlib are third-party dependencies:
 
-`steady_state_32npu_experiment.py`、`steady_state_experiment.py` 和
-`steady_state_128npu_admission_experiment.py` 虽然名称像旧 runner，但仍是当前
-Adaptive runner 的运行依赖，不可删除。
+```bash
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+```
 
-冻结的 128-NPU Adaptive runner 还存在一个已记录的 provenance 缺口：它间接导入
-`steady_state_32npu_experiment.py`，但没有将该文件计入自己的 `SOURCE_FILES`。
-现有正式结果因此保持原样；下一版本应先补齐完整传递 import 指纹再重跑。
+The retained artifacts were verified with Python 3.10.10, NumPy 2.2.6, and
+matplotlib 3.10.9. `requirements.txt` gives compatible lower bounds rather than
+claiming bit-for-bit reproducibility across library versions.
 
-按当前维护约定，项目不保留 `test_*.py`。正式结果依靠 source/config/case
-fingerprint、跨策略输入配对哈希和运行时 invariant 保留审计信息。
+## Fast checks
+
+These do not rerun the hour-long experiment:
+
+```bash
+python3 -m unittest -v \
+  ssd_accounting_checks.py \
+  test_continuous_batch_profile_cycle_frontier.py
+
+python3 run_vb_fixed_split_npu32_ssu5_experiment.py \
+  --case baseline --dry-run
+
+MPLBACKEND=Agg python3 plot_vb_fixed_split_npu32_ssu5_4s.py
+```
+
+The plot command writes four PNG files and `summary.csv`. Add `--pdf` only when
+PDF copies are actually needed.
+
+## Full matched rerun
+
+```bash
+for case in baseline vb_catalog vb_duration_aware vb_ll36 vb_split_aware; do
+  python3 run_vb_fixed_split_npu32_ssu5_experiment.py \
+    --case "$case" \
+    --requests-per-npu 64 \
+    --measurement-ms 4000 \
+    --block-ms 500 \
+    --output-dir results/vb_fixed_split_npu32_ssu5_28high_4low_4s
+done
+
+MPLBACKEND=Agg python3 plot_vb_fixed_split_npu32_ssu5_4s.py
+```
+
+The saved run took about 56 minutes sequentially on the original host. Cases
+are independent and may be run in parallel if each process has adequate memory
+and writes a different case JSON. `route_only` is intentionally absent: with
+64 source requests per original NPU its four low-V lanes exhaust their finite
+backlog, so it is recorded as an invalid ablation in `route_only.error.log`.
+
+## Artifact contract
+
+Each valid JSON contains the exact transformed-input fingerprint, workload and
+placement hashes, metrics, 500 ms measurement blocks, request rows, and 31
+invariant checks. All five valid JSON files must have the same
+`fixed_split_input_fingerprint`; all invariants must be true and
+`no_backlog_exhaustion` must be true.
+
+The cleanup did not delete historical work. A local sibling archive holds the
+old untracked/ignored files and a pre-cleanup Git patch; tracked history is also
+recoverable from commit `9b7e3320551732856d2715a607a24284b68778f2`.
