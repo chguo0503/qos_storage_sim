@@ -1,0 +1,34 @@
+{
+  "evidence_type": "analytic_capacity_only_no_simulation",
+  "source_manifest": "results/baseline_npu32_investigation/mixed_varied/inputs/raw_size_varied_rho097_seed7.json.gz",
+  "source_manifest_file_sha256": "218df989dc5b4d0f1e3adce984f225adb5210f71f27d88e70b9ba99d9a1bcd67",
+  "source_input_fingerprint": "ec98892f9d175d8fc3094207ac31654820b58e23ec5c31aad29be549165bcd81",
+  "counterfactual_definition": "Remove both long profile types; keep equal counts of the three original raw short profiles on every lane, original per-layer compute and bytes, 32 NPU / 8 SSU / 40 GiB/s per SSU. This is a different population, not a result for the original mixed trace.",
+  "profiles": [
+    {
+      "seq_len_k": 32,
+      "nql": 128,
+      "per_layer_compute_us": 1178.0259589150035,
+      "per_layer_kv_gib": 0.0428009033203125
+    },
+    {
+      "seq_len_k": 48,
+      "nql": 256,
+      "per_layer_compute_us": 2668.5683140655256,
+      "per_layer_kv_gib": 0.064117431640625
+    },
+    {
+      "seq_len_k": 64,
+      "nql": 512,
+      "per_layer_compute_us": 6386.487182261469,
+      "per_layer_kv_gib": 0.08526611328125
+    }
+  ],
+  "sum_per_layer_gib_equal_quota_unit": 0.1921844482421875,
+  "sum_per_layer_compute_seconds_equal_quota_unit": 0.010233081455241998,
+  "pooled_per_npu_gib_s": 18.780701500596294,
+  "aggregate_disk_rho": 1.8780701500596293,
+  "full_population_mean_npu_utilization_upper_bound_from_total_bytes": 0.5324614737997139,
+  "derivation": "For any positive complete quota count q and L layers, total bytes=32*q*L*sum(V). Makespan >= total_bytes/(8*40). Total NPU compute=32*q*L*sum(C). Thus total_compute/(32*makespan) <= (8*40)*sum(C)/(32*sum(V)) = 1/rho.",
+  "scope": "All reads performed within a nonnegative-time full run; unchanged C/V/counts, no compression or reads cached outside this run. This is a full-run total-byte bound, not a bound for arbitrary intermediate windows or frozen activation deadlines."
+}

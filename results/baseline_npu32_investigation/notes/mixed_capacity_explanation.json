@@ -1,0 +1,1503 @@
+{
+  "scope": "Read-only arithmetic over authenticated raw data and frozen manifests; no new simulation. Necessary average capacity condition for continuous ideal no-stall saturated compute with identical per-NPU complete profile quotas. Not a finite-window utilization bound.",
+  "source": {
+    "data_path": "data",
+    "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b"
+  },
+  "formula": {
+    "pool_bandwidth": "sum(q_i * V_i_gib) / sum(q_i * C_i_seconds)",
+    "f_definition": "short-pool ideal compute / total ideal compute",
+    "necessary_condition": "32 * (f * b_short + (1-f) * b_long) <= num_ssu * 40 GiB/s",
+    "f_max_for_b_short_gt_b_long": "(num_ssu*40/32 - b_long) / (b_short - b_long)",
+    "six_ssu_caveat": "The six-SSU column is arithmetic with unchanged per-NPU profile mix, not an executed placement or simulator result."
+  },
+  "profiles": [
+    {
+      "key": [
+        32,
+        128
+      ],
+      "per_layer_compute_us": 1178.0259589150035,
+      "per_layer_read_gib": 0.0428009033203125,
+      "bandwidth_gib_s": 36.332733584014896
+    },
+    {
+      "key": [
+        32,
+        256
+      ],
+      "per_layer_compute_us": 1997.4796959734433,
+      "per_layer_read_gib": 0.042633056640625,
+      "bandwidth_gib_s": 21.343424279388426
+    },
+    {
+      "key": [
+        32,
+        512
+      ],
+      "per_layer_compute_us": 3702.132666685269,
+      "per_layer_read_gib": 0.04229736328125,
+      "bandwidth_gib_s": 11.425134399389648
+    },
+    {
+      "key": [
+        48,
+        256
+      ],
+      "per_layer_compute_us": 2668.5683140655256,
+      "per_layer_read_gib": 0.064117431640625,
+      "bandwidth_gib_s": 24.026902853741458
+    },
+    {
+      "key": [
+        64,
+        512
+      ],
+      "per_layer_compute_us": 6386.487182261469,
+      "per_layer_read_gib": 0.08526611328125,
+      "bandwidth_gib_s": 13.351019245458986
+    },
+    {
+      "key": [
+        96,
+        512
+      ],
+      "per_layer_compute_us": 9070.841799535496,
+      "per_layer_read_gib": 0.12823486328125,
+      "bandwidth_gib_s": 14.137041094445799
+    },
+    {
+      "key": [
+        192,
+        512
+      ],
+      "per_layer_compute_us": 17123.90630166978,
+      "per_layer_read_gib": 0.25714111328125,
+      "bandwidth_gib_s": 15.0164984993042
+    },
+    {
+      "key": [
+        192,
+        1024
+      ],
+      "per_layer_compute_us": 34100.781654707,
+      "per_layer_read_gib": 0.2564697265625,
+      "bandwidth_gib_s": 7.520933952758791
+    },
+    {
+      "key": [
+        192,
+        2048
+      ],
+      "per_layer_compute_us": 68056.18615283375,
+      "per_layer_read_gib": 0.255126953125,
+      "bandwidth_gib_s": 3.748769473388672
+    }
+  ],
+  "pool_capacity_limits": [
+    {
+      "name": "original_32k128_vs_192k2048",
+      "short_pool": {
+        "profiles": [
+          {
+            "key": [
+              32,
+              128
+            ],
+            "quota": 1
+          }
+        ],
+        "compute_seconds_per_layer_unit": 0.0011780259589150035,
+        "read_gib_per_layer_unit": 0.0428009033203125,
+        "bandwidth_gib_s": 36.332733584014896
+      },
+      "long_pool": {
+        "profiles": [
+          {
+            "key": [
+              192,
+              2048
+            ],
+            "quota": 1
+          }
+        ],
+        "compute_seconds_per_layer_unit": 0.06805618615283375,
+        "read_gib_per_layer_unit": 0.255126953125,
+        "bandwidth_gib_s": 3.748769473388672
+      },
+      "f_max_8_ssu": 0.19184990829807255,
+      "f_max_6_ssu": 0.115125050895449,
+      "short_only_aggregate_rho_8_ssu": 3.63327335840149,
+      "short_only_aggregate_rho_6_ssu": 4.844364477868653
+    },
+    {
+      "name": "raw_equal_short_long1to3",
+      "short_pool": {
+        "profiles": [
+          {
+            "key": [
+              32,
+              128
+            ],
+            "quota": 1
+          },
+          {
+            "key": [
+              32,
+              256
+            ],
+            "quota": 1
+          },
+          {
+            "key": [
+              32,
+              512
+            ],
+            "quota": 1
+          }
+        ],
+        "compute_seconds_per_layer_unit": 0.006877638321573716,
+        "read_gib_per_layer_unit": 0.1277313232421875,
+        "bandwidth_gib_s": 18.571974458371997
+      },
+      "long_pool": {
+        "profiles": [
+          {
+            "key": [
+              192,
+              1024
+            ],
+            "quota": 1
+          },
+          {
+            "key": [
+              192,
+              2048
+            ],
+            "quota": 3
+          }
+        ],
+        "compute_seconds_per_layer_unit": 0.23826934011320824,
+        "read_gib_per_layer_unit": 1.0218505859375,
+        "bandwidth_gib_s": 4.288636487816649
+      },
+      "f_max_8_ssu": 0.3998619597153794,
+      "f_max_6_ssu": 0.22483284501168257,
+      "short_only_aggregate_rho_8_ssu": 1.8571974458371998,
+      "short_only_aggregate_rho_6_ssu": 2.4762632611162663
+    },
+    {
+      "name": "raw_skew_short1to1to8_long1to1",
+      "short_pool": {
+        "profiles": [
+          {
+            "key": [
+              32,
+              128
+            ],
+            "quota": 1
+          },
+          {
+            "key": [
+              32,
+              256
+            ],
+            "quota": 1
+          },
+          {
+            "key": [
+              32,
+              512
+            ],
+            "quota": 8
+          }
+        ],
+        "compute_seconds_per_layer_unit": 0.0327925669883706,
+        "read_gib_per_layer_unit": 0.4238128662109375,
+        "bandwidth_gib_s": 12.924052769679069
+      },
+      "long_pool": {
+        "profiles": [
+          {
+            "key": [
+              192,
+              1024
+            ],
+            "quota": 1
+          },
+          {
+            "key": [
+              192,
+              2048
+            ],
+            "quota": 1
+          }
+        ],
+        "compute_seconds_per_layer_unit": 0.10215696780754074,
+        "read_gib_per_layer_unit": 0.5115966796875,
+        "bandwidth_gib_s": 5.007946992429589
+      },
+      "f_max_8_ssu": 0.6306197956471653,
+      "f_max_6_ssu": 0.31480794694942754,
+      "short_only_aggregate_rho_8_ssu": 1.2924052769679069,
+      "short_only_aggregate_rho_6_ssu": 1.7232070359572091
+    },
+    {
+      "name": "raw_size_varied_short_equal_long1to3",
+      "short_pool": {
+        "profiles": [
+          {
+            "key": [
+              32,
+              128
+            ],
+            "quota": 1
+          },
+          {
+            "key": [
+              48,
+              256
+            ],
+            "quota": 1
+          },
+          {
+            "key": [
+              64,
+              512
+            ],
+            "quota": 1
+          }
+        ],
+        "compute_seconds_per_layer_unit": 0.010233081455241998,
+        "read_gib_per_layer_unit": 0.1921844482421875,
+        "bandwidth_gib_s": 18.780701500596294
+      },
+      "long_pool": {
+        "profiles": [
+          {
+            "key": [
+              192,
+              1024
+            ],
+            "quota": 1
+          },
+          {
+            "key": [
+              192,
+              2048
+            ],
+            "quota": 3
+          }
+        ],
+        "compute_seconds_per_layer_unit": 0.23826934011320824,
+        "read_gib_per_layer_unit": 1.0218505859375,
+        "bandwidth_gib_s": 4.288636487816649
+      },
+      "f_max_8_ssu": 0.39410280778804524,
+      "f_max_6_ssu": 0.22159461121320193,
+      "short_only_aggregate_rho_8_ssu": 1.8780701500596293,
+      "short_only_aggregate_rho_6_ssu": 2.5040935334128394
+    }
+  ],
+  "frozen_mixed_input_audits": [
+    {
+      "label": "raw_equal_rho090_seed123",
+      "manifest": "results/baseline_npu32_investigation/mixed_varied/inputs/raw_equal_rho090_seed123.json.gz",
+      "manifest_sha256": "7d845cde0b5717a2e9d13593ec4fba016166f0bd642f8460cc8c90db43d22f96",
+      "input_fingerprint": "bfaa9f5d4b0b204d934bd13b7d4a6ee6ace6903ff5ae872fe6d1342e24410d90",
+      "request_count": 3520,
+      "quota_units_per_npu": 2,
+      "quotas": [
+        17,
+        17,
+        17,
+        1,
+        3
+      ],
+      "profile_keys": [
+        [
+          32,
+          128
+        ],
+        [
+          32,
+          256
+        ],
+        [
+          32,
+          512
+        ],
+        [
+          192,
+          1024
+        ],
+        [
+          192,
+          2048
+        ]
+      ],
+      "profiles": [
+        {
+          "key": [
+            32,
+            128
+          ],
+          "quota": 17,
+          "requests_per_npu": 34,
+          "compute_fraction": 0.056382462575713374,
+          "per_layer_compute_ms": 1.1780259589150035,
+          "per_layer_read_gib": 0.0428009033203125
+        },
+        {
+          "key": [
+            32,
+            256
+          ],
+          "quota": 17,
+          "requests_per_npu": 34,
+          "compute_fraction": 0.09560300717625858,
+          "per_layer_compute_ms": 1.9974796959734433,
+          "per_layer_read_gib": 0.042633056640625
+        },
+        {
+          "key": [
+            32,
+            512
+          ],
+          "quota": 17,
+          "requests_per_npu": 34,
+          "compute_fraction": 0.17719079528770276,
+          "per_layer_compute_ms": 3.7021326666852694,
+          "per_layer_read_gib": 0.04229736328125
+        },
+        {
+          "key": [
+            192,
+            1024
+          ],
+          "quota": 1,
+          "requests_per_npu": 2,
+          "compute_fraction": 0.09600737427571784,
+          "per_layer_compute_ms": 34.100781654707006,
+          "per_layer_read_gib": 0.2564697265625
+        },
+        {
+          "key": [
+            192,
+            2048
+          ],
+          "quota": 3,
+          "requests_per_npu": 6,
+          "compute_fraction": 0.5748163606846075,
+          "per_layer_compute_ms": 68.05618615283375,
+          "per_layer_read_gib": 0.255126953125
+        }
+      ],
+      "short_compute_fraction": 0.32917626503967473,
+      "short_request_fraction": 0.9272727272727272,
+      "nql128_and256_compute_fraction": 0.15198546975197197,
+      "aggregate_demand_gib_s": 287.69191466442965,
+      "aggregate_rho_8_ssu": 0.8990372333263427,
+      "counterfactual_same_mix_aggregate_rho_6_ssu": 1.1987163111017902,
+      "physical_per_ssu_gib_s": [
+        35.9614893330537,
+        35.9614893330537,
+        35.9614893330537,
+        35.9614893330537,
+        35.9614893330537,
+        35.9614893330537,
+        35.9614893330537,
+        35.9614893330537
+      ],
+      "physical_hottest_ssu_rho": 0.8990372333263424,
+      "ideal_compute_ms_per_npu": 5683.027065279382,
+      "checks": {
+        "input_fingerprint_recomputed_by_frozen_loader": true,
+        "metadata_fingerprint_equal": true,
+        "data_hash_equal": true,
+        "raw_C_V_no_padding_no_scaling": true,
+        "physical_read_volume_matches_data": true,
+        "all_32_npu_identical_complete_quotas": true,
+        "all_arrivals_zero": true,
+        "short_fraction_matches_metadata": true,
+        "mean_rho_matches_metadata": true,
+        "physical_hottest_rho_matches_metadata": true,
+        "physical_aggregate_balanced": true,
+        "all_ideal_compute_equal": true
+      }
+    },
+    {
+      "label": "raw_equal_rho090_seed7",
+      "manifest": "results/baseline_npu32_investigation/mixed_varied/inputs/raw_equal_rho090_seed7.json.gz",
+      "manifest_sha256": "0cee921f2f15470bfe67a21b33df217112e40b629f6715300fbe42327c1e6cb8",
+      "input_fingerprint": "38385f06c431321e4dcdc8321bcac063ac01cc743b4e9424bbecf968f7b7385e",
+      "request_count": 3520,
+      "quota_units_per_npu": 2,
+      "quotas": [
+        17,
+        17,
+        17,
+        1,
+        3
+      ],
+      "profile_keys": [
+        [
+          32,
+          128
+        ],
+        [
+          32,
+          256
+        ],
+        [
+          32,
+          512
+        ],
+        [
+          192,
+          1024
+        ],
+        [
+          192,
+          2048
+        ]
+      ],
+      "profiles": [
+        {
+          "key": [
+            32,
+            128
+          ],
+          "quota": 17,
+          "requests_per_npu": 34,
+          "compute_fraction": 0.056382462575713374,
+          "per_layer_compute_ms": 1.1780259589150035,
+          "per_layer_read_gib": 0.0428009033203125
+        },
+        {
+          "key": [
+            32,
+            256
+          ],
+          "quota": 17,
+          "requests_per_npu": 34,
+          "compute_fraction": 0.09560300717625858,
+          "per_layer_compute_ms": 1.9974796959734433,
+          "per_layer_read_gib": 0.042633056640625
+        },
+        {
+          "key": [
+            32,
+            512
+          ],
+          "quota": 17,
+          "requests_per_npu": 34,
+          "compute_fraction": 0.17719079528770276,
+          "per_layer_compute_ms": 3.7021326666852694,
+          "per_layer_read_gib": 0.04229736328125
+        },
+        {
+          "key": [
+            192,
+            1024
+          ],
+          "quota": 1,
+          "requests_per_npu": 2,
+          "compute_fraction": 0.09600737427571784,
+          "per_layer_compute_ms": 34.100781654707006,
+          "per_layer_read_gib": 0.2564697265625
+        },
+        {
+          "key": [
+            192,
+            2048
+          ],
+          "quota": 3,
+          "requests_per_npu": 6,
+          "compute_fraction": 0.5748163606846075,
+          "per_layer_compute_ms": 68.05618615283375,
+          "per_layer_read_gib": 0.255126953125
+        }
+      ],
+      "short_compute_fraction": 0.32917626503967473,
+      "short_request_fraction": 0.9272727272727272,
+      "nql128_and256_compute_fraction": 0.15198546975197197,
+      "aggregate_demand_gib_s": 287.69191466442965,
+      "aggregate_rho_8_ssu": 0.8990372333263427,
+      "counterfactual_same_mix_aggregate_rho_6_ssu": 1.1987163111017902,
+      "physical_per_ssu_gib_s": [
+        35.9614893330537,
+        35.9614893330537,
+        35.9614893330537,
+        35.9614893330537,
+        35.9614893330537,
+        35.9614893330537,
+        35.9614893330537,
+        35.9614893330537
+      ],
+      "physical_hottest_ssu_rho": 0.8990372333263424,
+      "ideal_compute_ms_per_npu": 5683.027065279382,
+      "checks": {
+        "input_fingerprint_recomputed_by_frozen_loader": true,
+        "metadata_fingerprint_equal": true,
+        "data_hash_equal": true,
+        "raw_C_V_no_padding_no_scaling": true,
+        "physical_read_volume_matches_data": true,
+        "all_32_npu_identical_complete_quotas": true,
+        "all_arrivals_zero": true,
+        "short_fraction_matches_metadata": true,
+        "mean_rho_matches_metadata": true,
+        "physical_hottest_rho_matches_metadata": true,
+        "physical_aggregate_balanced": true,
+        "all_ideal_compute_equal": true
+      }
+    },
+    {
+      "label": "raw_equal_rho097_seed123",
+      "manifest": "results/baseline_npu32_investigation/mixed_varied/inputs/raw_equal_rho097_seed123.json.gz",
+      "manifest_sha256": "ceca1dbc22de5247773909cbbccb0409c0fc725200b663431f0e3cbaf254dcdd",
+      "input_fingerprint": "bb25e1048e0953666eebeef4f0082b4d7fa73f1aaf84808bf3a1a82eed6b5edc",
+      "request_count": 4288,
+      "quota_units_per_npu": 2,
+      "quotas": [
+        21,
+        21,
+        21,
+        1,
+        3
+      ],
+      "profile_keys": [
+        [
+          32,
+          128
+        ],
+        [
+          32,
+          256
+        ],
+        [
+          32,
+          512
+        ],
+        [
+          192,
+          1024
+        ],
+        [
+          192,
+          2048
+        ]
+      ],
+      "profiles": [
+        {
+          "key": [
+            32,
+            128
+          ],
+          "quota": 21,
+          "requests_per_npu": 42,
+          "compute_fraction": 0.06464217828486025,
+          "per_layer_compute_ms": 1.1780259589150035,
+          "per_layer_read_gib": 0.0428009033203125
+        },
+        {
+          "key": [
+            32,
+            256
+          ],
+          "quota": 21,
+          "requests_per_npu": 42,
+          "compute_fraction": 0.10960831350985545,
+          "per_layer_compute_ms": 1.9974796959734433,
+          "per_layer_read_gib": 0.042633056640625
+        },
+        {
+          "key": [
+            32,
+            512
+          ],
+          "quota": 21,
+          "requests_per_npu": 42,
+          "compute_fraction": 0.20314825667720385,
+          "per_layer_compute_ms": 3.7021326666852694,
+          "per_layer_read_gib": 0.04229736328125
+        },
+        {
+          "key": [
+            192,
+            1024
+          ],
+          "quota": 1,
+          "requests_per_npu": 2,
+          "compute_fraction": 0.08910583848605479,
+          "per_layer_compute_ms": 34.100781654707006,
+          "per_layer_read_gib": 0.2564697265625
+        },
+        {
+          "key": [
+            192,
+            2048
+          ],
+          "quota": 3,
+          "requests_per_npu": 6,
+          "compute_fraction": 0.5334954130420257,
+          "per_layer_compute_ms": 68.05618615283375,
+          "per_layer_read_gib": 0.255126953125
+        }
+      ],
+      "short_compute_fraction": 0.37739874847191957,
+      "short_request_fraction": 0.9402985074626866,
+      "nql128_and256_compute_fraction": 0.1742504917947157,
+      "aggregate_demand_gib_s": 309.73281158098195,
+      "aggregate_rho_8_ssu": 0.9679150361905686,
+      "counterfactual_same_mix_aggregate_rho_6_ssu": 1.2905533815874248,
+      "physical_per_ssu_gib_s": [
+        38.716601447622736,
+        38.716601447622736,
+        38.716601447622736,
+        38.716601447622736,
+        38.716601447622736,
+        38.716601447622736,
+        38.716601447622736,
+        38.716601447622736
+      ],
+      "physical_hottest_ssu_rho": 0.9679150361905684,
+      "ideal_compute_ms_per_npu": 6123.195917860101,
+      "checks": {
+        "input_fingerprint_recomputed_by_frozen_loader": true,
+        "metadata_fingerprint_equal": true,
+        "data_hash_equal": true,
+        "raw_C_V_no_padding_no_scaling": true,
+        "physical_read_volume_matches_data": true,
+        "all_32_npu_identical_complete_quotas": true,
+        "all_arrivals_zero": true,
+        "short_fraction_matches_metadata": true,
+        "mean_rho_matches_metadata": true,
+        "physical_hottest_rho_matches_metadata": true,
+        "physical_aggregate_balanced": true,
+        "all_ideal_compute_equal": true
+      }
+    },
+    {
+      "label": "raw_equal_rho097_seed7",
+      "manifest": "results/baseline_npu32_investigation/mixed_varied/inputs/raw_equal_rho097_seed7.json.gz",
+      "manifest_sha256": "8938f059f8671c2e56faaeac9287ffc6eaceb639e2034a2011257a8e029bc38c",
+      "input_fingerprint": "f5ac0cc2e732060474bdefe4dcc12d07fa812d035b41815f807e06c2a5696037",
+      "request_count": 4288,
+      "quota_units_per_npu": 2,
+      "quotas": [
+        21,
+        21,
+        21,
+        1,
+        3
+      ],
+      "profile_keys": [
+        [
+          32,
+          128
+        ],
+        [
+          32,
+          256
+        ],
+        [
+          32,
+          512
+        ],
+        [
+          192,
+          1024
+        ],
+        [
+          192,
+          2048
+        ]
+      ],
+      "profiles": [
+        {
+          "key": [
+            32,
+            128
+          ],
+          "quota": 21,
+          "requests_per_npu": 42,
+          "compute_fraction": 0.06464217828486025,
+          "per_layer_compute_ms": 1.1780259589150035,
+          "per_layer_read_gib": 0.0428009033203125
+        },
+        {
+          "key": [
+            32,
+            256
+          ],
+          "quota": 21,
+          "requests_per_npu": 42,
+          "compute_fraction": 0.10960831350985545,
+          "per_layer_compute_ms": 1.9974796959734433,
+          "per_layer_read_gib": 0.042633056640625
+        },
+        {
+          "key": [
+            32,
+            512
+          ],
+          "quota": 21,
+          "requests_per_npu": 42,
+          "compute_fraction": 0.20314825667720385,
+          "per_layer_compute_ms": 3.7021326666852694,
+          "per_layer_read_gib": 0.04229736328125
+        },
+        {
+          "key": [
+            192,
+            1024
+          ],
+          "quota": 1,
+          "requests_per_npu": 2,
+          "compute_fraction": 0.08910583848605479,
+          "per_layer_compute_ms": 34.100781654707006,
+          "per_layer_read_gib": 0.2564697265625
+        },
+        {
+          "key": [
+            192,
+            2048
+          ],
+          "quota": 3,
+          "requests_per_npu": 6,
+          "compute_fraction": 0.5334954130420257,
+          "per_layer_compute_ms": 68.05618615283375,
+          "per_layer_read_gib": 0.255126953125
+        }
+      ],
+      "short_compute_fraction": 0.37739874847191957,
+      "short_request_fraction": 0.9402985074626866,
+      "nql128_and256_compute_fraction": 0.1742504917947157,
+      "aggregate_demand_gib_s": 309.73281158098195,
+      "aggregate_rho_8_ssu": 0.9679150361905686,
+      "counterfactual_same_mix_aggregate_rho_6_ssu": 1.2905533815874248,
+      "physical_per_ssu_gib_s": [
+        38.716601447622736,
+        38.716601447622736,
+        38.716601447622736,
+        38.716601447622736,
+        38.716601447622736,
+        38.716601447622736,
+        38.716601447622736,
+        38.716601447622736
+      ],
+      "physical_hottest_ssu_rho": 0.9679150361905684,
+      "ideal_compute_ms_per_npu": 6123.195917860101,
+      "checks": {
+        "input_fingerprint_recomputed_by_frozen_loader": true,
+        "metadata_fingerprint_equal": true,
+        "data_hash_equal": true,
+        "raw_C_V_no_padding_no_scaling": true,
+        "physical_read_volume_matches_data": true,
+        "all_32_npu_identical_complete_quotas": true,
+        "all_arrivals_zero": true,
+        "short_fraction_matches_metadata": true,
+        "mean_rho_matches_metadata": true,
+        "physical_hottest_rho_matches_metadata": true,
+        "physical_aggregate_balanced": true,
+        "all_ideal_compute_equal": true
+      }
+    },
+    {
+      "label": "raw_size_varied_rho097_seed123",
+      "manifest": "results/baseline_npu32_investigation/mixed_varied/inputs/raw_size_varied_rho097_seed123.json.gz",
+      "manifest_sha256": "26cbf40711dda0625bb083bc71b97f31328be704ed5173074c9646db227e5853",
+      "input_fingerprint": "76ee8e2af197746a7921101b45b905c277cf14d698270720c4d69e8a1a001f81",
+      "request_count": 2944,
+      "quota_units_per_npu": 2,
+      "quotas": [
+        14,
+        14,
+        14,
+        1,
+        3
+      ],
+      "profile_keys": [
+        [
+          32,
+          128
+        ],
+        [
+          48,
+          256
+        ],
+        [
+          64,
+          512
+        ],
+        [
+          192,
+          1024
+        ],
+        [
+          192,
+          2048
+        ]
+      ],
+      "profiles": [
+        {
+          "key": [
+            32,
+            128
+          ],
+          "quota": 14,
+          "requests_per_npu": 28,
+          "compute_fraction": 0.04322663015158273,
+          "per_layer_compute_ms": 1.1780259589150035,
+          "per_layer_read_gib": 0.0428009033203125
+        },
+        {
+          "key": [
+            48,
+            256
+          ],
+          "quota": 14,
+          "requests_per_npu": 28,
+          "compute_fraction": 0.09792077557661534,
+          "per_layer_compute_ms": 2.6685683140655256,
+          "per_layer_read_gib": 0.064117431640625
+        },
+        {
+          "key": [
+            64,
+            512
+          ],
+          "quota": 14,
+          "requests_per_npu": 28,
+          "compute_fraction": 0.23434655009615019,
+          "per_layer_compute_ms": 6.386487182261469,
+          "per_layer_read_gib": 0.08526611328125
+        },
+        {
+          "key": [
+            192,
+            1024
+          ],
+          "quota": 1,
+          "requests_per_npu": 2,
+          "compute_fraction": 0.08937844980122213,
+          "per_layer_compute_ms": 34.100781654707006,
+          "per_layer_read_gib": 0.2564697265625
+        },
+        {
+          "key": [
+            192,
+            2048
+          ],
+          "quota": 3,
+          "requests_per_npu": 6,
+          "compute_fraction": 0.5351275943744296,
+          "per_layer_compute_ms": 68.05618615283375,
+          "per_layer_read_gib": 0.255126953125
+        }
+      ],
+      "short_compute_fraction": 0.37549395582434825,
+      "short_request_fraction": 0.9130434782608695,
+      "nql128_and256_compute_fraction": 0.14114740572819806,
+      "aggregate_demand_gib_s": 311.3702178409252,
+      "aggregate_rho_8_ssu": 0.9730319307528912,
+      "counterfactual_same_mix_aggregate_rho_6_ssu": 1.2973759076705216,
+      "physical_per_ssu_gib_s": [
+        38.92127723011565,
+        38.92127723011565,
+        38.92127723011565,
+        38.92127723011565,
+        38.92127723011565,
+        38.92127723011565,
+        38.92127723011565,
+        38.92127723011565
+      ],
+      "physical_hottest_ssu_rho": 0.9730319307528912,
+      "ideal_compute_ms_per_npu": 6104.51968778554,
+      "checks": {
+        "input_fingerprint_recomputed_by_frozen_loader": true,
+        "metadata_fingerprint_equal": true,
+        "data_hash_equal": true,
+        "raw_C_V_no_padding_no_scaling": true,
+        "physical_read_volume_matches_data": true,
+        "all_32_npu_identical_complete_quotas": true,
+        "all_arrivals_zero": true,
+        "short_fraction_matches_metadata": true,
+        "mean_rho_matches_metadata": true,
+        "physical_hottest_rho_matches_metadata": true,
+        "physical_aggregate_balanced": true,
+        "all_ideal_compute_equal": true
+      }
+    },
+    {
+      "label": "raw_size_varied_rho097_seed7",
+      "manifest": "results/baseline_npu32_investigation/mixed_varied/inputs/raw_size_varied_rho097_seed7.json.gz",
+      "manifest_sha256": "218df989dc5b4d0f1e3adce984f225adb5210f71f27d88e70b9ba99d9a1bcd67",
+      "input_fingerprint": "ec98892f9d175d8fc3094207ac31654820b58e23ec5c31aad29be549165bcd81",
+      "request_count": 2944,
+      "quota_units_per_npu": 2,
+      "quotas": [
+        14,
+        14,
+        14,
+        1,
+        3
+      ],
+      "profile_keys": [
+        [
+          32,
+          128
+        ],
+        [
+          48,
+          256
+        ],
+        [
+          64,
+          512
+        ],
+        [
+          192,
+          1024
+        ],
+        [
+          192,
+          2048
+        ]
+      ],
+      "profiles": [
+        {
+          "key": [
+            32,
+            128
+          ],
+          "quota": 14,
+          "requests_per_npu": 28,
+          "compute_fraction": 0.04322663015158273,
+          "per_layer_compute_ms": 1.1780259589150035,
+          "per_layer_read_gib": 0.0428009033203125
+        },
+        {
+          "key": [
+            48,
+            256
+          ],
+          "quota": 14,
+          "requests_per_npu": 28,
+          "compute_fraction": 0.09792077557661534,
+          "per_layer_compute_ms": 2.6685683140655256,
+          "per_layer_read_gib": 0.064117431640625
+        },
+        {
+          "key": [
+            64,
+            512
+          ],
+          "quota": 14,
+          "requests_per_npu": 28,
+          "compute_fraction": 0.23434655009615019,
+          "per_layer_compute_ms": 6.386487182261469,
+          "per_layer_read_gib": 0.08526611328125
+        },
+        {
+          "key": [
+            192,
+            1024
+          ],
+          "quota": 1,
+          "requests_per_npu": 2,
+          "compute_fraction": 0.08937844980122213,
+          "per_layer_compute_ms": 34.100781654707006,
+          "per_layer_read_gib": 0.2564697265625
+        },
+        {
+          "key": [
+            192,
+            2048
+          ],
+          "quota": 3,
+          "requests_per_npu": 6,
+          "compute_fraction": 0.5351275943744296,
+          "per_layer_compute_ms": 68.05618615283375,
+          "per_layer_read_gib": 0.255126953125
+        }
+      ],
+      "short_compute_fraction": 0.37549395582434825,
+      "short_request_fraction": 0.9130434782608695,
+      "nql128_and256_compute_fraction": 0.14114740572819806,
+      "aggregate_demand_gib_s": 311.3702178409252,
+      "aggregate_rho_8_ssu": 0.9730319307528912,
+      "counterfactual_same_mix_aggregate_rho_6_ssu": 1.2973759076705216,
+      "physical_per_ssu_gib_s": [
+        38.92127723011565,
+        38.92127723011565,
+        38.92127723011565,
+        38.92127723011565,
+        38.92127723011565,
+        38.92127723011565,
+        38.92127723011565,
+        38.92127723011565
+      ],
+      "physical_hottest_ssu_rho": 0.9730319307528912,
+      "ideal_compute_ms_per_npu": 6104.51968778554,
+      "checks": {
+        "input_fingerprint_recomputed_by_frozen_loader": true,
+        "metadata_fingerprint_equal": true,
+        "data_hash_equal": true,
+        "raw_C_V_no_padding_no_scaling": true,
+        "physical_read_volume_matches_data": true,
+        "all_32_npu_identical_complete_quotas": true,
+        "all_arrivals_zero": true,
+        "short_fraction_matches_metadata": true,
+        "mean_rho_matches_metadata": true,
+        "physical_hottest_rho_matches_metadata": true,
+        "physical_aggregate_balanced": true,
+        "all_ideal_compute_equal": true
+      }
+    },
+    {
+      "label": "raw_skew_rho096_seed123",
+      "manifest": "results/baseline_npu32_investigation/mixed_varied/inputs/raw_skew_rho096_seed123.json.gz",
+      "manifest_sha256": "20624cad90a3469caf8885500c65a415dab068e9dc99c0e3db53780ecdcac60e",
+      "input_fingerprint": "b7a8b2dbe465bfa2666b53efd636dc37c4a2fbc46fb49f8767b2f3c19c9eff54",
+      "request_count": 4352,
+      "quota_units_per_npu": 1,
+      "quotas": [
+        13,
+        13,
+        104,
+        3,
+        3
+      ],
+      "profile_keys": [
+        [
+          32,
+          128
+        ],
+        [
+          32,
+          256
+        ],
+        [
+          32,
+          512
+        ],
+        [
+          192,
+          1024
+        ],
+        [
+          192,
+          2048
+        ]
+      ],
+      "profiles": [
+        {
+          "key": [
+            32,
+            128
+          ],
+          "quota": 13,
+          "requests_per_npu": 13,
+          "compute_fraction": 0.020899119965860302,
+          "per_layer_compute_ms": 1.1780259589150035,
+          "per_layer_read_gib": 0.0428009033203125
+        },
+        {
+          "key": [
+            32,
+            256
+          ],
+          "quota": 13,
+          "requests_per_npu": 13,
+          "compute_fraction": 0.0354368827610285,
+          "per_layer_compute_ms": 1.9974796959734433,
+          "per_layer_read_gib": 0.042633056640625
+        },
+        {
+          "key": [
+            32,
+            512
+          ],
+          "quota": 104,
+          "requests_per_npu": 104,
+          "compute_fraction": 0.5254302871345689,
+          "per_layer_compute_ms": 3.7021326666852694,
+          "per_layer_read_gib": 0.04229736328125
+        },
+        {
+          "key": [
+            192,
+            1024
+          ],
+          "quota": 3,
+          "requests_per_npu": 3,
+          "compute_fraction": 0.13960962953541867,
+          "per_layer_compute_ms": 34.100781654707006,
+          "per_layer_read_gib": 0.2564697265625
+        },
+        {
+          "key": [
+            192,
+            2048
+          ],
+          "quota": 3,
+          "requests_per_npu": 3,
+          "compute_fraction": 0.27862408060312377,
+          "per_layer_compute_ms": 68.05618615283375,
+          "per_layer_read_gib": 0.255126953125
+        }
+      ],
+      "short_compute_fraction": 0.5817662898614576,
+      "short_request_fraction": 0.9558823529411765,
+      "nql128_and256_compute_fraction": 0.05633600272688881,
+      "aggregate_demand_gib_s": 307.62465537954785,
+      "aggregate_rho_8_ssu": 0.961327048061087,
+      "counterfactual_same_mix_aggregate_rho_6_ssu": 1.2817693974147828,
+      "physical_per_ssu_gib_s": [
+        38.45308192244348,
+        38.45308192244348,
+        38.45308192244348,
+        38.45308192244348,
+        38.45308192244348,
+        38.45308192244348,
+        38.45308192244348,
+        38.45308192244348
+      ],
+      "physical_hottest_ssu_rho": 0.961327048061087,
+      "ideal_compute_ms_per_npu": 5862.19419417152,
+      "checks": {
+        "input_fingerprint_recomputed_by_frozen_loader": true,
+        "metadata_fingerprint_equal": true,
+        "data_hash_equal": true,
+        "raw_C_V_no_padding_no_scaling": true,
+        "physical_read_volume_matches_data": true,
+        "all_32_npu_identical_complete_quotas": true,
+        "all_arrivals_zero": true,
+        "short_fraction_matches_metadata": true,
+        "mean_rho_matches_metadata": true,
+        "physical_hottest_rho_matches_metadata": true,
+        "physical_aggregate_balanced": true,
+        "all_ideal_compute_equal": true
+      }
+    },
+    {
+      "label": "raw_skew_rho096_seed7",
+      "manifest": "results/baseline_npu32_investigation/mixed_varied/inputs/raw_skew_rho096_seed7.json.gz",
+      "manifest_sha256": "b21837e0da44be903b2794f172e70ae2543a23ddefcb5f6f6fcdeffc9d82aabf",
+      "input_fingerprint": "15bab555443db2ca9f6a4130958c53636127497269d4fccf5fbead34fa582025",
+      "request_count": 4352,
+      "quota_units_per_npu": 1,
+      "quotas": [
+        13,
+        13,
+        104,
+        3,
+        3
+      ],
+      "profile_keys": [
+        [
+          32,
+          128
+        ],
+        [
+          32,
+          256
+        ],
+        [
+          32,
+          512
+        ],
+        [
+          192,
+          1024
+        ],
+        [
+          192,
+          2048
+        ]
+      ],
+      "profiles": [
+        {
+          "key": [
+            32,
+            128
+          ],
+          "quota": 13,
+          "requests_per_npu": 13,
+          "compute_fraction": 0.020899119965860302,
+          "per_layer_compute_ms": 1.1780259589150035,
+          "per_layer_read_gib": 0.0428009033203125
+        },
+        {
+          "key": [
+            32,
+            256
+          ],
+          "quota": 13,
+          "requests_per_npu": 13,
+          "compute_fraction": 0.0354368827610285,
+          "per_layer_compute_ms": 1.9974796959734433,
+          "per_layer_read_gib": 0.042633056640625
+        },
+        {
+          "key": [
+            32,
+            512
+          ],
+          "quota": 104,
+          "requests_per_npu": 104,
+          "compute_fraction": 0.5254302871345689,
+          "per_layer_compute_ms": 3.7021326666852694,
+          "per_layer_read_gib": 0.04229736328125
+        },
+        {
+          "key": [
+            192,
+            1024
+          ],
+          "quota": 3,
+          "requests_per_npu": 3,
+          "compute_fraction": 0.13960962953541867,
+          "per_layer_compute_ms": 34.100781654707006,
+          "per_layer_read_gib": 0.2564697265625
+        },
+        {
+          "key": [
+            192,
+            2048
+          ],
+          "quota": 3,
+          "requests_per_npu": 3,
+          "compute_fraction": 0.27862408060312377,
+          "per_layer_compute_ms": 68.05618615283375,
+          "per_layer_read_gib": 0.255126953125
+        }
+      ],
+      "short_compute_fraction": 0.5817662898614576,
+      "short_request_fraction": 0.9558823529411765,
+      "nql128_and256_compute_fraction": 0.05633600272688881,
+      "aggregate_demand_gib_s": 307.62465537954785,
+      "aggregate_rho_8_ssu": 0.961327048061087,
+      "counterfactual_same_mix_aggregate_rho_6_ssu": 1.2817693974147828,
+      "physical_per_ssu_gib_s": [
+        38.45308192244348,
+        38.45308192244348,
+        38.45308192244348,
+        38.45308192244348,
+        38.45308192244348,
+        38.45308192244348,
+        38.45308192244348,
+        38.45308192244348
+      ],
+      "physical_hottest_ssu_rho": 0.961327048061087,
+      "ideal_compute_ms_per_npu": 5862.19419417152,
+      "checks": {
+        "input_fingerprint_recomputed_by_frozen_loader": true,
+        "metadata_fingerprint_equal": true,
+        "data_hash_equal": true,
+        "raw_C_V_no_padding_no_scaling": true,
+        "physical_read_volume_matches_data": true,
+        "all_32_npu_identical_complete_quotas": true,
+        "all_arrivals_zero": true,
+        "short_fraction_matches_metadata": true,
+        "mean_rho_matches_metadata": true,
+        "physical_hottest_rho_matches_metadata": true,
+        "physical_aggregate_balanced": true,
+        "all_ideal_compute_equal": true
+      }
+    }
+  ],
+  "original_near_quota_arithmetic": [
+    {
+      "replacements_192k1024_to_192k2048_per_npu": 0,
+      "quotas": [
+        4,
+        2,
+        2,
+        2,
+        4,
+        8,
+        0
+      ],
+      "compute_ms_per_npu_8_layers": 3047.388797084288,
+      "short32k128_256_compute_ms_per_npu_8_layers": 69.6565058208552,
+      "short32k128_256_compute_fraction": 0.022857767898701302,
+      "all_192k_compute_fraction": 0.8959851234496615,
+      "aggregate_demand_gib_s": 316.18257930261393
+    },
+    {
+      "replacements_192k1024_to_192k2048_per_npu": 3,
+      "quotas": [
+        4,
+        2,
+        2,
+        2,
+        4,
+        5,
+        3
+      ],
+      "compute_ms_per_npu_8_layers": 3862.3185050393295,
+      "short32k128_256_compute_ms_per_npu_8_layers": 69.6565058208552,
+      "short32k128_256_compute_fraction": 0.01803489425586508,
+      "all_192k_compute_fraction": 0.9179317373448002,
+      "aggregate_demand_gib_s": 249.20264829122345
+    },
+    {
+      "replacements_192k1024_to_192k2048_per_npu": 5,
+      "quotas": [
+        4,
+        2,
+        2,
+        2,
+        4,
+        3,
+        5
+      ],
+      "compute_ms_per_npu_8_layers": 4405.604977009358,
+      "short32k128_256_compute_ms_per_npu_8_layers": 69.6565058208552,
+      "short32k128_256_compute_fraction": 0.015810883223611186,
+      "all_192k_compute_fraction": 0.9280521582884226,
+      "aggregate_demand_gib_s": 218.3156467770526
+    }
+  ],
+  "original_near_sources": [
+    {
+      "path": "results/coflow_global_5ms_experiments/data/formal_results/npu32_ssu6_arrival218_seed20260906_baseline.json",
+      "input_fingerprint": "4415bef488bc4a3805e94d3e9bc98169dd463c3400f4bc1750d7305534b4463d",
+      "file_sha256": "f6c30cc9c7b79621c9bae0c538e57c773aebd2b95828dadbc20a628b1503b45a",
+      "profiles": [
+        {
+          "seq_len_k": 32,
+          "nql": 128,
+          "kv_blocks": 255,
+          "compute_ms": 1.1780259589150035,
+          "quota": 4,
+          "ideal_8layer_ms": 9.424207671320028,
+          "slo_1p5_ms": 14.136311506980041,
+          "source_ttft_ms_not_used_as_8layer_slo": 91.88602479537028
+        },
+        {
+          "seq_len_k": 32,
+          "nql": 256,
+          "kv_blocks": 254,
+          "compute_ms": 1.9974796959734433,
+          "quota": 2,
+          "ideal_8layer_ms": 15.979837567787547,
+          "slo_1p5_ms": 23.96975635168132,
+          "source_ttft_ms_not_used_as_8layer_slo": 155.80341628592856
+        },
+        {
+          "seq_len_k": 64,
+          "nql": 512,
+          "kv_blocks": 508,
+          "compute_ms": 6.386487182261469,
+          "quota": 2,
+          "ideal_8layer_ms": 51.09189745809175,
+          "slo_1p5_ms": 76.63784618713763,
+          "source_ttft_ms_not_used_as_8layer_slo": 498.14600021639455
+        },
+        {
+          "seq_len_k": 96,
+          "nql": 512,
+          "kv_blocks": 764,
+          "compute_ms": 9.070841799535495,
+          "quota": 2,
+          "ideal_8layer_ms": 72.56673439628396,
+          "slo_1p5_ms": 108.85010159442594,
+          "source_ttft_ms_not_used_as_8layer_slo": 707.5256603637688
+        },
+        {
+          "seq_len_k": 192,
+          "nql": 512,
+          "kv_blocks": 1532,
+          "compute_ms": 17.12390630166978,
+          "quota": 4,
+          "ideal_8layer_ms": 136.99125041335824,
+          "slo_1p5_ms": 205.48687562003738,
+          "source_ttft_ms_not_used_as_8layer_slo": 1335.6646915302429
+        },
+        {
+          "seq_len_k": 192,
+          "nql": 1024,
+          "kv_blocks": 1528,
+          "compute_ms": 34.100781654707006,
+          "quota": 3,
+          "ideal_8layer_ms": 272.80625323765605,
+          "slo_1p5_ms": 409.209379856484,
+          "source_ttft_ms_not_used_as_8layer_slo": 2659.8609690671465
+        },
+        {
+          "seq_len_k": 192,
+          "nql": 2048,
+          "kv_blocks": 1520,
+          "compute_ms": 68.05618615283375,
+          "quota": 5,
+          "ideal_8layer_ms": 544.44948922267,
+          "slo_1p5_ms": 816.674233834005,
+          "source_ttft_ms_not_used_as_8layer_slo": 5308.382519921032
+        }
+      ],
+      "aggregate_demand_gib_s": 218.31564677705265
+    },
+    {
+      "path": "results/multi_ssu_stall_experiments/data/npu32_ssu6_near_seed20260906_baseline_none.json",
+      "input_fingerprint": "bb6613aaef2e026c24456f9a42f224704f65fcf2170b778dc3368da13f52fd3c",
+      "file_sha256": "37ceec367ef7204e6c7501374ef4648cf72f8980824a267a3df0862b9122d31c",
+      "profiles": [
+        {
+          "seq_len_k": 32,
+          "nql": 128,
+          "kv_blocks": 255,
+          "compute_ms": 1.1780259589150035,
+          "quota": 4
+        },
+        {
+          "seq_len_k": 32,
+          "nql": 256,
+          "kv_blocks": 254,
+          "compute_ms": 1.9974796959734433,
+          "quota": 2
+        },
+        {
+          "seq_len_k": 64,
+          "nql": 512,
+          "kv_blocks": 508,
+          "compute_ms": 6.386487182261469,
+          "quota": 2
+        },
+        {
+          "seq_len_k": 96,
+          "nql": 512,
+          "kv_blocks": 764,
+          "compute_ms": 9.070841799535495,
+          "quota": 2
+        },
+        {
+          "seq_len_k": 192,
+          "nql": 512,
+          "kv_blocks": 1532,
+          "compute_ms": 17.12390630166978,
+          "quota": 4
+        },
+        {
+          "seq_len_k": 192,
+          "nql": 1024,
+          "kv_blocks": 1528,
+          "compute_ms": 34.100781654707006,
+          "quota": 3
+        },
+        {
+          "seq_len_k": 192,
+          "nql": 2048,
+          "kv_blocks": 1520,
+          "compute_ms": 68.05618615283375,
+          "quota": 5
+        }
+      ],
+      "aggregate_demand_gib_s": 218.31564677705265
+    }
+  ],
+  "all_manifest_checks_passed": true
+}

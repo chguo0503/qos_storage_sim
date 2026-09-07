@@ -1,0 +1,405 @@
+{
+  "description": "Development screening; fixed paired windows; seed42; retain every outcome",
+  "inputs": {
+    "legacy4_exact": {
+      "num_npu": 4,
+      "num_ssu": 1,
+      "horizon_ms": 4000,
+      "seed": 42,
+      "order": "fixed",
+      "layout": "local",
+      "blocks": "exact",
+      "family": "legacy"
+    },
+    "legacy32_local_exact": {
+      "num_npu": 32,
+      "num_ssu": 8,
+      "horizon_ms": 4000,
+      "seed": 42,
+      "order": "fixed",
+      "layout": "local",
+      "blocks": "exact",
+      "family": "legacy"
+    },
+    "legacy32_stripe_exact": {
+      "num_npu": 32,
+      "num_ssu": 8,
+      "horizon_ms": 4000,
+      "seed": 42,
+      "order": "fixed",
+      "layout": "stripe",
+      "blocks": "exact",
+      "family": "legacy"
+    },
+    "legacy4_padded": {
+      "num_npu": 4,
+      "num_ssu": 1,
+      "horizon_ms": 4000,
+      "seed": 42,
+      "order": "fixed",
+      "layout": "local",
+      "blocks": "padded",
+      "family": "legacy"
+    },
+    "strong4": {
+      "num_npu": 4,
+      "num_ssu": 1,
+      "horizon_ms": 4000,
+      "seed": 42,
+      "order": "fixed",
+      "layout": "local",
+      "blocks": "exact",
+      "family": "aligned",
+      "profile_keys": "1:128,1:128,1:128,192:256"
+    },
+    "strong32_local": {
+      "num_npu": 32,
+      "num_ssu": 8,
+      "horizon_ms": 4000,
+      "seed": 42,
+      "order": "fixed",
+      "layout": "local",
+      "blocks": "exact",
+      "family": "aligned",
+      "profile_keys": "1:128,1:128,1:128,192:256"
+    },
+    "strong32_stripe": {
+      "num_npu": 32,
+      "num_ssu": 8,
+      "horizon_ms": 4000,
+      "seed": 42,
+      "order": "fixed",
+      "layout": "stripe",
+      "blocks": "exact",
+      "family": "aligned",
+      "profile_keys": "1:128,1:128,1:128,192:256"
+    },
+    "strong32_hash_feasible": {
+      "num_npu": 32,
+      "num_ssu": 8,
+      "horizon_ms": 4000,
+      "seed": 42,
+      "order": "fixed",
+      "layout": "hash",
+      "blocks": "exact",
+      "family": "aligned",
+      "profile_keys": "1:128,1:128,1:128,192:256",
+      "target_rho": 0.98
+    },
+    "strong32_stripe6_feasible": {
+      "num_npu": 32,
+      "num_ssu": 6,
+      "horizon_ms": 4000,
+      "seed": 42,
+      "order": "fixed",
+      "layout": "stripe",
+      "blocks": "exact",
+      "family": "aligned",
+      "profile_keys": "1:128,1:128,1:128,192:256",
+      "target_rho": 0.98
+    },
+    "raw32_local": {
+      "num_npu": 32,
+      "num_ssu": 8,
+      "horizon_ms": 4000,
+      "seed": 42,
+      "order": "fixed",
+      "layout": "local",
+      "blocks": "exact",
+      "family": "raw",
+      "profile_keys": "32:512,32:512,192:1024,192:1024"
+    },
+    "raw32_stripe": {
+      "num_npu": 32,
+      "num_ssu": 8,
+      "horizon_ms": 4000,
+      "seed": 42,
+      "order": "fixed",
+      "layout": "stripe",
+      "blocks": "exact",
+      "family": "raw",
+      "profile_keys": "32:512,32:512,192:1024,192:1024"
+    },
+    "raw32_hash_feasible": {
+      "num_npu": 32,
+      "num_ssu": 8,
+      "horizon_ms": 4000,
+      "seed": 42,
+      "order": "fixed",
+      "layout": "hash",
+      "blocks": "exact",
+      "family": "raw",
+      "profile_keys": "32:512,32:512,192:1024,192:1024",
+      "target_rho": 0.98
+    },
+    "raw32_allshort_overload": {
+      "num_npu": 32,
+      "num_ssu": 6,
+      "horizon_ms": 3100,
+      "seed": 42,
+      "order": "fixed",
+      "layout": "stripe",
+      "blocks": "exact",
+      "family": "raw",
+      "profile_keys": "32:128"
+    },
+    "raw32_synchronized": {
+      "num_npu": 32,
+      "num_ssu": 6,
+      "horizon_ms": 4000,
+      "seed": 42,
+      "order": "synchronized",
+      "layout": "stripe",
+      "blocks": "exact",
+      "family": "raw",
+      "profile_keys": "32:128,32:512,192:1024,192:2048"
+    },
+    "raw32_shuffled": {
+      "num_npu": 32,
+      "num_ssu": 6,
+      "horizon_ms": 4000,
+      "seed": 42,
+      "order": "shuffled",
+      "layout": "stripe",
+      "blocks": "exact",
+      "family": "raw",
+      "profile_keys": "32:128,32:512,192:1024,192:2048"
+    }
+  },
+  "jobs": [
+    {
+      "input": "legacy4_exact",
+      "strategy": "baseline_native",
+      "config": {}
+    },
+    {
+      "input": "legacy4_exact",
+      "strategy": "once_native",
+      "config": {}
+    },
+    {
+      "input": "legacy32_local_exact",
+      "strategy": "baseline_native",
+      "config": {}
+    },
+    {
+      "input": "legacy32_local_exact",
+      "strategy": "once_native",
+      "config": {}
+    },
+    {
+      "input": "legacy32_stripe_exact",
+      "strategy": "baseline_native",
+      "config": {}
+    },
+    {
+      "input": "legacy32_stripe_exact",
+      "strategy": "once_native",
+      "config": {}
+    },
+    {
+      "input": "legacy4_padded",
+      "strategy": "baseline",
+      "config": {}
+    },
+    {
+      "input": "legacy4_padded",
+      "strategy": "once",
+      "config": {}
+    },
+    {
+      "input": "legacy4_padded",
+      "strategy": "strategy3",
+      "config": {
+        "assignment": "fixed"
+      }
+    },
+    {
+      "input": "strong4",
+      "strategy": "baseline",
+      "config": {}
+    },
+    {
+      "input": "strong4",
+      "strategy": "once",
+      "config": {}
+    },
+    {
+      "input": "strong4",
+      "strategy": "strategy3",
+      "config": {
+        "assignment": "fixed"
+      }
+    },
+    {
+      "input": "strong32_local",
+      "strategy": "baseline",
+      "config": {}
+    },
+    {
+      "input": "strong32_local",
+      "strategy": "once",
+      "config": {}
+    },
+    {
+      "input": "strong32_local",
+      "strategy": "strategy3",
+      "config": {
+        "assignment": "fixed"
+      }
+    },
+    {
+      "input": "strong32_stripe",
+      "strategy": "baseline",
+      "config": {}
+    },
+    {
+      "input": "strong32_stripe",
+      "strategy": "once",
+      "config": {}
+    },
+    {
+      "input": "strong32_stripe",
+      "strategy": "strategy3",
+      "config": {
+        "assignment": "fixed"
+      }
+    },
+    {
+      "input": "strong32_hash_feasible",
+      "strategy": "baseline",
+      "config": {}
+    },
+    {
+      "input": "strong32_hash_feasible",
+      "strategy": "once",
+      "config": {}
+    },
+    {
+      "input": "strong32_hash_feasible",
+      "strategy": "strategy3",
+      "config": {
+        "assignment": "fixed"
+      }
+    },
+    {
+      "input": "strong32_stripe6_feasible",
+      "strategy": "baseline",
+      "config": {}
+    },
+    {
+      "input": "strong32_stripe6_feasible",
+      "strategy": "once",
+      "config": {}
+    },
+    {
+      "input": "strong32_stripe6_feasible",
+      "strategy": "strategy3",
+      "config": {
+        "assignment": "fixed"
+      }
+    },
+    {
+      "input": "raw32_local",
+      "strategy": "baseline",
+      "config": {}
+    },
+    {
+      "input": "raw32_local",
+      "strategy": "once",
+      "config": {}
+    },
+    {
+      "input": "raw32_local",
+      "strategy": "strategy3",
+      "config": {
+        "assignment": "fixed"
+      }
+    },
+    {
+      "input": "raw32_stripe",
+      "strategy": "baseline",
+      "config": {}
+    },
+    {
+      "input": "raw32_stripe",
+      "strategy": "once",
+      "config": {}
+    },
+    {
+      "input": "raw32_stripe",
+      "strategy": "strategy3",
+      "config": {
+        "assignment": "fixed"
+      }
+    },
+    {
+      "input": "raw32_hash_feasible",
+      "strategy": "baseline",
+      "config": {}
+    },
+    {
+      "input": "raw32_hash_feasible",
+      "strategy": "once",
+      "config": {}
+    },
+    {
+      "input": "raw32_hash_feasible",
+      "strategy": "strategy3",
+      "config": {
+        "assignment": "fixed"
+      }
+    },
+    {
+      "input": "raw32_allshort_overload",
+      "strategy": "baseline",
+      "config": {}
+    },
+    {
+      "input": "raw32_allshort_overload",
+      "strategy": "once",
+      "config": {}
+    },
+    {
+      "input": "raw32_allshort_overload",
+      "strategy": "strategy3",
+      "config": {
+        "assignment": "fixed"
+      }
+    },
+    {
+      "input": "raw32_synchronized",
+      "strategy": "baseline",
+      "config": {}
+    },
+    {
+      "input": "raw32_synchronized",
+      "strategy": "once",
+      "config": {}
+    },
+    {
+      "input": "raw32_synchronized",
+      "strategy": "strategy3",
+      "config": {
+        "assignment": "fixed"
+      }
+    },
+    {
+      "input": "raw32_shuffled",
+      "strategy": "baseline",
+      "config": {}
+    },
+    {
+      "input": "raw32_shuffled",
+      "strategy": "once",
+      "config": {}
+    },
+    {
+      "input": "raw32_shuffled",
+      "strategy": "strategy3",
+      "config": {
+        "assignment": "fixed"
+      }
+    }
+  ]
+}

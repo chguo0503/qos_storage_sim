@@ -1,0 +1,150 @@
+{
+  "method": "Actual simulator arrival-time assignment; no request migrations, no future input in decisions.",
+  "comparison": "A = dedicated_demand; B = the same storage controller plus assignment.",
+  "measurement": "Finite complete request set from arrival to all-complete, not a middle-1s steady-state measurement.",
+  "environment": {
+    "npus": 4,
+    "ssus": 1,
+    "layers": 8,
+    "io_bytes": 180224,
+    "ssd_gib_s": 40,
+    "npu_link_gib_s": 50,
+    "cross_request_prefetch": true
+  },
+  "workload_recipe": {
+    "profile_blocks": [
+      8,
+      32,
+      1536,
+      1536
+    ],
+    "profile_demand_gib_s": [
+      0.6,
+      1.6,
+      26,
+      11
+    ],
+    "compute_ms_formula": "K * 176*1024 / 2**30 * 1000 / demand",
+    "kind_order": "kinds = list(range(4))*12; random.Random(seed).shuffle(kinds)",
+    "request_id": "i",
+    "baseline_npu_id": "i % 4",
+    "arrival_ms": "2 * (i // 4)",
+    "global_profile_histogram": [
+      12,
+      12,
+      12,
+      12
+    ],
+    "note": "Finite burst workload; the sum of original four profile demands is not a bound on instantaneous demand after assignment."
+  },
+  "results": [
+    {
+      "case": "interleaved_equalmix",
+      "seed": 3,
+      "assignment_policy": "fixed",
+      "util": 0.613700091013202,
+      "makespan": 1523.151335104919,
+      "mean_latency": 708.4418906350419,
+      "p95_latency": 1389.1919535319014,
+      "stall_mean": 20.834082049182356,
+      "input_fingerprint": "d3f46ea0de94ee2bbb226ecfe7dabf275411bf0eb36ba675bf85ec8e4dfe9a23",
+      "all_invariants": true
+    },
+    {
+      "case": "interleaved_equalmix",
+      "seed": 3,
+      "assignment_policy": "pipeline",
+      "util": 0.6608573413791291,
+      "makespan": 1414.4627810747193,
+      "mean_latency": 713.6295296840177,
+      "p95_latency": 1201.0946094415124,
+      "stall_mean": 27.44457921411235,
+      "input_fingerprint": "d3f46ea0de94ee2bbb226ecfe7dabf275411bf0eb36ba675bf85ec8e4dfe9a23",
+      "all_invariants": true
+    },
+    {
+      "case": "interleaved_equalmix",
+      "seed": 3,
+      "assignment_policy": "compute",
+      "util": 0.6859953008664933,
+      "makespan": 1362.6304900340542,
+      "mean_latency": 695.8485700982246,
+      "p95_latency": 1194.5655791453823,
+      "stall_mean": 27.184040566794902,
+      "input_fingerprint": "d3f46ea0de94ee2bbb226ecfe7dabf275411bf0eb36ba675bf85ec8e4dfe9a23",
+      "all_invariants": true
+    },
+    {
+      "case": "interleaved_equalmix",
+      "seed": 7,
+      "assignment_policy": "fixed",
+      "util": 0.6404338945854781,
+      "makespan": 1459.570021018005,
+      "mean_latency": 706.0955186012465,
+      "p95_latency": 1325.6106394449873,
+      "stall_mean": 23.76459252121104,
+      "input_fingerprint": "3456c9782ec042ce0ebb0b93052db3c96b96b5191eb8276be96dd6402fca91de",
+      "all_invariants": true
+    },
+    {
+      "case": "interleaved_equalmix",
+      "seed": 7,
+      "assignment_policy": "pipeline",
+      "util": 0.6848789495422233,
+      "makespan": 1364.8515750200324,
+      "mean_latency": 676.3333342054971,
+      "p95_latency": 1191.145823219495,
+      "stall_mean": 23.796214283022096,
+      "input_fingerprint": "3456c9782ec042ce0ebb0b93052db3c96b96b5191eb8276be96dd6402fca91de",
+      "all_invariants": true
+    },
+    {
+      "case": "interleaved_equalmix",
+      "seed": 7,
+      "assignment_policy": "compute",
+      "util": 0.6823987911633214,
+      "makespan": 1369.8120880126953,
+      "mean_latency": 714.9865780365773,
+      "p95_latency": 1254.7006744384764,
+      "stall_mean": 30.564121955480314,
+      "input_fingerprint": "3456c9782ec042ce0ebb0b93052db3c96b96b5191eb8276be96dd6402fca91de",
+      "all_invariants": true
+    },
+    {
+      "case": "interleaved_equalmix",
+      "seed": 11,
+      "assignment_policy": "fixed",
+      "util": 0.6644629833242436,
+      "makespan": 1406.7873402130929,
+      "mean_latency": 665.4578337954662,
+      "p95_latency": 1363.317418338092,
+      "stall_mean": 22.799816172347125,
+      "input_fingerprint": "ed63a5f60d71b6a0287fcd0519a1833960deb145b0fc73bdea60cbe13ba26681",
+      "all_invariants": true
+    },
+    {
+      "case": "interleaved_equalmix",
+      "seed": 11,
+      "assignment_policy": "pipeline",
+      "util": 0.6457311679057265,
+      "makespan": 1447.59639837803,
+      "mean_latency": 685.687126689487,
+      "p95_latency": 1230.5046493139027,
+      "stall_mean": 25.351574359795944,
+      "input_fingerprint": "ed63a5f60d71b6a0287fcd0519a1833960deb145b0fc73bdea60cbe13ba26681",
+      "all_invariants": true
+    },
+    {
+      "case": "interleaved_equalmix",
+      "seed": 11,
+      "assignment_policy": "compute",
+      "util": 0.6811102214177956,
+      "makespan": 1372.4035898844402,
+      "mean_latency": 674.181093134432,
+      "p95_latency": 1227.5547696431481,
+      "stall_mean": 30.740820322281284,
+      "input_fingerprint": "ed63a5f60d71b6a0287fcd0519a1833960deb145b0fc73bdea60cbe13ba26681",
+      "all_invariants": true
+    }
+  ]
+}

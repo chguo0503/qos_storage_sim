@@ -1,0 +1,45 @@
+{
+  "reviewer": "design_stress",
+  "method": "Read-only wrapper review and direct raw manifest byte/compute reconstruction; no simulator or frozen helper edits",
+  "no_hidden_policy_tuning_found": true,
+  "metadata_topology_override_explicit": true,
+  "sameinput_strategies": [
+    "baseline",
+    "new_once"
+  ],
+  "controls": [
+    {
+      "manifest": "results/baseline_npu32_investigation/mixed_six_ssu/inputs/aligned_short080_ssu6_seed7.json.gz",
+      "input_fingerprint": "4d2fc8f78a881b92ecca84b6bf0764276f986c9bf1727a1309774176f9f5089a",
+      "num_checks": 739586,
+      "all_checks_passed": true,
+      "recomputed_per_ssu_gib_s": [
+        37.814092355821025,
+        38.0819745295943,
+        37.82962175719918,
+        37.82962175719918,
+        37.81409235582101,
+        37.546210182047744
+      ],
+      "hottest_ssu_rho": 0.9520493632398574,
+      "nonplacement_request_rows_exact": true
+    },
+    {
+      "manifest": "results/baseline_npu32_investigation/mixed_six_ssu/inputs/raw_size_varied_ssu6_seed7.json.gz",
+      "input_fingerprint": "d5653af784d581fb61c67501f5b105a93d790fb506a1fa88ecbc51aad1b84195",
+      "num_checks": 1248194,
+      "all_checks_passed": true,
+      "recomputed_per_ssu_gib_s": [
+        38.70129878272438,
+        38.75058838404542,
+        38.74386707477437,
+        38.72370314696121,
+        38.68113485491122,
+        38.652009181403315
+      ],
+      "hottest_ssu_rho": 0.9687647096011356,
+      "new_population_labeled": true
+    }
+  ],
+  "caveat": "Groups n//4 yield uneven stripe offsets for 6 SSUs because 8 groups map onto 6 offsets; this is an explicit deterministic placement effect, included in hottest-SSU demand, not a capacity violation or hidden tuning."
+}

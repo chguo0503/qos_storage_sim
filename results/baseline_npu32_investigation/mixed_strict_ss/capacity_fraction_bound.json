@@ -1,0 +1,27 @@
+{
+  "evidence_type": "analytic_capacity_only",
+  "source_manifest": "results/baseline_npu32_investigation/mixed_strict_ss/inputs/raw_strict_ss_rho095_seed7.json.gz",
+  "source_input_fingerprint": "a996716d5cabcf348b80efbd2187876e4c93c38ccff60c62949724cf6009f8f0",
+  "fixed_within_short_count_ratio": [
+    1,
+    1,
+    1
+  ],
+  "fixed_within_long_count_ratio": [
+    1,
+    3
+  ],
+  "short_pool_gib_s": 33.83037875374589,
+  "long_pool_gib_s": 4.288636487816649,
+  "num_npu": 32,
+  "num_ssu": 8,
+  "per_ssu_capacity_gib_s": 40,
+  "per_npu_average_budget_gib_s": 10,
+  "max_short_compute_fraction_at_disk_rho_1": 0.19333197956879877,
+  "max_short_compute_fraction_at_disk_rho_098": 0.1865618981633205,
+  "actual_short_compute_fraction": 0.17704988205223507,
+  "equation": "aggregate mean per-NPU bandwidth = f_short_C*b_short + (1-f_short_C)*b_long. Enforcing disk rho <= r requires f_short_C <= (10*r-b_long)/(b_short-b_long).",
+  "scope": "Necessary long-run aggregate bandwidth constraint for this fixed set of raw profiles and fixed ratios inside each group; not a universal bound on arbitrary SS distributions or any intermediate window. Counts are discrete, so the fractional upper bound does not guarantee every population below it satisfies actual per-SSU or deadline constraints.",
+  "all_three_ss_only_equal_count_aggregate_disk_rho": 3.383037875374589,
+  "all_three_ss_only_equal_count_full_run_utilization_upper_bound": 0.295592315793767
+}

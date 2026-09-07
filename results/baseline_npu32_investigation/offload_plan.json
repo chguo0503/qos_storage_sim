@@ -1,0 +1,120 @@
+{
+  "description": "Compute pending final-formal jobs locally from identical frozen inputs; preserve same case/configuration; collect before remote queue reaches them",
+  "inputs": {
+    "strong32_local": {
+      "num_npu": 32,
+      "num_ssu": 8,
+      "horizon_ms": 4000,
+      "seed": 42,
+      "order": "fixed",
+      "layout": "local",
+      "blocks": "exact",
+      "family": "aligned",
+      "profile_keys": "1:128,1:128,1:128,192:256"
+    },
+    "strong32_stripe6_feasible": {
+      "num_npu": 32,
+      "num_ssu": 6,
+      "horizon_ms": 4000,
+      "seed": 42,
+      "order": "fixed",
+      "layout": "stripe",
+      "blocks": "exact",
+      "family": "aligned",
+      "profile_keys": "1:128,1:128,1:128,192:256",
+      "target_rho": 0.98
+    },
+    "raw32_local": {
+      "num_npu": 32,
+      "num_ssu": 8,
+      "horizon_ms": 4000,
+      "seed": 42,
+      "order": "fixed",
+      "layout": "local",
+      "blocks": "exact",
+      "family": "raw",
+      "profile_keys": "32:512,32:512,192:1024,192:1024"
+    },
+    "raw32_shuffled": {
+      "num_npu": 32,
+      "num_ssu": 6,
+      "horizon_ms": 4000,
+      "seed": 42,
+      "order": "shuffled",
+      "layout": "stripe",
+      "blocks": "exact",
+      "family": "raw",
+      "profile_keys": "32:128,32:512,192:1024,192:2048"
+    }
+  },
+  "jobs": [
+    {
+      "input": "raw32_shuffled",
+      "strategy": "new_once",
+      "variant": "new_once",
+      "config": {
+        "assignment": "pipeline"
+      }
+    },
+    {
+      "input": "raw32_shuffled",
+      "strategy": "strategy1",
+      "variant": "strategy1_fixed",
+      "config": {
+        "assignment": "fixed"
+      }
+    },
+    {
+      "input": "raw32_shuffled",
+      "strategy": "strategy1",
+      "variant": "strategy1_pipeline",
+      "config": {
+        "assignment": "pipeline"
+      }
+    },
+    {
+      "input": "raw32_shuffled",
+      "strategy": "strategy2",
+      "variant": "strategy2_fixed",
+      "config": {
+        "assignment": "fixed"
+      }
+    },
+    {
+      "input": "raw32_shuffled",
+      "strategy": "strategy2",
+      "variant": "strategy2_pipeline",
+      "config": {
+        "assignment": "pipeline"
+      }
+    },
+    {
+      "input": "raw32_shuffled",
+      "strategy": "strategy3",
+      "variant": "strategy3_pipeline",
+      "config": {
+        "assignment": "pipeline"
+      }
+    },
+    {
+      "input": "raw32_shuffled",
+      "strategy": "deadline",
+      "variant": "deadline",
+      "config": {
+        "assignment": "pipeline"
+      }
+    },
+    {
+      "input": "strong32_local",
+      "strategy": "stall_interchange"
+    },
+    {
+      "input": "strong32_stripe6_feasible",
+      "strategy": "stall_interchange"
+    },
+    {
+      "input": "raw32_local",
+      "strategy": "stall_interchange"
+    }
+  ]
+}

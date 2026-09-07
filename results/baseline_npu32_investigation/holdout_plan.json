@@ -1,0 +1,123 @@
+{
+  "description": "Held-out request orders with unchanged frozen policy; isolated role controls; no parameter retuning",
+  "inputs": {
+    "raw32_shuffled_seed7": {
+      "num_npu": 32,
+      "num_ssu": 6,
+      "horizon_ms": 4000,
+      "seed": 7,
+      "order": "shuffled",
+      "layout": "stripe",
+      "blocks": "exact",
+      "family": "raw",
+      "profile_keys": "32:128,32:512,192:1024,192:2048"
+    },
+    "raw32_shuffled_seed123": {
+      "num_npu": 32,
+      "num_ssu": 6,
+      "horizon_ms": 4000,
+      "seed": 123,
+      "order": "shuffled",
+      "layout": "stripe",
+      "blocks": "exact",
+      "family": "raw",
+      "profile_keys": "32:128,32:512,192:1024,192:2048"
+    },
+    "small_alone32": {
+      "family": "aligned",
+      "profile_keys": "1:128",
+      "num_npu": 32,
+      "num_ssu": 8,
+      "layout": "stripe",
+      "blocks": "exact",
+      "horizon_ms": 3100,
+      "seed": 42,
+      "order": "fixed"
+    },
+    "long_alone32": {
+      "family": "raw",
+      "profile_keys": "192:1024",
+      "num_npu": 32,
+      "num_ssu": 8,
+      "layout": "stripe",
+      "blocks": "exact",
+      "horizon_ms": 3100,
+      "seed": 42,
+      "order": "fixed"
+    }
+  },
+  "jobs": [
+    {
+      "input": "raw32_shuffled_seed7",
+      "strategy": "baseline",
+      "config": {
+        "assignment": "pipeline"
+      }
+    },
+    {
+      "input": "raw32_shuffled_seed7",
+      "strategy": "once",
+      "config": {
+        "assignment": "pipeline"
+      }
+    },
+    {
+      "input": "raw32_shuffled_seed7",
+      "strategy": "new_once",
+      "config": {
+        "assignment": "pipeline"
+      }
+    },
+    {
+      "input": "raw32_shuffled_seed7",
+      "strategy": "strategy3",
+      "config": {
+        "assignment": "pipeline"
+      }
+    },
+    {
+      "input": "raw32_shuffled_seed123",
+      "strategy": "baseline",
+      "config": {
+        "assignment": "pipeline"
+      }
+    },
+    {
+      "input": "raw32_shuffled_seed123",
+      "strategy": "once",
+      "config": {
+        "assignment": "pipeline"
+      }
+    },
+    {
+      "input": "raw32_shuffled_seed123",
+      "strategy": "new_once",
+      "config": {
+        "assignment": "pipeline"
+      }
+    },
+    {
+      "input": "raw32_shuffled_seed123",
+      "strategy": "strategy3",
+      "config": {
+        "assignment": "pipeline"
+      }
+    },
+    {
+      "input": "small_alone32",
+      "strategy": "baseline"
+    },
+    {
+      "input": "small_alone32",
+      "strategy": "once"
+    },
+    {
+      "input": "long_alone32",
+      "strategy": "baseline"
+    },
+    {
+      "input": "long_alone32",
+      "strategy": "once"
+    }
+  ]
+}

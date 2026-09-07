@@ -1,6 +1,38 @@
-# QoS Storage Simulator — current minimal project
+# QoS Storage Simulator
 
-This checkout intentionally contains one experiment only:
+This repository contains the storage simulator, scheduling policies, experiment
+runners, frozen inputs, audited results, and editable experiment presentations.
+
+## Current mixed-input investigation (32 NPUs)
+
+- [One-page editable PPTX](results/baseline_npu32_investigation/presentation/mixed_input_summary.pptx)
+- [One-page PDF](results/baseline_npu32_investigation/presentation/mixed_input_summary.pdf)
+- [Exact per-NPU input recipes and metric definitions](results/baseline_npu32_investigation/presentation/README.md)
+- [Full research report](results/baseline_npu32_investigation/report.pdf)
+- [Research findings and methodology](results/baseline_npu32_investigation/docs/report.md)
+
+The presentation compares 32 NPU configurations with 6 or 8 SSU disks. Each NPU
+receives a mixture of request profiles with an independently shuffled complete
+sequence. All requests arrive at time zero, so these are synthetic saturated
+workloads. The 1K profiles use extrapolated compute parameters; the other input
+family uses original profile parameters. Six-disk and eight-disk populations
+have different quotas and are not a controlled disk-count-only comparison.
+
+Related campaigns and presentations:
+
+- [Global coflow, 5 ms](results/coflow_global_5ms_experiments/presentation/)
+- [Multiple-SSU stall experiments](results/multi_ssu_stall_experiments/)
+- [Earlier 4-NPU / 1-SSU low-utilization experiment](results/baseline_4npu_ssu1_low_utilization/)
+
+The original V/B experiment and its source files are retained below. Its
+`CURRENT_PROJECT_MANIFEST.md` documents that earlier experiment, not the entire
+expanded repository. Experiment-specific manifests and audit files accompany
+the newer result directories. Python bytecode, local environments, credentials,
+and local agent learning notes are excluded from version control.
+
+## Retained V/B experiment (earlier minimal checkout)
+
+The earlier minimal checkout contained this experiment:
 
 ```text
 32 NPU / 5 SSU / 16 layers / seed 42
@@ -10,9 +42,8 @@ Baseline versus four static V/B LL/LS allocations
 TTFT / ideal TTFT guard = 8
 ```
 
-Historical campaigns, intermediate plots, abandoned strategies, and local
-environments were moved outside this repository on 2026-09-04. They are not
-needed to understand or reproduce the retained result.
+Historical campaigns were moved outside the minimal checkout on 2026-09-04;
+subsequent work has expanded this repository with the campaigns linked above.
 
 ## Read this first
 

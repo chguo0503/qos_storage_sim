@@ -1,0 +1,3074 @@
+{
+  "strategy": "baseline",
+  "seed": 42,
+  "phases_ms": [
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "profiles": [
+    {
+      "blocks": 254,
+      "compute_ms": 1.9974796959734433,
+      "nql": 256,
+      "provenance": "direct_data_seq32K_nql256"
+    },
+    {
+      "blocks": 1528,
+      "compute_ms": 34.100781654707006,
+      "nql": 1024,
+      "provenance": "direct_data_seq192K_nql1024"
+    },
+    {
+      "blocks": 1528,
+      "compute_ms": 34.100781654707006,
+      "nql": 1024,
+      "provenance": "direct_data_seq192K_nql1024"
+    },
+    {
+      "blocks": 1504,
+      "compute_ms": 135.967080955643,
+      "nql": 4096,
+      "provenance": "direct_data_seq192K_nql4096"
+    }
+  ],
+  "nominal_demand_gib_s": 38.24192839769898,
+  "input_fingerprint": "b4accdcc6c33e0dc14826631c34938383644ebb62077515d874531c09fc75a33",
+  "io_bytes": 180224,
+  "n_layers": 8,
+  "cross_request_prefetch": true,
+  "measurement_config": {
+    "warmup_requests": 2,
+    "settle_ms": 100.0,
+    "measurement_ms": 1000.0
+  },
+  "wall_seconds": 15.551944506820291,
+  "controller_decisions": [],
+  "controller_information": "only arrived request manifests and public queue counts",
+  "controller_model": "npu_stall_predictor.required_rate_gib_s; planning estimate, not service guarantee",
+  "implementation_sha256": {
+    "sim.py": "5f3a9bb82c5740a86c9c916e01495326a0bf4363fb6a5312cb99ac747e8600fd",
+    "continuous_batch_sim.py": "c652bfb22fb6c3d219d7b8f78e172ca5808c55c5e929547ece5da0680129f9b1",
+    "policy_logic.py": "fb72249119635558a8db6efbc12e9dbc33e4a065327c558b15e49bb996f5d229",
+    "continuous_prefill_client.py": "04a8c4dc2d6430ff803b43127007c6fcb58d1279b4c260468425c3899ed0c9da",
+    "npu_stall_predictor.py": "b3f138f20a8fe8442aecbca5d0c0ba829cc1030926c0e15b7b0a2a5a6ecdbbcb",
+    "run_stall_policy_experiments.py": "5655cc1956249e4de1379bd79aa1dd038b0e5a4557fba93b37604f98e0ce7a30"
+  },
+  "summary": {
+    "schema_version": 2,
+    "mode": "steady_state_full_load",
+    "num_npu": 4,
+    "num_ssu": 1,
+    "n_layers": 8,
+    "batch_size": 1,
+    "warmup_requests_per_npu": 2,
+    "warmup_reached_ms": 2195.4755841086476,
+    "settle_ms": 100.0,
+    "measurement_start_ms": 2295.4755841086476,
+    "measurement_end_ms": 3295.4755841086476,
+    "measurement_duration_ms": 1000.0,
+    "stationarity_boundary_semantics": "read-only left-limit snapshot before workload events at the same time",
+    "timeline_diagnostics_enabled": false,
+    "timeline_demand_semantics": {
+      "controller_demand": "remaining full-manifest bytes for every not-ready layer divided by remaining not-ready-layer compute; this is the Adaptive input",
+      "physical_demand": "bytes not yet delivered by the NPU link divided by the same remaining compute; diagnostic only and never a controller input",
+      "installed_cir": "dedicated-Path arbitration guarantee, not realized service; null for baseline and layer-once",
+      "realized_service": "difference of settle-fragmentation-independent cumulative NPU-by-SSU service bytes between two left-limit boundaries, divided by interval duration",
+      "ssd_served_awaiting_link_enqueue": "bytes already serviced within the active non-streaming SSD command but not visible to the NPU link until command completion"
+    },
+    "timeline_ssd_accounting_semantics": {
+      "schema": "steady_timeline_boundary_v3",
+      "ssd_served_cumulative_gb": "compensated whole-command completion totals per NPU and SSU, plus the at-most-one active command prefix reconstructed from its immutable activation time and total_gb",
+      "ssd_outstanding_gb": "direct math.fsum enumeration of every physical pending command total_gb plus the active command's immutable projected remainder; never derived by subtracting cumulative counters",
+      "ssd_outstanding_blocks": "exact integer enumeration of every pending and active command's block_count",
+      "busy_service_reference": "independent compensated SSD busy-time counter multiplied by the physical SSD bandwidth",
+      "fragmented_service_diagnostic": "historical observer-fragmentation-dependent per-settle service accumulation, exposed as ssd_served_fragmented_diagnostic_cumulative_gb and retained only for accounting residuals; it is not a scientific output or actual-service/conservation input, and is checked only for shape, finiteness, nonnegativity, and monotonicity",
+      "queue_identity": "compensated enqueued_gb minus stable cumulative service minus direct physical outstanding_gb"
+    },
+    "timeline_adaptive_deadline_input": false,
+    "timeline_adaptive_deadline_note": "this flag records whether the public CIRControlSnapshot carries an explicitly configured admission-based hard deadline; it does not prove that a particular callback consumes that field, and the alpha1.5/alpha2 timeline slack remains diagnostic only",
+    "timeline_state_durations_ms_by_npu": [],
+    "timeline_block_state_durations_ms": [],
+    "timeline_carry_in_batches_schema": "steady_timeline_carry_in_batch_v1",
+    "timeline_carry_in_batches": [],
+    "timeline_carry_in_batch_semantics": "exact batches satisfying admission_time_ms < measurement_start_ms <= completion_time_ms under the before-same-time-events left-limit snapshot order; equality contributes zero elapsed time; at most one per NPU; half-open interval intersections use max(0, min(end, window_end) - max(start, window_start)); admissions inside the measurement window remain exclusively in request_rows",
+    "timeline_state_duration_semantics": "exact intersections of every microbatch layer compute interval and its preceding I/O-barrier interval with the measurement window; includes carry-in, and other is the exact window complement",
+    "timeline_control_trigger_records": [],
+    "timeline_route_probe_records": [],
+    "timeline_dispatch_probe_ms": 0.0,
+    "timeline_dispatch_probe_limit": 0,
+    "timeline_dispatch_probe_truncated": false,
+    "timeline_route_probe_truncated": false,
+    "timeline_dispatch_probe_records": [],
+    "measurement_stationarity_boundary_count": 11,
+    "measurement_stationarity_boundaries": [
+      {
+        "boundary": 0,
+        "time_ms": 2295.4755841086476,
+        "ssd_cumulative_busy_ms_by_ssu": [
+          1753.7351407296424
+        ],
+        "ssd_cumulative_served_gb_by_ssu": [
+          70.1494056291857
+        ],
+        "ssd_outstanding_blocks_by_ssu": [
+          77
+        ],
+        "ssd_outstanding_gb_by_ssu": [
+          0.012856333704930875
+        ],
+        "npu_compute_cumulative_busy_ms_by_npu": [
+          1436.9323194782878,
+          2275.271879274663,
+          2275.2760754416554,
+          2275.473295290288
+        ],
+        "npu_link_cumulative_busy_ms_by_npu": [
+          614.5085324532752,
+          348.798828125,
+          348.798828125,
+          90.87890625
+        ],
+        "npu_link_cumulative_served_gb_by_npu": [
+          30.725426622663758,
+          17.43994140625,
+          17.43994140625,
+          4.5439453125
+        ],
+        "npu_link_outstanding_blocks_by_npu": [
+          1,
+          0,
+          0,
+          0
+        ],
+        "npu_link_outstanding_gb_by_npu": [
+          8.30208909292196e-05,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "boundary": 1,
+        "time_ms": 2395.4755841086476,
+        "ssd_cumulative_busy_ms_by_ssu": [
+          1831.252388498604
+        ],
+        "ssd_cumulative_served_gb_by_ssu": [
+          73.25009553994416
+        ],
+        "ssd_outstanding_blocks_by_ssu": [
+          150
+        ],
+        "ssd_outstanding_gb_by_ssu": [
+          0.0250509444308409
+        ],
+        "npu_compute_cumulative_busy_ms_by_npu": [
+          1498.5493247853162,
+          2375.271879274663,
+          2375.2760754416554,
+          2375.473295290288
+        ],
+        "npu_link_cumulative_busy_ms_by_npu": [
+          640.6974263404009,
+          364.18701171875,
+          364.18701171875,
+          95.927734375
+        ],
+        "npu_link_cumulative_served_gb_by_npu": [
+          32.03487131702004,
+          18.2093505859375,
+          18.2093505859375,
+          4.79638671875
+        ],
+        "npu_link_outstanding_blocks_by_npu": [
+          1,
+          0,
+          0,
+          0
+        ],
+        "npu_link_outstanding_gb_by_npu": [
+          1.0274776832375204e-05,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "boundary": 2,
+        "time_ms": 2495.4755841086476,
+        "ssd_cumulative_busy_ms_by_ssu": [
+          1908.6349487304688
+        ],
+        "ssd_cumulative_served_gb_by_ssu": [
+          76.34539794921875
+        ],
+        "ssd_outstanding_blocks_by_ssu": [
+          0
+        ],
+        "ssd_outstanding_gb_by_ssu": [
+          0.0
+        ],
+        "npu_compute_cumulative_busy_ms_by_npu": [
+          1559.9468759051945,
+          2475.271879274663,
+          2475.2760754416554,
+          2475.473295290288
+        ],
+        "npu_link_cumulative_busy_ms_by_npu": [
+          666.781005859375,
+          379.5751953125,
+          379.5751953125,
+          100.9765625
+        ],
+        "npu_link_cumulative_served_gb_by_npu": [
+          33.33905029296875,
+          18.978759765625,
+          18.978759765625,
+          5.048828125
+        ],
+        "npu_link_outstanding_blocks_by_npu": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "npu_link_outstanding_gb_by_npu": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "boundary": 3,
+        "time_ms": 2595.4755841086476,
+        "ssd_cumulative_busy_ms_by_ssu": [
+          1983.2724700095027
+        ],
+        "ssd_cumulative_served_gb_by_ssu": [
+          79.33089880038011
+        ],
+        "ssd_outstanding_blocks_by_ssu": [
+          17
+        ],
+        "ssd_outstanding_gb_by_ssu": [
+          0.0028414339948903944
+        ],
+        "npu_compute_cumulative_busy_ms_by_npu": [
+          1626.9432630885142,
+          2575.271879274663,
+          2575.2760754416554,
+          2575.473295290288
+        ],
+        "npu_link_cumulative_busy_ms_by_npu": [
+          695.7113585593074,
+          394.96337890625,
+          394.96337890625,
+          100.9765625
+        ],
+        "npu_link_cumulative_served_gb_by_npu": [
+          34.78556792796537,
+          19.7481689453125,
+          19.7481689453125,
+          5.048828125
+        ],
+        "npu_link_outstanding_blocks_by_npu": [
+          1,
+          0,
+          0,
+          0
+        ],
+        "npu_link_outstanding_gb_by_npu": [
+          0.000152897229941118,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "boundary": 4,
+        "time_ms": 2695.4755841086476,
+        "ssd_cumulative_busy_ms_by_ssu": [
+          2061.1656188964844
+        ],
+        "ssd_cumulative_served_gb_by_ssu": [
+          82.44662475585938
+        ],
+        "ssd_outstanding_blocks_by_ssu": [
+          0
+        ],
+        "ssd_outstanding_gb_by_ssu": [
+          0.0
+        ],
+        "npu_compute_cumulative_busy_ms_by_npu": [
+          1689.392779794322,
+          2675.271879274663,
+          2675.2760754416554,
+          2675.473295290288
+        ],
+        "npu_link_cumulative_busy_ms_by_npu": [
+          722.2039794921875,
+          410.3515625,
+          410.3515625,
+          106.025390625
+        ],
+        "npu_link_cumulative_served_gb_by_npu": [
+          36.110198974609375,
+          20.517578125,
+          20.517578125,
+          5.30126953125
+        ],
+        "npu_link_outstanding_blocks_by_npu": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "npu_link_outstanding_gb_by_npu": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "boundary": 5,
+        "time_ms": 2795.4755841086476,
+        "ssd_cumulative_busy_ms_by_ssu": [
+          2138.320826377512
+        ],
+        "ssd_cumulative_served_gb_by_ssu": [
+          85.53283305510048
+        ],
+        "ssd_outstanding_blocks_by_ssu": [
+          413
+        ],
+        "ssd_outstanding_gb_by_ssu": [
+          0.06930927888390215
+        ],
+        "npu_compute_cumulative_busy_ms_by_npu": [
+          1753.78717306467,
+          2775.271879274663,
+          2775.2760754416554,
+          2775.473295290288
+        ],
+        "npu_link_cumulative_busy_ms_by_npu": [
+          748.636474609375,
+          425.40098079645713,
+          425.54168701171875,
+          111.07421875
+        ],
+        "npu_link_cumulative_served_gb_by_npu": [
+          37.43182373046875,
+          21.270049039822858,
+          21.277084350585938,
+          5.5537109375
+        ],
+        "npu_link_outstanding_blocks_by_npu": [
+          0,
+          1,
+          0,
+          0
+        ],
+        "npu_link_outstanding_gb_by_npu": [
+          0.0,
+          0.00015359689589331538,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "boundary": 6,
+        "time_ms": 2895.4755841086476,
+        "ssd_cumulative_busy_ms_by_ssu": [
+          2215.738932265295
+        ],
+        "ssd_cumulative_served_gb_by_ssu": [
+          88.62955729061179
+        ],
+        "ssd_outstanding_blocks_by_ssu": [
+          764
+        ],
+        "ssd_outstanding_gb_by_ssu": [
+          0.12810262149758272
+        ],
+        "npu_compute_cumulative_busy_ms_by_npu": [
+          1817.7065233358196,
+          2875.271879274663,
+          2875.2760754416554,
+          2875.473295290288
+        ],
+        "npu_link_cumulative_busy_ms_by_npu": [
+          775.921630859375,
+          440.201416015625,
+          440.34235633756043,
+          116.123046875
+        ],
+        "npu_link_cumulative_served_gb_by_npu": [
+          38.79608154296875,
+          22.01007080078125,
+          22.01711781687802,
+          5.80615234375
+        ],
+        "npu_link_outstanding_blocks_by_npu": [
+          0,
+          0,
+          1,
+          0
+        ],
+        "npu_link_outstanding_gb_by_npu": [
+          0.0,
+          0.0,
+          2.544450103414414e-06,
+          0.0
+        ]
+      },
+      {
+        "boundary": 7,
+        "time_ms": 2995.4755841086476,
+        "ssd_cumulative_busy_ms_by_ssu": [
+          2288.5021286868814
+        ],
+        "ssd_cumulative_served_gb_by_ssu": [
+          91.54008514747525
+        ],
+        "ssd_outstanding_blocks_by_ssu": [
+          1481
+        ],
+        "ssd_outstanding_gb_by_ssu": [
+          0.24855010643099376
+        ],
+        "npu_compute_cumulative_busy_ms_by_npu": [
+          1887.6183126948895,
+          2975.271879274663,
+          2975.2760754416554,
+          2975.473295290288
+        ],
+        "npu_link_cumulative_busy_ms_by_npu": [
+          805.7647705078125,
+          454.3852311038736,
+          454.52545166015625,
+          116.123046875
+        ],
+        "npu_link_cumulative_served_gb_by_npu": [
+          40.288238525390625,
+          22.71926155519368,
+          22.726272583007812,
+          5.80615234375
+        ],
+        "npu_link_outstanding_blocks_by_npu": [
+          0,
+          1,
+          0,
+          0
+        ],
+        "npu_link_outstanding_gb_by_npu": [
+          0.0,
+          0.00012931394694533084,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "boundary": 8,
+        "time_ms": 3095.4755841086476,
+        "ssd_cumulative_busy_ms_by_ssu": [
+          2365.087723175885
+        ],
+        "ssd_cumulative_served_gb_by_ssu": [
+          94.6035089270354
+        ],
+        "ssd_outstanding_blocks_by_ssu": [
+          2030
+        ],
+        "ssd_outstanding_gb_by_ssu": [
+          0.3406439049958499
+        ],
+        "npu_compute_cumulative_busy_ms_by_npu": [
+          1951.537662966039,
+          3075.271879274663,
+          3075.2760754416554,
+          3075.473295290288
+        ],
+        "npu_link_cumulative_busy_ms_by_npu": [
+          833.0499267578125,
+          468.85284423828125,
+          468.9925998848694,
+          121.171875
+        ],
+        "npu_link_cumulative_served_gb_by_npu": [
+          41.652496337890625,
+          23.442642211914062,
+          23.44962999424347,
+          6.05859375
+        ],
+        "npu_link_outstanding_blocks_by_npu": [
+          0,
+          0,
+          1,
+          0
+        ],
+        "npu_link_outstanding_gb_by_npu": [
+          0.0,
+          0.0,
+          6.177821746859991e-05,
+          0.0
+        ]
+      },
+      {
+        "boundary": 9,
+        "time_ms": 3195.4755841086476,
+        "ssd_cumulative_busy_ms_by_ssu": [
+          2441.6733176648886
+        ],
+        "ssd_cumulative_served_gb_by_ssu": [
+          97.66693270659555
+        ],
+        "ssd_outstanding_blocks_by_ssu": [
+          2579
+        ],
+        "ssd_outstanding_gb_by_ssu": [
+          0.432737703560706
+        ],
+        "npu_compute_cumulative_busy_ms_by_npu": [
+          2015.4570132371887,
+          3175.271879274663,
+          3175.2760754416554,
+          3175.473295290288
+        ],
+        "npu_link_cumulative_busy_ms_by_npu": [
+          860.3350830078125,
+          483.32122802734375,
+          483.4588623046875,
+          126.220703125
+        ],
+        "npu_link_cumulative_served_gb_by_npu": [
+          43.016754150390625,
+          24.166061401367188,
+          24.172943115234375,
+          6.31103515625
+        ],
+        "npu_link_outstanding_blocks_by_npu": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "npu_link_outstanding_gb_by_npu": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "boundary": 10,
+        "time_ms": 3295.4755841086476,
+        "ssd_cumulative_busy_ms_by_ssu": [
+          2518.967754313106
+        ],
+        "ssd_cumulative_served_gb_by_ssu": [
+          100.75871017252425
+        ],
+        "ssd_outstanding_blocks_by_ssu": [
+          2958
+        ],
+        "ssd_outstanding_gb_by_ssu": [
+          0.49647781575700717
+        ],
+        "npu_compute_cumulative_busy_ms_by_npu": [
+          2077.9245978826257,
+          3275.271879274663,
+          3275.2760754416554,
+          3275.473295290288
+        ],
+        "npu_link_cumulative_busy_ms_by_npu": [
+          887.6202392578125,
+          498.07159423828125,
+          498.20954508459045,
+          131.26953125
+        ],
+        "npu_link_cumulative_served_gb_by_npu": [
+          44.381011962890625,
+          24.903579711914062,
+          24.910477254229523,
+          6.5634765625
+        ],
+        "npu_link_outstanding_blocks_by_npu": [
+          0,
+          0,
+          1,
+          0
+        ],
+        "npu_link_outstanding_gb_by_npu": [
+          0.0,
+          0.0,
+          0.00015201823141524072,
+          0.0
+        ]
+      }
+    ],
+    "measurement_control_counter_window": "half-open [measurement_start_ms, measurement_end_ms)",
+    "legacy_control_counter_scope": "cumulative from simulation start through tagged-request drain",
+    "pressure_ttl_ms": 0.0,
+    "cir_write_threshold_gbps": 0.0,
+    "drain_stop_ms": 4370.948879398933,
+    "tail_drain_ms": 1075.4732952902855,
+    "slo_alpha": 2.0,
+    "mean_npu_utilization": 0.9102480696011018,
+    "npu_utilizations": [
+      0.6409922784044074,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "compute_ms_by_npu": [
+      640.9922784044074,
+      1000.0,
+      1000.0,
+      1000.0
+    ],
+    "measurement_ssd_mean_utilization": 0.7652326135834637,
+    "measurement_ssd_utilizations": [
+      0.7652326135834637
+    ],
+    "measurement_ssd_busy_ms_by_ssu": [
+      765.2326135834637
+    ],
+    "measurement_ssd_served_gb_by_ssu": [
+      30.60930454333855
+    ],
+    "measurement_ssd_served_gbps_by_ssu": [
+      30.60930454333855
+    ],
+    "measurement_npu_ssu_ssd_served_gb": [
+      [
+        13.655434458704931
+      ],
+      [
+        7.46365096842268
+      ],
+      [
+        7.4706878662109375
+      ],
+      [
+        2.01953125
+      ]
+    ],
+    "measurement_npu_ssu_ssd_served_gbps": [
+      [
+        13.655434458704931
+      ],
+      [
+        7.46365096842268
+      ],
+      [
+        7.4706878662109375
+      ],
+      [
+        2.01953125
+      ]
+    ],
+    "measurement_fragmented_npu_ssu_ssd_served_gb": [
+      [
+        13.655434459005821
+      ],
+      [
+        7.4636509684212164
+      ],
+      [
+        7.470687866202152
+      ],
+      [
+        2.0195312499972795
+      ]
+    ],
+    "measurement_ssd_accounting_residuals": {
+      "schema": "steady_ssd_accounting_residuals_v1",
+      "service_absolute_tolerance_gb": 1e-08,
+      "block_tolerance": 0,
+      "decimal_bytes_per_gb": 1000000000.0,
+      "stable_service_minus_busy_counter_gb_by_ssu": [
+        0.0
+      ],
+      "stable_service_minus_busy_counter_decimal_bytes_by_ssu": [
+        0.0
+      ],
+      "fragmented_service_minus_stable_gb_by_ssu": [
+        2.879190219573502e-10
+      ],
+      "fragmented_service_minus_stable_decimal_bytes_by_ssu": [
+        0.2879190219573502
+      ],
+      "busy_time_compensation_ms_by_ssu_at_stop": [
+        -4.263256414560601e-14
+      ],
+      "measurement_maxima": {
+        "stable_service_minus_busy_counter": {
+          "signed_gb": 0.0,
+          "signed_decimal_bytes": 0.0,
+          "absolute_gb": 0.0,
+          "absolute_decimal_bytes": 0.0,
+          "ssu_id": 0
+        },
+        "fragmented_service_minus_stable": {
+          "signed_gb": 2.879190219573502e-10,
+          "signed_decimal_bytes": 0.2879190219573502,
+          "absolute_gb": 2.879190219573502e-10,
+          "absolute_decimal_bytes": 0.2879190219573502,
+          "ssu_id": 0
+        }
+      },
+      "timeline_maxima": {}
+    },
+    "measurement_npu_link_mean_utilization": 0.15304645371935224,
+    "measurement_npu_link_utilizations": [
+      0.27311170680453734,
+      0.14927276611328125,
+      0.14941071695959043,
+      0.040390625
+    ],
+    "measurement_npu_link_busy_ms_by_npu": [
+      273.11170680453733,
+      149.27276611328125,
+      149.41071695959045,
+      40.390625
+    ],
+    "measurement_npu_ssu_link_served_gb": [
+      [
+        13.655585340226864
+      ],
+      [
+        7.4636383056640625
+      ],
+      [
+        7.470535847979523
+      ],
+      [
+        2.01953125
+      ]
+    ],
+    "measurement_npu_ssu_link_served_gbps": [
+      [
+        13.655585340226864
+      ],
+      [
+        7.4636383056640625
+      ],
+      [
+        7.470535847979523
+      ],
+      [
+        2.01953125
+      ]
+    ],
+    "measurement_ssd_outstanding_blocks_at_start": [
+      77
+    ],
+    "measurement_ssd_outstanding_blocks_at_end": [
+      2958
+    ],
+    "measurement_ssd_outstanding_blocks_drift": [
+      2881
+    ],
+    "measurement_ssd_outstanding_gb_at_start": [
+      0.012856333704930875
+    ],
+    "measurement_ssd_outstanding_gb_at_end": [
+      0.49647781575700717
+    ],
+    "measurement_ssd_outstanding_gb_drift": [
+      0.4836214820520763
+    ],
+    "measurement_npu_link_outstanding_blocks_at_start": [
+      1,
+      0,
+      0,
+      0
+    ],
+    "measurement_npu_link_outstanding_blocks_at_end": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "measurement_npu_link_outstanding_blocks_drift": [
+      -1,
+      0,
+      1,
+      0
+    ],
+    "measurement_npu_link_outstanding_gb_at_start": [
+      8.30208909292196e-05,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "measurement_npu_link_outstanding_gb_at_end": [
+      0.0,
+      0.0,
+      0.00015201823141524072,
+      0.0
+    ],
+    "measurement_npu_link_outstanding_gb_drift": [
+      -8.30208909292196e-05,
+      0.0,
+      0.00015201823141524072,
+      0.0
+    ],
+    "measurement_actual_cir_sum_gbps_by_ssu_at_start": [
+      40.00000000000002
+    ],
+    "measurement_actual_cir_sum_gbps_by_ssu_at_end": [
+      40.00000000000002
+    ],
+    "measurement_actual_npu_cir_sum_gbps_at_start": null,
+    "measurement_actual_npu_cir_sum_gbps_at_end": null,
+    "measurement_pressure_reports": 0,
+    "measurement_pressure_reports_by_ssu": [
+      0
+    ],
+    "measurement_pressure_report_rate_hz": 0.0,
+    "measurement_pressure_report_rate_hz_by_ssu": [
+      0.0
+    ],
+    "measurement_pressure_cache_hits": 0,
+    "measurement_pressure_cache_hits_by_ssu": [
+      0
+    ],
+    "measurement_pressure_requests": 0,
+    "measurement_pressure_requests_by_ssu": [
+      0
+    ],
+    "measurement_pressure_cache_hit_fraction": 0.0,
+    "measurement_pressure_cache_hit_fraction_by_ssu": [
+      0.0
+    ],
+    "measurement_cir_control_pressure_queries": 0,
+    "measurement_cir_control_pressure_queries_by_ssu": [
+      0
+    ],
+    "measurement_cir_control_pressure_reads": 0,
+    "measurement_cir_control_pressure_reads_by_ssu": [
+      0
+    ],
+    "measurement_cir_control_pressure_cache_hits": 0,
+    "measurement_cir_control_pressure_cache_hits_by_ssu": [
+      0
+    ],
+    "measurement_control_evaluations": 0,
+    "measurement_control_evaluation_rate_hz": 0.0,
+    "measurement_cir_commits": 0,
+    "measurement_cir_commit_rate_hz": 0.0,
+    "measurement_cir_write_transactions": 0,
+    "measurement_cir_write_transactions_by_ssu": [
+      0
+    ],
+    "measurement_cir_write_transaction_rate_hz": 0.0,
+    "measurement_cir_write_transaction_rate_hz_by_ssu": [
+      0.0
+    ],
+    "measurement_cir_path_writes": 0,
+    "measurement_cir_path_writes_by_ssu": [
+      0
+    ],
+    "measurement_cir_path_write_rate_hz": 0.0,
+    "measurement_cir_path_write_rate_hz_by_ssu": [
+      0.0
+    ],
+    "measurement_cir_entries_per_transaction": 0.0,
+    "measurement_cir_entries_per_transaction_by_ssu": [
+      0.0
+    ],
+    "ttft_slo_attainment": 0.9817073170731707,
+    "request_weighted_slo_attainment": 0.94,
+    "mean_ttft_ms": 85.90662544246305,
+    "p99_ttft_ms": 688.4207543854732,
+    "measurement_request_count": 50,
+    "request_counts_by_npu": [
+      41,
+      4,
+      4,
+      1
+    ],
+    "request_rows": [
+      {
+        "request_id": 90,
+        "npu_id": 0,
+        "sequence": 90,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 2296.728645731229,
+        "completion_time_ms": 2323.672020000821,
+        "ttft_ms": 26.943374269591914,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 2323.672020000821,
+        "io_stall_ms": 10.963536701804367
+      },
+      {
+        "request_id": 91,
+        "npu_id": 0,
+        "sequence": 91,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 2323.672020000821,
+        "completion_time_ms": 2355.7788593598734,
+        "ttft_ms": 32.10683935905263,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": false,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 2355.7788593598734,
+        "io_stall_ms": 16.12700179126508
+      },
+      {
+        "request_id": 92,
+        "npu_id": 0,
+        "sequence": 92,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 2355.7788593598734,
+        "completion_time_ms": 2371.7586969276626,
+        "ttft_ms": 15.979837567789218,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 2371.7586969276626,
+        "io_stall_ms": 1.6715517858756357e-12
+      },
+      {
+        "request_id": 93,
+        "npu_id": 0,
+        "sequence": 93,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 2371.7586969276626,
+        "completion_time_ms": 2399.0309906953503,
+        "ttft_ms": 27.272293767687643,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 2399.0309906953503,
+        "io_stall_ms": 11.292456199900096
+      },
+      {
+        "request_id": 94,
+        "npu_id": 0,
+        "sequence": 94,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 2399.0309906953503,
+        "completion_time_ms": 2425.974364964942,
+        "ttft_ms": 26.943374269591914,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 2425.974364964942,
+        "io_stall_ms": 10.963536701804367
+      },
+      {
+        "request_id": 95,
+        "npu_id": 0,
+        "sequence": 95,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 2425.974364964942,
+        "completion_time_ms": 2441.9542025327314,
+        "ttft_ms": 15.979837567789218,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 2441.9542025327314,
+        "io_stall_ms": 1.6715517858756357e-12
+      },
+      {
+        "request_id": 96,
+        "npu_id": 0,
+        "sequence": 96,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 2441.9542025327314,
+        "completion_time_ms": 2469.230033700738,
+        "ttft_ms": 27.27583116800679,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 2469.230033700738,
+        "io_stall_ms": 11.295993600219242
+      },
+      {
+        "request_id": 97,
+        "npu_id": 0,
+        "sequence": 97,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 2469.230033700738,
+        "completion_time_ms": 2501.552789846622,
+        "ttft_ms": 32.322756145883886,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": false,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 2501.552789846622,
+        "io_stall_ms": 16.342918578096338
+      },
+      {
+        "request_id": 98,
+        "npu_id": 0,
+        "sequence": 98,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 2501.552789846622,
+        "completion_time_ms": 2528.496164116214,
+        "ttft_ms": 26.943374269591914,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 2528.496164116214,
+        "io_stall_ms": 10.963536701804367
+      },
+      {
+        "request_id": 99,
+        "npu_id": 0,
+        "sequence": 99,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 2528.496164116214,
+        "completion_time_ms": 2544.476001684003,
+        "ttft_ms": 15.979837567789218,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 2544.476001684003,
+        "io_stall_ms": 1.6715517858756357e-12
+      },
+      {
+        "request_id": 100,
+        "npu_id": 0,
+        "sequence": 100,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 2544.476001684003,
+        "completion_time_ms": 2571.5323786648596,
+        "ttft_ms": 27.056376980856385,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 2571.5323786648596,
+        "io_stall_ms": 11.076539413068838
+      },
+      {
+        "request_id": 101,
+        "npu_id": 0,
+        "sequence": 101,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 2571.5323786648596,
+        "completion_time_ms": 2598.4757529344515,
+        "ttft_ms": 26.943374269591914,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 2598.4757529344515,
+        "io_stall_ms": 10.963536701804367
+      },
+      {
+        "request_id": 102,
+        "npu_id": 0,
+        "sequence": 102,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 2598.4757529344515,
+        "completion_time_ms": 2629.870212733971,
+        "ttft_ms": 31.39445979951961,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 2629.870212733971,
+        "io_stall_ms": 15.414622231732062
+      },
+      {
+        "request_id": 103,
+        "npu_id": 0,
+        "sequence": 103,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 2629.870212733971,
+        "completion_time_ms": 2645.8500503017603,
+        "ttft_ms": 15.979837567789218,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 2645.8500503017603,
+        "io_stall_ms": 1.6715517858756357e-12
+      },
+      {
+        "request_id": 104,
+        "npu_id": 0,
+        "sequence": 104,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 2645.8500503017603,
+        "completion_time_ms": 2672.7934245713523,
+        "ttft_ms": 26.943374269591914,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 2672.7934245713523,
+        "io_stall_ms": 10.963536701804367
+      },
+      {
+        "request_id": 105,
+        "npu_id": 0,
+        "sequence": 105,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 2672.7934245713523,
+        "completion_time_ms": 2699.9455864997935,
+        "ttft_ms": 27.152161928441274,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 2699.9455864997935,
+        "io_stall_ms": 11.172324360653727
+      },
+      {
+        "request_id": 106,
+        "npu_id": 0,
+        "sequence": 106,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 2699.9455864997935,
+        "completion_time_ms": 2715.9254240675828,
+        "ttft_ms": 15.979837567789218,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 2715.9254240675828,
+        "io_stall_ms": 1.6715517858756357e-12
+      },
+      {
+        "request_id": 107,
+        "npu_id": 0,
+        "sequence": 107,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 2715.9254240675828,
+        "completion_time_ms": 2742.8687983371747,
+        "ttft_ms": 26.943374269591914,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 2742.8687983371747,
+        "io_stall_ms": 10.963536701804367
+      },
+      {
+        "request_id": 108,
+        "npu_id": 0,
+        "sequence": 108,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 2742.8687983371747,
+        "completion_time_ms": 2774.2632581366943,
+        "ttft_ms": 31.39445979951961,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 2774.2632581366943,
+        "io_stall_ms": 15.414622231732062
+      },
+      {
+        "request_id": 109,
+        "npu_id": 0,
+        "sequence": 109,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 2774.2632581366943,
+        "completion_time_ms": 2801.206632406286,
+        "ttft_ms": 26.943374269591914,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 2801.206632406286,
+        "io_stall_ms": 10.963536701804367
+      },
+      {
+        "request_id": 110,
+        "npu_id": 0,
+        "sequence": 110,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 2801.206632406286,
+        "completion_time_ms": 2817.1864699740754,
+        "ttft_ms": 15.979837567789218,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 2817.1864699740754,
+        "io_stall_ms": 1.6715517858756357e-12
+      },
+      {
+        "request_id": 111,
+        "npu_id": 0,
+        "sequence": 111,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 2817.1864699740754,
+        "completion_time_ms": 2844.3386319025167,
+        "ttft_ms": 27.152161928441274,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 2844.3386319025167,
+        "io_stall_ms": 11.172324360653727
+      },
+      {
+        "request_id": 112,
+        "npu_id": 0,
+        "sequence": 112,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 2844.3386319025167,
+        "completion_time_ms": 2871.2820061721086,
+        "ttft_ms": 26.943374269591914,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 2871.2820061721086,
+        "io_stall_ms": 10.963536701804367
+      },
+      {
+        "request_id": 113,
+        "npu_id": 0,
+        "sequence": 113,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 2871.2820061721086,
+        "completion_time_ms": 2902.676465971628,
+        "ttft_ms": 31.39445979951961,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 2902.676465971628,
+        "io_stall_ms": 15.414622231732062
+      },
+      {
+        "request_id": 114,
+        "npu_id": 0,
+        "sequence": 114,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 2902.676465971628,
+        "completion_time_ms": 2918.6563035394174,
+        "ttft_ms": 15.979837567789218,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 2918.6563035394174,
+        "io_stall_ms": 1.6715517858756357e-12
+      },
+      {
+        "request_id": 115,
+        "npu_id": 0,
+        "sequence": 115,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 2918.6563035394174,
+        "completion_time_ms": 2945.5996778090093,
+        "ttft_ms": 26.943374269591914,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 2945.5996778090093,
+        "io_stall_ms": 10.963536701804367
+      },
+      {
+        "request_id": 116,
+        "npu_id": 0,
+        "sequence": 116,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 2945.5996778090093,
+        "completion_time_ms": 2972.7518397374506,
+        "ttft_ms": 27.152161928441274,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 2972.7518397374506,
+        "io_stall_ms": 11.172324360653727
+      },
+      {
+        "request_id": 117,
+        "npu_id": 0,
+        "sequence": 117,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 2972.7518397374506,
+        "completion_time_ms": 2988.73167730524,
+        "ttft_ms": 15.979837567789218,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 2988.73167730524,
+        "io_stall_ms": 1.6715517858756357e-12
+      },
+      {
+        "request_id": 118,
+        "npu_id": 0,
+        "sequence": 118,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 2988.73167730524,
+        "completion_time_ms": 3020.6557680443375,
+        "ttft_ms": 31.924090739097664,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 3020.6557680443375,
+        "io_stall_ms": 15.944253171310118
+      },
+      {
+        "request_id": 119,
+        "npu_id": 0,
+        "sequence": 119,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 3020.6557680443375,
+        "completion_time_ms": 3047.5991423139294,
+        "ttft_ms": 26.943374269591914,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 3047.5991423139294,
+        "io_stall_ms": 10.963536701804367
+      },
+      {
+        "request_id": 120,
+        "npu_id": 0,
+        "sequence": 120,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 3047.5991423139294,
+        "completion_time_ms": 3075.054184701572,
+        "ttft_ms": 27.455042387642607,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 3075.054184701572,
+        "io_stall_ms": 11.47520481985506
+      },
+      {
+        "request_id": 121,
+        "npu_id": 0,
+        "sequence": 121,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 3075.054184701572,
+        "completion_time_ms": 3091.0340222693612,
+        "ttft_ms": 15.979837567789218,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 3091.0340222693612,
+        "io_stall_ms": 1.6715517858756357e-12
+      },
+      {
+        "request_id": 122,
+        "npu_id": 0,
+        "sequence": 122,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 3091.0340222693612,
+        "completion_time_ms": 3117.977396538953,
+        "ttft_ms": 26.943374269591914,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 3117.977396538953,
+        "io_stall_ms": 10.963536701804367
+      },
+      {
+        "request_id": 123,
+        "npu_id": 0,
+        "sequence": 123,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 3117.977396538953,
+        "completion_time_ms": 3145.25322770696,
+        "ttft_ms": 27.27583116800679,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 3145.25322770696,
+        "io_stall_ms": 11.295993600219242
+      },
+      {
+        "request_id": 124,
+        "npu_id": 0,
+        "sequence": 124,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 3145.25322770696,
+        "completion_time_ms": 3177.3565296656934,
+        "ttft_ms": 32.10330195873348,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": false,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 3177.3565296656934,
+        "io_stall_ms": 16.123464390945934
+      },
+      {
+        "request_id": 125,
+        "npu_id": 0,
+        "sequence": 125,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 3177.3565296656934,
+        "completion_time_ms": 3193.3363672334826,
+        "ttft_ms": 15.979837567789218,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 3193.3363672334826,
+        "io_stall_ms": 1.6715517858756357e-12
+      },
+      {
+        "request_id": 126,
+        "npu_id": 0,
+        "sequence": 126,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 3193.3363672334826,
+        "completion_time_ms": 3220.2797415030745,
+        "ttft_ms": 26.943374269591914,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 3220.2797415030745,
+        "io_stall_ms": 10.963536701804367
+      },
+      {
+        "request_id": 127,
+        "npu_id": 0,
+        "sequence": 127,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 3220.2797415030745,
+        "completion_time_ms": 3247.5555726710813,
+        "ttft_ms": 27.27583116800679,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 3247.5555726710813,
+        "io_stall_ms": 11.295993600219242
+      },
+      {
+        "request_id": 128,
+        "npu_id": 0,
+        "sequence": 128,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 3247.5555726710813,
+        "completion_time_ms": 3263.5354102388706,
+        "ttft_ms": 15.979837567789218,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 3263.5354102388706,
+        "io_stall_ms": 1.6715517858756357e-12
+      },
+      {
+        "request_id": 129,
+        "npu_id": 0,
+        "sequence": 129,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 3263.5354102388706,
+        "completion_time_ms": 3294.92987003839,
+        "ttft_ms": 31.39445979951961,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 3294.92987003839,
+        "io_stall_ms": 15.414622231732062
+      },
+      {
+        "request_id": 130,
+        "npu_id": 0,
+        "sequence": 130,
+        "category": "SS",
+        "profile_id": "32,256",
+        "profile_key": [
+          32,
+          256
+        ],
+        "profile_name": "seq_len_k=32,nql=256",
+        "raw_demand_gbps": 21.343424279388426,
+        "admission_time_ms": 3294.92987003839,
+        "completion_time_ms": 3321.873244307982,
+        "ttft_ms": 26.943374269591914,
+        "ideal_ttft_ms": 15.979837567787547,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 3321.873244307982,
+        "io_stall_ms": 10.963536701804367
+      },
+      {
+        "request_id": 1000009,
+        "npu_id": 1,
+        "sequence": 9,
+        "category": "LL",
+        "profile_id": "192,1024",
+        "profile_key": [
+          192,
+          1024
+        ],
+        "profile_name": "seq_len_k=192,nql=1024",
+        "raw_demand_gbps": 7.52093395275879,
+        "admission_time_ms": 2475.4599839728876,
+        "completion_time_ms": 2748.2662372105447,
+        "ttft_ms": 272.8062532376571,
+        "ideal_ttft_ms": 272.80625323765605,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 2748.2662372105447,
+        "io_stall_ms": 1.0231815394945443e-12
+      },
+      {
+        "request_id": 1000010,
+        "npu_id": 1,
+        "sequence": 10,
+        "category": "LL",
+        "profile_id": "192,1024",
+        "profile_key": [
+          192,
+          1024
+        ],
+        "profile_name": "seq_len_k=192,nql=1024",
+        "raw_demand_gbps": 7.52093395275879,
+        "admission_time_ms": 2748.2662372105447,
+        "completion_time_ms": 3021.0724904482017,
+        "ttft_ms": 272.8062532376571,
+        "ideal_ttft_ms": 272.80625323765605,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 3021.0724904482017,
+        "io_stall_ms": 1.0231815394945443e-12
+      },
+      {
+        "request_id": 1000011,
+        "npu_id": 1,
+        "sequence": 11,
+        "category": "LL",
+        "profile_id": "192,1024",
+        "profile_key": [
+          192,
+          1024
+        ],
+        "profile_name": "seq_len_k=192,nql=1024",
+        "raw_demand_gbps": 7.52093395275879,
+        "admission_time_ms": 3021.0724904482017,
+        "completion_time_ms": 3293.878743685859,
+        "ttft_ms": 272.8062532376571,
+        "ideal_ttft_ms": 272.80625323765605,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 3293.878743685859,
+        "io_stall_ms": 1.0231815394945443e-12
+      },
+      {
+        "request_id": 1000012,
+        "npu_id": 1,
+        "sequence": 12,
+        "category": "LL",
+        "profile_id": "192,1024",
+        "profile_key": [
+          192,
+          1024
+        ],
+        "profile_name": "seq_len_k=192,nql=1024",
+        "raw_demand_gbps": 7.52093395275879,
+        "admission_time_ms": 3293.878743685859,
+        "completion_time_ms": 3566.684996923516,
+        "ttft_ms": 272.8062532376571,
+        "ideal_ttft_ms": 272.80625323765605,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 3566.684996923516,
+        "io_stall_ms": 1.0231815394945443e-12
+      },
+      {
+        "request_id": 2000009,
+        "npu_id": 2,
+        "sequence": 9,
+        "category": "LL",
+        "profile_id": "192,1024",
+        "profile_key": [
+          192,
+          1024
+        ],
+        "profile_name": "seq_len_k=192,nql=1024",
+        "raw_demand_gbps": 7.52093395275879,
+        "admission_time_ms": 2475.4557878058954,
+        "completion_time_ms": 2748.2620410435525,
+        "ttft_ms": 272.8062532376571,
+        "ideal_ttft_ms": 272.80625323765605,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 2748.2620410435525,
+        "io_stall_ms": 1.0231815394945443e-12
+      },
+      {
+        "request_id": 2000010,
+        "npu_id": 2,
+        "sequence": 10,
+        "category": "LL",
+        "profile_id": "192,1024",
+        "profile_key": [
+          192,
+          1024
+        ],
+        "profile_name": "seq_len_k=192,nql=1024",
+        "raw_demand_gbps": 7.52093395275879,
+        "admission_time_ms": 2748.2620410435525,
+        "completion_time_ms": 3021.0682942812095,
+        "ttft_ms": 272.8062532376571,
+        "ideal_ttft_ms": 272.80625323765605,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 3021.0682942812095,
+        "io_stall_ms": 1.0231815394945443e-12
+      },
+      {
+        "request_id": 2000011,
+        "npu_id": 2,
+        "sequence": 11,
+        "category": "LL",
+        "profile_id": "192,1024",
+        "profile_key": [
+          192,
+          1024
+        ],
+        "profile_name": "seq_len_k=192,nql=1024",
+        "raw_demand_gbps": 7.52093395275879,
+        "admission_time_ms": 3021.0682942812095,
+        "completion_time_ms": 3293.8745475188666,
+        "ttft_ms": 272.8062532376571,
+        "ideal_ttft_ms": 272.80625323765605,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 3293.8745475188666,
+        "io_stall_ms": 1.0231815394945443e-12
+      },
+      {
+        "request_id": 2000012,
+        "npu_id": 2,
+        "sequence": 12,
+        "category": "LL",
+        "profile_id": "192,1024",
+        "profile_key": [
+          192,
+          1024
+        ],
+        "profile_name": "seq_len_k=192,nql=1024",
+        "raw_demand_gbps": 7.52093395275879,
+        "admission_time_ms": 3293.8745475188666,
+        "completion_time_ms": 3566.6808007565237,
+        "ttft_ms": 272.8062532376571,
+        "ideal_ttft_ms": 272.80625323765605,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 3566.6808007565237,
+        "io_stall_ms": 1.0231815394945443e-12
+      },
+      {
+        "request_id": 3000003,
+        "npu_id": 3,
+        "sequence": 3,
+        "category": "LL",
+        "profile_id": "192,4096",
+        "profile_key": [
+          192,
+          4096
+        ],
+        "profile_name": "seq_len_k=192,nql=4096",
+        "raw_demand_gbps": 1.8566362127929685,
+        "admission_time_ms": 3283.21223175379,
+        "completion_time_ms": 4370.948879398933,
+        "ttft_ms": 1087.736647645143,
+        "ideal_ttft_ms": 1087.736647645144,
+        "slo_met": true,
+        "arrival_time_ms": 0.0,
+        "arrival_to_completion_ms": 4370.948879398933,
+        "io_stall_ms": -1.1368683772161603e-12
+      }
+    ],
+    "measurement_blocks": [
+      {
+        "block": 0,
+        "start_ms": 2295.4755841086476,
+        "end_ms": 2395.4755841086476,
+        "duration_ms": 100.0,
+        "npu_utilization": 0.9040425132675887,
+        "request_count": 4,
+        "request_weighted_slo_attainment": 0.75,
+        "ssd_busy_ms_by_ssu": [
+          77.51724776896162
+        ],
+        "ssd_served_gb_by_ssu": [
+          3.1006899107584616
+        ],
+        "ssd_utilizations": [
+          0.7751724776896163
+        ],
+        "ssd_mean_utilization": 0.7751724776896163,
+        "ssd_outstanding_blocks_at_start": [
+          77
+        ],
+        "ssd_outstanding_blocks_at_end": [
+          150
+        ],
+        "ssd_outstanding_blocks_delta": [
+          73
+        ],
+        "ssd_outstanding_gb_at_start": [
+          0.012856333704930875
+        ],
+        "ssd_outstanding_gb_at_end": [
+          0.0250509444308409
+        ],
+        "ssd_outstanding_gb_delta": [
+          0.012194610725910025
+        ],
+        "compute_ms_by_npu": [
+          61.61700530702842,
+          100.0,
+          100.0,
+          100.0
+        ],
+        "npu_utilizations": [
+          0.6161700530702842,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "npu_link_busy_ms_by_npu": [
+          26.188893887125687,
+          15.38818359375,
+          15.38818359375,
+          5.048828125
+        ],
+        "npu_link_served_gb_by_npu": [
+          1.3094446943562836,
+          0.7694091796875,
+          0.7694091796875,
+          0.25244140625
+        ],
+        "npu_link_utilizations": [
+          0.26188893887125686,
+          0.1538818359375,
+          0.1538818359375,
+          0.05048828125
+        ],
+        "npu_link_mean_utilization": 0.15503522299906422,
+        "npu_link_outstanding_blocks_at_start": [
+          1,
+          0,
+          0,
+          0
+        ],
+        "npu_link_outstanding_blocks_at_end": [
+          1,
+          0,
+          0,
+          0
+        ],
+        "npu_link_outstanding_blocks_delta": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "npu_link_outstanding_gb_at_start": [
+          8.30208909292196e-05,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "npu_link_outstanding_gb_at_end": [
+          1.0274776832375204e-05,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "npu_link_outstanding_gb_delta": [
+          -7.27461140968444e-05,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "block": 1,
+        "start_ms": 2395.4755841086476,
+        "end_ms": 2495.4755841086476,
+        "duration_ms": 100.0,
+        "npu_utilization": 0.9034938777997127,
+        "request_count": 6,
+        "request_weighted_slo_attainment": 0.8333333333333334,
+        "ssd_busy_ms_by_ssu": [
+          77.38256023186477
+        ],
+        "ssd_served_gb_by_ssu": [
+          3.095302409274595
+        ],
+        "ssd_utilizations": [
+          0.7738256023186477
+        ],
+        "ssd_mean_utilization": 0.7738256023186477,
+        "ssd_outstanding_blocks_at_start": [
+          150
+        ],
+        "ssd_outstanding_blocks_at_end": [
+          0
+        ],
+        "ssd_outstanding_blocks_delta": [
+          -150
+        ],
+        "ssd_outstanding_gb_at_start": [
+          0.0250509444308409
+        ],
+        "ssd_outstanding_gb_at_end": [
+          0.0
+        ],
+        "ssd_outstanding_gb_delta": [
+          -0.0250509444308409
+        ],
+        "compute_ms_by_npu": [
+          61.397551119878244,
+          100.0,
+          100.0,
+          100.0
+        ],
+        "npu_utilizations": [
+          0.6139755111987825,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "npu_link_busy_ms_by_npu": [
+          26.083579518974148,
+          15.38818359375,
+          15.38818359375,
+          5.048828125
+        ],
+        "npu_link_served_gb_by_npu": [
+          1.3041789759487088,
+          0.7694091796875,
+          0.7694091796875,
+          0.25244140625
+        ],
+        "npu_link_utilizations": [
+          0.2608357951897415,
+          0.1538818359375,
+          0.1538818359375,
+          0.05048828125
+        ],
+        "npu_link_mean_utilization": 0.15477193707868536,
+        "npu_link_outstanding_blocks_at_start": [
+          1,
+          0,
+          0,
+          0
+        ],
+        "npu_link_outstanding_blocks_at_end": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "npu_link_outstanding_blocks_delta": [
+          -1,
+          0,
+          0,
+          0
+        ],
+        "npu_link_outstanding_gb_at_start": [
+          1.0274776832375204e-05,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "npu_link_outstanding_gb_at_end": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "npu_link_outstanding_gb_delta": [
+          -1.0274776832375204e-05,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "block": 2,
+        "start_ms": 2495.4755841086476,
+        "end_ms": 2595.4755841086476,
+        "duration_ms": 100.0,
+        "npu_utilization": 0.9174909679583186,
+        "request_count": 4,
+        "request_weighted_slo_attainment": 1.0,
+        "ssd_busy_ms_by_ssu": [
+          74.63752127903399
+        ],
+        "ssd_served_gb_by_ssu": [
+          2.985500851161362
+        ],
+        "ssd_utilizations": [
+          0.7463752127903399
+        ],
+        "ssd_mean_utilization": 0.7463752127903399,
+        "ssd_outstanding_blocks_at_start": [
+          0
+        ],
+        "ssd_outstanding_blocks_at_end": [
+          17
+        ],
+        "ssd_outstanding_blocks_delta": [
+          17
+        ],
+        "ssd_outstanding_gb_at_start": [
+          0.0
+        ],
+        "ssd_outstanding_gb_at_end": [
+          0.0028414339948903944
+        ],
+        "ssd_outstanding_gb_delta": [
+          0.0028414339948903944
+        ],
+        "compute_ms_by_npu": [
+          66.99638718331971,
+          100.0,
+          100.0,
+          100.0
+        ],
+        "npu_utilizations": [
+          0.6699638718331972,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "npu_link_busy_ms_by_npu": [
+          28.930352699932428,
+          15.38818359375,
+          15.38818359375,
+          0.0
+        ],
+        "npu_link_served_gb_by_npu": [
+          1.4465176349966171,
+          0.7694091796875,
+          0.7694091796875,
+          0.0
+        ],
+        "npu_link_utilizations": [
+          0.28930352699932427,
+          0.1538818359375,
+          0.1538818359375,
+          0.0
+        ],
+        "npu_link_mean_utilization": 0.14926679971858106,
+        "npu_link_outstanding_blocks_at_start": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "npu_link_outstanding_blocks_at_end": [
+          1,
+          0,
+          0,
+          0
+        ],
+        "npu_link_outstanding_blocks_delta": [
+          1,
+          0,
+          0,
+          0
+        ],
+        "npu_link_outstanding_gb_at_start": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "npu_link_outstanding_gb_at_end": [
+          0.000152897229941118,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "npu_link_outstanding_gb_delta": [
+          0.000152897229941118,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "block": 3,
+        "start_ms": 2595.4755841086476,
+        "end_ms": 2695.4755841086476,
+        "duration_ms": 100.0,
+        "npu_utilization": 0.9061237917645372,
+        "request_count": 4,
+        "request_weighted_slo_attainment": 1.0,
+        "ssd_busy_ms_by_ssu": [
+          77.89314888698163
+        ],
+        "ssd_served_gb_by_ssu": [
+          3.115725955479263
+        ],
+        "ssd_utilizations": [
+          0.7789314888698163
+        ],
+        "ssd_mean_utilization": 0.7789314888698163,
+        "ssd_outstanding_blocks_at_start": [
+          17
+        ],
+        "ssd_outstanding_blocks_at_end": [
+          0
+        ],
+        "ssd_outstanding_blocks_delta": [
+          -17
+        ],
+        "ssd_outstanding_gb_at_start": [
+          0.0028414339948903944
+        ],
+        "ssd_outstanding_gb_at_end": [
+          0.0
+        ],
+        "ssd_outstanding_gb_delta": [
+          -0.0028414339948903944
+        ],
+        "compute_ms_by_npu": [
+          62.44951670580781,
+          100.0,
+          100.0,
+          100.0
+        ],
+        "npu_utilizations": [
+          0.6244951670580781,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "npu_link_busy_ms_by_npu": [
+          26.492620932880072,
+          15.38818359375,
+          15.38818359375,
+          5.048828125
+        ],
+        "npu_link_served_gb_by_npu": [
+          1.3246310466440079,
+          0.7694091796875,
+          0.7694091796875,
+          0.25244140625
+        ],
+        "npu_link_utilizations": [
+          0.26492620932880073,
+          0.1538818359375,
+          0.1538818359375,
+          0.05048828125
+        ],
+        "npu_link_mean_utilization": 0.1557945406134502,
+        "npu_link_outstanding_blocks_at_start": [
+          1,
+          0,
+          0,
+          0
+        ],
+        "npu_link_outstanding_blocks_at_end": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "npu_link_outstanding_blocks_delta": [
+          -1,
+          0,
+          0,
+          0
+        ],
+        "npu_link_outstanding_gb_at_start": [
+          0.000152897229941118,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "npu_link_outstanding_gb_at_end": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "npu_link_outstanding_gb_delta": [
+          -0.000152897229941118,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "block": 4,
+        "start_ms": 2695.4755841086476,
+        "end_ms": 2795.4755841086476,
+        "duration_ms": 100.0,
+        "npu_utilization": 0.9109859831758889,
+        "request_count": 6,
+        "request_weighted_slo_attainment": 1.0,
+        "ssd_busy_ms_by_ssu": [
+          77.15520748102745
+        ],
+        "ssd_served_gb_by_ssu": [
+          3.0862082992411075
+        ],
+        "ssd_utilizations": [
+          0.7715520748102744
+        ],
+        "ssd_mean_utilization": 0.7715520748102744,
+        "ssd_outstanding_blocks_at_start": [
+          0
+        ],
+        "ssd_outstanding_blocks_at_end": [
+          413
+        ],
+        "ssd_outstanding_blocks_delta": [
+          413
+        ],
+        "ssd_outstanding_gb_at_start": [
+          0.0
+        ],
+        "ssd_outstanding_gb_at_end": [
+          0.06930927888390215
+        ],
+        "ssd_outstanding_gb_delta": [
+          0.06930927888390215
+        ],
+        "compute_ms_by_npu": [
+          64.39439327034802,
+          100.0,
+          100.0,
+          100.0
+        ],
+        "npu_utilizations": [
+          0.6439439327034802,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "npu_link_busy_ms_by_npu": [
+          26.4324951171875,
+          15.049418296457134,
+          15.19012451171875,
+          5.048828125
+        ],
+        "npu_link_served_gb_by_npu": [
+          1.321624755859375,
+          0.7524709148228581,
+          0.7595062255859375,
+          0.25244140625
+        ],
+        "npu_link_utilizations": [
+          0.264324951171875,
+          0.15049418296457134,
+          0.1519012451171875,
+          0.05048828125
+        ],
+        "npu_link_mean_utilization": 0.15430216512590847,
+        "npu_link_outstanding_blocks_at_start": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "npu_link_outstanding_blocks_at_end": [
+          0,
+          1,
+          0,
+          0
+        ],
+        "npu_link_outstanding_blocks_delta": [
+          0,
+          1,
+          0,
+          0
+        ],
+        "npu_link_outstanding_gb_at_start": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "npu_link_outstanding_gb_at_end": [
+          0.0,
+          0.00015359689589331538,
+          0.0,
+          0.0
+        ],
+        "npu_link_outstanding_gb_delta": [
+          0.0,
+          0.00015359689589331538,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "block": 5,
+        "start_ms": 2795.4755841086476,
+        "end_ms": 2895.4755841086476,
+        "duration_ms": 100.0,
+        "npu_utilization": 0.9097983756778922,
+        "request_count": 4,
+        "request_weighted_slo_attainment": 1.0,
+        "ssd_busy_ms_by_ssu": [
+          77.41810588778299
+        ],
+        "ssd_served_gb_by_ssu": [
+          3.096724235511303
+        ],
+        "ssd_utilizations": [
+          0.7741810588778298
+        ],
+        "ssd_mean_utilization": 0.7741810588778298,
+        "ssd_outstanding_blocks_at_start": [
+          413
+        ],
+        "ssd_outstanding_blocks_at_end": [
+          764
+        ],
+        "ssd_outstanding_blocks_delta": [
+          351
+        ],
+        "ssd_outstanding_gb_at_start": [
+          0.06930927888390215
+        ],
+        "ssd_outstanding_gb_at_end": [
+          0.12810262149758272
+        ],
+        "ssd_outstanding_gb_delta": [
+          0.05879334261368058
+        ],
+        "compute_ms_by_npu": [
+          63.9193502711496,
+          100.0,
+          100.0,
+          100.0
+        ],
+        "npu_utilizations": [
+          0.639193502711496,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "npu_link_busy_ms_by_npu": [
+          27.28515625,
+          14.800435219167866,
+          14.800669325841682,
+          5.048828125
+        ],
+        "npu_link_served_gb_by_npu": [
+          1.3642578125,
+          0.7400217609583919,
+          0.7400334662920827,
+          0.25244140625
+        ],
+        "npu_link_utilizations": [
+          0.2728515625,
+          0.14800435219167865,
+          0.1480066932584168,
+          0.05048828125
+        ],
+        "npu_link_mean_utilization": 0.15483772230002385,
+        "npu_link_outstanding_blocks_at_start": [
+          0,
+          1,
+          0,
+          0
+        ],
+        "npu_link_outstanding_blocks_at_end": [
+          0,
+          0,
+          1,
+          0
+        ],
+        "npu_link_outstanding_blocks_delta": [
+          0,
+          -1,
+          1,
+          0
+        ],
+        "npu_link_outstanding_gb_at_start": [
+          0.0,
+          0.00015359689589331538,
+          0.0,
+          0.0
+        ],
+        "npu_link_outstanding_gb_at_end": [
+          0.0,
+          0.0,
+          2.544450103414414e-06,
+          0.0
+        ],
+        "npu_link_outstanding_gb_delta": [
+          0.0,
+          -0.00015359689589331538,
+          2.544450103414414e-06,
+          0.0
+        ]
+      },
+      {
+        "block": 6,
+        "start_ms": 2895.4755841086476,
+        "end_ms": 2995.4755841086476,
+        "duration_ms": 100.0,
+        "npu_utilization": 0.9247794733976946,
+        "request_count": 5,
+        "request_weighted_slo_attainment": 1.0,
+        "ssd_busy_ms_by_ssu": [
+          72.7631964215866
+        ],
+        "ssd_served_gb_by_ssu": [
+          2.9105278568634674
+        ],
+        "ssd_utilizations": [
+          0.727631964215866
+        ],
+        "ssd_mean_utilization": 0.727631964215866,
+        "ssd_outstanding_blocks_at_start": [
+          764
+        ],
+        "ssd_outstanding_blocks_at_end": [
+          1481
+        ],
+        "ssd_outstanding_blocks_delta": [
+          717
+        ],
+        "ssd_outstanding_gb_at_start": [
+          0.12810262149758272
+        ],
+        "ssd_outstanding_gb_at_end": [
+          0.24855010643099376
+        ],
+        "ssd_outstanding_gb_delta": [
+          0.12044748493341104
+        ],
+        "compute_ms_by_npu": [
+          69.91178935906987,
+          100.0,
+          100.0,
+          100.0
+        ],
+        "npu_utilizations": [
+          0.6991178935906988,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "npu_link_busy_ms_by_npu": [
+          29.8431396484375,
+          14.183815088248593,
+          14.183095322595818,
+          0.0
+        ],
+        "npu_link_served_gb_by_npu": [
+          1.492156982421875,
+          0.709190754412429,
+          0.7091547661297923,
+          0.0
+        ],
+        "npu_link_utilizations": [
+          0.298431396484375,
+          0.14183815088248594,
+          0.14183095322595818,
+          0.0
+        ],
+        "npu_link_mean_utilization": 0.1455251251482048,
+        "npu_link_outstanding_blocks_at_start": [
+          0,
+          0,
+          1,
+          0
+        ],
+        "npu_link_outstanding_blocks_at_end": [
+          0,
+          1,
+          0,
+          0
+        ],
+        "npu_link_outstanding_blocks_delta": [
+          0,
+          1,
+          -1,
+          0
+        ],
+        "npu_link_outstanding_gb_at_start": [
+          0.0,
+          0.0,
+          2.544450103414414e-06,
+          0.0
+        ],
+        "npu_link_outstanding_gb_at_end": [
+          0.0,
+          0.00012931394694533084,
+          0.0,
+          0.0
+        ],
+        "npu_link_outstanding_gb_delta": [
+          0.0,
+          0.00012931394694533084,
+          -2.544450103414414e-06,
+          0.0
+        ]
+      },
+      {
+        "block": 7,
+        "start_ms": 2995.4755841086476,
+        "end_ms": 3095.4755841086476,
+        "duration_ms": 100.0,
+        "npu_utilization": 0.9097983756778922,
+        "request_count": 6,
+        "request_weighted_slo_attainment": 1.0,
+        "ssd_busy_ms_by_ssu": [
+          76.5855944890036
+        ],
+        "ssd_served_gb_by_ssu": [
+          3.0634237795601535
+        ],
+        "ssd_utilizations": [
+          0.765855944890036
+        ],
+        "ssd_mean_utilization": 0.765855944890036,
+        "ssd_outstanding_blocks_at_start": [
+          1481
+        ],
+        "ssd_outstanding_blocks_at_end": [
+          2030
+        ],
+        "ssd_outstanding_blocks_delta": [
+          549
+        ],
+        "ssd_outstanding_gb_at_start": [
+          0.24855010643099376
+        ],
+        "ssd_outstanding_gb_at_end": [
+          0.3406439049958499
+        ],
+        "ssd_outstanding_gb_delta": [
+          0.09209379856485614
+        ],
+        "compute_ms_by_npu": [
+          63.9193502711496,
+          100.0,
+          100.0,
+          100.0
+        ],
+        "npu_utilizations": [
+          0.639193502711496,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "npu_link_busy_ms_by_npu": [
+          27.28515625,
+          14.467613134407657,
+          14.467148224713128,
+          5.048828125
+        ],
+        "npu_link_served_gb_by_npu": [
+          1.3642578125,
+          0.7233806567203835,
+          0.7233574112356571,
+          0.25244140625
+        ],
+        "npu_link_utilizations": [
+          0.2728515625,
+          0.14467613134407656,
+          0.14467148224713128,
+          0.05048828125
+        ],
+        "npu_link_mean_utilization": 0.15317186433530194,
+        "npu_link_outstanding_blocks_at_start": [
+          0,
+          1,
+          0,
+          0
+        ],
+        "npu_link_outstanding_blocks_at_end": [
+          0,
+          0,
+          1,
+          0
+        ],
+        "npu_link_outstanding_blocks_delta": [
+          0,
+          -1,
+          1,
+          0
+        ],
+        "npu_link_outstanding_gb_at_start": [
+          0.0,
+          0.00012931394694533084,
+          0.0,
+          0.0
+        ],
+        "npu_link_outstanding_gb_at_end": [
+          0.0,
+          0.0,
+          6.177821746859991e-05,
+          0.0
+        ],
+        "npu_link_outstanding_gb_delta": [
+          0.0,
+          -0.00012931394694533084,
+          6.177821746859991e-05,
+          0.0
+        ]
+      },
+      {
+        "block": 8,
+        "start_ms": 3095.4755841086476,
+        "end_ms": 3195.4755841086476,
+        "duration_ms": 100.0,
+        "npu_utilization": 0.9097983756778922,
+        "request_count": 4,
+        "request_weighted_slo_attainment": 0.75,
+        "ssd_busy_ms_by_ssu": [
+          76.5855944890036
+        ],
+        "ssd_served_gb_by_ssu": [
+          3.0634237795601393
+        ],
+        "ssd_utilizations": [
+          0.765855944890036
+        ],
+        "ssd_mean_utilization": 0.765855944890036,
+        "ssd_outstanding_blocks_at_start": [
+          2030
+        ],
+        "ssd_outstanding_blocks_at_end": [
+          2579
+        ],
+        "ssd_outstanding_blocks_delta": [
+          549
+        ],
+        "ssd_outstanding_gb_at_start": [
+          0.3406439049958499
+        ],
+        "ssd_outstanding_gb_at_end": [
+          0.432737703560706
+        ],
+        "ssd_outstanding_gb_delta": [
+          0.09209379856485611
+        ],
+        "compute_ms_by_npu": [
+          63.9193502711496,
+          100.0,
+          100.0,
+          100.0
+        ],
+        "npu_utilizations": [
+          0.639193502711496,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "npu_link_busy_ms_by_npu": [
+          27.28515625,
+          14.4683837890625,
+          14.466262419818122,
+          5.048828125
+        ],
+        "npu_link_served_gb_by_npu": [
+          1.3642578125,
+          0.723419189453125,
+          0.7233131209909054,
+          0.25244140625
+        ],
+        "npu_link_utilizations": [
+          0.2728515625,
+          0.144683837890625,
+          0.1446626241981812,
+          0.05048828125
+        ],
+        "npu_link_mean_utilization": 0.15317157645970156,
+        "npu_link_outstanding_blocks_at_start": [
+          0,
+          0,
+          1,
+          0
+        ],
+        "npu_link_outstanding_blocks_at_end": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "npu_link_outstanding_blocks_delta": [
+          0,
+          0,
+          -1,
+          0
+        ],
+        "npu_link_outstanding_gb_at_start": [
+          0.0,
+          0.0,
+          6.177821746859991e-05,
+          0.0
+        ],
+        "npu_link_outstanding_gb_at_end": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "npu_link_outstanding_gb_delta": [
+          0.0,
+          0.0,
+          -6.177821746859991e-05,
+          0.0
+        ]
+      },
+      {
+        "block": 9,
+        "start_ms": 3195.4755841086476,
+        "end_ms": 3295.4755841086476,
+        "duration_ms": 100.0,
+        "npu_utilization": 0.9061689616136016,
+        "request_count": 7,
+        "request_weighted_slo_attainment": 1.0,
+        "ssd_busy_ms_by_ssu": [
+          77.29443664821747
+        ],
+        "ssd_served_gb_by_ssu": [
+          3.0917774659287005
+        ],
+        "ssd_utilizations": [
+          0.7729443664821747
+        ],
+        "ssd_mean_utilization": 0.7729443664821747,
+        "ssd_outstanding_blocks_at_start": [
+          2579
+        ],
+        "ssd_outstanding_blocks_at_end": [
+          2958
+        ],
+        "ssd_outstanding_blocks_delta": [
+          379
+        ],
+        "ssd_outstanding_gb_at_start": [
+          0.432737703560706
+        ],
+        "ssd_outstanding_gb_at_end": [
+          0.49647781575700717
+        ],
+        "ssd_outstanding_gb_delta": [
+          0.06374011219630116
+        ],
+        "compute_ms_by_npu": [
+          62.467584645437,
+          100.0,
+          100.0,
+          100.0
+        ],
+        "npu_utilizations": [
+          0.62467584645437,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "npu_link_busy_ms_by_npu": [
+          27.28515625,
+          14.7503662109375,
+          14.750682779902945,
+          5.048828125
+        ],
+        "npu_link_served_gb_by_npu": [
+          1.3642578125,
+          0.737518310546875,
+          0.737534138995148,
+          0.25244140625
+        ],
+        "npu_link_utilizations": [
+          0.2728515625,
+          0.147503662109375,
+          0.14750682779902946,
+          0.05048828125
+        ],
+        "npu_link_mean_utilization": 0.1545875834146011,
+        "npu_link_outstanding_blocks_at_start": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "npu_link_outstanding_blocks_at_end": [
+          0,
+          0,
+          1,
+          0
+        ],
+        "npu_link_outstanding_blocks_delta": [
+          0,
+          0,
+          1,
+          0
+        ],
+        "npu_link_outstanding_gb_at_start": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "npu_link_outstanding_gb_at_end": [
+          0.0,
+          0.0,
+          0.00015201823141524072,
+          0.0
+        ],
+        "npu_link_outstanding_gb_delta": [
+          0.0,
+          0.0,
+          0.00015201823141524072,
+          0.0
+        ]
+      }
+    ],
+    "completed_by_npu_at_stop": [
+      173,
+      15,
+      15,
+      4
+    ],
+    "all_input_requests_completed": false,
+    "input_fingerprint": "b4accdcc6c33e0dc14826631c34938383644ebb62077515d874531c09fc75a33",
+    "events_processed": 3186052,
+    "pressure_reports": 0,
+    "pressure_reports_by_ssu": [
+      0
+    ],
+    "pressure_cache_hits": 0,
+    "pressure_cache_hits_by_ssu": [
+      0
+    ],
+    "cir_control_pressure_queries": 0,
+    "cir_control_pressure_queries_by_ssu": [
+      0
+    ],
+    "cir_control_pressure_reads": 0,
+    "cir_control_pressure_reads_by_ssu": [
+      0
+    ],
+    "cir_control_pressure_cache_hits": 0,
+    "cir_control_pressure_cache_hits_by_ssu": [
+      0
+    ],
+    "control_evaluations": 0,
+    "control_min_interval_ms": null,
+    "control_hard_ttft_ideal_multiplier": null,
+    "cir_commits": 0,
+    "cir_write_transactions": 0,
+    "cir_write_transactions_by_ssu": [
+      0
+    ],
+    "cir_path_writes": 0,
+    "cir_path_writes_by_ssu": [
+      0
+    ],
+    "actual_cir_sum_gbps_by_ssu_at_stop": [
+      40.00000000000002
+    ],
+    "max_actual_cir_sum_gbps_by_ssu": [
+      40.00000000000002
+    ],
+    "actual_npu_cir_sum_gbps_at_stop": null,
+    "max_actual_npu_cir_sum_gbps_by_npu": null,
+    "actual_cir_per_npu_capacity_applicable": false,
+    "invariants": {
+      "warmup_reached_all_npus": true,
+      "measurement_window_closed": true,
+      "measurement_duration_exact": true,
+      "all_npus_sampled_for_slo": true,
+      "all_tagged_requests_completed": true,
+      "tagged_admissions_inside_window": true,
+      "all_window_admissions_tagged": true,
+      "no_backlog_exhaustion": true,
+      "compute_overlap_bounds": true,
+      "ssd_overlap_bounds": true,
+      "ssd_service_attribution": true,
+      "npu_link_overlap_bounds": true,
+      "npu_link_service_attribution": true,
+      "one_command_per_ssd": true,
+      "cir_capacity": true,
+      "actual_cir_per_ssu_capacity": true,
+      "actual_cir_per_npu_capacity": true,
+      "cir_entry_write_counter_consistency": true,
+      "timeline_dispatch_probe_nonempty": true,
+      "timeline_route_probe_nonempty": true,
+      "stationarity_boundary_count": true,
+      "stationarity_boundary_times_exact": true,
+      "stationarity_snapshot_shapes": true,
+      "stationarity_values_nonnegative": true,
+      "stationarity_cumulative_monotonic": true,
+      "stationarity_cumulative_service_consistency": true,
+      "stationarity_block_sums_match_whole": true,
+      "stationarity_independent_compute_match": true,
+      "stationarity_legacy_edges_match": true,
+      "stationarity_whole_window_match": true,
+      "stationarity_block_resource_bounds": true
+    }
+  }
+}
