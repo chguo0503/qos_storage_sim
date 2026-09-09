@@ -1,0 +1,124 @@
+{
+  "label": "concurrency_l768_seed7__exact_cohort4_p1",
+  "window_ms": [
+    3094.0,
+    3105.0
+  ],
+  "selection": "A clear internal-layer FIFO episode within the fixed warm window; selected for explanation, not an average or a new utilization measurement window.",
+  "layer_numbering": "L0 is first; L1 is second; L2 is third.",
+  "short": {
+    "request_id": 8000307,
+    "npu": 8,
+    "previous_layer": {
+      "compute_duration_ms": 0.5279088447555552,
+      "compute_end_ms": 3098.5298190993976,
+      "compute_start_ms": 3098.001910254642,
+      "io_barrier_wait_ms": 1.9288982695370578,
+      "io_ready_time_ms": 3098.001910254642,
+      "io_start_time_ms": 3095.5451031403495,
+      "layer": 1
+    },
+    "layer": {
+      "compute_duration_ms": 0.5279088447555552,
+      "compute_end_ms": 3104.3469457839687,
+      "compute_start_ms": 3103.819036939213,
+      "io_barrier_wait_ms": 5.289217839815592,
+      "io_ready_time_ms": 3103.819036939213,
+      "io_start_time_ms": 3098.001910254642,
+      "layer": 2
+    },
+    "compute_budget_ms": 0.5279088447555552,
+    "read_span_ms": 5.817126684571122,
+    "stall_ms": 5.289217839815592,
+    "size_mib": 1.203125,
+    "ssd_service_sum_by_ssu_ms": {
+      "0": 0.0041961669921875,
+      "1": 0.0041961669921875,
+      "2": 0.008392333984375,
+      "3": 0.0041961669921875,
+      "4": 0.0041961669921875,
+      "5": 0.0041961669921875
+    },
+    "link_service_sum_ms": 0.02349853515625
+  },
+  "long": {
+    "request_id": 2000304,
+    "npu": 2,
+    "previous_layer": {
+      "compute_duration_ms": 25.612343978188395,
+      "compute_end_ms": 3121.20313667912,
+      "compute_start_ms": 3095.590792700931,
+      "io_barrier_wait_ms": 0.0,
+      "io_ready_time_ms": 3078.7240999678597,
+      "io_start_time_ms": 3069.9784487227425,
+      "layer": 1
+    },
+    "layer": {
+      "compute_duration_ms": 25.612343978188395,
+      "compute_end_ms": 3146.8154806573084,
+      "compute_start_ms": 3121.20313667912,
+      "io_barrier_wait_ms": 0.0,
+      "io_ready_time_ms": 3103.4637412116736,
+      "io_start_time_ms": 3095.590792700931,
+      "layer": 2
+    },
+    "compute_budget_ms": 25.612343978188395,
+    "read_span_ms": 7.87294851074239,
+    "stall_ms": 0.0,
+    "size_mib": 262.96875,
+    "ssd_service_sum_by_ssu_ms": {
+      "0": 1.0700225830078125,
+      "1": 1.0700225830078125,
+      "2": 1.0700225830078125,
+      "3": 1.0700225830078125,
+      "4": 1.0700225830078125,
+      "5": 1.0700225830078125
+    },
+    "link_service_sum_ms": 5.1361083984375
+  },
+  "critical_short_block": {
+    "request_id": 8000307,
+    "npu_id": 8,
+    "layer": 2,
+    "block_idx": 2,
+    "ssu_id": 4,
+    "path_id": 0,
+    "size_gib": 0.0001678466796875,
+    "block_count": 1,
+    "enqueue_ms": 3098.002310254643,
+    "ssd_start_ms": 3103.8114838386273,
+    "ssd_end_ms": 3103.8156800056195,
+    "link_start_ms": 3103.8156800056195,
+    "link_end_ms": 3103.819036939213
+  },
+  "critical_ssu": 4,
+  "critical_block_queue_wait_ms": 5.809173583984375,
+  "blocking_service_ms_by_role": {
+    "short": 0.1049041748046875,
+    "long": 5.7042694091796875
+  },
+  "blocking_count_by_role": {
+    "short": 25,
+    "long": 1360
+  },
+  "blocking_long_blocks_by_npu": {
+    "2": 255,
+    "5": 255,
+    "6": 255,
+    "4": 85,
+    "1": 255,
+    "0": 255
+  },
+  "long_service_fraction_of_queue_wait": 0.9819416353655013,
+  "queue_wait_exactly_covered_by_disk_service": true,
+  "all_preceding_blocks_enqueued_before_target": true,
+  "no_long_l0_io_overlaps_plot": true,
+  "full_warm_device_utilization": 0.8359625215316386,
+  "full_run_nominal_ssu_peak_gib_s": 34.13672966509597,
+  "reference_sha256": "da0415bed298e7146578904da844cdd1123a61d678a1d6f06f337184125e85c3",
+  "trace_sha256": "14b329b98bf6093f86aa7b6039395e1722b2df7366dcf55a90739e8232116362",
+  "plot_source_sha256": "04ae990cb8b6caa13907505de962962b127227668ead567dc9ea9f4f776915b8",
+  "read_span_definition": "Layer I/O trigger -> all blocks at NPU memory; includes submit, SSD queue, SSD service, link queue and link service.",
+  "service_definition": "Actual SSD activation -> SSD completion (link enqueue); distinct from I/O read span.",
+  "block_count_caveat": "The first blocker can already be in service when the target enqueues; service sums include only the overlapping remainder."
+}
