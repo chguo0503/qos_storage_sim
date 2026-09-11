@@ -1,0 +1,21 @@
+{
+  "created_utc": "2026-09-08T16:30:51.038429+00:00",
+  "reason": "User explicitly requests both TTFT SLO and NPU utilization in the same warm interval as previous experiments.",
+  "window_ms": [
+    2000,
+    4000
+  ],
+  "primary_npu_metric": "Sum actual compute overlap with [2000,4000) divided by 32*2000.",
+  "primary_slo_cohort": "Requests admitted in [2000,4000), followed to final completion even after 4000ms.",
+  "primary_slo_origin": "admission_to_completion, explicitly labeled as post-admission TTFT proxy / service time; not end-to-end user TTFT.",
+  "slo_threshold": "1.5 * request own pure compute time (8 layers)",
+  "mean_over_seeds": "Arithmetic mean of five per-seed rates; do not pool different warm cohort sizes.",
+  "secondary": "Whole population arrival/admission SLO for matched-population sensitivity; warm-admission arrival SLO zero, no arrivals in warm => warm-arrival cohort N/A.",
+  "no_changes_to": [
+    "input manifests",
+    "seeds",
+    "strategies",
+    "simulation configuration",
+    "predeclared [2000,4000) measurement window"
+  ]
+}

@@ -1,0 +1,110 @@
+{
+  "revision": "v2",
+  "source_commit": "e56b1f95bca63b0f500fb114d056611de310e567",
+  "pages": 11,
+  "data_rows": [
+    {
+      "L": 32768,
+      "M": 128,
+      "p": 0.00390625,
+      "C_ms": 1.1780259589150035,
+      "V_MiB": 43.828125,
+      "B_GiB_s": 36.332733584014896
+    },
+    {
+      "L": 32768,
+      "M": 512,
+      "p": 0.015625,
+      "C_ms": 3.7021326666852694,
+      "V_MiB": 43.3125,
+      "B_GiB_s": 11.425134399389648
+    },
+    {
+      "L": 32768,
+      "M": 2048,
+      "p": 0.0625,
+      "C_ms": 14.369102622125,
+      "V_MiB": 41.25000000000001,
+      "B_GiB_s": 2.803459908691407
+    },
+    {
+      "L": 32768,
+      "M": 4096,
+      "p": 0.125,
+      "C_ms": 28.592841995880782,
+      "V_MiB": 38.5,
+      "B_GiB_s": 1.3149324665039066
+    }
+  ],
+  "source_sha256": {
+    "data": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+    "sim.py": "5f3a9bb82c5740a86c9c916e01495326a0bf4363fb6a5312cb99ac747e8600fd",
+    "continuous_batch_sim.py": "c652bfb22fb6c3d219d7b8f78e172ca5808c55c5e929547ece5da0680129f9b1"
+  },
+  "references": [
+    {
+      "label": "[1] vLLM：Automatic Prefix Caching",
+      "url": "https://docs.vllm.ai/en/v0.9.2/features/automatic_prefix_caching.html",
+      "scope": "命中前缀可复用 KV，跳过该部分的重复计算。"
+    },
+    {
+      "label": "[2] 本项目 data 与 token 划分",
+      "url": "https://github.com/chguo0503/qos_storage_sim/blob/e56b1f95bca63b0f500fb114d056611de310e567/data",
+      "scope": "第 2 页取 data 的 32K 四行；sim.py:231 定义计算与读取 token。"
+    },
+    {
+      "label": "[3] 本项目 continuous_batch_sim.py",
+      "url": "https://github.com/chguo0503/qos_storage_sim/blob/e56b1f95bca63b0f500fb114d056611de310e567/continuous_batch_sim.py#L3269",
+      "scope": "784 行读取 C；3156 行接纳；3269 行逐层预取；6672 行外部到达。"
+    },
+    {
+      "label": "[4] Grafana k6：Open and closed models",
+      "url": "https://grafana.com/docs/k6/latest/using-k6/scenarios/concepts/open-vs-closed/",
+      "scope": "开环与闭环到达模型、系统变慢对闭环发送速率的影响。"
+    }
+  ],
+  "toy_fifo": {
+    "long_GiB": 0.2,
+    "long_C_ms": 100,
+    "short_GiB": 0.004,
+    "short_C_ms": 1,
+    "disk_GiB_s": 40,
+    "short_release_ms": 0.2,
+    "short_deadline_ms": 1.2,
+    "short_ready_ms": 5.1,
+    "stall_ms": 3.9,
+    "nominal_sum_GiB_s": 6
+  },
+  "simulations_executed": false,
+  "arrival_example": {
+    "A_service_ms": 30,
+    "B_service_ms": 10,
+    "C_service_ms": 10,
+    "open_arrivals_ms": [
+      0,
+      10,
+      20
+    ],
+    "closed_arrivals_ms": [
+      0,
+      30,
+      40
+    ]
+  },
+  "utilization_example": {
+    "total_card_seconds": 64,
+    "compute_card_seconds": 57.6,
+    "stall_card_seconds": 6.4,
+    "utilization": 0.9
+  },
+  "phase_example": {
+    "planned_release_ms": [
+      1,
+      1
+    ],
+    "actual_release_ms": [
+      3,
+      1
+    ]
+  }
+}

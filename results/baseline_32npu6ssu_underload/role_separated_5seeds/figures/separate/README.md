@@ -16,4 +16,4 @@
 | l6_s26_round_robin_demand | [PNG](l6_s26_round_robin_demand.png) / [PDF](l6_s26_round_robin_demand.pdf) / [SVG](l6_s26_round_robin_demand.svg) |
 | l11_s21_random_zoom | [PNG](l11_s21_random_zoom.png) / [PDF](l11_s21_random_zoom.pdf) / [SVG](l11_s21_random_zoom.svg) |
 
-完整打包文件位于研究目录的 `fixed_assignment_figures.zip`。
+全部图及说明已按文件保存在本目录，可逐项下载；如需ZIP，可运行研究目录的 `build_fixed_figure_guide.py` 按需生成，ZIP不重复提交到Git。

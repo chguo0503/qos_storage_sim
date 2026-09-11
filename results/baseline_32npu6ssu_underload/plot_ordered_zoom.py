@@ -26,6 +26,15 @@ def read(path):
     with gzip.open(path,'rt') as f:return json.load(f)
 
 
+def _load_analysis(directory):
+    path = directory / 'analysis.json.gz'
+    if not path.exists():
+        path = directory / 'analysis.json'
+    with (gzip.open if path.suffix == '.gz' else open)(path, 'rb') as handle:
+        payload = handle.read()
+    return path, json.loads(payload), hashlib.sha256(payload).hexdigest()
+
+
 def sha(path):return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
@@ -87,7 +96,7 @@ def main():
     disk_rows=sorted((r for r in rows if r['ssu_id']==disk and overlap(LEFT,RIGHT,r['ssd_start_ms'],r['ssd_end_ms'])>0),key=lambda r:r['ssd_start_ms'])
     assert all(a['ssd_end_ms']<=b['ssd_start_ms']+1e-8 for a,b in zip(disk_rows,disk_rows[1:]))
     long_fraction=service_by_role['long']/(qend-qstart)
-    nominal=json.loads((BASE/'analysis.json').read_text())
+    _,nominal,_=_load_analysis(BASE)
     full_run=next(r for r in nominal['runs'] if r['label']==LABEL and r['strategy']=='baseline')
     info={
         'label':LABEL,'window_ms':[LEFT,RIGHT],

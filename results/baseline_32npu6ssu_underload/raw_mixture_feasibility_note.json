@@ -1,0 +1,195 @@
+{
+  "no_new_simulations": true,
+  "definition": "Current admitted profile per-layer physical V/C, excluding additional cross-request L0 by the task definition; block striping only.",
+  "source_data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+  "profiles": [
+    {
+      "key": [
+        32,
+        128
+      ],
+      "category": "SS",
+      "C_ms": 1.1780259589150035,
+      "V_gib": 0.0428009033203125,
+      "blocks": 255,
+      "max_disk_blocks": 43,
+      "max_disk_V_over_C_gib_s": 6.1266962514221195,
+      "total_V_over_C_gib_s": 36.332733584014896
+    },
+    {
+      "key": [
+        32,
+        256
+      ],
+      "category": "SS",
+      "C_ms": 1.9974796959734433,
+      "V_gib": 0.042633056640625,
+      "blocks": 254,
+      "max_disk_blocks": 43,
+      "max_disk_V_over_C_gib_s": 3.613256866195678,
+      "total_V_over_C_gib_s": 21.343424279388426
+    },
+    {
+      "key": [
+        32,
+        512
+      ],
+      "category": "SL",
+      "C_ms": 3.7021326666852694,
+      "V_gib": 0.04229736328125,
+      "blocks": 252,
+      "max_disk_blocks": 42,
+      "max_disk_V_over_C_gib_s": 1.9041890665649412,
+      "total_V_over_C_gib_s": 11.425134399389648
+    },
+    {
+      "key": [
+        192,
+        1024
+      ],
+      "category": "LL",
+      "C_ms": 34.100781654707006,
+      "V_gib": 0.2564697265625,
+      "blocks": 1528,
+      "max_disk_blocks": 255,
+      "max_disk_V_over_C_gib_s": 1.2551296845245363,
+      "total_V_over_C_gib_s": 7.52093395275879
+    },
+    {
+      "key": [
+        192,
+        2048
+      ],
+      "category": "LL",
+      "C_ms": 68.05618615283375,
+      "V_gib": 0.255126953125,
+      "blocks": 1520,
+      "max_disk_blocks": 254,
+      "max_disk_V_over_C_gib_s": 0.6264391093688966,
+      "total_V_over_C_gib_s": 3.748769473388672
+    },
+    {
+      "key": [
+        192,
+        4096
+      ],
+      "category": "LL",
+      "C_ms": 135.967080955643,
+      "V_gib": 0.25244140625,
+      "blocks": 1504,
+      "max_disk_blocks": 251,
+      "max_disk_V_over_C_gib_s": 0.30985085732116696,
+      "total_V_over_C_gib_s": 1.8566362127929685
+    }
+  ],
+  "one_concurrent_state": {
+    "counts": {
+      "32:128": 5,
+      "192:4096": 27
+    },
+    "max_disk_gib_s": 38.9994544047821,
+    "total_gib_s": 231.79284566548463,
+    "long_burst_disk_service_ms_range": [
+      28.324127197265625,
+      28.437423706054688
+    ]
+  },
+  "three_short_concurrent_state": {
+    "counts": {
+      "32:128": 2,
+      "32:256": 2,
+      "32:512": 2,
+      "192:4096": 26
+    },
+    "max_disk_gib_s": 31.34440665871582,
+    "total_gib_s": 186.4751260582031
+  },
+  "equal_short_triplet": {
+    "C_ms": 6.877638321573716,
+    "V_gib": 0.1277313232421875,
+    "pure_C_weighted_bandwidth_gib_s": 18.571974458371997
+  },
+  "ideal_workload_tradeoffs": [
+    {
+      "long_key": [
+        192,
+        2048
+      ],
+      "ideal_short_compute_share_max": 0.25306474075016294,
+      "ideal_equal_short_quota_per_long_max": 3.3525630395360393
+    },
+    {
+      "long_key": [
+        192,
+        4096
+      ],
+      "ideal_short_compute_share_max": 0.3376158893284508,
+      "ideal_equal_short_quota_per_long_max": 10.076446701524137
+    }
+  ],
+  "ideal_quota_examples": [
+    {
+      "quotas": [
+        9,
+        9,
+        9,
+        1
+      ],
+      "short_pure_C_share": 0.31283191338532995,
+      "ideal_total_GiB_s": 226.7432786892941,
+      "ideal_disk_GiB_s": [
+        37.79959482519359,
+        37.86406451116115,
+        37.83352623886073,
+        37.772449694259876,
+        37.738518280592736,
+        37.73512513922602
+      ],
+      "interpretation": "Ideal compute-weighted population workload; not a per-event current-request certificate."
+    },
+    {
+      "quotas": [
+        10,
+        10,
+        10,
+        1
+      ],
+      "short_pure_C_share": 0.3359149142761793,
+      "ideal_total_GiB_s": 239.09016405292766,
+      "ideal_disk_GiB_s": [
+        39.85819815755069,
+        39.927060531989895,
+        39.89426892511408,
+        39.82868571136245,
+        39.79261494379906,
+        39.78933578311148
+      ],
+      "interpretation": "Ideal compute-weighted population workload; not a per-event current-request certificate."
+    },
+    {
+      "quotas": [
+        25,
+        25,
+        25,
+        1
+      ],
+      "short_pure_C_share": 0.5584165928260901,
+      "ideal_total_GiB_s": 358.104270202395,
+      "ideal_disk_GiB_s": [
+        59.70148885808841,
+        59.81269323835731,
+        59.7581812872451,
+        59.649157385020686,
+        59.592464955863996,
+        59.59028447781951
+      ],
+      "interpretation": "Ideal compute-weighted population workload; not a per-event current-request certificate."
+    }
+  ],
+  "limits": [
+    "A current-state certificate does not establish the composition cap for every instant of a full run.",
+    "Fixed role caps would make this nominal bound apply throughout, but do not satisfy every NPU warm long/short mixing.",
+    "No FIFO order, low utilization, 2s all-active/mixed window, or 10% utilization decrease is asserted.",
+    "The conditional long-burst service work is not SSD busy measured from events."
+  ]
+}

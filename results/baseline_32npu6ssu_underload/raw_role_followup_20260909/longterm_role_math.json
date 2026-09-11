@@ -1,0 +1,696 @@
+{
+  "no_simulation_run": true,
+  "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+  "script_sha256": "96887a4b8ccea392a83963d337091b05004507e7691ee6392909da7e14441575",
+  "old_mechanism_sha256": "2a4d8d58222836581ce41c098fe59cc05e112e77767b4a94089048412e56d8c8",
+  "v8_generator_sha256": "b1d9d1dd3619dc4edee098c8600838eacdce5f1d1ae8c04aa7402fade826db17",
+  "constants": {
+    "npu": 32,
+    "ssu": 6,
+    "disk_gib_s": 40,
+    "link_gib_s": 50,
+    "layers": 8,
+    "IO_bytes": 180224
+  },
+  "raw_profiles": [
+    {
+      "key": [
+        32,
+        1024
+      ],
+      "category": "SL",
+      "layer_compute_ms": 7.257231579079756,
+      "request_compute_ms": 58.057852632638046,
+      "layer_volume_gib": 0.0416259765625,
+      "layer_blocks": 248,
+      "padding_bytes": 0,
+      "total_V_over_C_gib_s": 5.735792789428711,
+      "source_bandwidth_gib_s": 5.735792789428712,
+      "source_78layer_ttft_ms": 566.0640631682209
+    },
+    {
+      "key": [
+        48,
+        1024
+      ],
+      "category": "SL",
+      "layer_compute_ms": 9.941586459040689,
+      "request_compute_ms": 79.53269167232551,
+      "layer_volume_gib": 0.0631103515625,
+      "layer_blocks": 376,
+      "padding_bytes": 0,
+      "total_V_over_C_gib_s": 6.348116754052735,
+      "source_bandwidth_gib_s": 6.348116754052736,
+      "source_78layer_ttft_ms": 775.4437438051738
+    },
+    {
+      "key": [
+        64,
+        1024
+      ],
+      "category": "SL",
+      "layer_compute_ms": 12.625940760424301,
+      "request_compute_ms": 101.00752608339441,
+      "layer_volume_gib": 0.0845947265625,
+      "layer_blocks": 504,
+      "padding_bytes": 0,
+      "total_V_over_C_gib_s": 6.70007314050293,
+      "source_bandwidth_gib_s": 6.700073140502931,
+      "source_78layer_ttft_ms": 984.8233793130955
+    },
+    {
+      "key": [
+        160,
+        1024
+      ],
+      "category": "LL",
+      "layer_compute_ms": 28.732067426025328,
+      "request_compute_ms": 229.85653940820262,
+      "layer_volume_gib": 0.2135009765625,
+      "layer_blocks": 1272,
+      "padding_bytes": 0,
+      "total_V_over_C_gib_s": 7.430755796191407,
+      "source_bandwidth_gib_s": 7.430755796191407,
+      "source_78layer_ttft_ms": 2241.1012592299758
+    },
+    {
+      "key": [
+        176,
+        1024
+      ],
+      "category": "LL",
+      "layer_compute_ms": 31.416419055018245,
+      "request_compute_ms": 251.33135244014596,
+      "layer_volume_gib": 0.2349853515625,
+      "layer_blocks": 1400,
+      "padding_bytes": 0,
+      "total_V_over_C_gib_s": 7.4796987890625,
+      "source_bandwidth_gib_s": 7.479698789062499,
+      "source_78layer_ttft_ms": 2450.480686291423
+    }
+  ],
+  "recipes": [
+    {
+      "name": "balanced16_L160_q4",
+      "profile_keys": [
+        [
+          32,
+          1024
+        ],
+        [
+          160,
+          1024
+        ]
+      ],
+      "groups": [
+        {
+          "npus": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "cycle_profile_indices": [
+            1,
+            1,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "npus": [
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31
+          ],
+          "cycle_profile_indices": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1
+          ]
+        }
+      ],
+      "repeats": 8,
+      "per_npu_profile_counts": [
+        96,
+        32
+      ],
+      "per_npu_requests": 128,
+      "per_npu_pure_compute_ms": 12928.963113795737,
+      "long_segment_pure_compute_ms": 919.4261576328105,
+      "short_segment_pure_compute_ms": 696.6942315916565,
+      "conditional_short_U": 0.7577489783251239,
+      "conditional_fleet_U": 0.878874489162562,
+      "conditional_scope": "Only if the Short cohort sustains three completed compute layers per Long layer period, groups stay phase concentrated, and role swaps retain this relation. Not a prediction, theorem, or observed result.",
+      "deliberate_synchronization": "All sixteen cards within a group have identical profile sequences each cycle. Submission RNG and block-striping remain physical simulator behavior. No delays, barriers, or time-triggered role switches.",
+      "multiple_short_profiles": false,
+      "capacity": {
+        "placement": "SSU=(block_index+npu_id)%6; new placement, not inherited v8 placement",
+        "arbitrary_current_profile_choice_peak_by_disk_gib_s": [
+          39.6306975796875,
+          39.6306975796875,
+          39.6306975796875,
+          39.6306975796875,
+          39.6306975796875,
+          39.6306975796875
+        ],
+        "peak_gib_s": 39.6306975796875,
+        "capacity_pass": true,
+        "max_link_gib_s": 7.430755796191407,
+        "link_pass": true,
+        "definition": "Sum over NPU of per-NPU maximum current layer V_s/C across allowed profiles.",
+        "exclusion": "Cross-request prefetched L0 remains in actual IO but is excluded from this requested current-request nominal definition."
+      },
+      "wave": {
+        "long_cards": 16,
+        "service_work_ms_by_disk": [
+          14.2333984375,
+          14.2333984375,
+          14.2333984375,
+          14.2333984375,
+          14.2333984375,
+          14.2333984375
+        ],
+        "note": "Hypothetical simultaneous Long-layer wave. Full-layer work is not atomic FIFO ownership or a guaranteed Short delay."
+      }
+    },
+    {
+      "name": "balanced16_L160_q8",
+      "profile_keys": [
+        [
+          32,
+          1024
+        ],
+        [
+          160,
+          1024
+        ]
+      ],
+      "groups": [
+        {
+          "npus": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "cycle_profile_indices": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "npus": [
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31
+          ],
+          "cycle_profile_indices": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        }
+      ],
+      "repeats": 4,
+      "per_npu_profile_counts": [
+        96,
+        32
+      ],
+      "per_npu_requests": 128,
+      "per_npu_pure_compute_ms": 12928.963113795737,
+      "long_segment_pure_compute_ms": 1838.852315265621,
+      "short_segment_pure_compute_ms": 1393.388463183313,
+      "conditional_short_U": 0.7577489783251239,
+      "conditional_fleet_U": 0.878874489162562,
+      "conditional_scope": "Only if the Short cohort sustains three completed compute layers per Long layer period, groups stay phase concentrated, and role swaps retain this relation. Not a prediction, theorem, or observed result.",
+      "deliberate_synchronization": "All sixteen cards within a group have identical profile sequences each cycle. Submission RNG and block-striping remain physical simulator behavior. No delays, barriers, or time-triggered role switches.",
+      "multiple_short_profiles": false,
+      "capacity": {
+        "placement": "SSU=(block_index+npu_id)%6; new placement, not inherited v8 placement",
+        "arbitrary_current_profile_choice_peak_by_disk_gib_s": [
+          39.6306975796875,
+          39.6306975796875,
+          39.6306975796875,
+          39.6306975796875,
+          39.6306975796875,
+          39.6306975796875
+        ],
+        "peak_gib_s": 39.6306975796875,
+        "capacity_pass": true,
+        "max_link_gib_s": 7.430755796191407,
+        "link_pass": true,
+        "definition": "Sum over NPU of per-NPU maximum current layer V_s/C across allowed profiles.",
+        "exclusion": "Cross-request prefetched L0 remains in actual IO but is excluded from this requested current-request nominal definition."
+      },
+      "wave": {
+        "long_cards": 16,
+        "service_work_ms_by_disk": [
+          14.2333984375,
+          14.2333984375,
+          14.2333984375,
+          14.2333984375,
+          14.2333984375,
+          14.2333984375
+        ],
+        "note": "Hypothetical simultaneous Long-layer wave. Full-layer work is not atomic FIFO ownership or a guaranteed Short delay."
+      }
+    },
+    {
+      "name": "mostly_fixed_L176_n16",
+      "profile_keys": [
+        [
+          32,
+          1024
+        ],
+        [
+          48,
+          1024
+        ],
+        [
+          64,
+          1024
+        ],
+        [
+          176,
+          1024
+        ]
+      ],
+      "groups": [
+        {
+          "npus": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "cycle_profile_indices": [
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            0,
+            1,
+            2
+          ],
+          "repeats_example": 7,
+          "pure_compute_ms_per_cycle": 2249.2488899095256,
+          "short_fraction_of_cycle_pure_C": 0.10607899884212252
+        },
+        {
+          "npus": [
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31
+          ],
+          "cycle_profile_indices": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            2,
+            3
+          ],
+          "repeats_example": 9,
+          "pure_compute_ms_per_cycle": 1709.144328113903,
+          "long_fraction_of_cycle_pure_C": 0.14705098235764466
+        }
+      ],
+      "min_per_npu_pure_compute_ms_example": 15382.298953025127,
+      "initial_long_segment_pure_compute_ms": 2010.6508195211677,
+      "multiple_short_profiles": true,
+      "deliberate_synchronization": "Each group repeats a common exact profile cycle. Preserve especially the first group Short subsequence across NPUs; independently permuting that subsequence changes the proposed synchronization mechanism.",
+      "limitations": [
+        "Long initial segment pure C exceeds 2000ms, so no proof that every sliding 2-second subwindow contains both roles on every NPU.",
+        "Pure-C role shares are not actual occupied-time role shares or per-window positive-compute shares.",
+        "The two groups have different cycle lengths. Their relative phases can drift even if each group remains internally concentrated."
+      ],
+      "capacity": {
+        "placement": "SSU=(block_index+npu_id)%6; new placement, not inherited v8 placement",
+        "arbitrary_current_profile_choice_peak_by_disk_gib_s": [
+          39.89350775566406,
+          39.89885039765625,
+          39.89350775566406,
+          39.888165113671874,
+          39.888165113671874,
+          39.888165113671874
+        ],
+        "peak_gib_s": 39.89885039765625,
+        "capacity_pass": true,
+        "max_link_gib_s": 7.4796987890625,
+        "link_pass": true,
+        "definition": "Sum over NPU of per-NPU maximum current layer V_s/C across allowed profiles.",
+        "exclusion": "Cross-request prefetched L0 remains in actual IO but is excluded from this requested current-request nominal definition."
+      },
+      "wave": {
+        "long_cards": 16,
+        "service_work_ms_by_disk": [
+          15.664291381835938,
+          15.668487548828123,
+          15.668487548828123,
+          15.668487548828123,
+          15.664291381835938,
+          15.66009521484375
+        ],
+        "note": "Hypothetical simultaneous Long-layer wave. Full-layer work is not atomic FIFO ownership or a guaranteed Short delay."
+      }
+    },
+    {
+      "name": "mostly_fixed_L176_n20",
+      "profile_keys": [
+        [
+          32,
+          1024
+        ],
+        [
+          48,
+          1024
+        ],
+        [
+          64,
+          1024
+        ],
+        [
+          176,
+          1024
+        ]
+      ],
+      "groups": [
+        {
+          "npus": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19
+          ],
+          "cycle_profile_indices": [
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            0,
+            1,
+            2
+          ],
+          "repeats_example": 7,
+          "pure_compute_ms_per_cycle": 2249.2488899095256,
+          "short_fraction_of_cycle_pure_C": 0.10607899884212252
+        },
+        {
+          "npus": [
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31
+          ],
+          "cycle_profile_indices": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            2,
+            3
+          ],
+          "repeats_example": 9,
+          "pure_compute_ms_per_cycle": 1709.144328113903,
+          "long_fraction_of_cycle_pure_C": 0.14705098235764466
+        }
+      ],
+      "min_per_npu_pure_compute_ms_example": 15382.298953025127,
+      "initial_long_segment_pure_compute_ms": 2010.6508195211677,
+      "multiple_short_profiles": true,
+      "deliberate_synchronization": "Each group repeats a common exact profile cycle. Preserve especially the first group Short subsequence across NPUs; independently permuting that subsequence changes the proposed synchronization mechanism.",
+      "limitations": [
+        "Long initial segment pure C exceeds 2000ms, so no proof that every sliding 2-second subwindow contains both roles on every NPU.",
+        "Pure-C role shares are not actual occupied-time role shares or per-window positive-compute shares.",
+        "The two groups have different cycle lengths. Their relative phases can drift even if each group remains internally concentrated."
+      ],
+      "capacity": {
+        "placement": "SSU=(block_index+npu_id)%6; new placement, not inherited v8 placement",
+        "arbitrary_current_profile_choice_peak_by_disk_gib_s": [
+          39.89350775566406,
+          39.89885039765625,
+          39.89350775566406,
+          39.888165113671874,
+          39.888165113671874,
+          39.888165113671874
+        ],
+        "peak_gib_s": 39.89885039765625,
+        "capacity_pass": true,
+        "max_link_gib_s": 7.4796987890625,
+        "link_pass": true,
+        "definition": "Sum over NPU of per-NPU maximum current layer V_s/C across allowed profiles.",
+        "exclusion": "Cross-request prefetched L0 remains in actual IO but is excluded from this requested current-request nominal definition."
+      },
+      "wave": {
+        "long_cards": 20,
+        "service_work_ms_by_disk": [
+          19.583511352539062,
+          19.58770751953125,
+          19.583511352539062,
+          19.579315185546875,
+          19.579315185546875,
+          19.579315185546875
+        ],
+        "note": "Hypothetical simultaneous Long-layer wave. Full-layer work is not atomic FIFO ownership or a guaranteed Short delay."
+      }
+    }
+  ],
+  "universal_limits": [
+    "Nominal underload limits average work per compute budget, not instantaneous released work or every layer deadline.",
+    "Identical within-group templates reduce one cause of phase spread; queue feedback and randomized block submission may still destroy or reinforce concentration.",
+    "All t=0 finite queues must have enough per-lane pure compute for the target horizon; actual active and both-role conditions still need event validation.",
+    "Do not extrapolate low initial-window U to later cycles. Inspect separate 2-second windows, cumulative U, group phase modulo CL, role counts, and Short profile-conditioned utilization.",
+    "Balanced single-Short recipes are mechanism probes and do not satisfy an additional several-distinct-Short-profiles requirement.",
+    "For an ordering comparison, construct a shuffled complete lane with exactly the same per-NPU population and per-request placement; rerun both policies on each identical manifest."
+  ]
+}
