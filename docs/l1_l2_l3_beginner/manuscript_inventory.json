@@ -1,0 +1,1026 @@
+{
+  "schema_version": 1,
+  "title": "两张手写图的逐项公式与结论覆盖清单",
+  "created_utc": "2026-09-12T04:33:17.993564+00:00",
+  "scope": "仅对 docs/1.jpg 与 docs/2.jpg 做独立规范转写和数学条件审查；不修改 PDF、主教程、实验输入或仿真结果；全部最小数字例为教学示意。",
+  "source_images": [
+    {
+      "page": 1,
+      "path": "docs/1.jpg",
+      "sha256": "d0483402739eaa2e007b0f880d370283111f516675c21948cdee4722887cb1a9",
+      "review_method": "view_image 直接查看原始 JPG；按纸张阅读方向逐行转写，未编辑图片"
+    },
+    {
+      "page": 2,
+      "path": "docs/2.jpg",
+      "sha256": "933216f185436a4cc2770fa7d12de242e1273148e2d736a633a4b68a150300d1",
+      "review_method": "view_image 直接查看原始 JPG；按纸张阅读方向逐行转写，未编辑图片"
+    }
+  ],
+  "stable_id_policy": "H1-01 至 H1-21 按第一张从上到下；H2-01 至 H2-15 按第二张从上到下；同一积分链的独立等号分开编号。后续补充项使用新 ID，不重排已分配 ID。",
+  "coverage_count": {
+    "page_1": 21,
+    "page_2": 15,
+    "total": 36
+  },
+  "symbols": [
+    {
+      "symbol": "i",
+      "meaning_zh": "原稿通常指 NPU；只有该卡始终同一画像时才能同时用单个 C_i、L_i 表示它的所有工作。混合输入的守恒式改为按画像 g 或逐层 j 归属。"
+    },
+    {
+      "symbol": "N",
+      "meaning_zh": "NPU 总数；本实验为 32，区别于原稿每卡请求份数 N_i。"
+    },
+    {
+      "symbol": "m_i / h_i",
+      "meaning_zh": "新增或 miss token 数 / 需要从 SSD 加载的 hit token 数。总输入长度不等于 miss 长度。"
+    },
+    {
+      "symbol": "C_i / L_i",
+      "meaning_zh": "每层纯计算时间 / 每层读取量；主 PDF 以 V 表示读取量，与这里的 L 同义。"
+    },
+    {
+      "symbol": "B_i",
+      "meaning_zh": "名义带宽预算 L_i/C_i；不等于瞬时实际读服务。"
+    },
+    {
+      "symbol": "B / B_s",
+      "meaning_zh": "聚合 SSD 容量 / 第 s 块 SSD 容量；与请求画像名称 B 不同。"
+    },
+    {
+      "symbol": "b_i(t)",
+      "meaning_zh": "原稿在分配带宽与真实服务间切换，教程必须逐式指明。字节积分使用真实 SSD 服务 b_i^SSD，截止判断使用实际 HBM 到达。"
+    },
+    {
+      "symbol": "μ_i",
+      "meaning_zh": "固定画像理想流水线的稳定层推进速率；C/L 是层量时单位是层/秒。"
+    },
+    {
+      "symbol": "K / Ū",
+      "meaning_zh": "等效或实际忙卡数 / NPU 平均利用率；K=N Ū，不能共用 U 而省略归一化。"
+    },
+    {
+      "symbol": "N_i / n_g",
+      "meaning_zh": "原稿写请求数但乘每层量；规范推导须指定是请求数还是层数。n_g 建议专门表示画像 g 的层数；8 层请求计数需乘 8。"
+    },
+    {
+      "symbol": "W_D / W_C",
+      "meaning_zh": "同一人口完整实际读取量 / 完整纯计算卡时间。"
+    },
+    {
+      "symbol": "T",
+      "meaning_zh": "观察窗长度、最后 SSD 读完时刻和请求全部完工时刻不是同一概念；每次使用均需标明。"
+    },
+    {
+      "symbol": "Σ / ∫",
+      "meaning_zh": "Σ 把所有离散对象逐项相加；∫ 把时间切成越来越细的小格后累计速率×时长。"
+    }
+  ],
+  "teaching_conventions": [
+    "全文区分三层证据：实际事件恒等式、固定画像重叠流水理想模型、关于调度效果的待验证因果结论。",
+    "真实窗口 U 由计算区间交集长度直接计算；不能用磁盘服务平均值与名义 V/C 的比值代替。",
+    "取 C 的时间单位为秒时 μ 是每秒；本实验 C 常用毫秒，必须乘除 1000 后再与 GiB/s 或 MiB/s 对比。",
+    "名义 current V/C 延续到 admission→completion 是项目既定代理；next-request L0 没有另加进这一项。真实截止预算应依据被预取层及其前驱计算单独解释，不能把两者混称。",
+    "L1/L2/L3 是上层分配、队列顺序与底层 IO 调度的功能分层；当前项目 Once 改路径/IO 时序，不直接重排既定 NPU 请求队列。",
+    "本次 A/B 实验未测 Once；对 Once 能否改善本输入必须表述为建议实验，不可写成已有结果。"
+  ],
+  "uncertain_handwriting_summary": [
+    "H1-02 的比例系数 α 有涂写，但不影响“读取量正比 hit”的原意。",
+    "H1-06 写“每秒完成数”，没有明确层还是请求；这是缺单位定义，不宜硬转写成请求/秒。",
+    "H1-13/H1-15 括号标题个别字模糊，采用“完全分配/补偿机制”的规范转写。",
+    "H1-17 括号比较符号看似等号，不能据图断言作者已经明确给出 b_i≤B_i 的线性条件。",
+    "H2-12/H2-15 个别动词不清，规范转写保留可辨原意，未当作逐字引文。"
+  ],
+  "items": [
+    {
+      "id": "H1-01",
+      "page": 1,
+      "source_location": "基本假设 1",
+      "manuscript_transcription": "计算时间正比于 miss 长度，C_i=t_c m_i",
+      "manuscript_latex": "C_i=t_c m_i",
+      "intended_meaning_zh": "新增 token 越多，计算时间按同一比例增加。",
+      "judgment": "有条件近似",
+      "corrected_formula_latex": "C_i\\approx t_c m_i\\quad\\text{仅在固定上下文等条件、局部有效范围内}",
+      "necessary_conditions_zh": [
+        "m_i 指新增或未命中 token 数；C_i 指一层纯计算时间。",
+        "比例系数 t_c 的单位是时间/token，需注明上下文长度、模型、设备等条件。",
+        "本次原始 data 的 A/B 不能共用一个 t_c：总上下文和新增长度同时变化；应直接使用各自测得的 C。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "固定其它条件，假设每新增 token 需 0.01 ms。",
+        "calculation_zh": "100 个新增 token 对应 1 ms；200 个对应 2 ms。",
+        "takeaway_zh": "这是先假定线性的教学模型，不是所有输入都适用的计算定律。"
+      },
+      "handwriting_uncertainty": [],
+      "depends_on": []
+    },
+    {
+      "id": "H1-02",
+      "page": 1,
+      "source_location": "基本假设 2",
+      "manuscript_transcription": "加载量正比于 hit 长度，L_i=α h_i",
+      "manuscript_latex": "L_i=\\alpha h_i",
+      "intended_meaning_zh": "需要从 SSD 取回的已命中 KV token 越多，读取字节越多。",
+      "judgment": "固定 KV 表示及读取范围时成立",
+      "corrected_formula_latex": "L_i=\\alpha h_i;\\quad L_i^{\\rm physical}=\\text{实际分块后读取字节}",
+      "necessary_conditions_zh": [
+        "h_i 必须是确实需要从 SSD 加载的命中 token 数，并非所有内存命中。",
+        "α 是每层每 token KV 字节数；数据类型、KV 头数等配置固定。",
+        "若有块填充、压缩、部分驻留或重复读取，要区分逻辑量与实际物理量。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "每 token 每层需读取 2 KiB，SSD 命中长度为 100 token。",
+        "calculation_zh": "L=2×100=200 KiB；200 token 则为 400 KiB。",
+        "takeaway_zh": "应先数实际需要加载的 token，再乘字节系数。"
+      },
+      "handwriting_uncertainty": [
+        "α 附近有涂写，但“加载量正比 hit 长度”以及 L_i、h_i 清晰。"
+      ],
+      "depends_on": []
+    },
+    {
+      "id": "H1-03",
+      "page": 1,
+      "source_location": "基本假设 3 前半",
+      "manuscript_transcription": "每个 NPU 带宽需求 B_i=L_i/C_i",
+      "manuscript_latex": "B_i=\\frac{L_i}{C_i}",
+      "intended_meaning_zh": "若想用一段计算时间遮住同等画像下一层的读取，平均每单位时间需取回多少数据。",
+      "judgment": "作为名义预算成立；不是实际吞吐",
+      "corrected_formula_latex": "B_i^{\\rm nominal}=L_i/C_i;\\quad B_j^{\\rm deadline}=L_j/(d_j-r_j)",
+      "necessary_conditions_zh": [
+        "单位一致，例如 L 用 MiB、C 用秒，则 B_i 用 MiB/s。",
+        "L_i/C_i 隐含“该次读的预算长度恰等于 C_i”；同画像内部层常适用。",
+        "跨请求首层的预算来自前一请求最后层计算，可能与被预取请求自己的 C 完全不同。",
+        "实际 deadline 应由预取 release r_j 与需要数据的时间 d_j 确定。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "一层要读 4 MiB，希望藏在上一层 2 ms 的计算中。",
+        "calculation_zh": "预算=4/0.002=2000 MiB/s；若上一层实际只有 1 ms，预算变为 4000 MiB/s。",
+        "takeaway_zh": "同一读取量遇到不同前驱计算，截止预算不同。"
+      },
+      "handwriting_uncertainty": [],
+      "depends_on": [
+        "H1-01",
+        "H1-02"
+      ]
+    },
+    {
+      "id": "H1-04",
+      "page": 1,
+      "source_location": "基本假设 3 后半",
+      "manuscript_transcription": "总带宽 B，实际分配带宽 b_i",
+      "manuscript_latex": "B,\\quad b_i(t)",
+      "intended_meaning_zh": "B 是系统可提供的容量，b_i 是某卡分到或实际拿到的速率。",
+      "judgment": "必须区分配额与真实服务",
+      "corrected_formula_latex": "\\sum_i b_i^{\\rm SSD}(t)\\le B;\\quad\\sum_i b_{i,s}^{\\rm SSD}(t)\\le B_s",
+      "necessary_conditions_zh": [
+        "B 是总容量而非请求类型 B；NPU 链路容量是另一项限制。",
+        "配额、实际 SSD 服务、HBM 实际到达是三个不同的量，积分守恒需选真实服务。",
+        "多盘还须逐盘校验，聚合容量不能随意跨盘调配。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "两盘各 10 MiB/s，卡 1 的数据全在盘 1。",
+        "calculation_zh": "总容量 20 MiB/s，但卡 1 不能因此从盘 1 读取 20 MiB/s。",
+        "takeaway_zh": "总量不过载，并不自动意味着每块盘及每张卡的链路都可行。"
+      },
+      "handwriting_uncertainty": [],
+      "depends_on": []
+    },
+    {
+      "id": "H1-05",
+      "page": 1,
+      "source_location": "基本假设 4 前半",
+      "manuscript_transcription": "每一层加载完后才能计算",
+      "manuscript_latex": "",
+      "intended_meaning_zh": "某层必须等本层数据到齐后才能开始计算。",
+      "judgment": "数据依赖成立；不足以推出下一行速率公式",
+      "corrected_formula_latex": "t_j^{\\rm compute,start}=\\max(t_{j-1}^{\\rm compute,end},t_j^{\\rm ready});\\quad S_j=\\max(0,t_j^{\\rm ready}-t_{j-1}^{\\rm compute,end})",
+      "necessary_conditions_zh": [
+        "内部层还需前一层计算结束；首层的前驱关系需单独说明。",
+        "能否重叠还取决于下一层何时发起读取；仅有“读完才能算”不表示读与算可以流水重叠。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "前层在 10 ms 算完；本层在 12 ms 读齐。",
+        "calculation_zh": "本层在 12 ms 开算，暴露等待为 2 ms；若在 9 ms 已读齐，则等前层算完到 10 ms 开算，暴露等待为 0。",
+        "takeaway_zh": "读取慢不一定造成停顿；关键是相对截止时间有没有迟到。"
+      },
+      "handwriting_uncertainty": [],
+      "depends_on": []
+    },
+    {
+      "id": "H1-06",
+      "page": 1,
+      "source_location": "基本假设 4 后半及右侧疑问",
+      "manuscript_transcription": "每秒完成数 μ_i=min(1/C_i,b_i/L_i)；旁注“欠载、过载？”",
+      "manuscript_latex": "\\mu_i=\\min\\left(\\frac1{C_i},\\frac{b_i}{L_i}\\right)",
+      "intended_meaning_zh": "计算和读取谁更慢，谁限制稳定推进速度。",
+      "judgment": "理想重叠流水线的长期速率；不能直接叫瞬时请求完成率",
+      "corrected_formula_latex": "T_i=\\max(C_i,L_i/b_i),\\quad\\mu_i=1/T_i;\\qquad T_i^{\\rm serial}=C_i+L_i/b_i",
+      "necessary_conditions_zh": [
+        "固定画像、近似稳定带宽、下一层预取能与本层计算重叠，忽略起止边界。",
+        "C_i、L_i 若是每层量，μ 的单位是层/秒，不是本次 8 层请求/秒。",
+        "b_i/B_i 小于 1 或大于等于 1 是这条流的瓶颈判断；并不等价于整个系统总需求是否过载。",
+        "真实 FIFO 的瞬时服务有脉冲，不能把每一瞬时 b_i 直接代入当作真实 μ_i(t)。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "C=2 s，L=4 MiB，稳定供给 b=1 MiB/s。",
+        "calculation_zh": "读需 4 s；可重叠时周期 4 s、μ=0.25 层/s；完全串行则周期 6 s、μ=1/6 层/s。",
+        "takeaway_zh": "“每层读完才能算”与“相邻层是否能边读边算”是两回事。"
+      },
+      "handwriting_uncertainty": [
+        "原图明确写“每秒完成数”，未明确写完成的是“层”还是“请求”；教程须自行补清单位，不应把“请求数”当作清晰原字。"
+      ],
+      "depends_on": [
+        "H1-03",
+        "H1-05"
+      ]
+    },
+    {
+      "id": "H1-07",
+      "page": 1,
+      "source_location": "基本假设之后 U 推导第一步",
+      "manuscript_transcription": "每秒 NPU 有效总计算时间 U(t)=Σ_i μ_i(t)C_i",
+      "manuscript_latex": "U(t)=\\sum_i\\mu_i(t)C_i",
+      "intended_meaning_zh": "把每张卡每秒有多少时间用于计算相加。",
+      "judgment": "可作理想等效忙卡数；若指平均利用率少 1/N",
+      "corrected_formula_latex": "K_{\\rm ideal}=\\sum_i\\mu_i C_i,\\quad \\bar U_{\\rm ideal}=\\frac1N\\sum_i\\mu_i C_i",
+      "necessary_conditions_zh": [
+        "μ 与 C 使用一致的每层口径。",
+        "Σ_i 表示把 i=1 到 N 的所有卡相加。",
+        "K 的范围是 0 到 N；平均利用率的范围是 0 到 1。",
+        "真实瞬时平均利用率应写 N^{-1}Σ_i 1{卡 i 此刻正在计算}。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "两张卡一张全忙、一张半忙。",
+        "calculation_zh": "相加得 1+0.5=1.5 张等效忙卡；平均利用率为 1.5/2=75%。",
+        "takeaway_zh": "1.5 不是“150% 的整机平均利用率”。"
+      },
+      "handwriting_uncertainty": [],
+      "depends_on": [
+        "H1-06"
+      ]
+    },
+    {
+      "id": "H1-08",
+      "page": 1,
+      "source_location": "U 推导中间等号",
+      "manuscript_transcription": "Σ_i μ_i(t)C_i = Σ_i min(1/C_i,b_i(t)/L_i)C_i",
+      "manuscript_latex": "\\sum_i\\mu_i C_i=\\sum_i\\min(1/C_i,b_i/L_i)C_i",
+      "intended_meaning_zh": "把 μ 的定义代入总和。",
+      "judgment": "同一理想模型内的代入成立",
+      "corrected_formula_latex": "K_{\\rm ideal}=\\sum_i C_i\\min(1/C_i,b_i/L_i)",
+      "necessary_conditions_zh": [
+        "沿用 H1-06 的稳定重叠模型，C_i>0。",
+        "代入不会使原本的长期或周期平均公式自动变成真实瞬时定律。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "C=2 s，读速限制 μ=0.25 层/s。",
+        "calculation_zh": "μC=0.25×2=0.5；每个周期有一半时间计算。",
+        "takeaway_zh": "“层/秒×秒/层”留下无量纲利用率。"
+      },
+      "handwriting_uncertainty": [],
+      "depends_on": [
+        "H1-06",
+        "H1-07"
+      ]
+    },
+    {
+      "id": "H1-09",
+      "page": 1,
+      "source_location": "U 推导最后等号",
+      "manuscript_transcription": "Σ_i min(1/C_i,b_i(t)/L_i)C_i = Σ_i min(1,b_i(t)/B_i)",
+      "manuscript_latex": "\\sum_i C_i\\min(1/C_i,b_i/L_i)=\\sum_i\\min(1,b_i/B_i)",
+      "intended_meaning_zh": "把计算时间乘进去，再用 B_i=L_i/C_i 化简。",
+      "judgment": "代数成立；平均利用率仍需除 N",
+      "corrected_formula_latex": "u_i^{\\rm ideal}=\\min(1,b_i/B_i),\\quad\\bar U_{\\rm ideal}=\\frac1N\\sum_i u_i^{\\rm ideal}",
+      "necessary_conditions_zh": [
+        "C_i,L_i>0；B_i=L_i/C_i。",
+        "min 是取两个数中较小者，保证每张卡的利用率最多为 1。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "需求 B_i=2 MiB/s。",
+        "calculation_zh": "供给 1 时 u=0.5；供给 2 或 3 时 u 都等于 1。",
+        "takeaway_zh": "多于预算的供给不能把一张卡的计算利用率变成 150%。"
+      },
+      "handwriting_uncertainty": [],
+      "depends_on": [
+        "H1-03",
+        "H1-08"
+      ]
+    },
+    {
+      "id": "H1-10",
+      "page": 1,
+      "source_location": "结论①前半",
+      "manuscript_transcription": "带宽决定瞬时 NPU 利用率",
+      "manuscript_latex": "",
+      "intended_meaning_zh": "把上一行公式理解成任意时刻只看带宽就能知道卡是否忙。",
+      "judgment": "对当前真实仿真不可直接成立",
+      "corrected_formula_latex": "\\bar U_{\\rm actual}[a,b)=\\frac{\\sum_{i,\\ell}|[c_{i\\ell}^{start},c_{i\\ell}^{end})\\cap[a,b)|}{N(b-a)}",
+      "necessary_conditions_zh": [
+        "实际计算利用率按计算区间裁剪积分。",
+        "预取使当前计算依赖更早到达的数据；磁盘此刻可能在服务未来层或另一个请求。",
+        "只有固定画像稳定重叠模型下，平均供给才可对应理想周期利用率。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "某层数据在 0–1 s 已读齐，NPU 在 1–3 s 计算。",
+        "calculation_zh": "1–3 s 的实际 SSD 供给可以是 0，但这张卡的计算利用率是 100%。",
+        "takeaway_zh": "当前没有读盘，不等于当前不能计算。"
+      },
+      "handwriting_uncertainty": [],
+      "depends_on": [
+        "H1-05",
+        "H1-09"
+      ]
+    },
+    {
+      "id": "H1-11",
+      "page": 1,
+      "source_location": "结论①后半",
+      "manuscript_transcription": "B_i 从小到大分配，瞬时利用率最高",
+      "manuscript_latex": "B_i\\text{ 从小到大分配}",
+      "intended_meaning_zh": "优先把带宽给更容易满足的卡，单位带宽换到更多计算利用率。",
+      "judgment": "仅在指定流体优化目标下成立",
+      "corrected_formula_latex": "\\max_{b_i\\ge0,\\,\\sum_i b_i\\le B}\\sum_i\\min(1,b_i/B_i),\\quad\\frac{du_i}{db_i}=1/B_i\\ (b_i<B_i)",
+      "necessary_conditions_zh": [
+        "固定 B_i，带宽可连续切分且可在卡间任意转移。",
+        "只最大化未加权利用率总和，不另要求公平、单请求截止、路径池或块级 FIFO 约束。",
+        "已饱和的卡边际收益为 0；应转向其它未饱和卡。",
+        "真实多盘 FIFO 不是这个自由分配优化器。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "两卡需求分别为 1、2 MiB/s，总供给只有 1 MiB/s。",
+        "calculation_zh": "全给第一卡，平均 U=(1+0)/2=50%；全给第二卡为 (0+0.5)/2=25%。",
+        "takeaway_zh": "这证明一个理想目标的最优分配，不证明真实 FIFO 每时刻该怎样调度。"
+      },
+      "handwriting_uncertainty": [],
+      "depends_on": [
+        "H1-09"
+      ]
+    },
+    {
+      "id": "H1-12",
+      "page": 1,
+      "source_location": "次级分析：情况 1",
+      "manuscript_transcription": "带宽需求不过载：Σ_i B_i≤B",
+      "manuscript_latex": "\\sum_i B_i\\le B",
+      "intended_meaning_zh": "所有卡的名义预算加起来不超过总容量。",
+      "judgment": "聚合名义可行条件；不等于真实截止保证",
+      "corrected_formula_latex": "\\sum_i B_i\\le B;\\quad\\sum_i B_{i,s}\\le B_s\\quad\\text{需分别检查每盘}",
+      "necessary_conditions_zh": [
+        "B_i 使用一致的预算定义；若随当前画像变化，应明确检查哪些时刻。",
+        "逐盘落盘和每卡链路也可能限制可行性。",
+        "即使逐盘名义可行，FIFO 释放相位和跨请求预取仍需另查。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "两卡需求 1、2 MiB/s，总容量 4 MiB/s。",
+        "calculation_zh": "聚合 3≤4；但如果两卡数据都落在只有 2 MiB/s 的同一块盘，就不能只凭总量判定可行。",
+        "takeaway_zh": "这是负载条件，不是实际没有 stall 的证明。"
+      },
+      "handwriting_uncertainty": [],
+      "depends_on": [
+        "H1-03",
+        "H1-04"
+      ]
+    },
+    {
+      "id": "H1-13",
+      "page": 1,
+      "source_location": "情况 1 的 1.1 前半",
+      "manuscript_transcription": "（存储完全分配）存储做到分配=需求 b_i=B_i，则 U=1",
+      "manuscript_latex": "\\forall i:\\ b_i=B_i\\Rightarrow U=1",
+      "intended_meaning_zh": "每张卡的读速都恰好达到预算时，都能持续计算。",
+      "judgment": "理想模型中充分；需采用平均 U",
+      "corrected_formula_latex": "\\forall i:\\ b_i\\ge B_i\\Rightarrow\\bar U_{\\rm ideal}=1",
+      "necessary_conditions_zh": [
+        "固定画像重叠流水、稳定有效供给，忽略起止边界。",
+        "“各卡满足”不能替换成只看总供给相等。",
+        "实际 FIFO 还要看各层数据何时到齐。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "两卡需求分别为 1、2，分配恰好为 1、2 MiB/s。",
+        "calculation_zh": "两卡理想 u 都为 1，平均 U=100%。",
+        "takeaway_zh": "这是满足各卡预算的充分情况，不是充分利用容量就自动达成的结果。"
+      },
+      "handwriting_uncertainty": [
+        "括号内可辨“存储完全分配”；“存储充分匹配”是先前解读，正式教程宜使用中性转写并保留原图。"
+      ],
+      "depends_on": [
+        "H1-09",
+        "H1-12"
+      ]
+    },
+    {
+      "id": "H1-14",
+      "page": 1,
+      "source_location": "情况 1 的 1.1 后半",
+      "manuscript_transcription": "否则 U<1",
+      "manuscript_latex": "\\neg(\\forall i:b_i=B_i)\\Rightarrow U<1",
+      "intended_meaning_zh": "只要分配不恰好等于需求，就会低利用率。",
+      "judgment": "过强，应修正",
+      "corrected_formula_latex": "\\bar U_{\\rm ideal}<1\\iff\\exists i:\\ b_i<B_i\\quad\\text{在全卡等权理想模型内}",
+      "necessary_conditions_zh": [
+        "b_i 是可用稳定服务能力时，超过预算也可满利用率。",
+        "若 b_i 改指真实实际读取平均值，闲置能力不会被算成已服务字节；配额与吞吐需先分开。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "一卡需求为 2，可用稳定带宽为 3 MiB/s。",
+        "calculation_zh": "min(1,3/2)=1，并没有 U<1。",
+        "takeaway_zh": "“不相等”包含给多了和给少了，不能混为一谈。"
+      },
+      "handwriting_uncertainty": [],
+      "depends_on": [
+        "H1-09",
+        "H1-13"
+      ]
+    },
+    {
+      "id": "H1-15",
+      "page": 1,
+      "source_location": "情况 1 的 1.2 标题",
+      "manuscript_transcription": "（不是完全分配下的带宽补偿机制）待补充",
+      "manuscript_latex": "",
+      "intended_meaning_zh": "想讨论分配不匹配时，能否通过调整带宽减少损失。",
+      "judgment": "原稿为待补充提纲，尚无完整结论",
+      "corrected_formula_latex": "\\Delta\\bar U_{\\rm ideal}=\\frac1N\\sum_i\\left[\\min(1,b_i^{new}/B_i)-\\min(1,b_i^{old}/B_i)\\right]",
+      "necessary_conditions_zh": [
+        "先给出补偿前后具体 b_i，说明是否有可转移的空闲容量。",
+        "真实路径仲裁可在有实际 backlog 的路径之间借用；无法储存过去空闲容量供未来使用。",
+        "不能把 CIR 保证速率误当不允许借用的硬上限。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "两卡需求均为 1，总供给 2；原配额是 2、0，调整为 1、1。",
+        "calculation_zh": "理想平均 U 从 50% 变为 100%。",
+        "takeaway_zh": "补偿是否有用取决于谁有需求、容量能否转移，不是自动保证。"
+      },
+      "handwriting_uncertainty": [
+        "标题中的“不是完全分配”可辨，个别连接字不清；“待补充”清晰。"
+      ],
+      "depends_on": []
+    },
+    {
+      "id": "H1-16",
+      "page": 1,
+      "source_location": "情况 1 的 1.2 公式线性项",
+      "manuscript_transcription": "U(t)=Σ_i (1/B_i)b_i(t)",
+      "manuscript_latex": "U(t)=\\sum_i\\frac1{B_i}b_i(t)",
+      "intended_meaning_zh": "在未达到各卡饱和点的区间，利用率与带宽成正比。",
+      "judgment": "去掉 min 需额外条件，并保留平均系数",
+      "corrected_formula_latex": "\\bar U_{\\rm ideal}=\\frac1N\\sum_i\\frac{b_i}{B_i}\\quad\\text{当所有 }0\\le b_i\\le B_i",
+      "necessary_conditions_zh": [
+        "每张卡都没有超过自己的饱和预算；否则继续使用 min。",
+        "沿用稳定重叠模型，不能换成真实物理服务的逐点关系。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "两卡需求都是 2，供给都是 1 MiB/s。",
+        "calculation_zh": "平均 U=(1/2+1/2)/2=50%；若第二卡供给改为 4，不能算出 125%，必须保留 min。",
+        "takeaway_zh": "这条直线只在各卡没饱和之前适用。"
+      },
+      "handwriting_uncertainty": [],
+      "depends_on": [
+        "H1-09",
+        "H1-15"
+      ]
+    },
+    {
+      "id": "H1-17",
+      "page": 1,
+      "source_location": "情况 1 的 1.2 上界及括号",
+      "manuscript_transcription": "…≤1（当 b_i = B_i / b_i≤B_i？）",
+      "manuscript_latex": "\\sum_i b_i(t)/B_i\\le1",
+      "intended_meaning_zh": "给线性利用率写一个上界，并注明达到上界的情况。",
+      "judgment": "原式未平均时上界应是 N；括号字迹需核实",
+      "corrected_formula_latex": "\\frac1N\\sum_i b_i/B_i\\le1\\quad(\\forall i:0\\le b_i\\le B_i);\\quad =1\\iff\\forall i:b_i=B_i",
+      "necessary_conditions_zh": [
+        "必须先统一 U 是忙卡数还是平均利用率。",
+        "若不除 N，正确上界是 N。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "两张卡都恰好满足需求。",
+        "calculation_zh": "原式总和是 1+1=2，而不是≤1；除以 2 后才是 1。",
+        "takeaway_zh": "少一个平均系数，会使后面所有 100% 判断都错位。"
+      },
+      "handwriting_uncertainty": [
+        "括号末尾 b_i 与 B_i 清晰，连接符看似“=”；也可能作者意在写未饱和条件。不能将模糊字迹当作已明确写出 ≤。"
+      ],
+      "depends_on": [
+        "H1-07",
+        "H1-16"
+      ]
+    },
+    {
+      "id": "H1-18",
+      "page": 1,
+      "source_location": "次级分析：情况 2 标题与条件",
+      "manuscript_transcription": "总带宽需求过载：∫₀ᵀΣ_i B_i(t)dt≥BT",
+      "manuscript_latex": "\\int_0^T\\sum_iB_i(t)\\,dt\\ge BT",
+      "intended_meaning_zh": "在一段时间里，名义预算面积不小于容量面积。",
+      "judgment": "可定义面积比较；不能据此判实际服务持续饱和",
+      "corrected_formula_latex": "A_{\\rm nominal}=\\int_0^T\\sum_iB_i^{\\rm nominal}(t)dt;\\quad A_{\\rm nominal}\\ge BT\\not\\Rightarrow\\int_0^T\\sum_i b_i^{SSD}(t)dt=BT",
+      "necessary_conditions_zh": [
+        "B_i(t) 是当前驻留画像的 V/C 时，其面积不是实际新提交字节；等待延长会让同一份需求继续累计。",
+        "等号是相等边界，“严格过载”应使用 >；局部窗口内外的预取搬运要另算。",
+        "累计面积不过载也不能排除某小段时间过载，反之亦然。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "在一个 1 s 窗口内，两卡名义预算各为 1 MiB/s，总盘容量 1 MiB/s；本窗两卡都计算此前已读齐的数据。",
+        "calculation_zh": "名义面积为 2 MiB，大于容量面积 1 MiB；但这个窗口可以完全不读盘，实际服务为 0。",
+        "takeaway_zh": "名义预算面积与真实新到达或已服务字节不是同一种量。"
+      },
+      "handwriting_uncertainty": [],
+      "depends_on": [
+        "H1-03",
+        "H1-04",
+        "H1-10"
+      ]
+    },
+    {
+      "id": "H1-19",
+      "page": 1,
+      "source_location": "情况 2 的 1.1 第一行",
+      "manuscript_transcription": "（开环有限请求）NPU 利用率与 L3 调度无关，与 L1/2 调度有关",
+      "manuscript_latex": "",
+      "intended_meaning_zh": "认为有限固定工作量使存储调度无法改变利用率，只有分配和顺序会影响它。",
+      "judgment": "不能由开环或有限人口推出",
+      "corrected_formula_latex": "\\bar U_{\\rm full}=\\frac{W_C}{N T_{\\rm finish}};\\quad W_C\\text{ 固定并不保证 }T_{\\rm finish}\\text{ 固定}",
+      "necessary_conditions_zh": [
+        "开环指外部到达不由系统完成速度反馈控制；有限指请求数有上限，两者不等价。",
+        "要证明 L3 无关，必须额外证明不同 L3 下相同观察口径的计算量和时间分母都相同。",
+        "当前 A/B Random/Ordered 是 L2 顺序对照，两边 L3 都是 Baseline；没有本次 Once 实测对照。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "固定人口总计 8 卡秒纯计算，N=2；两种服务顺序的全部完成时间分别为 5、8 s。",
+        "calculation_zh": "全程平均 U 分别为 8/(2×5)=80% 与 8/(2×8)=50%。",
+        "takeaway_zh": "同样工作量不代表同样平均利用率；这个数字例仅说明逻辑，不是一次 L3 仿真。"
+      },
+      "handwriting_uncertainty": [],
+      "depends_on": []
+    },
+    {
+      "id": "H1-20",
+      "page": 1,
+      "source_location": "情况 2 的 1.1 第二行前半",
+      "manuscript_transcription": "L1/2 调度决定每个 NPU 分配请求 N_i",
+      "manuscript_latex": "N_i\\text{ 由 L1/L2 调度决定}",
+      "intended_meaning_zh": "卡间分配与卡内先后安排决定各卡负责什么任务。",
+      "judgment": "需区分两种干预",
+      "corrected_formula_latex": "N_i=|\\mathcal R_i|;\\quad\\pi_i=\\text{卡 }i\\text{ 内的请求次序}",
+      "necessary_conditions_zh": [
+        "卡间绑定决定请求集合及数量；只做卡内重排不会改变 N_i 或该卡人口。",
+        "本次 fixed assignment 无跨卡迁移，Random/Ordered 保持每卡同一 A/B multiset，只改变 π_i。",
+        "混合画像应记 N_{i,g} 或逐请求清单，不能只用一个 L_i 代表所有请求。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "一卡收到 1 个 A 和 2 个 B。",
+        "calculation_zh": "ABB 与 BAB 的请求数都为 3，读量和纯计算总量相同，但预取交接和出现时间可以不同。",
+        "takeaway_zh": "数量、画像集合与次序是三个不同的信息。"
+      },
+      "handwriting_uncertainty": [],
+      "depends_on": [
+        "H1-19"
+      ]
+    },
+    {
+      "id": "H1-21",
+      "page": 1,
+      "source_location": "情况 2 的 1.1 行末：开环请求守恒",
+      "manuscript_transcription": "开环请求守恒：∫₀ᵀ b_i(t)dt=N_i L_i",
+      "manuscript_latex": "\\int_0^T b_i(t)dt=N_i L_i",
+      "intended_meaning_zh": "一张卡最终拿到的全部数据，等于它完成的工作份数乘每份数据量。",
+      "judgment": "完整人口的实际字节守恒；不由开环特有地成立",
+      "corrected_formula_latex": "\\int_0^T b_i^{SSD}(t)dt=\\sum_{r\\in\\mathcal R_i}\\sum_{\\ell=0}^{7}L_{r\\ell}",
+      "necessary_conditions_zh": [
+        "观察区间包含同一人口的全部读取；没有窗外 carry-in/out，也未混入别的人口。",
+        "b_i 必须是归属于该人口的真实 SSD 服务，不能是额定配额。",
+        "无未计入的重复读、失败、填充差异；否则按实际物理字节计。",
+        "仅当 N_i 数“同画像层数”时可写 N_i L_i；若 N_i 数本次 8 层请求，则应写 8N_iL_i。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "一卡有 2 个同画像请求，每请求 8 层，每层 3 MiB。",
+        "calculation_zh": "完整读取为 2×8×3=48 MiB；不是 2×3=6 MiB。",
+        "takeaway_zh": "守恒要先讲清一“份”是层还是请求，以及是不是整批都读完。"
+      },
+      "handwriting_uncertainty": [],
+      "depends_on": [
+        "H1-04",
+        "H1-20"
+      ]
+    },
+    {
+      "id": "H2-01",
+      "page": 2,
+      "source_location": "首行积分链第一个等号",
+      "manuscript_transcription": "∫₀ᵀΣ_i b_i(t)dt=∫₀ᵀBdt",
+      "manuscript_latex": "\\int_0^T\\sum_i b_i(t)dt=\\int_0^T B\\,dt",
+      "intended_meaning_zh": "把实际总服务速率直接视为全程等于容量。",
+      "judgment": "需持续满负载；通常只有 ≤",
+      "corrected_formula_latex": "\\int_0^T\\sum_i b_i^{SSD}(t)dt\\le\\int_0^T B\\,dt;\\quad =\\ \\text{需几乎处处满速}",
+      "necessary_conditions_zh": [
+        "B 固定，真实服务始终受 B 上界约束。",
+        "取等号需整个窗口除零长度边界外一直服务满容量；多盘须每盘满足。",
+        "名义需求面积高并不能替代对实际 backlog 和服务区间的核验。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "盘容量 10 MiB/s，观察 5 s，其中空闲 2 s。",
+        "calculation_zh": "最多实际服务 10×3=30 MiB，小于 BT=50 MiB。",
+        "takeaway_zh": "硬件“能做多少”不等于“实际做了多少”。"
+      },
+      "handwriting_uncertainty": [],
+      "depends_on": [
+        "H1-18",
+        "H1-21"
+      ]
+    },
+    {
+      "id": "H2-02",
+      "page": 2,
+      "source_location": "首行积分链第二个等号",
+      "manuscript_transcription": "∫₀ᵀ Bdt=BT",
+      "manuscript_latex": "\\int_0^T B\\,dt=BT",
+      "intended_meaning_zh": "恒定速率乘时间得到总容量面积。",
+      "judgment": "B 为常量时成立",
+      "corrected_formula_latex": "\\int_0^T B\\,dt=BT;\\quad B\\text{ 随时间变化时保留 }\\int_0^T B(t)dt",
+      "necessary_conditions_zh": [
+        "时间和带宽单位一致；例如 GiB/s 要乘秒。",
+        "这是容量面积，是否等于已服务字节是 H2-01 的另一个条件。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "恒定容量为 2 MiB/s，时间为 3 s。",
+        "calculation_zh": "面积=2×3=6 MiB。",
+        "takeaway_zh": "积分在恒定速率时就是长方形面积。"
+      },
+      "handwriting_uncertainty": [],
+      "depends_on": [
+        "H2-01"
+      ]
+    },
+    {
+      "id": "H2-03",
+      "page": 2,
+      "source_location": "首行积分链交换总和与积分",
+      "manuscript_transcription": "∫₀ᵀΣ_i b_i(t)dt=Σ_i∫₀ᵀ b_i(t)dt",
+      "manuscript_latex": "\\int_0^T\\sum_i b_i(t)dt=\\sum_i\\int_0^T b_i(t)dt",
+      "intended_meaning_zh": "先按时刻把所有卡加起来，或先算每卡总量再加，结果相同。",
+      "judgment": "有限卡数、可积服务速率下成立",
+      "corrected_formula_latex": "\\int_0^T\\sum_{i=1}^N b_i(t)dt=\\sum_{i=1}^N\\int_0^T b_i(t)dt",
+      "necessary_conditions_zh": [
+        "同一时间窗口、同一服务阶段、同一字节单位。",
+        "本等号本身不要求盘满速，也不要求固定请求人口。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "2 s 内卡 1 实际读到 3 MiB，卡 2 读到 5 MiB。",
+        "calculation_zh": "所有卡总读取=3+5=8 MiB，不论先逐时刻相加还是先逐卡积分。",
+        "takeaway_zh": "这是加法次序的交换，不是关于调度是否有用的结论。"
+      },
+      "handwriting_uncertainty": [],
+      "depends_on": [
+        "H1-04"
+      ]
+    },
+    {
+      "id": "H2-04",
+      "page": 2,
+      "source_location": "首行积分链最终总量",
+      "manuscript_transcription": "Σ_i∫₀ᵀ b_i(t)dt=Σ_i N_iL_i",
+      "manuscript_latex": "\\sum_i\\int_0^T b_i(t)dt=\\sum_i N_iL_i",
+      "intended_meaning_zh": "把各卡完整实际读量加起来，得到固定人口的总读取量。",
+      "judgment": "沿用完整人口与每份单位条件成立",
+      "corrected_formula_latex": "W_D=\\sum_{r,\\ell}L_{r\\ell}=\\int_0^T\\sum_i b_i^{SSD}(t)dt",
+      "necessary_conditions_zh": [
+        "所有目标层读取都完整落在积分区间，且未计入额外人口。",
+        "若每卡混合画像，改为逐请求/层求和，或按画像分别计数。",
+        "本等号不需要 BT 等于 W_D；即使中间空闲，完整字节仍守恒。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "卡 1 完成 3 层，每层 2 MiB；卡 2 完成 2 层，每层 4 MiB。",
+        "calculation_zh": "总读取 W_D=3×2+2×4=14 MiB。",
+        "takeaway_zh": "用不同画像各自的读取量计算，不能共用一个 L。"
+      },
+      "handwriting_uncertainty": [],
+      "depends_on": [
+        "H1-21",
+        "H2-03"
+      ]
+    },
+    {
+      "id": "H2-05",
+      "page": 2,
+      "source_location": "首行末尾完成时间式",
+      "manuscript_transcription": "T=(Σ_i N_iL_i)/B",
+      "manuscript_latex": "T=\\frac{\\sum_iN_iL_i}{B}",
+      "intended_meaning_zh": "用总字节除以总容量预测整批时间。",
+      "judgment": "一般是容量下界；满足很强条件才是等号",
+      "corrected_formula_latex": "T_{\\rm finish}\\ge T_{\\rm last\\ read}\\ge W_D/B\\quad\\text{时间原点为整批开始，且全部目标服务在其后};\\quad T_{\\rm finish}\\ge W_C/N",
+      "necessary_conditions_zh": [
+        "W_D/B 是聚合 SSD 工作下界；逐盘及各 NPU 链路还可能给出更强下界。",
+        "全程满速时可有最后 SSD 读完时刻等于该界；最后 HBM 到达及最后计算通常还有后续时间。",
+        "不应把磁盘排空时间直接写成请求全部计算完工时间。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "总共读 10 MiB，盘速 5 MiB/s；连续读完需 2 s，最后读完后仍有 1 s 计算。",
+        "calculation_zh": "磁盘下界和读完时刻为 2 s，但请求全部完工可在 3 s；若中途还有空闲则更晚。",
+        "takeaway_zh": "容量下界不是自动成立的完整运行时长预测。"
+      },
+      "handwriting_uncertainty": [],
+      "depends_on": [
+        "H2-01",
+        "H2-02",
+        "H2-04"
+      ]
+    },
+    {
+      "id": "H2-06",
+      "page": 2,
+      "source_location": "第二行第一式",
+      "manuscript_transcription": "W_C=∫₀ᵀ U(t)dt",
+      "manuscript_latex": "W_C=\\int_0^T U(t)dt",
+      "intended_meaning_zh": "累计所有 NPU 真正在计算的时间。",
+      "judgment": "取决于 U 的归一化；需统一",
+      "corrected_formula_latex": "W_C[0,T)=N\\int_0^T\\bar U_{\\rm actual}(t)dt=\\int_0^T K_{\\rm actual}(t)dt",
+      "necessary_conditions_zh": [
+        "U 若为忙卡数 K，原式正确；若为平均利用率，应乘 N。",
+        "这里应使用实际计算状态，而不是未经验证的瞬时流体 b/B 替代值。",
+        "完整总纯计算量只在整个人口均已完成时等于 Σ_{r,ℓ} C_{rℓ}；局部窗用裁剪计算区间。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "两张卡在 4 s 内平均 U=50%。",
+        "calculation_zh": "总计算卡时间=2×4×0.5=4 卡秒；不乘卡数会误算为 2。",
+        "takeaway_zh": "时间积分需要先确定横轴时间、纵轴是比例还是卡数。"
+      },
+      "handwriting_uncertainty": [],
+      "depends_on": [
+        "H1-07",
+        "H1-10"
+      ]
+    },
+    {
+      "id": "H2-07",
+      "page": 2,
+      "source_location": "第二行将 U 替成带宽加权积分",
+      "manuscript_transcription": "∫₀ᵀU(t)dt=∫₀ᵀΣ_i (1/B_i)b_i(t)dt",
+      "manuscript_latex": "\\int_0^T U(t)dt=\\int_0^T\\sum_i\\frac{b_i(t)}{B_i}dt",
+      "intended_meaning_zh": "尝试从读盘字节量还原总计算时间。",
+      "judgment": "不能用真实瞬时服务直接替代 U；完整人口可另由守恒推导",
+      "corrected_formula_latex": "W_C=\\sum_j C_j=\\sum_j\\frac{C_j}{L_j}\\int_0^T b_j^{SSD}(t)dt\\quad\\text{同一完整人口，}L_j>0",
+      "necessary_conditions_zh": [
+        "正确的完整式中 j 是明确的一层，b_j 只累计这层真实读取；不是随时变化的“当前 NPU 画像”。",
+        "如果每个 i 一直是同画像，B_i 可作该项常数；混合画像需按层/类归属。",
+        "不要把当前请求 V/C 的倒数乘到下一请求 L0 的预取服务上。",
+        "局部窗口读取与计算有 carry-in/out，即使整批守恒也不能逐窗口直接相等。",
+        "从流体 min 改成线性还额外需要 b_i≤B_i，且不能遗失平均系数。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "某层 C=1 s、L=2 MiB，在 0–1 s 读完，在 1–2 s 计算。",
+        "calculation_zh": "全程按本层字节加权为 (1/2)×2=1 卡秒；仅看 0–1 s，字节加权仍为 1，但实际计算为 0。",
+        "takeaway_zh": "整批工作量的恒等式，不是同窗或逐时刻“盘速决定计算”的定律。"
+      },
+      "handwriting_uncertainty": [],
+      "depends_on": [
+        "H1-16",
+        "H1-21",
+        "H2-06"
+      ]
+    },
+    {
+      "id": "H2-08",
+      "page": 2,
+      "source_location": "第二行把 1/B_i 移到总和外",
+      "manuscript_transcription": "∫₀ᵀΣ_i(1/B_i)b_i(t)dt=(1/B_i)Σ_i∫₀ᵀ b_i(t)dt",
+      "manuscript_latex": "\\int_0^T\\sum_i\\frac{b_i(t)}{B_i}dt=\\frac1{B_i}\\sum_i\\int_0^T b_i(t)dt",
+      "intended_meaning_zh": "把常量权重提出积分，但误将随 i 变化的系数也提到总和之外。",
+      "judgment": "不同 B_i 时不成立",
+      "corrected_formula_latex": "\\int_0^T\\sum_i\\frac{b_i(t)}{B_i}dt=\\sum_i\\frac1{B_i}\\int_0^T b_i(t)dt\\quad(B_i\\text{ 对时间固定})",
+      "necessary_conditions_zh": [
+        "每个 1/B_i 可以提出自己的时间积分，但必须留在对 i 的总和中。",
+        "只有所有 B_i 都等于同一常量 B_0 时，才能写 (1/B_0)Σ_i∫b_i。",
+        "若 B_i 随 t 改变，连自己的时间积分也不能无条件提出。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "两类预算为 2、4 MiB/s，完整读量分别为 6、8 MiB。",
+        "calculation_zh": "正确结果=6/2+8/4=5 卡秒；统一除以 2 会得到 7，统一除以 4 会得到 3.5。",
+        "takeaway_zh": "每一项除自己的预算，然后才相加。"
+      },
+      "handwriting_uncertainty": [],
+      "depends_on": [
+        "H2-07"
+      ]
+    },
+    {
+      "id": "H2-09",
+      "page": 2,
+      "source_location": "第二行末尾只剩单项",
+      "manuscript_transcription": "…=N_iL_i/B_i",
+      "manuscript_latex": "W_C=\\frac{N_iL_i}{B_i}",
+      "intended_meaning_zh": "用完成份数、读取量和需求比得到总计算时间。",
+      "judgment": "若表示全体总量缺求和；也需层/请求单位一致",
+      "corrected_formula_latex": "W_C=\\sum_i\\frac{N_iL_i}{B_i}=\\sum_iN_iC_i\\quad\\text{每个 i 为固定画像，}N_i\\text{ 数层}",
+      "necessary_conditions_zh": [
+        "不能从对全体的求和直接变成一个未绑定 i 的单项。",
+        "本次若 N_i 是同画像 8 层请求数，整个式子应再乘 8。",
+        "混合卡用画像分组或逐层清单，不能强行认定每卡一个 L_i/C_i。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "类 1 有 3 层，C=1 s；类 2 有 2 层，C=1 s。",
+        "calculation_zh": "总计算=3+2=5 卡秒，而不是仅取类 1 的 3 卡秒。",
+        "takeaway_zh": "多类工作量要逐类相加，不能在化简过程中把别的类丢掉。"
+      },
+      "handwriting_uncertainty": [],
+      "depends_on": [
+        "H2-04",
+        "H2-08"
+      ]
+    },
+    {
+      "id": "H2-10",
+      "page": 2,
+      "source_location": "1.2 标题",
+      "manuscript_transcription": "（闭环无限请求）",
+      "manuscript_latex": "",
+      "intended_meaning_zh": "讨论完成工作后继续产生或接纳后续工作的长期情形。",
+      "judgment": "两个独立属性须拆开解释",
+      "corrected_formula_latex": "",
+      "necessary_conditions_zh": [
+        "闭环：后续提交受到已有工作完成的反馈影响；开环：外部到达预先给定或与完成独立。",
+        "无限或持续：没有本次有限批次的固定终点；有限：最终会把预设人口处理完。",
+        "一个有限任务池也可以按完成反馈逐次提交；无限外部到达也可以是开环。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "每完成一个任务再发下一个，是闭环；也可以只重复 10 次。",
+        "calculation_zh": "“闭环且有限”完全可能；每秒固定发 1 个并一直发，则是“开环且持续”。",
+        "takeaway_zh": "开环/闭环不是有限/无限的同义词。"
+      },
+      "handwriting_uncertainty": [],
+      "depends_on": []
+    },
+    {
+      "id": "H2-11",
+      "page": 2,
+      "source_location": "1.2 第一行",
+      "manuscript_transcription": "L3 调度会进而影响 L2 调度，可提升 NPU 利用率",
+      "manuscript_latex": "",
+      "intended_meaning_zh": "更好的底层读服务可能加快上层推进，让 NPU 更早拿到下一份工作。",
+      "judgment": "可能成立，不能保证；不等于直接改变卡内次序",
+      "corrected_formula_latex": "\\text{L3 服务时刻}\\to\\text{数据 ready}\\to\\text{计算/完成时刻}\\to\\text{后续接纳或 IO 释放时刻}",
+      "necessary_conditions_zh": [
+        "反馈链取决于具体系统是否会根据完成事件推进。",
+        "本项目 L3 路径选择不重排已固定的 NPU 请求队列；可以改变完成和后续预取相位。",
+        "有改善空间才可能提升；容量瓶颈或两策略都已经满利用率时未必提高。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "同样按 A→B 顺序执行，A 的读等待由 2 s 降为 1 s。",
+        "calculation_zh": "B 可以更早开始，但顺序仍然是 A→B；不能称 L3 把 B 调到了 A 前面。",
+        "takeaway_zh": "要分清改变时刻与改变排列次序。"
+      },
+      "handwriting_uncertainty": [],
+      "depends_on": [
+        "H1-19",
+        "H2-10"
+      ]
+    },
+    {
+      "id": "H2-12",
+      "page": 2,
+      "source_location": "1.2 第二、三行",
+      "manuscript_transcription": "闭环无限条件下 ∫₀ᵀb_i(t)dt 不守恒，相同时间可处理更多请求",
+      "manuscript_latex": "\\int_0^T b_i(t)dt\\ \\text{不守恒}",
+      "intended_meaning_zh": "不同策略在固定时间内推进的工作数可以不同，因此已服务总字节也可不同。",
+      "judgment": "应说固定窗工作量不预先固定，而不是物理字节守恒失效",
+      "corrected_formula_latex": "D_i[0,T)=\\int_0^T b_i^{SSD}(t)dt;\\quad D_i[0,T)\\text{ 可随策略改变，仍等于该窗真实服务字节}",
+      "necessary_conditions_zh": [
+        "固定窗口内可能有未完成层和窗前已提交工作，不能只数完成请求就代替服务量。",
+        "闭环不是这种差异唯一条件；有限人口在尚未排空的固定窗内同样可完成不同数量。",
+        "每个实际完整读取仍保留字节守恒，“更多”是可能而非必然。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "每任务要读 2 MiB；同一个 5 s 窗口，两策略恰好完整服务了 2、3 个任务，且没有部分读。",
+        "calculation_zh": "分别读 4、6 MiB；两个结果各自都守恒，只是完成工作数不同。",
+        "takeaway_zh": "变化的是这个时间内推进了多少工作，不是数据凭空增减。"
+      },
+      "handwriting_uncertainty": [
+        "“不守恒”清晰；后一句少数字形较潦草，规范转写取其可辨原意“相同时间可处理更多请求”，不视为逐字引文。"
+      ],
+      "depends_on": [
+        "H1-21",
+        "H2-10",
+        "H2-11"
+      ]
+    },
+    {
+      "id": "H2-13",
+      "page": 2,
+      "source_location": "1.3 第一行前半",
+      "manuscript_transcription": "L2 调度不当会使 NPU 利用率下降",
+      "manuscript_latex": "",
+      "intended_meaning_zh": "卡间安排或卡内顺序可能制造不利的 I/O 同步和等待。",
+      "judgment": "作为可能性成立；需给具体因果和对照",
+      "corrected_formula_latex": "\\bar U_{\\rm actual}=\\frac{\\text{窗口内计算卡时间}}{N\\times\\text{窗口时长}}",
+      "necessary_conditions_zh": [
+        "保持输入人口和硬件等条件一致，明确只改变分卡还是只改变卡内顺序。",
+        "本次 A/B 对照保持每卡人口并改顺序，Random/Ordered 的差异含同步相位与预取交接的变化。",
+        "不应概括成所有 Ordered 都差，或所有低利用率都由 FIFO 单独造成。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "两卡都先读大块、后长计算，会同时争盘；若一张先长计算，读取高峰可能错开。",
+        "calculation_zh": "即使各卡总字节与总纯计算相同，局部等待及完工时间也可以不同。",
+        "takeaway_zh": "这是一条有实验对照的机制假说，不是只看“有序”二字就能断言的定律。"
+      },
+      "handwriting_uncertainty": [],
+      "depends_on": [
+        "H1-10",
+        "H1-20"
+      ]
+    },
+    {
+      "id": "H2-14",
+      "page": 2,
+      "source_location": "1.3 第一行末尾的条件",
+      "manuscript_transcription": "Σ_i B_i(t)<B",
+      "manuscript_latex": "\\sum_i B_i(t)<B",
+      "intended_meaning_zh": "将名义需求低于容量与 L2 造成低利用率联系起来。",
+      "judgment": "欠载本身不是低利用率的原因，也非低利用率的必要条件",
+      "corrected_formula_latex": "\\sum_iB_i(t)<B\\ \\not\\Rightarrow\\ \\bar U(t)<1",
+      "necessary_conditions_zh": [
+        "低需求且数据准时到齐时可以满利用率。",
+        "需求过载也可能已有预取余量，使某局部窗口仍满计算。",
+        "真实低利用率需核对数据依赖、排队、链路、释放时刻和空闲/尾部，而非仅看不等号方向。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "两卡预算各为 1 MiB/s，总盘容量 3 MiB/s，给每卡稳定供给 1。",
+        "calculation_zh": "总需求 2<3，但两卡理想利用率都为 100%。",
+        "takeaway_zh": "空余盘能力可以只是说明工作负载读得少，并不表示 NPU 没活干。"
+      },
+      "handwriting_uncertainty": [],
+      "depends_on": [
+        "H1-12",
+        "H1-13",
+        "H2-13"
+      ]
+    },
+    {
+      "id": "H2-15",
+      "page": 2,
+      "source_location": "1.3 最后一行",
+      "manuscript_transcription": "L2 调度不当时，L3 可以增强 L2 能力",
+      "manuscript_latex": "",
+      "intended_meaning_zh": "希望底层调度弥补上层安排造成的损失。",
+      "judgment": "可能缓解，不能无条件补偿",
+      "corrected_formula_latex": "\\text{可改善范围}\\subseteq\\text{已经释放且可被 L3 调度的 IO}",
+      "necessary_conditions_zh": [
+        "L3 可改变已提交 IO 的服务次序或路径选择，无法服务尚未提交的未来读取。",
+        "不能把过去空闲的带宽储存到未来，也不能突破物理 SSD/NPU 链路容量。",
+        "不能自动迁移固定 NPU 上的请求，不能无条件修复严重负载偏斜或真实过载。",
+        "A/B 本次只测 Baseline，不能把项目别的 Once 结果当本组已证实补偿成功。"
+      ],
+      "minimal_example": {
+        "kind": "教学示意；非本项目实测 trace",
+        "setup_zh": "盘前一秒空闲、后一秒才提交 2 MiB，盘速为 1 MiB/s。",
+        "calculation_zh": "后一秒最多读 1 MiB；任何 L3 都不能把前一秒的空闲变成后一秒 2 MiB/s。",
+        "takeaway_zh": "能调整先后，不代表能凭空增加容量或预知并读取未释放的数据。"
+      },
+      "handwriting_uncertainty": [
+        "最后动词看似“增强”，也可理解为补偿/改善；清单保留规范原意，不把具体动词作为数学前提。"
+      ],
+      "depends_on": [
+        "H2-11",
+        "H2-13",
+        "H2-14"
+      ]
+    }
+  ]
+}

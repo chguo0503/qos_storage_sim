@@ -1,0 +1,282 @@
+[
+  {
+    "title": "先看懂：NPU 到底在忙什么？",
+    "subtitle": "只要会加减乘除，就能顺着例子读懂两张手稿。",
+    "body": "\n<p>NPU 可以理解成负责计算的“工位”。它需要的数据还没送到时，即使有请求排队，也可能只能等。</p>\n<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1000 195\" role=\"img\"><style>svg text{font-family:\"Microsoft YaHei\",\"Noto Sans CJK SC\",sans-serif;fill:#17283d;font-size:24px}svg text.small{font-size:20px;fill:#627185}</style><text x=\"8\" y=\"48\" class=\"\">卡在做什么</text><rect x=\"175\" y=\"14\" width=\"525\" height=\"58\" rx=\"9\" fill=\"#2563eb\"/><text x=\"437.5\" y=\"51.0\" text-anchor=\"middle\" style=\"fill:white\">计算 7 ms</text><rect x=\"700\" y=\"14\" width=\"225\" height=\"58\" rx=\"9\" fill=\"#f9d8d3\"/><text x=\"812.5\" y=\"51.0\" text-anchor=\"middle\" style=\"fill:#a52a24\">等待 3 ms</text><text x=\"174\" y=\"112\" class=\"\">0</text><text x=\"680\" y=\"112\" class=\"\">7</text><text x=\"905\" y=\"112\" class=\"\">10 ms</text><text x=\"175\" y=\"163\" class=\"\">这一段总共 10 ms；其中真正计算了 7 ms。</text></svg>\n<div class=\"formula\">利用率 = 真正计算的时间 ÷ 观察的总时间<small>这个小例子：7 ÷ 10 = 70%。</small></div>\n<p>本项目说的“平均 NPU 利用率”，统计的是<b>计算时间占比</b>。它不是磁盘带宽使用率，也不是硬件峰值算力使用率。</p>\n<div class=\"note \">整本教程只围绕一件事：<b>下一步要计算时，数据到了没有？</b></div>\n\n<div class=\"reading\"><b>可以分段读，不必一次记住</b><p>1–5 页：认识计算、等待和三层调度。<br>6–18 页：用小数字学求和、速率、积分。<br>19–24 页：理解总工作量、开环与闭环。<br>25–30 页：回到 32 张卡的真实实验。<br>31–35 页：逐组回看手稿、自测与结论。</p><p>每个难公式都配中文读法；原稿条件不完整的地方会直接标出。</p></div>",
+    "source": "教学示意；用于解释概念，不是新的仿真结果。",
+    "key": "start",
+    "hand": ""
+  },
+  {
+    "title": "输入长，不一定算得久",
+    "subtitle": "本次只用两种真实请求：A 和 B。",
+    "body": "\n<p>一次输入中，一部分旧内容的 KV 可以复用，另一部分需要新计算。<b>本实验中，可复用的 KV 要从 SSU 读取。</b>SSU 就是提供数据的存储设备。</p>\n<div class=\"cols\"><div class=\"profile a\"><h2>A：读得多，算得短</h2><p>总输入 <b>128K</b><br>其中只新增 <b>256 token</b></p><strong>175.66 MiB</strong><span>每层读取量</span><strong>6.02 ms</strong><span>每层计算时间</span></div><div class=\"profile b\"><h2>B：读得少，算得久</h2><p>总输入 <b>32K</b><br>其中新增 <b>4096 token</b></p><strong>38.50 MiB</strong><span>每层读取量</span><strong>28.59 ms</strong><span>每层计算时间</span></div></div>\n<p>token 是文本的计量单位；这里 K=1024。miss 指需要新计算的部分：若用百分比表示，就是“新增 token 数 ÷ 总 token 数”。</p>\n<div class=\"note \">不要只说“长流、短流”。A 的<b>总输入更长</b>，但<b>计算反而更短</b>。后面固定使用蓝色 A、绿色 B。</div>\n<p class=\"small\">读取量、计算时间均取原始 data，没有缩放。若 KV 已在 NPU 本地显存，就不应再算一次 SSU 读取；本页描述的是这次实验设置。</p>\n<p class=\"small\">这些长度、读取量和计算时间合在一起，称为一种请求“画像”。</p>",
+    "source": "真实输入：data 的 (128,256)、(32,4096)；每请求 8 层，batch=1。",
+    "key": "profiles",
+    "hand": "手稿①：基本假设 1、2"
+  },
+  {
+    "title": "为什么能一边计算，一边读取？",
+    "subtitle": "先把“模型层”和“调度层次”分开。",
+    "body": "\n<p>本次一个请求要依次算 <b>8 个模型层</b>，像完成 8 道顺序工序。不是一次读完、算完就结束。</p>\n<div class=\"steps\"><span>第 1 层</span><span>第 2 层</span><span>第 3 层</span><span>第 4 层</span><span>第 5 层</span><span>第 6 层</span><span>第 7 层</span><span>第 8 层</span></div>\n<p>当前层开始计算时，可以提前读取下一层的数据。这叫<b>预取</b>。只要下一层数据在当前计算结束前到齐，读取就被“藏”进了计算时间。</p>\n<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1000 280\" role=\"img\"><style>svg text{font-family:\"Microsoft YaHei\",\"Noto Sans CJK SC\",sans-serif;fill:#17283d;font-size:24px}svg text.small{font-size:20px;fill:#627185}</style><text x=\"0\" y=\"50\" class=\"\">这张 NPU</text><rect x=\"175\" y=\"17\" width=\"330\" height=\"54\" rx=\"9\" fill=\"#2563eb\"/><text x=\"340.0\" y=\"52.0\" text-anchor=\"middle\" style=\"fill:white\">算当前层：4 ms</text><rect x=\"505\" y=\"17\" width=\"330\" height=\"54\" rx=\"9\" fill=\"#f9d8d3\"/><text x=\"670.0\" y=\"52.0\" text-anchor=\"middle\" style=\"fill:#a52a24\">等数据：4 ms</text><text x=\"0\" y=\"145\" class=\"\">下一层读取</text><rect x=\"175\" y=\"108\" width=\"660\" height=\"54\" rx=\"9\" fill=\"#e6edf5\"/><text x=\"505.0\" y=\"143.0\" text-anchor=\"middle\" style=\"fill:#17283d\">从发起到收齐：8 ms</text><text x=\"175\" y=\"211\" class=\"\">0</text><text x=\"490\" y=\"211\" class=\"\">4</text><text x=\"825\" y=\"211\" class=\"\">8 ms</text><text x=\"175\" y=\"255\" class=\"\">两件事同时开始；要两件事都结束，才能算下一层。</text></svg>\n<div class=\"formula\">等待 = 读取总耗时 − 能重叠的计算时间<small>若结果小于 0，就按 0 算。图中：8 − 4 = 4 ms。</small></div>\n<div class=\"note \">读取总耗时包括<b>排队和传输</b>；下方灰条不表示磁盘一直在为这条请求工作。</div>\n<p class=\"small\">这是教学例子。起点是假设当前层数据已到齐。第一层没有前驱请求时，还需要先拿到首层数据。</p>\n",
+    "source": "教学示意；用于解释概念，不是新的仿真结果。",
+    "key": "prefetch",
+    "hand": "手稿①：每层先到数据，才能计算"
+  },
+  {
+    "title": "L1、L2、L3：只是三个不同决定",
+    "subtitle": "它们不是神经网络的第 1、2、3 层。",
+    "body": "\n<div class=\"decision\"><b>L1 · 分卡</b><h2>这条请求交给哪张 NPU？</h2><p>例如：把某条 A 交给 NPU0，把另一条 B 交给 NPU1。</p></div>\n<div class=\"down\">↓ 每张卡有了自己的待办队列</div>\n<div class=\"decision\"><b>L2 · 排请求</b><h2>同一张卡先处理谁、后处理谁？</h2><p>例如：NPU0 执行 A→B→B，或 B→A→B。</p></div>\n<div class=\"down\">↓ 当前计算和预取产生读取请求</div>\n<div class=\"decision\"><b>L3 · 排读取</b><h2>已经提交的读取块，怎样获得盘的服务？</h2><p>Baseline 在每块 SSU 的普通队列 Path0 按块排队，先到先服务，叫 FIFO。每块盘各有自己的队列。</p></div>\n<div class=\"note \">L3 让数据早点到，可能让下一条请求早点开始；但这<b>不等于修改了 L2 的请求名单</b>。L3 也不能直接读取尚未提交的未来数据。</div>\n",
+    "source": "术语解释；本项目 Baseline 为每 SSU 独立 Path0 FIFO，按 IO 块服务。",
+    "key": "levels",
+    "hand": "手稿①②：L1 / L2 / L3"
+  },
+  {
+    "key": "map",
+    "title": "两张手稿，其实在问三个问题",
+    "subtitle": "先知道它要说什么，再读符号。",
+    "body": "\n<div class=\"cols\"><div><b>手稿①：从一层推到利用率</b><div class=\"photo\"><img src=\"../1.jpg\" alt=\"第1张原始手稿，旋转显示\"></div></div><div><b>手稿②：从一段时间推到总工作量</b><div class=\"photo\"><img src=\"../2.jpg\" alt=\"第2张原始手稿，旋转显示\"></div></div></div>\n<div class=\"decision\"><b>第一个问题</b><h2>一层算多久、读多久，会等多久？</h2><p>这会用到除法、取大值 max、取小值 min，以及 μ 这个“平均推进速度”。</p></div>\n<div class=\"decision\"><b>第二个问题</b><h2>很多张卡、很多小段时间，怎样加起来？</h2><p>Σ 就是按卡或按类别相加；∫ 就是沿着时间相加。下面会从表格一步步过渡。</p></div>\n<div class=\"decision\"><b>第三个问题</b><h2>总工作量固定，为什么调度还可能有用？</h2><p>关键是：同样的工作，是否一定在同样长的时间里完成？</p></div>\n<div class=\"note \">原图里的 U 有时像“平均利用率”，有时又像“忙卡总数”。我们会把两者分开，避免跟着符号混淆。</div>\n",
+    "source": "图片：docs/1.jpg、docs/2.jpg。仅在页面中旋转显示，原始文件未改动。",
+    "hand": ""
+  },
+  {
+    "key": "sum",
+    "title": "Σ 不难：就是把一项项加起来",
+    "subtitle": "先学卡编号 i，再学求和和平均。",
+    "body": "\n<p>这里有两张卡，编号 i=1、2。<b>i 只是编号</b>，不是乘号。先观察同样长的 10 秒：</p>\n<figure><img src=\"assets/math_sum.svg\"><figcaption>教学示意：紫色是计算，橙色是等待；不是实验画像 A/B 的配色。</figcaption></figure>\n<div class=\"math\">Σᵢ Hᵢ = H₁ + H₂ = 8 + 4 = 12 卡·秒<small>H 表示这张卡实际计算了多久；Σ 读作“把各项加起来”。</small></div>\n<div class=\"math\">平均 U = 12 ÷ (2 × 10) = 60%<small>N 表示卡数；本例 N=2，本次实验 N=32。</small></div>\n<p>也可以看各卡百分比：80%＋40%＝1.2 张等效忙卡。再除以 2，得到整机 60%。<b>1.2 张卡和 60% 是两种不同单位。</b></p>\n<div class=\"note \">手稿把各卡利用率直接相加，后面又说满利用率是 1，口径不一致。若要表示平均 U，就要补上“÷N”。</div>\n<div class=\"check\"><b>停一下，自己试一试</b><p>32 张卡全部忙，各卡的 100% 相加是什么？</p><small>核对：32 张等效忙卡；除以 32，整机利用率才是 100%。</small></div>\n",
+    "source": "教学示例；不是新的仿真结果。",
+    "hand": "手稿①：U(t) 的求和；手稿②：总计算量中的 U"
+  },
+  {
+    "key": "proportional",
+    "title": "“正比”只是先用乘法估一下",
+    "subtitle": "先把手稿的 C、L、m、h 认出来。",
+    "body": "\n<div class=\"original\"><label>手稿定位 · ① 基本假设 1、2</label><div>Cᵢ = t<sub>c</sub> mᵢ　　Lᵢ = α hᵢ</div></div>\n<table><thead><tr><th>符号</th><th>中文意思</th></tr></thead><tbody><tr><td>m</td><td>要补做计算的 token 数，也就是 miss 的数量</td></tr><tr><td>h</td><td>可复用、但需要从盘读回 KV 的 token 数</td></tr><tr><td>t_c</td><td>假设每个新增 token 要花的计算时间</td></tr><tr><td>α（读作 alpha）</td><td>假设每个复用 token 对应多少数据</td></tr><tr><td>C / L</td><td>这一层的计算时间 / 读取量；本教程先前把读取量写成 V，L=V</td></tr></tbody></table>\n<p><b>本页练习：</b>每个新 token 假设花 0.004 秒，1000 个就花 4 秒；每个命中 token 对应 0.01 份材料，4000 个就要读 40 份。</p>\n<p class=\"small\">式子里省略了乘号：t_c mᵢ 就是 t_c × mᵢ；α hᵢ 就是 α × hᵢ。</p>\n<div class=\"meaning\"><b>换成大白话</b><p>“每个要多少 × 一共有多少个 = 总共要多少”。这里故意用秒和份材料，先不做复杂单位换算。</p></div>\n<p><b>回到实验：</b>读取确实按固定 KV 大小换算；计算却不能跨 A/B 共用一个 t_c。B 的新增 token 是 A 的 16 倍，计算时间只有约 4.75 倍，因为上下文不同。</p>\n<div class=\"note \">因此这些比例式是带条件的模型。实验直接用 data 的真实画像成本，没有强迫计算时间满足同一个比例系数。</div>\n",
+    "source": "手稿转写与教学算例；实验 data 的固定 KV 系数为每层每命中 token 1408 字节。",
+    "hand": "手稿①：基本假设 1、2"
+  },
+  {
+    "key": "mu",
+    "title": "μ 怎么读？先想“一次要多久”",
+    "subtitle": "μ 读作 mu；这里表示平均每秒能推进多少层。",
+    "body": "\n<p>本页假设每层计算 <b>4 秒</b>，下一层要读 <b>8 份材料</b>；读取一直能得到 <b>1 份/秒</b>，没有额外排队，所以读取要 8 秒。</p>\n<div class=\"math\">一次交接用时 = max(4, 8) = 8 秒<small>max 就是“取两个数中较大的那个”：要等计算和读取都结束。</small></div>\n<div class=\"math\">平均推进速度 = 1 ÷ 8 = 0.125 层/秒<small>倒数就是“一除以它”。8 秒推进 1 层，也就是 80 秒推进 10 层。</small></div>\n<p>也能从两个限制分别算：计算最多每秒做 1÷4＝0.25 层；存储最多每秒供应 1÷8＝0.125 层的数据。<b>取较小的速度</b>，因为更慢的一方限制推进。</p>\n<div class=\"original\"><label>手稿定位 · ① 基本假设 4</label><div>μᵢ = min(1/Cᵢ, bᵢ/Lᵢ)</div></div>\n<div class=\"meaning\"><b>换成大白话</b><p>min 读成“取较小值”。b 是实际可获得的服务速率，L 是一层需要的数据量。</p></div>\n<div class=\"note \">手稿写“每秒完成数”，没有明确完成的是层还是请求。C、L 若按一层定义，μ 就是<b>层/秒</b>。本次一个请求有 8 层，不能把一层当成一整个请求，也不能直接当 TTFT。</div>\n<p class=\"small\">本页是固定画像、稳定重叠的理想模型，忽略启动和结尾。若读取含排队，先使用真实读取耗时，不能直接拿盘标称速度代入。</p>\n",
+    "source": "教学示例；不是新的仿真结果。",
+    "hand": "手稿①：μ 的 min 公式及“每秒请求数”"
+  },
+  {
+    "key": "util_formula",
+    "title": "为什么“每秒几层 × 每层几秒”是利用率？",
+    "subtitle": "继续上一页同一个小例子，不换数字。",
+    "body": "\n<p>80 秒能推进 10 层；每层算 4 秒，所以实际计算 40 秒，其余在等。利用率就是 40÷80＝50%。</p>\n<div class=\"math\">uᵢ = μᵢ × Cᵢ = 0.125 × 4 = 0.5 = 50%<small>小写 u 先表示一张卡的周期平均；不是某个时刻的开关状态。</small></div>\n<p>这张卡想在 4 秒内拿到 8 份，需求速率是 8÷4＝2 份/秒。它只得到 1 份/秒，是需求的一半，所以本模型中计算占比为一半。</p>\n<div class=\"original\"><label>手稿定位 · ① “每秒 NPU 有效计算时间”一行</label><div>U(t) = Σᵢ μᵢ(t) Cᵢ = Σᵢ min(1, bᵢ(t)/Bᵢ)</div></div>\n<div class=\"math\">μᵢCᵢ = Cᵢ × min(1/Cᵢ, bᵢ/Lᵢ)<br>= min(1, bᵢCᵢ/Lᵢ) = min(1, bᵢ/Bᵢ)<small>第一步代入 μ；C>0，可乘进两项。再用 Bᵢ=Lᵢ/Cᵢ，所以 bᵢCᵢ/Lᵢ=bᵢ/Bᵢ。</small></div>\n<div class=\"math\">单卡 uᵢ = min(1, bᵢ/Bᵢ)<br>整机平均 U = (u₁ + u₂ + … + u<sub>N</sub>) ÷ N<small>“…”只是表示中间还有同样的项。上限 1 就是 100%。</small></div>\n<div class=\"note \">这是<b>固定画像、供给规律明确</b>时，把相同周期反复执行后得到的平均模型。手稿把它叫“瞬时利用率”过于直接；真实系统一边预取一边计算，某瞬间的盘速不能直接当某瞬间的计算比例。</div>\n<div class=\"check\"><b>停一下，自己试一试</b><p>需求 2 份/秒，供给提高到 4，能得到 200% 利用率吗？</p><small>核对：不能。min(1, 4÷2)=1，最多 100%。</small></div>\n",
+    "source": "教学示例；不是新的仿真结果。",
+    "hand": "手稿①：U 等式链、结论①"
+  },
+  {
+    "title": "“需要多快”和“实际多快”是两件事",
+    "subtitle": "先看截止时有没有收齐，再看带宽曲线。",
+    "body": "\n<p>假设要在 4 秒计算期间拿到 40 份材料，平均需要 10 份/秒。但并不要求<b>每一秒</b>都恰好送 10 份：前 2 秒送齐，也完全可以。</p>\n<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1000 335\" role=\"img\"><style>svg text{font-family:\"Microsoft YaHei\",\"Noto Sans CJK SC\",sans-serif;fill:#17283d;font-size:24px}svg text.small{font-size:20px;fill:#627185}</style><path d=\"M120 28V250H930\" stroke=\"#99a8b9\" fill=\"none\" stroke-width=\"2\"/><path d=\"M120 250L440 70H900\" stroke=\"#14846b\" fill=\"none\" stroke-width=\"7\"/><path d=\"M120 250H620L840 70H900\" stroke=\"#df5748\" fill=\"none\" stroke-width=\"7\"/><path d=\"M620 30V265 M120 70H930\" stroke=\"#7f8ba0\" fill=\"none\" stroke-dasharray=\"7 8\" stroke-width=\"2\"/><text x=\"7\" y=\"78\" class=\"\">读齐目标</text><text x=\"340\" y=\"46\" class=\"\">提前读齐：不用等</text><text x=\"629\" y=\"188\" class=\"\">到截止还没齐</text><text x=\"610\" y=\"305\" class=\"\">计算结束</text><text x=\"842\" y=\"305\" class=\"\">晚到</text><text x=\"128\" y=\"292\" class=\"\">开始预取</text><text x=\"145\" y=\"21\" class=\"small\">累计到达 NPU 的数据量</text></svg>\n<div class=\"cols\"><div class=\"mini\"><h3>需求</h3><p>想在多久内，拿到多少数据。</p></div><div class=\"mini\"><h3>实际供给</h3><p>SSU 真正读出多少；经过链路后，NPU 真正收到多少。</p></div></div>\n<div class=\"note \">判断 IO stall 的方法：<b>计算结束时，下一步需要的数据还没收齐。</b>后来突然以很高带宽补齐，也不能追回已经等掉的时间。</div>\n<p>本次 A 的内部层要在约 6.02 ms 内读完 175.66 MiB，参考需求约 <b>28.48 GiB/s</b>。B 内部层的参考需求约 <b>1.31 GiB/s</b>；A→B 首层则不能使用 B 自己的计算时间。</p>\n<p class=\"small\">手稿的大写 Bᵢ 是第 i 项需求，小写 bᵢ 是获得的供给；没有下标的大写 B 是盘的总容量。它们也都不是实验画像 B 的名字。</p>",
+    "source": "曲线为教学示意，不是物理采样图。真实需求计算来自本次 data 画像。",
+    "key": "demand",
+    "hand": "手稿①：Bᵢ=Lᵢ/Cᵢ，需求与供给"
+  },
+  {
+    "title": "B 算得久，为什么首层还是会等？",
+    "subtitle": "这次实验的真实事件：前一个 A，把卡交给 B。",
+    "body": "\n<p>B 首层在 <b>A 最后一层计算开始</b>时就发起预取。但 A 只算 6.02 ms；B 自己的 28.59 ms 计算，此时还没开始。</p>\n<figure><img src=\"assets/b_first_layer_handoff.svg\"><figcaption>真实事件按同一个起点展示：NPU15，B 请求 15000010；前驱为 A 请求 15000009。</figcaption></figure>\n<div class=\"formula\">B 首层等待 = 31.63 − 6.02 = 25.61 ms<small>31.63 ms 是从发起读取到 NPU 收齐的总耗时，包含排队。</small></div>\n<div class=\"note \"><b>B 自己算得久，不能帮助它隐藏开始计算之前的首层等待。</b>它只能借用前一个 A 最后一层的计算时间。</div>\n<p>A 计算结束时，B 所需的 38.5 MiB 还一字节都没到 NPU。B 只能等到收齐后再开始计算。B 的后续层能借用自己的长计算时间，情况可能很好。</p>\n",
+    "source": "真实日志：4 SSU、32 NPU、Ordered、seed7；交接已按完整 224 个块核验。",
+    "key": "cross_request",
+    "hand": "手稿公式回到真实交接：C 应当取哪一段"
+  },
+  {
+    "key": "underload",
+    "title": "“需求不超容量”，到底保证了什么？",
+    "subtitle": "先在理想模型中看清，再回到 FIFO。",
+    "body": "\n<div class=\"original\"><label>手稿定位 · ① 情况 1：不过载，以及 1.1 分支</label><div>Σᵢ Bᵢ ≤ B；若 bᵢ=Bᵢ，则 U=1，否则 U&lt;1</div></div>\n<p>两张卡的需求是 2、5 份/秒，盘最多 10 份/秒。2＋5≤10，意思是：<b>理想地分配时，容量足以同时覆盖两项需求。</b></p>\n<table><thead><tr><th>有数据待读时，两卡可获得的速率</th><th>各卡利用率</th><th>整机平均</th></tr></thead><tbody><tr><td>2、5</td><td>100%、100%</td><td>100%</td></tr><tr><td>3、6</td><td>100%、100%</td><td>100%</td></tr></tbody></table>\n<p>第二行没有“恰好等于需求”，仍然满利用率。所以手稿的“否则 U&lt;1”需要改：<b>达到或超过需求都可饱和</b>；超过的部分不会让计算超过 100%。</p>\n<div class=\"original\"><label>手稿定位 · ① 情况 1.2：后接 ≤1 一类上界；括号个别字迹不清</label><div>U(t) = Σᵢ bᵢ(t)/Bᵢ …</div></div>\n<p>这里不能直接去掉 min：只有每个 bᵢ≤Bᵢ 时，min(1,bᵢ/Bᵢ) 才等于 bᵢ/Bᵢ。求平均仍须除以卡数。</p>\n<div class=\"note \">上面讲的是理想供给。真实 FIFO 还要问：<b>数据有没有按时送到？</b>总量能分得开，不代表现有队列就会按正确时机送。下一页看反例。</div>\n<p class=\"small\">更快时会提前读完，不代表整段一直收到表中的速率。原稿写有“待补充”，尚非完整机制；本次 Baseline 也没有不可互借的固定配额。实际还要逐盘、逐时刻检查。</p>\n",
+    "source": "教学示例；不是新的仿真结果。",
+    "hand": "手稿①：不过载、1.1/1.2 两个分支"
+  },
+  {
+    "title": "盘总体够快，也可能来不及",
+    "subtitle": "先用一个小例子理解 FIFO 的弱点。",
+    "body": "\n<p>想象一块盘每秒送 10 份材料。大读取需 40 份，但有 20 秒计算可等；小读取需 10 份，却只有 2 秒计算可等。</p>\n<div class=\"formula\">两卡参考需求 = 40÷20 + 10÷2 = 7 份/秒<small>7 小于盘容量 10：通过平均速率的检查。</small></div>\n<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1000 295\" role=\"img\"><style>svg text{font-family:\"Microsoft YaHei\",\"Noto Sans CJK SC\",sans-serif;fill:#17283d;font-size:24px}svg text.small{font-size:20px;fill:#627185}</style><text x=\"0\" y=\"40\" class=\"\">大读取先</text><rect x=\"190\" y=\"8\" width=\"600\" height=\"55\" rx=\"9\" fill=\"#8461bb\"/><text x=\"490.0\" y=\"43.5\" text-anchor=\"middle\" style=\"fill:white\">大读取：40 份 / 4 秒</text><rect x=\"790\" y=\"8\" width=\"150\" height=\"55\" rx=\"9\" fill=\"#da8a24\"/><text x=\"865.0\" y=\"43.5\" text-anchor=\"middle\" style=\"fill:white\">小读</text><text x=\"0\" y=\"145\" class=\"\">小读取先</text><rect x=\"190\" y=\"112\" width=\"150\" height=\"55\" rx=\"9\" fill=\"#da8a24\"/><text x=\"265.0\" y=\"147.5\" text-anchor=\"middle\" style=\"fill:white\">小读</text><rect x=\"340\" y=\"112\" width=\"600\" height=\"55\" rx=\"9\" fill=\"#8461bb\"/><text x=\"640.0\" y=\"147.5\" text-anchor=\"middle\" style=\"fill:white\">大读取：40 份 / 4 秒</text><path d=\"M490 0V195\" stroke=\"#df5748\" stroke-width=\"3\" stroke-dasharray=\"6 6\"/><text x=\"442\" y=\"228\" class=\"\">小卡 2 秒后就要数据</text><text x=\"790\" y=\"270\" class=\"\">全读完都是 5 秒</text></svg>\n<p>大读取先做：占 4 秒，小读取再做 1 秒。小卡在第 2 秒就算完了，却要到第 5 秒才能拿齐，<b>等了 3 秒</b>。</p>\n<p>小读取先做：1 秒就送齐，满足它的 2 秒截止；大读取第 5 秒完成，也赶得上它的 20 秒截止。</p>\n<div class=\"note \">FIFO 只认先后，不知道谁更急。<b>相同工作量、相同总带宽，交付时机不同，等待就可能不同。</b></div>\n<p class=\"small\">这是一次交接的教学构造：两份读取预先就绪，明确全部大块先或全部小块先，忽略链路。不能冒充本次 AB 的实测欠载反例；本次 27 格均有逐盘名义需求超限。</p>\n",
+    "source": "教学模型，材料份数和秒均为方便理解的单位；对应原教程公式 11–13。",
+    "key": "fifo",
+    "hand": "手稿①②：名义欠载时仍可能因服务先后等待"
+  },
+  {
+    "key": "overload",
+    "title": "带宽真的不够时，怎么分也有取舍",
+    "subtitle": "用手稿的模型算一个两卡例子。",
+    "body": "\n<p>两卡每层都算 10 秒；甲每层读 20 份，需求 2 份/秒；乙每层读 100 份，需求 10 份/秒。盘只有 10 份/秒，总需求 12，确实不足。</p>\n<table><thead><tr><th>理想供给方案</th><th>甲 / 乙获得</th><th>甲 / 乙利用率</th><th>平均 U</th></tr></thead><tbody><tr><td>按需求比例分</td><td>约 1.67 / 8.33</td><td>83.33% / 83.33%</td><td>83.33%</td></tr><tr><td>先满足低需求甲</td><td>2 / 8</td><td>100% / 80%</td><td>90%</td></tr></tbody></table>\n<p>第二行算起来很简单：甲是 2÷2＝100%；乙是 8÷10＝80%；平均是 90%。总供给两行都是 10，却得到不同平均利用率。</p>\n<div class=\"meaning\"><b>换成大白话</b><p>没有满利用率时，同样多给一点带宽，低需求卡的计算占比可能增加得更多。达到 100% 后，再给也不能继续增加。</p></div>\n<div class=\"original\"><label>手稿定位 · ① 结论①，按可辨认字迹重排</label><div>Bᵢ 从小到大分配，瞬时利用率最高</div></div>\n<p>例如两卡的供给都从 0 增加到 1 份/秒：甲的利用率增加 1÷2＝50 个百分点，乙增加 1÷10＝10 个百分点。达到各自需求后就不再增加，因此先把小需求卡填满更有利。</p>\n<div class=\"note \">若画像固定、允许任意分配、唯一目标是最大化平均 U，这种从小需求开始满足的办法是该模型的最优分配。<b>它不是瞬时物理规律，也没有同时保证公平、TTFT 或本次 Once 的效果。</b></div>\n<p class=\"small\">本页供给是理想稳定模型；甲乙不是本次 A/B。模型用于理解取舍，不是新增仿真结果。</p>\n",
+    "source": "教学示例；不是新的仿真结果。",
+    "hand": "手稿①：结论①、情况 2 过载"
+  },
+  {
+    "key": "integral",
+    "title": "∫ 看着陌生，其实是沿时间加起来",
+    "subtitle": "先不用符号，先把表格算完。",
+    "body": "\n<figure><img src=\"assets/math_integral.svg\"><figcaption>教学图：实际速率的矩形面积相加，就是已服务的数据量。</figcaption></figure>\n<table><thead><tr><th>时间段</th><th>每秒实际送多少</th><th>持续多久</th><th>这一段送了多少</th></tr></thead><tbody><tr><td>0–2 秒</td><td>6 份/秒</td><td>2 秒</td><td>6×2＝12 份</td></tr><tr><td>2–3 秒</td><td>0</td><td>1 秒</td><td>0×1＝0 份</td></tr><tr><td>3–5 秒</td><td>9 份/秒</td><td>2 秒</td><td>9×2＝18 份</td></tr></tbody></table>\n<div class=\"math\">12 + 0 + 18 = 30 份<br>用手稿记法：∫₀⁵ b(t) dt = 30 份<small>0 到 5 表示从第 0 秒累计到第 5 秒；b(t) 是时刻 t 的速率；dt 是一小段时间。</small></div>\n<div class=\"meaning\"><b>换成大白话</b><p>一小段里：速率 × 这段有多长＝这一段的数据量。把所有小段相加，就是积分。速率变化更细时，也还是这个想法。</p></div>\n<div class=\"note \">Σ 通常按“谁”相加；∫ 在这里按“时间”相加。看到 ∫Σ，就是先把同一时刻各项加起来，再把这段时间累计起来。</div>\n",
+    "source": "教学示例；不是新的仿真结果。",
+    "hand": "手稿①末部及②：所有时间积分的读法"
+  },
+  {
+    "key": "swap_sum",
+    "title": "Σ 和 ∫ 换个顺序，为什么总数一样？",
+    "subtitle": "就像一张表，按行加和按列加，最后相同。",
+    "body": "\n<p>下面两段各长 1 秒，因此每格“每秒速率×1秒”就是这一格的数据量。先只看收到多少份：</p>\n<table><thead><tr><th>实际数据量</th><th>第 1 秒</th><th>第 2 秒</th><th>各自合计</th></tr></thead><tbody><tr><td>甲</td><td>2 份</td><td>4 份</td><td>6 份</td></tr><tr><td>乙</td><td>3 份</td><td>1 份</td><td>4 份</td></tr><tr><td>每秒合计</td><td>5 份</td><td>5 份</td><td>10 份</td></tr></tbody></table>\n<div class=\"decision\"><b>先按列加，再沿时间加</b><h2>(2＋3)＋(4＋1)＝10 份</h2><p>每个时刻先把各项相加，这是 Σ；再沿时间累计，这是外面的 ∫。</p></div>\n<div class=\"decision\"><b>先沿时间加，再把各项加起来</b><h2>(2＋4)＋(3＋1)＝10 份</h2><p>先求甲全段收到的 6 份、乙的 4 份，再合在一起。</p></div>\n<div class=\"original\"><label>手稿定位 · ② 第一行中间的交换顺序</label><div>∫₀ᵀ Σᵢ bᵢ(t)dt = Σᵢ ∫₀ᵀ bᵢ(t)dt</div></div>\n<div class=\"meaning\"><b>换成大白话</b><p>同样一批格子，每格都算一次，只是相加顺序不同，所以总数一样。对本次有限卡数和正常服务速率，这一步可以保留。</p></div>\n<div class=\"note \">但“交换相加顺序”不等于“可以把不同的换算系数变成同一个”。后面读 W_C 时，还要记住每类自己的 Bᵢ。</div>\n",
+    "source": "教学示例；不是新的仿真结果。",
+    "hand": "手稿②：交换求和与时间积分"
+  },
+  {
+    "key": "arrival_area",
+    "title": "同样送了 8 份，为什么一条会等？",
+    "subtitle": "把积分和“截止前到齐”连起来。",
+    "body": "\n<p>下一层需要 8 份；当前计算从第 0 秒开始，到第 4 秒结束。每一格都长 1 秒：</p>\n<table><thead><tr><th>实际每秒收到</th><th>0–1</th><th>1–2</th><th>2–3</th><th>3–4</th><th>4–5</th></tr></thead><tbody><tr><td>提前送</td><td>4</td><td>4</td><td>0</td><td>0</td><td>0</td></tr><tr><td>晚送</td><td>0</td><td>0</td><td>0</td><td>4</td><td>4</td></tr></tbody></table>\n<p><b>提前送：</b>前两格 4＋4＝8，第二秒就收齐。后面带宽为零，卡仍能完成当前计算，并按时开始下一层。</p>\n<p><b>晚送：</b>到第 4 秒只累计收到 4；还缺 4。第 5 秒才收齐，所以卡在第 4–5 秒等了 1 秒。</p>\n<div class=\"math\">截止前到达量 = ∫<sub>开始预取</sub><sup>计算结束</sup> 实际到达速率 dt<small>要把目标数据收齐，而不是要求曲线每一刻都高于参考需求。</small></div>\n<div class=\"note \">本例需求是 8÷4＝2 份/秒。晚送在<b>等待期间</b>的实际速率是 4，高于需求，卡却仍在等，因为还没收齐。</div>\n<p>因此，手稿里的“带宽决定瞬时利用率”不能直接当成真实时序的公式。NPU 可以在当前没读数据时计算，也可以在高速补数据时等待。</p>\n<p class=\"small\">真实 A→B 首层同样看累计到达：A 算完时 B 的 38.5 MiB 尚未到达，之后补齐才恢复。要检查 NPU 接收端；SSD 读出后还可能经过接收链路。</p>\n",
+    "source": "教学示例；不是新的仿真结果。",
+    "hand": "手稿①：瞬时带宽与 U(t) 的使用边界"
+  },
+  {
+    "title": "有一小段，利用率真的只有 17.56%",
+    "subtitle": "看清原因：这时 32 张卡都处于大读取的 A 阶段。",
+    "body": "\n<p>四盘合计 160 GiB/s，且一直忙。在这个稳定读取轮次里，每张卡平均得到 <b>160÷32=5 GiB/s</b>。注意：这是轮次平均，实际服务仍是一块一块发生。</p>\n<figure><img src=\"assets/local_A_cycle.svg\"><figcaption>真实 NPU0 的完整交接：当前层计算结束后，继续等下一层数据。</figcaption></figure>\n<div class=\"calculation\"><p>每卡读 175.66 MiB，按周期平均 5 GiB/s，需要 <b>34.31 ms</b>。</p><p>这段只算 <b>6.02 ms</b>，其余约 <b>28.28 ms</b> 都在等。</p></div>\n<div class=\"formula\">利用率 = 6.02 ÷ 34.31 ≈ 17.56%<small>完整精度计算为 17.558692%；用两位小数手算会略有差异。</small></div>\n<div class=\"note \">此时各卡的层开始时间已经错开，仍然会等。<b>“错开”不是“数据一定来得及”的保证。</b></div>\n<p class=\"small\">该共同窗口的 32 卡实际利用率也为 17.56%。但这仅是 2.180093–2.214401 秒的局部，不是整场 U。全 A 的需求本就远超容量，不能把这段全部损失都算成 FIFO 独有缺点。</p>\n",
+    "source": "真实结果：handoff_checks.json；逐卡计算和逐盘/逐卡物理服务积分独立吻合。",
+    "key": "local_A",
+    "hand": "手稿①模型的局部实测核验：固定 A 轮次"
+  },
+  {
+    "key": "population",
+    "title": "nᵢ Lᵢ：把“一层多少”乘上“做了几层”",
+    "subtitle": "这里明确规定 nᵢ 是层数，不是卡数。",
+    "body": "\n<p>N 是总卡数；nᵢ 是第 i 类一共执行的层数。两个字母很像，但意思不同。这里 i 从卡编号改为<b>画像类别编号</b>，先按同类数据分组。</p>\n<p>本次每个请求有 8 层。2 个同类请求，就有 2×8＝16 层；若每层读 3 份，总共就是 16×3＝48 份。</p>\n<div class=\"original\"><label>手稿定位 · ① 下部：有限人口的逐项守恒；原稿记作 Nᵢ</label><div>∫₀ᵀ bᵢ(t)dt = Nᵢ Lᵢ</div></div>\n<div class=\"meaning\"><b>换成大白话</b><p>同一类任务全部做完后，实际累计读出的量，应该等于这类“层数 × 每层读取量”。前提是都读完了，没有重复读或丢弃。</p></div>\n<table><thead><tr><th>本次完整人口</th><th>A</th><th>B</th></tr></thead><tbody><tr><td>全局请求数</td><td>32×40＝1280</td><td>32×80＝2560</td></tr><tr><td>全局层数 nᵢ</td><td>10240</td><td>20480</td></tr><tr><td>完整读取量</td><td>1756.5625 GiB</td><td>770 GiB</td></tr></tbody></table>\n<div class=\"math\">总读取 W<sub>D</sub> = Σᵢ nᵢLᵢ = 2526.5625 GiB<small>W 可以读作总工作量，D 在这里表示数据。</small></div>\n<div class=\"note \">必须统计同一批任务直到完成。只截 2 秒时，有些任务尚未完成、有些读取跨过边界，就不能直接把整批配额塞进去。</div>\n<p class=\"small\">原稿 Nᵢ 的计数单位没有充分写明；本文改用 nᵢ 表示层数，避免与卡数 N 混淆。如果用请求数，就必须再乘每请求层数。</p>\n",
+    "source": "真实工作量：accounting_checks.json；3840 请求、30720 层完整完成。",
+    "hand": "手稿①末行；②数据积分与 ΣnᵢLᵢ"
+  },
+  {
+    "key": "weights",
+    "title": "为什么要“各自除完，再加起来”？",
+    "subtitle": "手稿第二张最容易跳步的地方。",
+    "body": "\n<figure><img src=\"assets/math_weights.svg\"><figcaption>教学示意：同样叫读取，不同画像对应的计算量不同。先分别换算，再相加。</figcaption></figure>\n<p>图中的 r 就是手稿的 Bᵢ：Bᵢ=Lᵢ/Cᵢ，因此 Lᵢ/Bᵢ=Cᵢ。把这一类全部层的数据相加后，再除它自己的 Bᵢ，就能换回它对应的总计算时间。</p>\n<div class=\"math\">总计算 W<sub>C</sub> = Σᵢ nᵢCᵢ = Σᵢ (nᵢLᵢ / Bᵢ)<small>按图中数字：40÷2＋200÷10＝20＋20＝40 卡·秒。</small></div>\n<div class=\"original\"><label>手稿定位 · ② 第二行后半部分，按可辨认字迹重排</label><div>… = (1/Bᵢ) Σᵢ ∫₀ᵀ bᵢ(t)dt = nᵢLᵢ/Bᵢ</div></div>\n<p>若这一行要表示全部类别总量，手稿缺少完整求和。<b>不同 i 的 Bᵢ 不同，不能把一个 1/Bᵢ 拿到对 i 的求和外。</b></p>\n<div class=\"check\"><b>停一下，自己试一试</b><p>图中总数据 240 份，直接全部除以甲的 2，得到 120 卡·秒，为什么错？</p><small>核对：乙的数据不是按甲的关系换算；正确做法分别除，再加，得到 40。</small></div>\n<p class=\"small\">完整批次里，这个恒等关系可以成立；但盘正在预取 B 时，不能拿卡当前计算 A 的需求去加权 B 的字节。必须按数据真正所属的画像/请求对应。</p>\n",
+    "source": "教学示例；不是新的仿真结果。",
+    "hand": "手稿②：W_C 的带宽加权积分、移出系数与末项"
+  },
+  {
+    "key": "compute_integral",
+    "title": "把利用率沿时间累加，得到什么？",
+    "subtitle": "得到“计算时间账”，不是另一个百分比。",
+    "body": "\n<p>一张卡：前 2 秒一直计算，后 8 秒只计算其中 2 秒。总计算 4 秒，总观察 10 秒，所以利用率为 40%。</p>\n<table><thead><tr><th>时间段</th><th>这段 U</th><th>时间长度</th><th>计算时间</th></tr></thead><tbody><tr><td>前一段</td><td>100%</td><td>2 秒</td><td>1×2＝2 秒</td></tr><tr><td>后一段</td><td>25%</td><td>8 秒</td><td>0.25×8＝2 秒</td></tr><tr><td>合计</td><td>40%</td><td>10 秒</td><td>4 秒</td></tr></tbody></table>\n<p>不能直接平均 100% 和 25% 得到 62.5%：后一段占的时间更长。按时间加权，就是把每段的“利用率×时长”累加。</p>\n<div class=\"original\"><label>手稿定位 · ② 第二行开头</label><div>W_C = ∫₀ᵀ U(t)dt</div></div>\n<div class=\"math\">若 U 是整机平均：W<sub>C</sub> = N × ∫₀ᵀ U(t)dt<br>若 U 是等效忙卡数：W<sub>C</sub> = ∫₀ᵀ U(t)dt<small>两种写法都可以，但同一篇推导必须坚持同一种定义。</small></div>\n<p class=\"small\">这里真实 U(t) 是“时刻 t 正在计算的卡数÷总卡数”，不是代入瞬时带宽得到的值。上表先按每段平均核账；直接累加真实计算区间也得到相同时间账。</p>\n<div class=\"note \">这能与上一页的总计算量对上：同一批全部完成后，既可按“做了几层”算，也可按“真实计算了多久”数。<b>两本账一致，不代表瞬时盘速与计算状态处处成比例。</b></div>\n<p class=\"small\">你现在已经学过相加、累计、逐类换算。到第 32 页，会把手稿的完整加权积分链逐等号连起来，并保留每类自己的 Bᵢ。</p>\n<p class=\"small\">本次完整计算账为 647.267282 卡·秒。公式中的时间单位需要一致：若积分用毫秒，结果是卡·毫秒，除以 1000 后才是卡·秒。</p>\n",
+    "source": "真实总计算量来自完整层日志；分段 100% / 25% 为教学算例。",
+    "hand": "手稿②：W_C=∫U 及与加权读取积分的等号"
+  },
+  {
+    "key": "capacity",
+    "title": "手稿的“＝BT”，什么时候能写等号？",
+    "subtitle": "把“最多能做多少”和“实际做了多少”分开。",
+    "body": "\n<div class=\"original\"><label>手稿定位 · ② 第一行</label><div>∫₀ᵀ Σᵢ bᵢ(t)dt = ∫₀ᵀ Bdt = BT = Σᵢ nᵢLᵢ</div></div>\n<p>B 是盘容量，T 是观察时长。还记得积分例子吗？盘容量为 10，观察 5 秒，理论最多 50 份；实际有空闲，只送了 30 份。</p>\n<div class=\"math\">一般应写：实际累计服务 ≤ B × T<small>只有整个区间都满速服务，左边才等于右边。</small></div>\n<div class=\"original\"><label>手稿定位 · ① 情况 2：名义需求面积达到或超过容量</label><div>∫₀ᵀ Σᵢ Bᵢ(t)dt ≥ BT</div></div>\n<p>这是<b>想要的工作面积</b>与能力比较，不能自动证明实际盘一直忙。未来读取可能还没被计算释放出来；当前请求在等时，图上的 V/C 也不会不停生成新数据。</p>\n<p class=\"small\">原式使用 ≥。其中等号只是理想需求面积刚好等于容量，并非严格超过；要与真正持续过载区分。</p>\n<div class=\"math\">完成时间 ≥ 总读取量 ÷ 总容量<small>这是“再快也不能低于”的下界，不是实际完成时间的等号。</small></div>\n<p>本次 3 盘：2526.5625÷120＝<b>21.0547 秒</b>。它只是总容量下界；更严还要逐盘检查。还没算上读取结束后的最后计算等影响。</p>\n<div class=\"note \">手稿把 T 直接写成“总读取÷B”，需要补上持续满速、统计边界合适等条件。<b>全批次平均过载，也不保证每个时刻都在满速读。</b></div>\n",
+    "source": "真实总读取量用于下界计算；最热盘约束给 3 盘略强的 21.0574 秒下界。",
+    "hand": "手稿①：需求面积过载；②：实际服务、BT 与 T 的等号链"
+  },
+  {
+    "key": "finite_counter",
+    "title": "逐层预取：同一窗口里，L3 怎样改变 U？",
+    "subtitle": "当前层开始计算，才发下一层读取；比较同样的第 6–12 秒。",
+    "body": "\n<p>两卡各有一个 8 层请求。每层都读 2 份；甲每层算 2 秒，乙算 6 秒；盘速 1 份/秒。初始层数据均已就绪，记作 t=0。每次读完一层后，盘从已提交的 IO 中选优先卡。<b>只改层 IO 优先级。</b></p>\n<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1000 400\" role=\"img\"><style>svg text{font-family:\"Microsoft YaHei\",\"Noto Sans CJK SC\",sans-serif;fill:#17283d;font-size:24px}svg text.small{font-size:20px;fill:#627185}</style><text x=\"0\" y=\"25\" class=\"\">甲的层 IO 优先</text><text x=\"0\" y=\"63\" class=\"\">SSU</text><rect x=\"140\" y=\"39\" width=\"260\" height=\"33\" rx=\"9\" fill=\"#e4e9f0\"/><text x=\"270.0\" y=\"63.5\" text-anchor=\"middle\" style=\"fill:#17283d\">读甲 L4</text><rect x=\"400\" y=\"39\" width=\"260\" height=\"33\" rx=\"9\" fill=\"#e4e9f0\"/><text x=\"530.0\" y=\"63.5\" text-anchor=\"middle\" style=\"fill:#17283d\">读甲 L5</text><rect x=\"660\" y=\"39\" width=\"260\" height=\"33\" rx=\"9\" fill=\"#e4e9f0\"/><text x=\"790.0\" y=\"63.5\" text-anchor=\"middle\" style=\"fill:#17283d\">读甲 L6</text><text x=\"0\" y=\"106\" class=\"\">NPU 甲</text><rect x=\"140\" y=\"82\" width=\"260\" height=\"33\" rx=\"9\" fill=\"#8461bb\"/><text x=\"270.0\" y=\"106.5\" text-anchor=\"middle\" style=\"fill:white\">算 L3（2 秒）</text><rect x=\"400\" y=\"82\" width=\"260\" height=\"33\" rx=\"9\" fill=\"#8461bb\"/><text x=\"530.0\" y=\"106.5\" text-anchor=\"middle\" style=\"fill:white\">算 L4（2 秒）</text><rect x=\"660\" y=\"82\" width=\"260\" height=\"33\" rx=\"9\" fill=\"#8461bb\"/><text x=\"790.0\" y=\"106.5\" text-anchor=\"middle\" style=\"fill:white\">算 L5（2 秒）</text><text x=\"0\" y=\"149\" class=\"\">NPU 乙</text><rect x=\"140\" y=\"125\" width=\"780\" height=\"33\" rx=\"9\" fill=\"#c55a54\"/><text x=\"530.0\" y=\"149.5\" text-anchor=\"middle\" style=\"fill:white\">等待下一层数据</text><text x=\"132\" y=\"188\" class=\"\">6</text><text x=\"392\" y=\"188\" class=\"\">8</text><text x=\"652\" y=\"188\" class=\"\">10</text><text x=\"912\" y=\"188\" class=\"\">12 秒</text><text x=\"0\" y=\"225\" class=\"\">乙的层 IO 优先</text><text x=\"0\" y=\"263\" class=\"\">SSU</text><rect x=\"140\" y=\"239\" width=\"260\" height=\"33\" rx=\"9\" fill=\"#e4e9f0\"/><text x=\"270.0\" y=\"263.5\" text-anchor=\"middle\" style=\"fill:#17283d\">读乙 L2</text><rect x=\"400\" y=\"239\" width=\"260\" height=\"33\" rx=\"9\" fill=\"#e4e9f0\"/><text x=\"530.0\" y=\"263.5\" text-anchor=\"middle\" style=\"fill:#17283d\">读甲 L3</text><rect x=\"660\" y=\"239\" width=\"260\" height=\"33\" rx=\"9\" fill=\"#e4e9f0\"/><text x=\"790.0\" y=\"263.5\" text-anchor=\"middle\" style=\"fill:#17283d\">读甲 L4</text><text x=\"0\" y=\"306\" class=\"\">NPU 甲</text><rect x=\"400\" y=\"282\" width=\"260\" height=\"33\" rx=\"9\" fill=\"#c55a54\"/><text x=\"530.0\" y=\"306.5\" text-anchor=\"middle\" style=\"fill:white\">等待下一层数据</text><rect x=\"140\" y=\"282\" width=\"260\" height=\"33\" rx=\"9\" fill=\"#8461bb\"/><text x=\"270.0\" y=\"306.5\" text-anchor=\"middle\" style=\"fill:white\">算 L2（2 秒）</text><rect x=\"660\" y=\"282\" width=\"260\" height=\"33\" rx=\"9\" fill=\"#8461bb\"/><text x=\"790.0\" y=\"306.5\" text-anchor=\"middle\" style=\"fill:white\">算 L3（2 秒）</text><text x=\"0\" y=\"349\" class=\"\">NPU 乙</text><rect x=\"140\" y=\"325\" width=\"780\" height=\"33\" rx=\"9\" fill=\"#8461bb\"/><text x=\"530.0\" y=\"349.5\" text-anchor=\"middle\" style=\"fill:white\">算 L1（6 秒）</text><text x=\"132\" y=\"388\" class=\"\">6</text><text x=\"392\" y=\"388\" class=\"\">8</text><text x=\"652\" y=\"388\" class=\"\">10</text><text x=\"912\" y=\"388\" class=\"\">12 秒</text></svg>\n<table><thead><tr><th>同一窗口 [6,12)</th><th>甲计算</th><th>乙计算</th><th>整机平均 U</th></tr></thead><tbody><tr><td>甲的层 IO 优先</td><td>6 秒</td><td>0 秒</td><td>6÷(2×6)＝50%</td></tr><tr><td>乙的层 IO 优先</td><td>4 秒</td><td>6 秒</td><td>10÷(2×6)＝83.33%</td></tr></tbody></table>\n<p class=\"small\">L0 是初始层。甲优先时反复抢到盘，乙在第 6 秒算完 L0 后等 L1；乙优先时，甲在 8–10 秒等待，乙整窗计算。两方案两卡在窗口内都还有未完成请求，无任务结束后的空闲。</p>\n<div class=\"original\"><label>手稿定位 · ① 下部的一条结论</label><div>开环有限请求：NPU 利用率与 L3 调度无关</div></div>\n<div class=\"note \">外部请求名单固定，不代表后续层 IO 都在起点可读。<b>层服务先后会改变下一层就绪时间，从而改变同一窗口的计算时间。</b>这里乙的 B=2÷6 比甲的 B=2÷2 小；完整周期平均可以与前面的理想模型对上。</div>\n<p class=\"small\">本例过载：总需求 4/3&gt;容量 1；不是 Baseline/Once 或欠载证据。83.33% 也不是任意短窗的最优上限：t=6 起可读甲→甲→乙，使本窗 100%，但推迟后续计算；详见配套 Markdown。整层不抢占，同刻完成与新提交先于选 IO。</p>\n",
+    "source": "逐层教学时序经精确算术核验；非真实实验。修订：2026-09-13。",
+    "hand": "手稿①：外部有限输入与内部逐层反馈；②：固定窗口内已执行工作量"
+  },
+  {
+    "key": "open_closed",
+    "title": "“开闭环”和“有限无限”是两个问题",
+    "subtitle": "不要把两组词绑成固定搭配。",
+    "body": "\n<table><thead><tr><th></th><th>到达按预定时间，不看完成：开环</th><th>完成一条才补一条：闭环</th></tr></thead><tbody><tr><td>名单有限</td><td>0、1、2、3、4、5 秒各来一条，共 6 条</td><td>做完再发下一条，最多共 6 条</td></tr><tr><td>名单不断补充</td><td>每秒来一条，一直继续</td><td>做完就补一条，一直继续</td></tr></tbody></table>\n<p><b>横着看：</b>下一条什么时候来，要不要看前面完成？<br><b>竖着看：</b>一共就这些任务，还是会一直补？</p>\n<div class=\"original\"><label>手稿定位 · ② 中部</label><div>闭环无限请求：L3 调度影响 L2，可提升利用率；固定时间内读取量不守恒</div></div>\n<div class=\"meaning\"><b>换成大白话</b><p>如果服务变快，后面的任务可能更早开始。同样 10 秒内，可能完成更多层、读更多数据、做更多计算。这里比较的是固定时间内的处理量。</p></div>\n<div class=\"note \">“可能改善”不等于“必然改善”。也不是数据违反物理守恒：<b>工作人口可以不同，所以固定窗口处理的总量不必相同。</b>如果两策略都已经 100%，就没有更高的利用率可争取。</div>\n<p>回到本次：外部请求全在 t=0 入队，是有限名单；但下一层 IO 在当前层开始计算时才发出，内部有反馈。等待会改变之后的读取时刻。只改到达标签、却保持任务可用性和预取条件一样，U 也可能不变。</p>\n",
+    "source": "到达表为教学示意；本次固定队列与层 IO 释放规则为源码事实。",
+    "hand": "手稿①：开环有限；②：闭环无限、窗口工作量与 L2/L3 反馈"
+  },
+  {
+    "title": "32 张卡，这次到底怎样喂请求？",
+    "subtitle": "同一批请求，每卡 40 个 A、80 个 B；只改变排列。",
+    "body": "\n<p><b>Ordered：</b>32 张卡都执行 A→B→B，重复 40 轮。下面是原始输入的前 12 条：</p>\n<div class=\"queues\"><div class=\"qrow\"><label>NPU 0</label><span class=\"token A\">A</span><span class=\"token B\">B</span><span class=\"token B\">B</span><span class=\"token A\">A</span><span class=\"token B\">B</span><span class=\"token B\">B</span><span class=\"token A\">A</span><span class=\"token B\">B</span><span class=\"token B\">B</span><span class=\"token A\">A</span><span class=\"token B\">B</span><span class=\"token B\">B</span><span>…</span></div><div class=\"qrow\"><label>NPU 1</label><span class=\"token A\">A</span><span class=\"token B\">B</span><span class=\"token B\">B</span><span class=\"token A\">A</span><span class=\"token B\">B</span><span class=\"token B\">B</span><span class=\"token A\">A</span><span class=\"token B\">B</span><span class=\"token B\">B</span><span class=\"token A\">A</span><span class=\"token B\">B</span><span class=\"token B\">B</span><span>…</span></div><div class=\"qrow\"><label>NPU 16</label><span class=\"token A\">A</span><span class=\"token B\">B</span><span class=\"token B\">B</span><span class=\"token A\">A</span><span class=\"token B\">B</span><span class=\"token B\">B</span><span class=\"token A\">A</span><span class=\"token B\">B</span><span class=\"token B\">B</span><span class=\"token A\">A</span><span class=\"token B\">B</span><span class=\"token B\">B</span><span>…</span></div><div class=\"qrow\"><label>NPU 31</label><span class=\"token A\">A</span><span class=\"token B\">B</span><span class=\"token B\">B</span><span class=\"token A\">A</span><span class=\"token B\">B</span><span class=\"token B\">B</span><span class=\"token A\">A</span><span class=\"token B\">B</span><span class=\"token B\">B</span><span class=\"token A\">A</span><span class=\"token B\">B</span><span class=\"token B\">B</span><span>…</span></div></div>\n<p><b>Random：</b>每张卡独立打乱自己的同一批请求。下面同样直接取原始输入：</p>\n<div class=\"queues\"><div class=\"qrow\"><label>NPU 0</label><span class=\"token B\">B</span><span class=\"token B\">B</span><span class=\"token B\">B</span><span class=\"token B\">B</span><span class=\"token A\">A</span><span class=\"token A\">A</span><span class=\"token B\">B</span><span class=\"token A\">A</span><span class=\"token B\">B</span><span class=\"token A\">A</span><span class=\"token B\">B</span><span class=\"token A\">A</span><span>…</span></div><div class=\"qrow\"><label>NPU 1</label><span class=\"token B\">B</span><span class=\"token B\">B</span><span class=\"token B\">B</span><span class=\"token A\">A</span><span class=\"token B\">B</span><span class=\"token A\">A</span><span class=\"token A\">A</span><span class=\"token B\">B</span><span class=\"token B\">B</span><span class=\"token A\">A</span><span class=\"token B\">B</span><span class=\"token A\">A</span><span>…</span></div><div class=\"qrow\"><label>NPU 16</label><span class=\"token B\">B</span><span class=\"token B\">B</span><span class=\"token A\">A</span><span class=\"token B\">B</span><span class=\"token A\">A</span><span class=\"token B\">B</span><span class=\"token B\">B</span><span class=\"token A\">A</span><span class=\"token B\">B</span><span class=\"token B\">B</span><span class=\"token A\">A</span><span class=\"token B\">B</span><span>…</span></div><div class=\"qrow\"><label>NPU 31</label><span class=\"token B\">B</span><span class=\"token B\">B</span><span class=\"token B\">B</span><span class=\"token A\">A</span><span class=\"token B\">B</span><span class=\"token A\">A</span><span class=\"token A\">A</span><span class=\"token B\">B</span><span class=\"token B\">B</span><span class=\"token A\">A</span><span class=\"token B\">B</span><span class=\"token B\">B</span><span>…</span></div></div>\n<div class=\"note \">两组都不是“某张卡只跑 A，另一张卡只跑 B”。<b>每张卡都混合两种请求。</b></div>\n<p class=\"small\">全部请求在 t=0 入队；各卡按自己的进度推进，没有运行时同步屏障。Ordered 是刻意相关的压力输入；Random 使用 seed7。前期筛选人口较短，本教程结果统一使用上述长验证人口。</p>\n<p class=\"small\">手稿说 L1/L2 决定每卡请求数，要区分：本次每卡 40A＋80B 的配额已固定，L2 排序没有改变它；排序可以改变的是固定时间窗内已经推进了多少条。</p>",
+    "source": "真实输入：4 盘两份冻结 manifest；保留同一原请求的卡号、C/V 和落盘。",
+    "key": "input",
+    "hand": "回到实验：固定 L1、改变 L2"
+  },
+  {
+    "title": "只改变顺序，结果就不一样",
+    "subtitle": "4 块 SSU，每盘 40 GiB/s；32 张 NPU，每卡链路 50 GiB/s。",
+    "body": "\n<div class=\"cols stats\"><div><span>Random · 随机</span><strong>99.48%</strong></div><div><span>Ordered · ABB</span><strong>70.23%</strong></div></div>\n<p class=\"small center\">上面是全部 32 卡在 2–4 秒的平均利用率；均为 seed7。</p>\n<figure><img src=\"assets/actual_random_timeline.svg\"><figcaption>Random：只节选 4 张卡在 2.0–2.4 秒的真实计算与等待。</figcaption></figure>\n<figure><img src=\"assets/actual_ordered_timeline.svg\"><figcaption>Ordered：使用相同卡号、相同绝对时间窗。蓝=A 计算，绿=B 计算，浅红=IO 等待。</figcaption></figure>\n<div class=\"note \">图帮助看发生了什么；<b>百分比来自完整 32 卡、完整统计窗</b>，不是只对图里的四张卡求平均。</div>\n\n",
+    "source": "真实结果：4 盘长验证 seed7、[2,4) 秒；两组均 32 卡全窗有任务，且逐卡算过 A/B。",
+    "key": "timelines",
+    "hand": "回到实验：窗口 U 来自真实计算时间"
+  },
+  {
+    "title": "看久一点，会不会自己恢复？",
+    "subtitle": "会不会恢复要看数据，不能只看一张短截图。",
+    "body": "\n<p>下图从同一批长运行日志，连续取 2 秒窗口。窗口内全部 32 卡一直有任务；三条线均为 <b>Ordered、seed7</b>。</p>\n<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1000 340\" role=\"img\"><style>svg text{font-family:\"Microsoft YaHei\",\"Noto Sans CJK SC\",sans-serif;fill:#17283d;font-size:24px}svg text.small{font-size:20px;fill:#627185}</style><path d=\"M105 265H945\" stroke=\"#dce4ed\" stroke-width=\"1\"/><text x=\"20\" y=\"273\" class=\"small\">50%</text><path d=\"M105 165H945\" stroke=\"#dce4ed\" stroke-width=\"1\"/><text x=\"20\" y=\"173\" class=\"small\">75%</text><path d=\"M105 65H945\" stroke=\"#dce4ed\" stroke-width=\"1\"/><text x=\"20\" y=\"73\" class=\"small\">100%</text><polyline points=\"105,180.96421838483474 210,238.9463275772501 315,182.08000187833682 420,237.83054408375037 525,185.91154153775375 630,233.99900442433764 735,189.74147619945154 840,230.16906976263408 945,193.57307355615455\" fill=\"none\" stroke=\"#dd8a2b\" stroke-width=\"5\"/><circle cx=\"105\" cy=\"180.96421838483474\" r=\"5\" fill=\"#dd8a2b\"/><circle cx=\"210\" cy=\"238.9463275772501\" r=\"5\" fill=\"#dd8a2b\"/><circle cx=\"315\" cy=\"182.08000187833682\" r=\"5\" fill=\"#dd8a2b\"/><circle cx=\"420\" cy=\"237.83054408375037\" r=\"5\" fill=\"#dd8a2b\"/><circle cx=\"525\" cy=\"185.91154153775375\" r=\"5\" fill=\"#dd8a2b\"/><circle cx=\"630\" cy=\"233.99900442433764\" r=\"5\" fill=\"#dd8a2b\"/><circle cx=\"735\" cy=\"189.74147619945154\" r=\"5\" fill=\"#dd8a2b\"/><circle cx=\"840\" cy=\"230.16906976263408\" r=\"5\" fill=\"#dd8a2b\"/><circle cx=\"945\" cy=\"193.57307355615455\" r=\"5\" fill=\"#dd8a2b\"/><rect x=\"120\" y=\"7\" width=\"25\" height=\"12\" fill=\"#dd8a2b\"/><text x=\"155\" y=\"22\" class=\"small\">3 盘 Ordered</text><polyline points=\"105,184.06046331943963 210,184.06046331943747 315,180.12624582948126 420,165.53835445216453 525,166.82996857019555 630,184.06046331944236 735,184.06046331944236 840,184.06046331943526 945,184.0604633194336\" fill=\"none\" stroke=\"#2563eb\" stroke-width=\"5\"/><circle cx=\"105\" cy=\"184.06046331943963\" r=\"5\" fill=\"#2563eb\"/><circle cx=\"210\" cy=\"184.06046331943747\" r=\"5\" fill=\"#2563eb\"/><circle cx=\"315\" cy=\"180.12624582948126\" r=\"5\" fill=\"#2563eb\"/><circle cx=\"420\" cy=\"165.53835445216453\" r=\"5\" fill=\"#2563eb\"/><circle cx=\"525\" cy=\"166.82996857019555\" r=\"5\" fill=\"#2563eb\"/><circle cx=\"630\" cy=\"184.06046331944236\" r=\"5\" fill=\"#2563eb\"/><circle cx=\"735\" cy=\"184.06046331944236\" r=\"5\" fill=\"#2563eb\"/><circle cx=\"840\" cy=\"184.06046331943526\" r=\"5\" fill=\"#2563eb\"/><circle cx=\"945\" cy=\"184.0604633194336\" r=\"5\" fill=\"#2563eb\"/><rect x=\"380\" y=\"7\" width=\"25\" height=\"12\" fill=\"#2563eb\"/><text x=\"415\" y=\"22\" class=\"small\">4 盘 Ordered</text><polyline points=\"105,118.63226235620266 210,88.18722638063616 315,81.23857191715672 420,69.48855445277769 525,66.50103263102045 630,65.13436415445642 735,65.03159882685878 840,65.00264625089739 945,65.00340047664872\" fill=\"none\" stroke=\"#14846b\" stroke-width=\"5\"/><circle cx=\"105\" cy=\"118.63226235620266\" r=\"5\" fill=\"#14846b\"/><circle cx=\"210\" cy=\"88.18722638063616\" r=\"5\" fill=\"#14846b\"/><circle cx=\"315\" cy=\"81.23857191715672\" r=\"5\" fill=\"#14846b\"/><circle cx=\"420\" cy=\"69.48855445277769\" r=\"5\" fill=\"#14846b\"/><circle cx=\"525\" cy=\"66.50103263102045\" r=\"5\" fill=\"#14846b\"/><circle cx=\"630\" cy=\"65.13436415445642\" r=\"5\" fill=\"#14846b\"/><circle cx=\"735\" cy=\"65.03159882685878\" r=\"5\" fill=\"#14846b\"/><circle cx=\"840\" cy=\"65.00264625089739\" r=\"5\" fill=\"#14846b\"/><circle cx=\"945\" cy=\"65.00340047664872\" r=\"5\" fill=\"#14846b\"/><rect x=\"640\" y=\"7\" width=\"25\" height=\"12\" fill=\"#14846b\"/><text x=\"675\" y=\"22\" class=\"small\">6 盘 Ordered</text><text x=\"70\" y=\"313\" class=\"small\">2–4 秒</text><text x=\"490\" y=\"313\" class=\"small\">10–12 秒</text><text x=\"910\" y=\"313\" class=\"small\">18–20 秒</text></svg>\n<table><thead><tr><th>情况</th><th>2–4 秒 U</th><th>18–20 秒 U</th><th>2–20 秒 U</th></tr></thead><tbody><tr><td>3 盘</td><td>71.01%</td><td>67.86%</td><td>64.22%</td></tr><tr><td>4 盘</td><td>70.23%</td><td>70.23%</td><td>71.34%</td></tr><tr><td>6 盘</td><td>86.59%</td><td>100.00%</td><td>97.24%</td></tr></tbody></table>\n<p><b>6 盘会恢复：</b>各卡逐渐在不同时间进入 A，大读取不再那么集中。<b>4 盘在已测长窗仍较低：</b>本次没有同样恢复到满利用率。</p>\n<div class=\"note \">不同卡、不同请求发生等待，会改变后续读取的发起时刻。这个反馈既可能让它们散开，也可能维持拥挤轮次。</div>\n<p class=\"small\">本批在理想持续计算时平均需要约 124.91 GiB/s。3 盘总共只有 120，平均已经不足；4 盘 160、6 盘 240 虽通过平均检查，仍不能保证每盘每刻欠载。</p>\n",
+    "source": "真实结果：6 份 seed7 原始层日志，连续 [2,4)、[4,6)…[18,20) 秒裁剪。",
+    "key": "recovery",
+    "hand": "手稿的动态反馈：是否自然错开，要看长期日志"
+  },
+  {
+    "title": "同样的活，为什么全程利用率不同？",
+    "subtitle": "“工作量一样”没有规定“多久才能做完”。",
+    "body": "\n<p>两种顺序都完成同一批 <b>3840 个请求</b>，总读取都是 <b>2526.56 GiB</b>，总计算都是 <b>647.27 卡·秒</b>。</p>\n<p>“卡·秒”就是把所有卡的计算时间加起来：两张卡各算 1 秒，合计 2 卡·秒。</p>\n<div class=\"finish\"><label>4 盘 Random</label><div style=\"width:73.174%;background:#14846b\">20.64 秒完成</div><label>4 盘 Ordered</label><div style=\"width:100%;background:#2563eb\">28.20 秒完成</div></div>\n<div class=\"formula\">全程 U = 总计算卡·秒 ÷（32 × 全部完成时间）<small></small></div>\n<table><thead><tr><th>同一人口 / seed7</th><th>Random</th><th>Ordered</th></tr></thead><tbody><tr><td>开始到全部完成</td><td>98.02%</td><td>71.72%</td></tr><tr><td>共同暖窗 2–4 秒</td><td>99.48%</td><td>70.23%</td></tr><tr><td>共同长窗 2–20 秒</td><td>98.96%</td><td>71.34%</td></tr></tbody></table>\n<div class=\"note \">等待拉长完成时间，即使总计算量没变，分母也会变大。<b>同样工作量不能推出同样利用率。</b></div>\n<p class=\"small\">全程包含启动等待和尾部空闲；暖窗只看选定时间。任务做完后的空闲不能假装成 IO stall。有限人口的守恒式也不能直接套进任意 2 秒窗口。</p>\n",
+    "source": "真实结果：4 盘长验证 seed7；全部请求完成，计算/读取总量已独立核对。",
+    "key": "actual_total",
+    "hand": "手稿②的完整工作量与本次实际完成时间"
+  },
+  {
+    "title": "Once per layer 想改变什么？",
+    "subtitle": "它主要改变 L3：已提交的读取怎样排队。",
+    "body": "\n<div class=\"cols\"><div class=\"mini\"><h2>Baseline</h2><p>每块盘的全部 IO 都进入自己的 Path0。</p><div class=\"path\"><b>Path0</b><i>A</i><i>A</i><i>B</i><i>A</i></div><p>盘按这条队列的块先后服务。</p></div><div class=\"mini\"><h2>Once per layer</h2><p>每个请求的每层、每块盘规划一次，将块分到允许使用的队列。</p><div class=\"path\"><b>队列 1</b><i>A</i><i>B</i></div><div class=\"path\"><b>队列 2</b><i>A</i><i>A</i></div></div></div>\n<p>它依据采集到的压力快照和预计服务情况规划；规划本层时会更新本地预计排队量。项目这里使用 <b>5 ms 快照</b>。每条队列内部仍是 FIFO，由盘在队列之间分配服务机会。</p>\n<div class=\"note \">多条队列不会把一块 40 GiB/s 的盘变成 80 GiB/s。它想改变的是<b>谁先得到数据</b>，从而减少错过计算截止的情况。</div>\n<p>“每层规划一次”不表示整层只走一条队列。<b>同一层可以使用多条允许的队列。</b>本页讨论的是项目现有 <b>once</b> 策略。</p>\n<p class=\"small\">本次 AB 的 27 格只测了 Baseline。我们还不知道 Once 对这批输入能改善多少；多队列图只是机制示意，不表示它必然按 A/B 各分一条队列。</p>\n<p class=\"small\">手稿末尾“L2 不当会降低利用率、L3 可补救”应带条件理解：要指出谁错过截止，以及已有 IO 是否可以更及时服务。名义需求低于容量本身不会制造等待。</p>",
+    "source": "机制来源：shared_path_once.py、shared_path_sim_adapter.py、policy_logic.py。",
+    "key": "once",
+    "hand": "手稿②：L3 能否补救 L2"
+  },
+  {
+    "title": "利用率高，用户就等得短吗？",
+    "subtitle": "不一定：利用率看卡，TTFT 看请求。",
+    "body": "\n<p>TTFT 是用户从发出请求到收到第一个输出 token 的时间。本仿真没有测实际首 token 返回，而是用 prefill 完成作为代理；还必须说明从哪里开始计时。</p>\n<div class=\"clockline\"><span>到达队列<br><b>0 ms</b></span><em>接纳前排队</em><span>卡接纳<br><b>2033.18 ms</b></span><em>开始处理</em><span>prefill 完成<br><b>2264.68 ms</b></span></div>\n<table><thead><tr><th>同一条 B 请求</th><th>计时结果</th><th>SLO×1.5</th></tr></thead><tbody><tr><td>只从接纳开始</td><td>231.51 ms</td><td>达标</td></tr><tr><td>从原始到达开始</td><td>2264.68 ms</td><td>不达标</td></tr></tbody></table>\n<p>本请求纯计算约为 8×28.59 ms，允许用时为纯计算的 1.5 倍，即约 <b>343.11 ms</b>。只计接纳后就达标，但把前面的队伍算进来就不达标。</p>\n<div class=\"note \">本项目常用的高达标率是<b>接纳后处理时间代理</b>。不能据此说用户从到达到返回也很快。</div>\n<p>而且 A 的允许时间只有约 <b>72.29 ms</b>。应分 A/B 看等待和达标率；总平均可能掩盖某类请求的问题。</p>\n<p class=\"small\">这里用 6 盘 Ordered 的 NPU0 / B 请求 10 演示。暖窗按接纳时间选请求并追踪到完成，各策略选中的人口可能不同；公平比较还需匹配请求或外部到达轨迹。</p>\n",
+    "source": "真实事件和阈值：accounting_checks.json；本次全部请求原始到达时间为 0。",
+    "key": "slo",
+    "hand": "避免把利用率当成请求体验或公平性"
+  },
+  {
+    "key": "sheet1",
+    "title": "现在回看手稿①：每一组都能读了",
+    "subtitle": "保留原意，补齐平均口径和模型条件。",
+    "body": "\n<table><thead><tr><th>手稿位置</th><th>现在怎样读</th><th>对应教程</th></tr></thead><tbody><tr><td>基本假设 1、2</td><td>计算/读取各自按数量估算；计算比例有前提。</td><td>见 7 页</td></tr><tr><td>基本假设 3</td><td>Bᵢ=Lᵢ/Cᵢ 是需求，bᵢ 是供给，B 是容量。</td><td>见 10 页</td></tr><tr><td>基本假设 4</td><td>一层推进受计算和读取两者中更慢的一方限制。</td><td>见 8 页</td></tr><tr><td>U 的等式链</td><td>单卡 uᵢ=μᵢCᵢ；各卡相加后，再除 N 才是平均。</td><td>见 6、9 页</td></tr><tr><td>结论①</td><td>低需求优先是带条件的模型结论；瞬时推广另有限制。</td><td>见 14、17、18 页</td></tr><tr><td>不过载 1.1 / 1.2</td><td>供给≥需求可饱和；不能随便去掉 min，也不能漏平均。</td><td>见 12 页</td></tr><tr><td>过载的积分</td><td>需求面积不是实际到达数据，更不保证盘一直满速。</td><td>见 14、22 页</td></tr><tr><td>有限请求与 L3</td><td>有限名单仍有逐层反馈；同窗计算时间可随 L3 改变。</td><td>见 23 页</td></tr><tr><td>逐卡/逐类读取守恒</td><td>同一批全部完成后，累计字节=层数×每层字节。</td><td>见 19 页</td></tr></tbody></table>\n<div class=\"note \">原稿的 Σmin 可以表示“等效忙卡数”；若称平均利用率，记得 ÷N。原稿 μ 若按每层 C/L 定义，单位就是“层/秒”。</div>\n<p>这页不是让你背公式。先说中文，再用指向的页码找一个小例子核对。对照原图时，个别字迹不清的词不用猜；关键等式的条件已单独讲解。</p>\n",
+    "source": "原图 docs/1.jpg；原式转写、条件和全部定位见 manuscript_inventory.json。",
+    "hand": ""
+  },
+  {
+    "key": "sheet2",
+    "title": "现在回看手稿②：把长等式拆成四步",
+    "subtitle": "长公式不是新魔法，只是把前面几本账连起来。",
+    "body": "\n<div class=\"decision\"><b>第一步 · 累计读取</b><h2>∫Σbᵢ dt = ΣnᵢLᵢ</h2><p>同一批全部完成，实际累计服务等于总读取。只有全段满速才再等于 BT；一般只是 ≤BT。见 19、22 页。</p></div>\n<div class=\"decision\"><b>第二步 · 每类换回计算，再相加</b><h2 style=\"font-size:17px\">∫ Σᵢ[bᵢ(t)/Bᵢ]dt = Σᵢ(1/Bᵢ)∫ bᵢ(t)dt<br>= ΣᵢnᵢLᵢ/Bᵢ = ΣᵢnᵢCᵢ = W_C</h2><p>都从 t=0 累计到同一批完成。每类 Bᵢ 固定，可移出它自己的时间积分，但要留在对不同 i 的求和里。这不声称瞬时 U 等于瞬时带宽比。见 20、21 页。</p></div>\n<div class=\"decision\"><b>第三步 · 用真实计算时间核同一本账</b><h2>W_C = N∫U(t)dt</h2><p>这里 U 定义为整机平均。若原稿 U 代表忙卡总数，就不再乘 N。完整批次可以核对两边；瞬时读取与瞬时计算不能随意直接等同。见 21 页。</p></div>\n<div class=\"decision\"><b>第四步 · 再除观察范围，才得到平均 U</b><h2>U_full = W_C ÷ (N × T_finish)</h2><p>全程见 28 页：分子相同，结束时间仍可不同。固定窗口见 23 页：分母相同，已执行的计算量仍可不同；不要混用两种口径。</p></div>\n<div class=\"note \">“L3 可帮助 L2”是一种能力，不是无条件保证。它能调整已提交 IO 的服务机会；不会自动改请求分卡、不会增加盘带宽，也不能直接读取未提交数据。</div>\n",
+    "source": "原图 docs/2.jpg；四步统一采用整机平均 U 和按画像统计的完整人口。",
+    "hand": ""
+  },
+  {
+    "key": "questions",
+    "title": "用六个小问题，检查自己是否真的懂了",
+    "subtitle": "答案就在下面；会用自己的话说出来，比记符号重要。",
+    "body": "\n<div class=\"check\"><b>停一下，自己试一试</b><p>两张卡都观察 10 秒，各计算 8 秒和 4 秒，平均 U 是多少？</p><small>核对：(8＋4)÷(2×10)=60%，不是 120%。</small></div>\n<div class=\"check\"><b>停一下，自己试一试</b><p>当前算 4 秒，下一层第 8 秒才读齐，要等多久？</p><small>核对：等 4 秒；总交接周期 8 秒，不是 12 秒。</small></div>\n<div class=\"check\"><b>停一下，自己试一试</b><p>∫b(t)dt 最直白的意思是什么？</p><small>核对：每小段实际速率×时长，再相加；得到累计数据量。</small></div>\n<div class=\"check\"><b>停一下，自己试一试</b><p>盘标称 10，观察 5 秒，能不能直接说实际读了 50？</p><small>核对：不能。50 是能力上界；中间可能空闲。</small></div>\n<div class=\"check\"><b>停一下，自己试一试</b><p>同一批任务总读取和总计算都相同，U 一定相同吗？</p><small>核对：不一定；全部完成时间可能不同。</small></div>\n<div class=\"check\"><b>停一下，自己试一试</b><p>4 盘 Ordered 的一个小段是 17.56%，能说整场就是 17.56% 吗？</p><small>核对：不能。2–4 秒为 70.23%，2–20 秒为 71.34%，全程为 71.72%；范围不同。</small></div>\n",
+    "source": "题目答案沿用本文教学例子及本次 4 盘 seed7 实验，不新增结果。",
+    "hand": ""
+  },
+  {
+    "title": "读完实验，现在能下什么结论？",
+    "subtitle": "把事实、解释和下一步分开。",
+    "body": "\n<div class=\"decision\"><b>已测事实</b><h2>相同每卡人口，排列会显著改变 Baseline。</h2><p>4 盘的 2–20 秒 U：Random 98.96%，Ordered 71.34%。6 盘 Ordered 会自然恢复；不能把它的短窗低值当成长期表现。</p></div>\n<div class=\"decision\"><b>有日志支持的解释</b><h2>读取集中 + 计算预算短，会反复错过截止。</h2><p>FIFO 参与决定块的服务先后。容量、预取边界和输入相位也参与其中，不能把所有损失都归给“只有一条 path”。</p></div>\n<div class=\"decision\"><b>还缺的关键实验</b><h2>同一输入，把 L3 换成 Once。</h2><p>固定 4 盘现成输入，分别补 Random Once 和 Ordered Once；不重抽请求、不重排数据，再比 U、A/B 等待与 SLO。</p></div>\n<table><thead><tr><th>固定输入</th><th>Baseline 已测 U（2–20 秒）</th><th>Once</th></tr></thead><tbody><tr><td>Random</td><td>98.96%</td><td>待测</td></tr><tr><td>Ordered ABB</td><td>71.34%</td><td>待测</td></tr></tbody></table>\n<div class=\"note \">读任何低利用率图，都问三句：<b>谁在等？等哪一层的数据？为什么截止前没送齐？</b></div>\n",
+    "source": "表中均为本次 4 盘、32 NPU、长验证 seed7。待测格没有填入旧画像的 Once 数字。",
+    "key": "conclusions",
+    "hand": "读完手稿后，区分已证实结果与待测策略"
+  },
+  {
+    "key": "sources",
+    "title": "需要复查时，按这张索引找",
+    "subtitle": "本版可以单独阅读；原图和精确日志也都保留。",
+    "body": "\n<table><thead><tr><th>想查什么</th><th>位置</th></tr></thead><tbody><tr><td>原始手稿</td><td>docs/1.jpg、docs/2.jpg</td></tr><tr><td>逐条转写、字迹疑点和成立条件</td><td>本目录 manuscript_inventory.json</td></tr><tr><td>每一项手稿在教程哪页</td><td>本目录 manuscript_coverage.json</td></tr><tr><td>本次原始输入和结果</td><td>results/baseline_ab128_32_ratio12_20260912/</td></tr><tr><td>完整公式与实验对照</td><td>上述目录 formula_review/README.md</td></tr><tr><td>字节、计算、窗口和局部交接核验</td><td>accounting_checks.json、handoff_checks.json</td></tr><tr><td>PDF 图源和生成脚本</td><td>本目录 assets/、build_fused_guide.py</td></tr></tbody></table>\n<p><b>真实实验：</b>均明确标盘数和窗口。核心对照为 32 NPU、4 SSU、seed7，长验证每卡 40A＋80B。3/6 盘用于展示容量与恢复差别；表中 Random 均不是三种子平均。</p>\n<p><b>教学例子：</b>刻意用小数字、秒和份材料练习，不冒充真实 NPU 参数。甲乙的紫/橙色与实验 A/B 的蓝/绿色分开。</p>\n<p><b>记号约定：</b>实验读量 L=V；Bᵢ 是名义需求，不是画像 B。N 是卡数；nᵢ 明确为层数。求和的 i 会在每个统计范围说明是卡还是画像。整机平均 U 的满值是 1。</p>\n<div class=\"note \">这次只重新整理手稿、教学算例和已有日志，没有启动新仿真。本次 AB 的 Once 格仍是待测；没有把旧画像的策略收益搬过来。</div>\n",
+    "source": "融合版 · 2026-09-12。数字按阅读需要取小数，精确值保存在源审计文件中。",
+    "hand": ""
+  }
+]

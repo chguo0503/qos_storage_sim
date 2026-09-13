@@ -1,0 +1,1005 @@
+{
+  "teaching_example": true,
+  "real_simulator_run": false,
+  "initial_state": "Both layer-0 inputs ready; both cards start computing at t=0.",
+  "num_npu": 2,
+  "layers_per_request": 8,
+  "read_units_per_layer": 2,
+  "disk_units_per_second": 1,
+  "compute_seconds": {
+    "A": 2,
+    "B": 6
+  },
+  "overload": true,
+  "total_reference_demand": "4/3",
+  "io_rule": "Nonpreemptive whole-layer reads; strict priority at dispatch; same-time completions and new releases handled before dispatch.",
+  "cases": [
+    {
+      "priority": "A",
+      "priority_overrides": {},
+      "compute": [
+        {
+          "npu": "A",
+          "layer": 0,
+          "start": 0,
+          "end": 2
+        },
+        {
+          "npu": "B",
+          "layer": 0,
+          "start": 0,
+          "end": 6
+        },
+        {
+          "npu": "A",
+          "layer": 1,
+          "start": 2,
+          "end": 4
+        },
+        {
+          "npu": "A",
+          "layer": 2,
+          "start": 4,
+          "end": 6
+        },
+        {
+          "npu": "A",
+          "layer": 3,
+          "start": 6,
+          "end": 8
+        },
+        {
+          "npu": "A",
+          "layer": 4,
+          "start": 8,
+          "end": 10
+        },
+        {
+          "npu": "A",
+          "layer": 5,
+          "start": 10,
+          "end": 12
+        },
+        {
+          "npu": "A",
+          "layer": 6,
+          "start": 12,
+          "end": 14
+        },
+        {
+          "npu": "A",
+          "layer": 7,
+          "start": 14,
+          "end": 16
+        },
+        {
+          "npu": "B",
+          "layer": 1,
+          "start": 16,
+          "end": 22
+        },
+        {
+          "npu": "B",
+          "layer": 2,
+          "start": 22,
+          "end": 28
+        },
+        {
+          "npu": "B",
+          "layer": 3,
+          "start": 28,
+          "end": 34
+        },
+        {
+          "npu": "B",
+          "layer": 4,
+          "start": 34,
+          "end": 40
+        },
+        {
+          "npu": "B",
+          "layer": 5,
+          "start": 40,
+          "end": 46
+        },
+        {
+          "npu": "B",
+          "layer": 6,
+          "start": 46,
+          "end": 52
+        },
+        {
+          "npu": "B",
+          "layer": 7,
+          "start": 52,
+          "end": 58
+        }
+      ],
+      "reads": [
+        {
+          "npu": "A",
+          "layer": 1,
+          "release": 0,
+          "start": 0,
+          "end": 2
+        },
+        {
+          "npu": "A",
+          "layer": 2,
+          "release": 2,
+          "start": 2,
+          "end": 4
+        },
+        {
+          "npu": "A",
+          "layer": 3,
+          "release": 4,
+          "start": 4,
+          "end": 6
+        },
+        {
+          "npu": "A",
+          "layer": 4,
+          "release": 6,
+          "start": 6,
+          "end": 8
+        },
+        {
+          "npu": "A",
+          "layer": 5,
+          "release": 8,
+          "start": 8,
+          "end": 10
+        },
+        {
+          "npu": "A",
+          "layer": 6,
+          "release": 10,
+          "start": 10,
+          "end": 12
+        },
+        {
+          "npu": "A",
+          "layer": 7,
+          "release": 12,
+          "start": 12,
+          "end": 14
+        },
+        {
+          "npu": "B",
+          "layer": 1,
+          "release": 0,
+          "start": 14,
+          "end": 16
+        },
+        {
+          "npu": "B",
+          "layer": 2,
+          "release": 16,
+          "start": 16,
+          "end": 18
+        },
+        {
+          "npu": "B",
+          "layer": 3,
+          "release": 22,
+          "start": 22,
+          "end": 24
+        },
+        {
+          "npu": "B",
+          "layer": 4,
+          "release": 28,
+          "start": 28,
+          "end": 30
+        },
+        {
+          "npu": "B",
+          "layer": 5,
+          "release": 34,
+          "start": 34,
+          "end": 36
+        },
+        {
+          "npu": "B",
+          "layer": 6,
+          "release": 40,
+          "start": 40,
+          "end": 42
+        },
+        {
+          "npu": "B",
+          "layer": 7,
+          "release": 46,
+          "start": 46,
+          "end": 48
+        }
+      ],
+      "window": [
+        6,
+        12
+      ],
+      "window_compute_seconds": {
+        "A": 6,
+        "B": 0
+      },
+      "actual_u": "1/2",
+      "window_mean_read_rate": {
+        "A": "1",
+        "B": "0"
+      },
+      "reference_demand": {
+        "A": "1",
+        "B": "1/3"
+      },
+      "ideal_cycle_estimate": "1/2",
+      "both_requests_unfinished_through_window": true,
+      "extra_windows": [
+        {
+          "window": [
+            12,
+            18
+          ],
+          "compute_seconds": {
+            "A": 4,
+            "B": 2
+          },
+          "actual_u": "1/2"
+        },
+        {
+          "window": [
+            6,
+            18
+          ],
+          "compute_seconds": {
+            "A": 10,
+            "B": 2
+          },
+          "actual_u": "1/2"
+        }
+      ]
+    },
+    {
+      "priority": "B",
+      "priority_overrides": {},
+      "compute": [
+        {
+          "npu": "A",
+          "layer": 0,
+          "start": 0,
+          "end": 2
+        },
+        {
+          "npu": "B",
+          "layer": 0,
+          "start": 0,
+          "end": 6
+        },
+        {
+          "npu": "A",
+          "layer": 1,
+          "start": 4,
+          "end": 6
+        },
+        {
+          "npu": "A",
+          "layer": 2,
+          "start": 6,
+          "end": 8
+        },
+        {
+          "npu": "B",
+          "layer": 1,
+          "start": 6,
+          "end": 12
+        },
+        {
+          "npu": "A",
+          "layer": 3,
+          "start": 10,
+          "end": 12
+        },
+        {
+          "npu": "A",
+          "layer": 4,
+          "start": 12,
+          "end": 14
+        },
+        {
+          "npu": "B",
+          "layer": 2,
+          "start": 12,
+          "end": 18
+        },
+        {
+          "npu": "A",
+          "layer": 5,
+          "start": 16,
+          "end": 18
+        },
+        {
+          "npu": "A",
+          "layer": 6,
+          "start": 18,
+          "end": 20
+        },
+        {
+          "npu": "B",
+          "layer": 3,
+          "start": 18,
+          "end": 24
+        },
+        {
+          "npu": "A",
+          "layer": 7,
+          "start": 22,
+          "end": 24
+        },
+        {
+          "npu": "B",
+          "layer": 4,
+          "start": 24,
+          "end": 30
+        },
+        {
+          "npu": "B",
+          "layer": 5,
+          "start": 30,
+          "end": 36
+        },
+        {
+          "npu": "B",
+          "layer": 6,
+          "start": 36,
+          "end": 42
+        },
+        {
+          "npu": "B",
+          "layer": 7,
+          "start": 42,
+          "end": 48
+        }
+      ],
+      "reads": [
+        {
+          "npu": "B",
+          "layer": 1,
+          "release": 0,
+          "start": 0,
+          "end": 2
+        },
+        {
+          "npu": "A",
+          "layer": 1,
+          "release": 0,
+          "start": 2,
+          "end": 4
+        },
+        {
+          "npu": "A",
+          "layer": 2,
+          "release": 4,
+          "start": 4,
+          "end": 6
+        },
+        {
+          "npu": "B",
+          "layer": 2,
+          "release": 6,
+          "start": 6,
+          "end": 8
+        },
+        {
+          "npu": "A",
+          "layer": 3,
+          "release": 6,
+          "start": 8,
+          "end": 10
+        },
+        {
+          "npu": "A",
+          "layer": 4,
+          "release": 10,
+          "start": 10,
+          "end": 12
+        },
+        {
+          "npu": "B",
+          "layer": 3,
+          "release": 12,
+          "start": 12,
+          "end": 14
+        },
+        {
+          "npu": "A",
+          "layer": 5,
+          "release": 12,
+          "start": 14,
+          "end": 16
+        },
+        {
+          "npu": "A",
+          "layer": 6,
+          "release": 16,
+          "start": 16,
+          "end": 18
+        },
+        {
+          "npu": "B",
+          "layer": 4,
+          "release": 18,
+          "start": 18,
+          "end": 20
+        },
+        {
+          "npu": "A",
+          "layer": 7,
+          "release": 18,
+          "start": 20,
+          "end": 22
+        },
+        {
+          "npu": "B",
+          "layer": 5,
+          "release": 24,
+          "start": 24,
+          "end": 26
+        },
+        {
+          "npu": "B",
+          "layer": 6,
+          "release": 30,
+          "start": 30,
+          "end": 32
+        },
+        {
+          "npu": "B",
+          "layer": 7,
+          "release": 36,
+          "start": 36,
+          "end": 38
+        }
+      ],
+      "window": [
+        6,
+        12
+      ],
+      "window_compute_seconds": {
+        "A": 4,
+        "B": 6
+      },
+      "actual_u": "5/6",
+      "window_mean_read_rate": {
+        "A": "2/3",
+        "B": "1/3"
+      },
+      "reference_demand": {
+        "A": "1",
+        "B": "1/3"
+      },
+      "ideal_cycle_estimate": "5/6",
+      "both_requests_unfinished_through_window": true,
+      "extra_windows": [
+        {
+          "window": [
+            12,
+            18
+          ],
+          "compute_seconds": {
+            "A": 4,
+            "B": 6
+          },
+          "actual_u": "5/6"
+        },
+        {
+          "window": [
+            6,
+            18
+          ],
+          "compute_seconds": {
+            "A": 8,
+            "B": 12
+          },
+          "actual_u": "5/6"
+        }
+      ]
+    }
+  ],
+  "local_alternatives": [
+    {
+      "priority": "B",
+      "priority_overrides": {
+        "6": "A"
+      },
+      "compute": [
+        {
+          "npu": "A",
+          "layer": 0,
+          "start": 0,
+          "end": 2
+        },
+        {
+          "npu": "B",
+          "layer": 0,
+          "start": 0,
+          "end": 6
+        },
+        {
+          "npu": "A",
+          "layer": 1,
+          "start": 4,
+          "end": 6
+        },
+        {
+          "npu": "A",
+          "layer": 2,
+          "start": 6,
+          "end": 8
+        },
+        {
+          "npu": "B",
+          "layer": 1,
+          "start": 6,
+          "end": 12
+        },
+        {
+          "npu": "A",
+          "layer": 3,
+          "start": 8,
+          "end": 10
+        },
+        {
+          "npu": "A",
+          "layer": 4,
+          "start": 12,
+          "end": 14
+        },
+        {
+          "npu": "B",
+          "layer": 2,
+          "start": 12,
+          "end": 18
+        },
+        {
+          "npu": "A",
+          "layer": 5,
+          "start": 16,
+          "end": 18
+        },
+        {
+          "npu": "A",
+          "layer": 6,
+          "start": 18,
+          "end": 20
+        },
+        {
+          "npu": "B",
+          "layer": 3,
+          "start": 18,
+          "end": 24
+        },
+        {
+          "npu": "A",
+          "layer": 7,
+          "start": 22,
+          "end": 24
+        },
+        {
+          "npu": "B",
+          "layer": 4,
+          "start": 24,
+          "end": 30
+        },
+        {
+          "npu": "B",
+          "layer": 5,
+          "start": 30,
+          "end": 36
+        },
+        {
+          "npu": "B",
+          "layer": 6,
+          "start": 36,
+          "end": 42
+        },
+        {
+          "npu": "B",
+          "layer": 7,
+          "start": 42,
+          "end": 48
+        }
+      ],
+      "reads": [
+        {
+          "npu": "B",
+          "layer": 1,
+          "release": 0,
+          "start": 0,
+          "end": 2
+        },
+        {
+          "npu": "A",
+          "layer": 1,
+          "release": 0,
+          "start": 2,
+          "end": 4
+        },
+        {
+          "npu": "A",
+          "layer": 2,
+          "release": 4,
+          "start": 4,
+          "end": 6
+        },
+        {
+          "npu": "A",
+          "layer": 3,
+          "release": 6,
+          "start": 6,
+          "end": 8
+        },
+        {
+          "npu": "B",
+          "layer": 2,
+          "release": 6,
+          "start": 8,
+          "end": 10
+        },
+        {
+          "npu": "A",
+          "layer": 4,
+          "release": 8,
+          "start": 10,
+          "end": 12
+        },
+        {
+          "npu": "B",
+          "layer": 3,
+          "release": 12,
+          "start": 12,
+          "end": 14
+        },
+        {
+          "npu": "A",
+          "layer": 5,
+          "release": 12,
+          "start": 14,
+          "end": 16
+        },
+        {
+          "npu": "A",
+          "layer": 6,
+          "release": 16,
+          "start": 16,
+          "end": 18
+        },
+        {
+          "npu": "B",
+          "layer": 4,
+          "release": 18,
+          "start": 18,
+          "end": 20
+        },
+        {
+          "npu": "A",
+          "layer": 7,
+          "release": 18,
+          "start": 20,
+          "end": 22
+        },
+        {
+          "npu": "B",
+          "layer": 5,
+          "release": 24,
+          "start": 24,
+          "end": 26
+        },
+        {
+          "npu": "B",
+          "layer": 6,
+          "release": 30,
+          "start": 30,
+          "end": 32
+        },
+        {
+          "npu": "B",
+          "layer": 7,
+          "release": 36,
+          "start": 36,
+          "end": 38
+        }
+      ],
+      "window": [
+        6,
+        12
+      ],
+      "window_compute_seconds": {
+        "A": 4,
+        "B": 6
+      },
+      "actual_u": "5/6",
+      "window_mean_read_rate": {
+        "A": "2/3",
+        "B": "1/3"
+      },
+      "reference_demand": {
+        "A": "1",
+        "B": "1/3"
+      },
+      "ideal_cycle_estimate": "5/6",
+      "both_requests_unfinished_through_window": true,
+      "extra_windows": [
+        {
+          "window": [
+            12,
+            18
+          ],
+          "compute_seconds": {
+            "A": 4,
+            "B": 6
+          },
+          "actual_u": "5/6"
+        },
+        {
+          "window": [
+            6,
+            18
+          ],
+          "compute_seconds": {
+            "A": 8,
+            "B": 12
+          },
+          "actual_u": "5/6"
+        }
+      ]
+    },
+    {
+      "priority": "B",
+      "priority_overrides": {
+        "6": "A",
+        "8": "A"
+      },
+      "compute": [
+        {
+          "npu": "A",
+          "layer": 0,
+          "start": 0,
+          "end": 2
+        },
+        {
+          "npu": "B",
+          "layer": 0,
+          "start": 0,
+          "end": 6
+        },
+        {
+          "npu": "A",
+          "layer": 1,
+          "start": 4,
+          "end": 6
+        },
+        {
+          "npu": "A",
+          "layer": 2,
+          "start": 6,
+          "end": 8
+        },
+        {
+          "npu": "B",
+          "layer": 1,
+          "start": 6,
+          "end": 12
+        },
+        {
+          "npu": "A",
+          "layer": 3,
+          "start": 8,
+          "end": 10
+        },
+        {
+          "npu": "A",
+          "layer": 4,
+          "start": 10,
+          "end": 12
+        },
+        {
+          "npu": "B",
+          "layer": 2,
+          "start": 12,
+          "end": 18
+        },
+        {
+          "npu": "A",
+          "layer": 5,
+          "start": 16,
+          "end": 18
+        },
+        {
+          "npu": "A",
+          "layer": 6,
+          "start": 18,
+          "end": 20
+        },
+        {
+          "npu": "B",
+          "layer": 3,
+          "start": 18,
+          "end": 24
+        },
+        {
+          "npu": "A",
+          "layer": 7,
+          "start": 22,
+          "end": 24
+        },
+        {
+          "npu": "B",
+          "layer": 4,
+          "start": 24,
+          "end": 30
+        },
+        {
+          "npu": "B",
+          "layer": 5,
+          "start": 30,
+          "end": 36
+        },
+        {
+          "npu": "B",
+          "layer": 6,
+          "start": 36,
+          "end": 42
+        },
+        {
+          "npu": "B",
+          "layer": 7,
+          "start": 42,
+          "end": 48
+        }
+      ],
+      "reads": [
+        {
+          "npu": "B",
+          "layer": 1,
+          "release": 0,
+          "start": 0,
+          "end": 2
+        },
+        {
+          "npu": "A",
+          "layer": 1,
+          "release": 0,
+          "start": 2,
+          "end": 4
+        },
+        {
+          "npu": "A",
+          "layer": 2,
+          "release": 4,
+          "start": 4,
+          "end": 6
+        },
+        {
+          "npu": "A",
+          "layer": 3,
+          "release": 6,
+          "start": 6,
+          "end": 8
+        },
+        {
+          "npu": "A",
+          "layer": 4,
+          "release": 8,
+          "start": 8,
+          "end": 10
+        },
+        {
+          "npu": "B",
+          "layer": 2,
+          "release": 6,
+          "start": 10,
+          "end": 12
+        },
+        {
+          "npu": "B",
+          "layer": 3,
+          "release": 12,
+          "start": 12,
+          "end": 14
+        },
+        {
+          "npu": "A",
+          "layer": 5,
+          "release": 10,
+          "start": 14,
+          "end": 16
+        },
+        {
+          "npu": "A",
+          "layer": 6,
+          "release": 16,
+          "start": 16,
+          "end": 18
+        },
+        {
+          "npu": "B",
+          "layer": 4,
+          "release": 18,
+          "start": 18,
+          "end": 20
+        },
+        {
+          "npu": "A",
+          "layer": 7,
+          "release": 18,
+          "start": 20,
+          "end": 22
+        },
+        {
+          "npu": "B",
+          "layer": 5,
+          "release": 24,
+          "start": 24,
+          "end": 26
+        },
+        {
+          "npu": "B",
+          "layer": 6,
+          "release": 30,
+          "start": 30,
+          "end": 32
+        },
+        {
+          "npu": "B",
+          "layer": 7,
+          "release": 36,
+          "start": 36,
+          "end": 38
+        }
+      ],
+      "window": [
+        6,
+        12
+      ],
+      "window_compute_seconds": {
+        "A": 6,
+        "B": 6
+      },
+      "actual_u": "1",
+      "window_mean_read_rate": {
+        "A": "2/3",
+        "B": "1/3"
+      },
+      "reference_demand": {
+        "A": "1",
+        "B": "1/3"
+      },
+      "ideal_cycle_estimate": "5/6",
+      "both_requests_unfinished_through_window": true,
+      "extra_windows": [
+        {
+          "window": [
+            12,
+            18
+          ],
+          "compute_seconds": {
+            "A": 2,
+            "B": 6
+          },
+          "actual_u": "2/3"
+        },
+        {
+          "window": [
+            6,
+            18
+          ],
+          "compute_seconds": {
+            "A": 8,
+            "B": 12
+          },
+          "actual_u": "5/6"
+        }
+      ]
+    }
+  ]
+}

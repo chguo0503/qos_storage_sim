@@ -1,0 +1,676 @@
+{
+  "all_items_mapped": true,
+  "item_count": 36,
+  "page_count": 35,
+  "note": "逐项内容经独立审稿；本自动检查确认定位完整，不代替数学条件审查。",
+  "items": [
+    {
+      "id": "H1-01",
+      "source_location": "基本假设 1",
+      "manuscript": "计算时间正比于 miss 长度，C_i=t_c m_i",
+      "judgment": "有条件近似",
+      "pages": [
+        {
+          "number": 7,
+          "key": "proportional",
+          "title": "“正比”只是先用乘法估一下"
+        },
+        {
+          "number": 2,
+          "key": "profiles",
+          "title": "输入长，不一定算得久"
+        }
+      ],
+      "handwriting_uncertainty": []
+    },
+    {
+      "id": "H1-02",
+      "source_location": "基本假设 2",
+      "manuscript": "加载量正比于 hit 长度，L_i=α h_i",
+      "judgment": "固定 KV 表示及读取范围时成立",
+      "pages": [
+        {
+          "number": 7,
+          "key": "proportional",
+          "title": "“正比”只是先用乘法估一下"
+        },
+        {
+          "number": 2,
+          "key": "profiles",
+          "title": "输入长，不一定算得久"
+        }
+      ],
+      "handwriting_uncertainty": [
+        "α 附近有涂写，但“加载量正比 hit 长度”以及 L_i、h_i 清晰。"
+      ]
+    },
+    {
+      "id": "H1-03",
+      "source_location": "基本假设 3 前半",
+      "manuscript": "每个 NPU 带宽需求 B_i=L_i/C_i",
+      "judgment": "作为名义预算成立；不是实际吞吐",
+      "pages": [
+        {
+          "number": 10,
+          "key": "demand",
+          "title": "“需要多快”和“实际多快”是两件事"
+        },
+        {
+          "number": 12,
+          "key": "underload",
+          "title": "“需求不超容量”，到底保证了什么？"
+        }
+      ],
+      "handwriting_uncertainty": []
+    },
+    {
+      "id": "H1-04",
+      "source_location": "基本假设 3 后半",
+      "manuscript": "总带宽 B，实际分配带宽 b_i",
+      "judgment": "必须区分配额与真实服务",
+      "pages": [
+        {
+          "number": 10,
+          "key": "demand",
+          "title": "“需要多快”和“实际多快”是两件事"
+        },
+        {
+          "number": 29,
+          "key": "once",
+          "title": "Once per layer 想改变什么？"
+        },
+        {
+          "number": 22,
+          "key": "capacity",
+          "title": "手稿的“＝BT”，什么时候能写等号？"
+        }
+      ],
+      "handwriting_uncertainty": []
+    },
+    {
+      "id": "H1-05",
+      "source_location": "基本假设 4 前半",
+      "manuscript": "每一层加载完后才能计算",
+      "judgment": "数据依赖成立；不足以推出下一行速率公式",
+      "pages": [
+        {
+          "number": 3,
+          "key": "prefetch",
+          "title": "为什么能一边计算，一边读取？"
+        },
+        {
+          "number": 11,
+          "key": "cross_request",
+          "title": "B 算得久，为什么首层还是会等？"
+        }
+      ],
+      "handwriting_uncertainty": []
+    },
+    {
+      "id": "H1-06",
+      "source_location": "基本假设 4 后半及右侧疑问",
+      "manuscript": "每秒完成数 μ_i=min(1/C_i,b_i/L_i)；旁注“欠载、过载？”",
+      "judgment": "理想重叠流水线的长期速率；不能直接叫瞬时请求完成率",
+      "pages": [
+        {
+          "number": 8,
+          "key": "mu",
+          "title": "μ 怎么读？先想“一次要多久”"
+        }
+      ],
+      "handwriting_uncertainty": [
+        "原图明确写“每秒完成数”，未明确写完成的是“层”还是“请求”；教程须自行补清单位，不应把“请求数”当作清晰原字。"
+      ]
+    },
+    {
+      "id": "H1-07",
+      "source_location": "基本假设之后 U 推导第一步",
+      "manuscript": "每秒 NPU 有效总计算时间 U(t)=Σ_i μ_i(t)C_i",
+      "judgment": "可作理想等效忙卡数；若指平均利用率少 1/N",
+      "pages": [
+        {
+          "number": 6,
+          "key": "sum",
+          "title": "Σ 不难：就是把一项项加起来"
+        },
+        {
+          "number": 9,
+          "key": "util_formula",
+          "title": "为什么“每秒几层 × 每层几秒”是利用率？"
+        }
+      ],
+      "handwriting_uncertainty": []
+    },
+    {
+      "id": "H1-08",
+      "source_location": "U 推导中间等号",
+      "manuscript": "Σ_i μ_i(t)C_i = Σ_i min(1/C_i,b_i(t)/L_i)C_i",
+      "judgment": "同一理想模型内的代入成立",
+      "pages": [
+        {
+          "number": 9,
+          "key": "util_formula",
+          "title": "为什么“每秒几层 × 每层几秒”是利用率？"
+        }
+      ],
+      "handwriting_uncertainty": []
+    },
+    {
+      "id": "H1-09",
+      "source_location": "U 推导最后等号",
+      "manuscript": "Σ_i min(1/C_i,b_i(t)/L_i)C_i = Σ_i min(1,b_i(t)/B_i)",
+      "judgment": "代数成立；平均利用率仍需除 N",
+      "pages": [
+        {
+          "number": 9,
+          "key": "util_formula",
+          "title": "为什么“每秒几层 × 每层几秒”是利用率？"
+        }
+      ],
+      "handwriting_uncertainty": []
+    },
+    {
+      "id": "H1-10",
+      "source_location": "结论①前半",
+      "manuscript": "带宽决定瞬时 NPU 利用率",
+      "judgment": "对当前真实仿真不可直接成立",
+      "pages": [
+        {
+          "number": 17,
+          "key": "arrival_area",
+          "title": "同样送了 8 份，为什么一条会等？"
+        },
+        {
+          "number": 18,
+          "key": "local_A",
+          "title": "有一小段，利用率真的只有 17.56%"
+        }
+      ],
+      "handwriting_uncertainty": []
+    },
+    {
+      "id": "H1-11",
+      "source_location": "结论①后半",
+      "manuscript": "B_i 从小到大分配，瞬时利用率最高",
+      "judgment": "仅在指定流体优化目标下成立",
+      "pages": [
+        {
+          "number": 14,
+          "key": "overload",
+          "title": "带宽真的不够时，怎么分也有取舍"
+        }
+      ],
+      "handwriting_uncertainty": []
+    },
+    {
+      "id": "H1-12",
+      "source_location": "次级分析：情况 1",
+      "manuscript": "带宽需求不过载：Σ_i B_i≤B",
+      "judgment": "聚合名义可行条件；不等于真实截止保证",
+      "pages": [
+        {
+          "number": 12,
+          "key": "underload",
+          "title": "“需求不超容量”，到底保证了什么？"
+        },
+        {
+          "number": 13,
+          "key": "fifo",
+          "title": "盘总体够快，也可能来不及"
+        }
+      ],
+      "handwriting_uncertainty": []
+    },
+    {
+      "id": "H1-13",
+      "source_location": "情况 1 的 1.1 前半",
+      "manuscript": "（存储完全分配）存储做到分配=需求 b_i=B_i，则 U=1",
+      "judgment": "理想模型中充分；需采用平均 U",
+      "pages": [
+        {
+          "number": 12,
+          "key": "underload",
+          "title": "“需求不超容量”，到底保证了什么？"
+        }
+      ],
+      "handwriting_uncertainty": [
+        "括号内可辨“存储完全分配”；“存储充分匹配”是先前解读，正式教程宜使用中性转写并保留原图。"
+      ]
+    },
+    {
+      "id": "H1-14",
+      "source_location": "情况 1 的 1.1 后半",
+      "manuscript": "否则 U<1",
+      "judgment": "过强，应修正",
+      "pages": [
+        {
+          "number": 12,
+          "key": "underload",
+          "title": "“需求不超容量”，到底保证了什么？"
+        }
+      ],
+      "handwriting_uncertainty": []
+    },
+    {
+      "id": "H1-15",
+      "source_location": "情况 1 的 1.2 标题",
+      "manuscript": "（不是完全分配下的带宽补偿机制）待补充",
+      "judgment": "原稿为待补充提纲，尚无完整结论",
+      "pages": [
+        {
+          "number": 12,
+          "key": "underload",
+          "title": "“需求不超容量”，到底保证了什么？"
+        }
+      ],
+      "handwriting_uncertainty": [
+        "标题中的“不是完全分配”可辨，个别连接字不清；“待补充”清晰。"
+      ]
+    },
+    {
+      "id": "H1-16",
+      "source_location": "情况 1 的 1.2 公式线性项",
+      "manuscript": "U(t)=Σ_i (1/B_i)b_i(t)",
+      "judgment": "去掉 min 需额外条件，并保留平均系数",
+      "pages": [
+        {
+          "number": 12,
+          "key": "underload",
+          "title": "“需求不超容量”，到底保证了什么？"
+        },
+        {
+          "number": 9,
+          "key": "util_formula",
+          "title": "为什么“每秒几层 × 每层几秒”是利用率？"
+        }
+      ],
+      "handwriting_uncertainty": []
+    },
+    {
+      "id": "H1-17",
+      "source_location": "情况 1 的 1.2 上界及括号",
+      "manuscript": "…≤1（当 b_i = B_i / b_i≤B_i？）",
+      "judgment": "原式未平均时上界应是 N；括号字迹需核实",
+      "pages": [
+        {
+          "number": 12,
+          "key": "underload",
+          "title": "“需求不超容量”，到底保证了什么？"
+        },
+        {
+          "number": 6,
+          "key": "sum",
+          "title": "Σ 不难：就是把一项项加起来"
+        }
+      ],
+      "handwriting_uncertainty": [
+        "括号末尾 b_i 与 B_i 清晰，连接符看似“=”；也可能作者意在写未饱和条件。不能将模糊字迹当作已明确写出 ≤。"
+      ]
+    },
+    {
+      "id": "H1-18",
+      "source_location": "次级分析：情况 2 标题与条件",
+      "manuscript": "总带宽需求过载：∫₀ᵀΣ_i B_i(t)dt≥BT",
+      "judgment": "可定义面积比较；不能据此判实际服务持续饱和",
+      "pages": [
+        {
+          "number": 22,
+          "key": "capacity",
+          "title": "手稿的“＝BT”，什么时候能写等号？"
+        },
+        {
+          "number": 14,
+          "key": "overload",
+          "title": "带宽真的不够时，怎么分也有取舍"
+        }
+      ],
+      "handwriting_uncertainty": []
+    },
+    {
+      "id": "H1-19",
+      "source_location": "情况 2 的 1.1 第一行",
+      "manuscript": "（开环有限请求）NPU 利用率与 L3 调度无关，与 L1/2 调度有关",
+      "judgment": "不能由开环或有限人口推出",
+      "pages": [
+        {
+          "number": 23,
+          "key": "finite_counter",
+          "title": "逐层预取：同一窗口里，L3 怎样改变 U？"
+        },
+        {
+          "number": 24,
+          "key": "open_closed",
+          "title": "“开闭环”和“有限无限”是两个问题"
+        }
+      ],
+      "handwriting_uncertainty": []
+    },
+    {
+      "id": "H1-20",
+      "source_location": "情况 2 的 1.1 第二行前半",
+      "manuscript": "L1/2 调度决定每个 NPU 分配请求 N_i",
+      "judgment": "需区分两种干预",
+      "pages": [
+        {
+          "number": 4,
+          "key": "levels",
+          "title": "L1、L2、L3：只是三个不同决定"
+        },
+        {
+          "number": 25,
+          "key": "input",
+          "title": "32 张卡，这次到底怎样喂请求？"
+        }
+      ],
+      "handwriting_uncertainty": []
+    },
+    {
+      "id": "H1-21",
+      "source_location": "情况 2 的 1.1 行末：开环请求守恒",
+      "manuscript": "开环请求守恒：∫₀ᵀ b_i(t)dt=N_i L_i",
+      "judgment": "完整人口的实际字节守恒；不由开环特有地成立",
+      "pages": [
+        {
+          "number": 19,
+          "key": "population",
+          "title": "nᵢ Lᵢ：把“一层多少”乘上“做了几层”"
+        },
+        {
+          "number": 24,
+          "key": "open_closed",
+          "title": "“开闭环”和“有限无限”是两个问题"
+        }
+      ],
+      "handwriting_uncertainty": []
+    },
+    {
+      "id": "H2-01",
+      "source_location": "首行积分链第一个等号",
+      "manuscript": "∫₀ᵀΣ_i b_i(t)dt=∫₀ᵀBdt",
+      "judgment": "需持续满负载；通常只有 ≤",
+      "pages": [
+        {
+          "number": 22,
+          "key": "capacity",
+          "title": "手稿的“＝BT”，什么时候能写等号？"
+        }
+      ],
+      "handwriting_uncertainty": []
+    },
+    {
+      "id": "H2-02",
+      "source_location": "首行积分链第二个等号",
+      "manuscript": "∫₀ᵀ Bdt=BT",
+      "judgment": "B 为常量时成立",
+      "pages": [
+        {
+          "number": 15,
+          "key": "integral",
+          "title": "∫ 看着陌生，其实是沿时间加起来"
+        },
+        {
+          "number": 22,
+          "key": "capacity",
+          "title": "手稿的“＝BT”，什么时候能写等号？"
+        }
+      ],
+      "handwriting_uncertainty": []
+    },
+    {
+      "id": "H2-03",
+      "source_location": "首行积分链交换总和与积分",
+      "manuscript": "∫₀ᵀΣ_i b_i(t)dt=Σ_i∫₀ᵀ b_i(t)dt",
+      "judgment": "有限卡数、可积服务速率下成立",
+      "pages": [
+        {
+          "number": 16,
+          "key": "swap_sum",
+          "title": "Σ 和 ∫ 换个顺序，为什么总数一样？"
+        }
+      ],
+      "handwriting_uncertainty": []
+    },
+    {
+      "id": "H2-04",
+      "source_location": "首行积分链最终总量",
+      "manuscript": "Σ_i∫₀ᵀ b_i(t)dt=Σ_i N_iL_i",
+      "judgment": "沿用完整人口与每份单位条件成立",
+      "pages": [
+        {
+          "number": 19,
+          "key": "population",
+          "title": "nᵢ Lᵢ：把“一层多少”乘上“做了几层”"
+        }
+      ],
+      "handwriting_uncertainty": []
+    },
+    {
+      "id": "H2-05",
+      "source_location": "首行末尾完成时间式",
+      "manuscript": "T=(Σ_i N_iL_i)/B",
+      "judgment": "一般是容量下界；满足很强条件才是等号",
+      "pages": [
+        {
+          "number": 22,
+          "key": "capacity",
+          "title": "手稿的“＝BT”，什么时候能写等号？"
+        },
+        {
+          "number": 23,
+          "key": "finite_counter",
+          "title": "逐层预取：同一窗口里，L3 怎样改变 U？"
+        }
+      ],
+      "handwriting_uncertainty": []
+    },
+    {
+      "id": "H2-06",
+      "source_location": "第二行第一式",
+      "manuscript": "W_C=∫₀ᵀ U(t)dt",
+      "judgment": "取决于 U 的归一化；需统一",
+      "pages": [
+        {
+          "number": 21,
+          "key": "compute_integral",
+          "title": "把利用率沿时间累加，得到什么？"
+        }
+      ],
+      "handwriting_uncertainty": []
+    },
+    {
+      "id": "H2-07",
+      "source_location": "第二行将 U 替成带宽加权积分",
+      "manuscript": "∫₀ᵀU(t)dt=∫₀ᵀΣ_i (1/B_i)b_i(t)dt",
+      "judgment": "不能用真实瞬时服务直接替代 U；完整人口可另由守恒推导",
+      "pages": [
+        {
+          "number": 21,
+          "key": "compute_integral",
+          "title": "把利用率沿时间累加，得到什么？"
+        },
+        {
+          "number": 20,
+          "key": "weights",
+          "title": "为什么要“各自除完，再加起来”？"
+        },
+        {
+          "number": 32,
+          "key": "sheet2",
+          "title": "现在回看手稿②：把长等式拆成四步"
+        },
+        {
+          "number": 17,
+          "key": "arrival_area",
+          "title": "同样送了 8 份，为什么一条会等？"
+        }
+      ],
+      "handwriting_uncertainty": []
+    },
+    {
+      "id": "H2-08",
+      "source_location": "第二行把 1/B_i 移到总和外",
+      "manuscript": "∫₀ᵀΣ_i(1/B_i)b_i(t)dt=(1/B_i)Σ_i∫₀ᵀ b_i(t)dt",
+      "judgment": "不同 B_i 时不成立",
+      "pages": [
+        {
+          "number": 20,
+          "key": "weights",
+          "title": "为什么要“各自除完，再加起来”？"
+        },
+        {
+          "number": 32,
+          "key": "sheet2",
+          "title": "现在回看手稿②：把长等式拆成四步"
+        }
+      ],
+      "handwriting_uncertainty": []
+    },
+    {
+      "id": "H2-09",
+      "source_location": "第二行末尾只剩单项",
+      "manuscript": "…=N_iL_i/B_i",
+      "judgment": "若表示全体总量缺求和；也需层/请求单位一致",
+      "pages": [
+        {
+          "number": 20,
+          "key": "weights",
+          "title": "为什么要“各自除完，再加起来”？"
+        },
+        {
+          "number": 32,
+          "key": "sheet2",
+          "title": "现在回看手稿②：把长等式拆成四步"
+        }
+      ],
+      "handwriting_uncertainty": []
+    },
+    {
+      "id": "H2-10",
+      "source_location": "1.2 标题",
+      "manuscript": "（闭环无限请求）",
+      "judgment": "两个独立属性须拆开解释",
+      "pages": [
+        {
+          "number": 24,
+          "key": "open_closed",
+          "title": "“开闭环”和“有限无限”是两个问题"
+        }
+      ],
+      "handwriting_uncertainty": []
+    },
+    {
+      "id": "H2-11",
+      "source_location": "1.2 第一行",
+      "manuscript": "L3 调度会进而影响 L2 调度，可提升 NPU 利用率",
+      "judgment": "可能成立，不能保证；不等于直接改变卡内次序",
+      "pages": [
+        {
+          "number": 24,
+          "key": "open_closed",
+          "title": "“开闭环”和“有限无限”是两个问题"
+        },
+        {
+          "number": 4,
+          "key": "levels",
+          "title": "L1、L2、L3：只是三个不同决定"
+        },
+        {
+          "number": 29,
+          "key": "once",
+          "title": "Once per layer 想改变什么？"
+        }
+      ],
+      "handwriting_uncertainty": []
+    },
+    {
+      "id": "H2-12",
+      "source_location": "1.2 第二、三行",
+      "manuscript": "闭环无限条件下 ∫₀ᵀb_i(t)dt 不守恒，相同时间可处理更多请求",
+      "judgment": "应说固定窗工作量不预先固定，而不是物理字节守恒失效",
+      "pages": [
+        {
+          "number": 24,
+          "key": "open_closed",
+          "title": "“开闭环”和“有限无限”是两个问题"
+        }
+      ],
+      "handwriting_uncertainty": [
+        "“不守恒”清晰；后一句少数字形较潦草，规范转写取其可辨原意“相同时间可处理更多请求”，不视为逐字引文。"
+      ]
+    },
+    {
+      "id": "H2-13",
+      "source_location": "1.3 第一行前半",
+      "manuscript": "L2 调度不当会使 NPU 利用率下降",
+      "judgment": "作为可能性成立；需给具体因果和对照",
+      "pages": [
+        {
+          "number": 25,
+          "key": "input",
+          "title": "32 张卡，这次到底怎样喂请求？"
+        },
+        {
+          "number": 26,
+          "key": "timelines",
+          "title": "只改变顺序，结果就不一样"
+        },
+        {
+          "number": 27,
+          "key": "recovery",
+          "title": "看久一点，会不会自己恢复？"
+        }
+      ],
+      "handwriting_uncertainty": []
+    },
+    {
+      "id": "H2-14",
+      "source_location": "1.3 第一行末尾的条件",
+      "manuscript": "Σ_i B_i(t)<B",
+      "judgment": "欠载本身不是低利用率的原因，也非低利用率的必要条件",
+      "pages": [
+        {
+          "number": 13,
+          "key": "fifo",
+          "title": "盘总体够快，也可能来不及"
+        },
+        {
+          "number": 22,
+          "key": "capacity",
+          "title": "手稿的“＝BT”，什么时候能写等号？"
+        },
+        {
+          "number": 29,
+          "key": "once",
+          "title": "Once per layer 想改变什么？"
+        }
+      ],
+      "handwriting_uncertainty": []
+    },
+    {
+      "id": "H2-15",
+      "source_location": "1.3 最后一行",
+      "manuscript": "L2 调度不当时，L3 可以增强 L2 能力",
+      "judgment": "可能缓解，不能无条件补偿",
+      "pages": [
+        {
+          "number": 29,
+          "key": "once",
+          "title": "Once per layer 想改变什么？"
+        },
+        {
+          "number": 32,
+          "key": "sheet2",
+          "title": "现在回看手稿②：把长等式拆成四步"
+        },
+        {
+          "number": 34,
+          "key": "conclusions",
+          "title": "读完实验，现在能下什么结论？"
+        }
+      ],
+      "handwriting_uncertainty": [
+        "最后动词看似“增强”，也可理解为补偿/改善；清单保留规范原意，不把具体动词作为数学前提。"
+      ]
+    }
+  ]
+}

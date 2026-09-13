@@ -1,0 +1,348 @@
+#!/usr/bin/env python3
+"""Build the beginner HTML/PDF from audited existing data; never simulate."""
+from pathlib import Path
+import gzip
+import hashlib
+import html
+from html.parser import HTMLParser
+import json
+import subprocess
+from pypdf import PdfReader, PdfWriter
+
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parents[1]
+STUDY = ROOT / 'results/baseline_ab128_32_ratio12_20260912'
+OUT = HERE / 'L1_L2_L3_NPU_小白图解.pdf'
+ACCOUNT = json.loads((STUDY / 'formula_review/accounting_checks.json').read_text())
+HANDOFF = json.loads((STUDY / 'formula_review/handoff_checks.json').read_text())
+assert ACCOUNT['passed'] and HANDOFF['technical_passed']
+PAGES = []
+
+
+def page(title, subtitle, body, source='教学示意；用于解释概念，不是新的仿真结果。', tag='一步一步读'):
+    PAGES.append(dict(title=title, subtitle=subtitle, body=body, source=source, tag=tag))
+
+
+def note(text, cls=''):
+    return f'<div class="note {cls}">{text}</div>'
+
+
+def fig(name, caption):
+    return f'<figure><img src="assets/{name}.svg"><figcaption>{caption}</figcaption></figure>'
+
+
+def formula(text, small=''):
+    return f'<div class="formula">{text}<small>{small}</small></div>'
+
+
+def table(headers, rows):
+    return '<table><thead><tr>'+''.join(f'<th>{c}</th>' for c in headers)+'</tr></thead><tbody>'+''.join('<tr>'+''.join(f'<td>{c}</td>' for c in row)+'</tr>' for row in rows)+'</tbody></table>'
+
+
+def svg(body, height=270):
+    return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 {height}" role="img"><style>svg text{{font-family:"Microsoft YaHei","Noto Sans CJK SC",sans-serif;fill:#17283d;font-size:24px}}svg text.small{{font-size:20px;fill:#627185}}</style>{body}</svg>'
+
+
+def rect(x, y, w, h, color, label='', textcolor='white'):
+    return f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="9" fill="{color}"/>' + (f'<text x="{x+w/2}" y="{y+h/2+8}" text-anchor="middle" style="fill:{textcolor}">{label}</text>' if label else '')
+
+
+def text(x,y,s,cls=''):
+    return f'<text x="{x}" y="{y}" class="{cls}">{html.escape(s)}</text>'
+
+
+def timeline_example():
+    b=text(8,48,'卡在做什么')+rect(175,14,525,58,'#2563eb','计算 7 ms')+rect(700,14,225,58,'#f9d8d3','等待 3 ms','#a52a24')
+    b+=text(174,112,'0')+text(680,112,'7')+text(905,112,'10 ms')
+    b+=text(175,163,'这一段总共 10 ms；其中真正计算了 7 ms。')
+    return svg(b,195)
+
+
+def overlap():
+    b=text(0,50,'这张 NPU')+rect(175,17,330,54,'#2563eb','算当前层：4 ms')+rect(505,17,330,54,'#f9d8d3','等数据：4 ms','#a52a24')
+    b+=text(0,145,'下一层读取')+rect(175,108,660,54,'#e6edf5','从发起到收齐：8 ms','#17283d')
+    b+=text(175,211,'0')+text(490,211,'4')+text(825,211,'8 ms')
+    b+=text(175,255,'两件事同时开始；要两件事都结束，才能算下一层。')
+    return svg(b,280)
+
+
+def deadline_curves():
+    b='<path d="M120 28V250H930" stroke="#99a8b9" fill="none" stroke-width="2"/>'
+    b+='<path d="M120 250L440 70H900" stroke="#14846b" fill="none" stroke-width="7"/>'
+    b+='<path d="M120 250H620L840 70H900" stroke="#df5748" fill="none" stroke-width="7"/>'
+    b+='<path d="M620 30V265 M120 70H930" stroke="#7f8ba0" fill="none" stroke-dasharray="7 8" stroke-width="2"/>'
+    b+=text(7,78,'读齐目标')+text(340,46,'提前读齐：不用等')+text(629,188,'到截止还没齐')+text(610,305,'计算结束')+text(842,305,'晚到')
+    b+=text(128,292,'开始预取')+text(145,21,'累计到达 NPU 的数据量','small')
+    return svg(b,335)
+
+
+def fifo_example():
+    b=text(0,40,'大读取先')+rect(190,8,600,55,'#8461bb','大读取：40 份 / 4 秒')+rect(790,8,150,55,'#da8a24','小读')
+    b+=text(0,145,'小读取先')+rect(190,112,150,55,'#da8a24','小读')+rect(340,112,600,55,'#8461bb','大读取：40 份 / 4 秒')
+    b+='<path d="M490 0V195" stroke="#df5748" stroke-width="3" stroke-dasharray="6 6"/>'
+    b+=text(442,228,'小卡 2 秒后就要数据')+text(790,270,'全读完都是 5 秒')
+    return svg(b,295)
+
+
+def queue_rows(order):
+    man=json.load(gzip.open(STUDY/f'validation20s/runs/ssu4_{order}_k1_sync_seed7/baseline/manifest.json.gz','rt'))
+    rows=[]
+    for n in [0,1,16,31]:
+        reqs=sorted((r for r in man['requests'] if r['npu_id']==n),key=lambda r:r['request_id'])[:12]
+        cells=''.join(f'<span class="token {r["load"]["role"]}">{r["load"]["role"]}</span>' for r in reqs)
+        rows.append(f'<div class="qrow"><label>NPU {n}</label>{cells}<span>…</span></div>')
+    return ''.join(rows)
+
+
+def case(n,order):
+    return next(c for c in ACCOUNT['cases'] if c['num_ssu']==n and c['order']==order)
+
+
+def win(n,order,l,r):
+    return next(w for w in case(n,order)['eq10_windows'] if w['start_ms']==l*1000 and w['end_ms']==r*1000)['device_utilization_percent']
+
+
+def history_svg():
+    b=''
+    for pct in [50,75,100]:
+        y=265-(pct-50)*4
+        b+=f'<path d="M105 {y}H945" stroke="#dce4ed" stroke-width="1"/>'+text(20,y+8,f'{pct}%','small')
+    for n,color in [(3,'#dd8a2b'),(4,'#2563eb'),(6,'#14846b')]:
+        vals=[win(n,'ordered',l,l+2) for l in range(2,20,2)]
+        pts=[(105+i*105,265-(v-50)*4) for i,v in enumerate(vals)]
+        b+=f'<polyline points="{" ".join(f"{x},{y}" for x,y in pts)}" fill="none" stroke="{color}" stroke-width="5"/>'
+        for x,y in pts:b+=f'<circle cx="{x}" cy="{y}" r="5" fill="{color}"/>'
+        b+=f'<rect x="{120+(n==4)*260+(n==6)*520}" y="7" width="25" height="12" fill="{color}"/>'+text(155+(n==4)*260+(n==6)*520,22,f'{n} 盘 Ordered','small')
+    for i,s in [(0,'2–4'),(4,'10–12'),(8,'18–20')]:b+=text(70+i*105,313,f'{s} 秒','small')
+    return svg(b,340)
+
+
+page('先看懂：NPU 到底在忙什么？','从一张卡开始，不需要先懂公式。',f'''
+<p>NPU 可以理解成负责计算的“工位”。它需要的数据还没送到时，即使有请求排队，也可能只能等。</p>
+{timeline_example()}
+{formula('利用率 = 真正计算的时间 ÷ 观察的总时间','这个小例子：7 ÷ 10 = 70%。')}
+<p>本项目说的“平均 NPU 利用率”，统计的是<b>计算时间占比</b>。它不是磁盘带宽使用率，也不是硬件峰值算力使用率。</p>
+{note('整本教程只围绕一件事：<b>下一步要计算时，数据到了没有？</b>')}
+<div class="reading"><b>阅读路线</b><p>第 2–5 页：一条请求为什么等。<br>第 6–11 页：32 张卡为什么会一起堵，以及会不会恢复。<br>第 12–16 页：全程利用率、开环闭环、Once 和 TTFT。<br>第 17–18 页：公式速查与来源。</p></div>
+''',tag='01 / 从零开始')
+
+page('输入长，不一定算得久','本次只用两种真实请求：A 和 B。',f'''
+<p>一次输入中，一部分旧内容的 KV 可以复用，另一部分需要新计算。<b>本实验中，可复用的 KV 要从 SSU 读取。</b>SSU 就是提供数据的存储设备。</p>
+<div class="cols"><div class="profile a"><h2>A：读得多，算得短</h2><p>总输入 <b>128K</b><br>其中只新增 <b>256 token</b></p><strong>175.66 MiB</strong><span>每层读取量</span><strong>6.02 ms</strong><span>每层计算时间</span></div><div class="profile b"><h2>B：读得少，算得久</h2><p>总输入 <b>32K</b><br>其中新增 <b>4096 token</b></p><strong>38.50 MiB</strong><span>每层读取量</span><strong>28.59 ms</strong><span>每层计算时间</span></div></div>
+<p>token 是文本的计量单位；这里 K=1024。miss 指需要新计算的部分：若用百分比表示，就是“新增 token 数 ÷ 总 token 数”。</p>
+{note('不要只说“长流、短流”。A 的<b>总输入更长</b>，但<b>计算反而更短</b>。后面固定使用蓝色 A、绿色 B。')}
+<p class="small">读取量、计算时间均取原始 data，没有缩放。若 KV 已在 NPU 本地显存，就不应再算一次 SSU 读取；本页描述的是这次实验设置。</p>
+''','真实输入：data 的 (128,256)、(32,4096)；每请求 8 层，batch=1。',tag='02 / 先认清请求')
+
+page('为什么能一边计算，一边读取？','先把“模型层”和“调度层次”分开。',f'''
+<p>本次一个请求要依次算 <b>8 个模型层</b>，像完成 8 道顺序工序。不是一次读完、算完就结束。</p>
+<div class="steps">{''.join(f'<span>第 {i} 层</span>' for i in range(1,9))}</div>
+<p>当前层开始计算时，可以提前读取下一层的数据。这叫<b>预取</b>。只要下一层数据在当前计算结束前到齐，读取就被“藏”进了计算时间。</p>
+{overlap()}
+{formula('等待 = 读取总耗时 − 能重叠的计算时间','若结果小于 0，就按 0 算。图中：8 − 4 = 4 ms。')}
+{note('读取总耗时包括<b>排队和传输</b>；下方灰条不表示磁盘一直在为这条请求工作。')}
+<p class="small">这是教学例子。起点是假设当前层数据已到齐。第一层没有前驱请求时，还需要先拿到首层数据。</p>
+''',tag='03 / 看懂预取')
+
+page('B 算得久，为什么首层还是会等？','这次实验的真实事件：前一个 A，把卡交给 B。',f'''
+<p>B 首层在 <b>A 最后一层计算开始</b>时就发起预取。但 A 只算 6.02 ms；B 自己的 28.59 ms 计算，此时还没开始。</p>
+{fig('b_first_layer_handoff','真实事件按同一个起点展示：NPU15，B 请求 15000010；前驱为 A 请求 15000009。')}
+{formula('B 首层等待 = 31.63 − 6.02 = 25.61 ms','31.63 ms 是从发起读取到 NPU 收齐的总耗时，包含排队。')}
+{note('<b>B 自己算得久，不能帮助它隐藏开始计算之前的首层等待。</b>它只能借用前一个 A 最后一层的计算时间。')}
+<p>A 计算结束时，B 所需的 38.5 MiB 还一字节都没到 NPU。B 只能等到收齐后再开始计算。B 的后续层能借用自己的长计算时间，情况可能很好。</p>
+''','真实日志：4 SSU、32 NPU、Ordered、seed7；交接已按完整 224 个块核验。',tag='04 / 真正的等待')
+
+page('“需要多快”和“实际多快”是两件事','先看截止时有没有收齐，再看带宽曲线。',f'''
+<p>假设要在 4 秒计算期间拿到 40 份材料，平均需要 10 份/秒。但并不要求<b>每一秒</b>都恰好送 10 份：前 2 秒送齐，也完全可以。</p>
+{deadline_curves()}
+<div class="cols"><div class="mini"><h3>需求</h3><p>想在多久内，拿到多少数据。</p></div><div class="mini"><h3>实际供给</h3><p>SSU 真正读出多少；经过链路后，NPU 真正收到多少。</p></div></div>
+{note('判断 IO stall 的方法：<b>计算结束时，下一步需要的数据还没收齐。</b>后来突然以很高带宽补齐，也不能追回已经等掉的时间。')}
+<p>本次 A 的内部层要在约 6.02 ms 内读完 175.66 MiB，参考需求约 <b>28.48 GiB/s</b>。B 内部层的参考需求约 <b>1.31 GiB/s</b>；A→B 首层则不能使用 B 自己的计算时间。</p>
+''','曲线为教学示意，不是物理采样图。真实需求计算来自本次 data 画像。',tag='05 / 不被曲线误导')
+
+page('L1、L2、L3：只是三个不同决定','它们不是神经网络的第 1、2、3 层。',f'''
+<div class="decision"><b>L1 · 分卡</b><h2>这条请求交给哪张 NPU？</h2><p>例如：把某条 A 交给 NPU0，把另一条 B 交给 NPU1。</p></div>
+<div class="down">↓ 每张卡有了自己的待办队列</div>
+<div class="decision"><b>L2 · 排请求</b><h2>同一张卡先处理谁、后处理谁？</h2><p>例如：NPU0 执行 A→B→B，或 B→A→B。</p></div>
+<div class="down">↓ 当前计算和预取产生读取请求</div>
+<div class="decision"><b>L3 · 排读取</b><h2>已经提交的读取块，怎样获得盘的服务？</h2><p>Baseline 在每块 SSU 的普通队列 Path0 按块排队，先到先服务，叫 FIFO。每块盘各有自己的队列。</p></div>
+{note('L3 让数据早点到，可能让下一条请求早点开始；但这<b>不等于修改了 L2 的请求名单</b>。L3 也不能直接读取尚未提交的未来数据。')}
+''','术语解释；本项目 Baseline 为每 SSU 独立 Path0 FIFO，按 IO 块服务。',tag='06 / 三个决定')
+
+page('32 张卡，这次到底怎样喂请求？','同一批请求，每卡 40 个 A、80 个 B；只改变排列。',f'''
+<p><b>Ordered：</b>32 张卡都执行 A→B→B，重复 40 轮。下面是原始输入的前 12 条：</p>
+<div class="queues">{queue_rows('ordered')}</div>
+<p><b>Random：</b>每张卡独立打乱自己的同一批请求。下面同样直接取原始输入：</p>
+<div class="queues">{queue_rows('random')}</div>
+{note('两组都不是“某张卡只跑 A，另一张卡只跑 B”。<b>每张卡都混合两种请求。</b>')}
+<p class="small">全部请求在 t=0 入队；各卡按自己的进度推进，没有运行时同步屏障。Ordered 是刻意相关的压力输入；Random 使用 seed7。前期筛选人口较短，本教程结果统一使用上述长验证人口。</p>
+''','真实输入：4 盘两份冻结 manifest；保留同一原请求的卡号、C/V 和落盘。',tag='07 / 输入看得见')
+
+page('只改变顺序，结果就不一样','4 块 SSU，每盘 40 GiB/s；32 张 NPU，每卡链路 50 GiB/s。',f'''
+<div class="cols stats"><div><span>Random · 随机</span><strong>{win(4,'random',2,4):.2f}%</strong></div><div><span>Ordered · ABB</span><strong>{win(4,'ordered',2,4):.2f}%</strong></div></div>
+<p class="small center">上面是全部 32 卡在 2–4 秒的平均利用率；均为 seed7。</p>
+{fig('actual_random_timeline','Random：只节选 4 张卡在 2.0–2.4 秒的真实计算与等待。')}
+{fig('actual_ordered_timeline','Ordered：使用相同卡号、相同绝对时间窗。蓝=A 计算，绿=B 计算，浅红=IO 等待。')}
+{note('图帮助看发生了什么；<b>百分比来自完整 32 卡、完整统计窗</b>，不是只对图里的四张卡求平均。')}
+<p class="small">在 2–4 秒内，两组全部 32 卡都有任务，且每卡都实际计算过 A、B。当前 27 格全部使用 Baseline，尚未比较本次输入的 Once。</p>
+''','真实结果：4 盘长验证 seed7；统计窗 [2,4) 秒。Random 不是三种子平均。',tag='08 / 看真实结果')
+
+page('有一小段，利用率真的只有 17.56%','看清原因：这时 32 张卡都处于大读取的 A 阶段。',f'''
+<p>四盘合计 160 GiB/s，且一直忙。在这个稳定读取轮次里，每张卡平均得到 <b>160÷32=5 GiB/s</b>。注意：这是轮次平均，实际服务仍是一块一块发生。</p>
+{fig('local_A_cycle','真实 NPU0 的完整交接：当前层计算结束后，继续等下一层数据。')}
+<div class="calculation"><p>每卡读 175.66 MiB，按周期平均 5 GiB/s，需要 <b>34.31 ms</b>。</p><p>这段只算 <b>6.02 ms</b>，其余约 <b>28.28 ms</b> 都在等。</p></div>
+{formula('利用率 = 6.02 ÷ 34.31 ≈ 17.56%','完整精度计算为 17.558692%；用两位小数手算会略有差异。')}
+{note('此时各卡的层开始时间已经错开，仍然会等。<b>“错开”不是“数据一定来得及”的保证。</b>')}
+<p class="small">该共同窗口的 32 卡实际利用率也为 17.56%。但这仅是 2.180093–2.214401 秒的局部，不是整场 U。全 A 的需求本就远超容量，不能把这段全部损失都算成 FIFO 独有缺点。</p>
+''','真实结果：handoff_checks.json；逐卡计算和逐盘/逐卡物理服务积分独立吻合。',tag='09 / 公式解释局部')
+
+page('盘总体够快，也可能来不及','先用一个小例子理解 FIFO 的弱点。',f'''
+<p>想象一块盘每秒送 10 份材料。大读取需 40 份，但有 20 秒计算可等；小读取需 10 份，却只有 2 秒计算可等。</p>
+{formula('两卡参考需求 = 40÷20 + 10÷2 = 7 份/秒','7 小于盘容量 10：通过平均速率的检查。')}
+{fifo_example()}
+<p>大读取先做：占 4 秒，小读取再做 1 秒。小卡在第 2 秒就算完了，却要到第 5 秒才能拿齐，<b>等了 3 秒</b>。</p>
+<p>小读取先做：1 秒就送齐，满足它的 2 秒截止；大读取第 5 秒完成，也赶得上它的 20 秒截止。</p>
+{note('FIFO 只认先后，不知道谁更急。<b>相同工作量、相同总带宽，交付时机不同，等待就可能不同。</b>')}
+<p class="small">这是一次交接的教学构造：两份读取预先就绪，明确全部大块先或全部小块先，忽略链路。不能冒充本次 AB 的实测欠载反例；本次 27 格均有逐盘名义需求超限。</p>
+''','教学模型，材料份数和秒均为方便理解的单位；对应原教程公式 11–13。',tag='10 / FIFO 的弱点')
+
+page('看久一点，会不会自己恢复？','会不会恢复要看数据，不能只看一张短截图。',f'''
+<p>下图从同一批长运行日志，连续取 2 秒窗口。窗口内全部 32 卡一直有任务；三条线均为 <b>Ordered、seed7</b>。</p>
+{history_svg()}
+{table(['情况','2–4 秒 U','18–20 秒 U','2–20 秒 U'],[[f'{n} 盘',f'{win(n,"ordered",2,4):.2f}%',f'{win(n,"ordered",18,20):.2f}%',f'{win(n,"ordered",2,20):.2f}%'] for n in [3,4,6]])}
+<p><b>6 盘会恢复：</b>各卡逐渐在不同时间进入 A，大读取不再那么集中。<b>4 盘在已测长窗仍较低：</b>本次没有同样恢复到满利用率。</p>
+{note('不同卡、不同请求发生等待，会改变后续读取的发起时刻。这个反馈既可能让它们散开，也可能维持拥挤轮次。')}
+<p class="small">本批在理想持续计算时平均需要约 124.91 GiB/s。3 盘总共只有 120，平均已经不足；4 盘 160、6 盘 240 虽通过平均检查，仍不能保证每盘每刻欠载。</p>
+''','真实结果：6 份 seed7 原始层日志，连续 [2,4)、[4,6)…[18,20) 秒裁剪。',tag='11 / 长期与短期')
+
+page('同样的活，为什么全程利用率不同？','“工作量一样”没有规定“多久才能做完”。',f'''
+<p>两种顺序都完成同一批 <b>3840 个请求</b>，总读取都是 <b>2526.56 GiB</b>，总计算都是 <b>647.27 卡·秒</b>。</p>
+<p>“卡·秒”就是把所有卡的计算时间加起来：两张卡各算 1 秒，合计 2 卡·秒。</p>
+<div class="finish"><label>4 盘 Random</label><div style="width:73.174%;background:#14846b">20.64 秒完成</div><label>4 盘 Ordered</label><div style="width:100%;background:#2563eb">28.20 秒完成</div></div>
+{formula('全程 U = 总计算卡·秒 ÷（32 × 全部完成时间）')}
+{table(['同一人口 / seed7','Random','Ordered'],[['开始到全部完成','98.02%','71.72%'],['共同暖窗 2–4 秒','99.48%','70.23%'],['共同长窗 2–20 秒','98.96%','71.34%']])}
+{note('等待拉长完成时间，即使总计算量没变，分母也会变大。<b>同样工作量不能推出同样利用率。</b>')}
+<p class="small">全程包含启动等待和尾部空闲；暖窗只看选定时间。任务做完后的空闲不能假装成 IO stall。有限人口的守恒式也不能直接套进任意 2 秒窗口。</p>
+''','真实结果：4 盘长验证 seed7；全部请求完成，计算/读取总量已独立核对。',tag='12 / 两种统计范围')
+
+page('开环、闭环，究竟在说哪里？','先问“谁在决定下一次工作何时出现”。',f'''
+<div class="decision"><b>看外部请求到达</b><h2>按时来：开环输入</h2><p>例如每 100 ms 来一条，不管上一条是否完成。完成得慢，门口的队伍会变长。</p></div>
+<div class="decision"><b>还是看外部请求到达</b><h2>做完再来：闭环输入</h2><p>例如始终保留 32 条，完成一条才补一条。做得慢，后续进入的请求也会减少。</p></div>
+<div class="decision"><b>本次还要单独看：内部层读取</b><h2>这一层开始计算时，就发起下一层读取。</h2><p>算完后，数据没齐才继续等。本次所有外部请求在 t=0 已入队，但内部 IO 并没有全部同时发出；它会跟随计算推进。</p></div>
+{note('开环或闭环<b>不改变利用率的计算公式</b>；它改变请求、IO 何时出现，以及等待会不会影响下一次工作。')}
+<p>“有限请求”是另一回事：名单会不会用完。本次是<b>有限待办队列，内部 IO 推进有反馈</b>。不要只贴一个“开环/闭环”标签就停止分析。</p>
+<p class="small">若只改到达时间标签，任务始终可用、顺序和预取条件也相同，U 可以不变；若必须等完成才产生下一请求，就可能失去跨请求预取。两种情况要分开。</p>
+''','到达方式为教学示意；本次 t=0 有限队列、层 IO 随计算推进为源码事实。',tag='13 / 把术语放对地方')
+
+page('Once per layer 想改变什么？','它主要改变 L3：已提交的读取怎样排队。',f'''
+<div class="cols"><div class="mini"><h2>Baseline</h2><p>每块盘的全部 IO 都进入自己的 Path0。</p><div class="path"><b>Path0</b><i>A</i><i>A</i><i>B</i><i>A</i></div><p>盘按这条队列的块先后服务。</p></div><div class="mini"><h2>Once per layer</h2><p>每个请求的每层、每块盘规划一次，将块分到允许使用的队列。</p><div class="path"><b>队列 1</b><i>A</i><i>B</i></div><div class="path"><b>队列 2</b><i>A</i><i>A</i></div></div></div>
+<p>它依据采集到的压力快照和预计服务情况规划；规划本层时会更新本地预计排队量。项目这里使用 <b>5 ms 快照</b>。每条队列内部仍是 FIFO，由盘在队列之间分配服务机会。</p>
+{note('多条队列不会把一块 40 GiB/s 的盘变成 80 GiB/s。它想改变的是<b>谁先得到数据</b>，从而减少错过计算截止的情况。')}
+<p>“每层规划一次”不表示整层只走一条队列。<b>同一层可以使用多条允许的队列。</b>本页讨论的是项目现有 <b>once</b> 策略。</p>
+<p class="small">本次 AB 的 27 格只测了 Baseline。我们还不知道 Once 对这批输入能改善多少；多队列图只是机制示意，不表示它必然按 A/B 各分一条队列。</p>
+''','机制来源：shared_path_once.py、shared_path_sim_adapter.py、policy_logic.py。',tag='14 / 策略不是加带宽')
+
+page('利用率高，用户就等得短吗？','不一定：利用率看卡，TTFT 看请求。',f'''
+<p>TTFT 是用户从发出请求到收到第一个输出 token 的时间。本仿真没有测实际首 token 返回，而是用 prefill 完成作为代理；还必须说明从哪里开始计时。</p>
+<div class="clockline"><span>到达队列<br><b>0 ms</b></span><em>接纳前排队</em><span>卡接纳<br><b>2033.18 ms</b></span><em>开始处理</em><span>prefill 完成<br><b>2264.68 ms</b></span></div>
+{table(['同一条 B 请求','计时结果','SLO×1.5'],[['只从接纳开始','231.51 ms','达标'],['从原始到达开始','2264.68 ms','不达标']])}
+<p>本请求纯计算约为 8×28.59 ms，允许用时为纯计算的 1.5 倍，即约 <b>343.11 ms</b>。只计接纳后就达标，但把前面的队伍算进来就不达标。</p>
+{note('本项目常用的高达标率是<b>接纳后处理时间代理</b>。不能据此说用户从到达到返回也很快。')}
+<p>而且 A 的允许时间只有约 <b>72.29 ms</b>。应分 A/B 看等待和达标率；总平均可能掩盖某类请求的问题。</p>
+<p class="small">这里用 6 盘 Ordered 的 NPU0 / B 请求 10 演示。暖窗按接纳时间选请求并追踪到完成，各策略选中的人口可能不同；公平比较还需匹配请求或外部到达轨迹。</p>
+''','真实事件和阈值：accounting_checks.json；本次全部请求原始到达时间为 0。',tag='15 / 用户看到的等待')
+
+page('读完实验，现在能下什么结论？','把事实、解释和下一步分开。',f'''
+<div class="decision"><b>已测事实</b><h2>相同每卡人口，排列会显著改变 Baseline。</h2><p>4 盘的 2–20 秒 U：Random 98.96%，Ordered 71.34%。6 盘 Ordered 会自然恢复；不能把它的短窗低值当成长期表现。</p></div>
+<div class="decision"><b>有日志支持的解释</b><h2>读取集中 + 计算预算短，会反复错过截止。</h2><p>FIFO 参与决定块的服务先后。容量、预取边界和输入相位也参与其中，不能把所有损失都归给“只有一条 path”。</p></div>
+<div class="decision"><b>还缺的关键实验</b><h2>同一输入，把 L3 换成 Once。</h2><p>固定 4 盘现成输入，分别补 Random Once 和 Ordered Once；不重抽请求、不重排数据，再比 U、A/B 等待与 SLO。</p></div>
+{table(['固定输入','Baseline 已测 U（2–20 秒）','Once'],[['Random','98.96%','待测'],['Ordered ABB','71.34%','待测']])}
+{note('读任何低利用率图，都问三句：<b>谁在等？等哪一层的数据？为什么截止前没送齐？</b>')}
+''','表中均为本次 4 盘、32 NPU、长验证 seed7。待测格没有填入旧画像的 Once 数字。',tag='16 / 独立判断')
+
+page('现在再读公式：先会这五条就够了','符号只是缩写；先用中文读懂，再代数字。',f'''
+{table(['中文意思','简写','在本教程哪里见过'],[['计算占了观察时间的多少','U = 计算时间 / 总时间','第 1、8 页'],['算完时数据还没齐，要再等多久','S = max(0, R − C)','第 3、4 页'],['计算和读取都完成，才进下一层','T = max(C, R)','第 3、9 页'],['想在计算预算内读齐，要多快','需求 = V / C','第 5 页'],['同一批任务全部做完的平均 U','U = W / (32 × 完成时间)','第 12 页']])}
+<div class="glossary"><p><b>C</b>：这次能用来隐藏读取的计算时间；跨请求时找前驱。</p><p><b>R</b>：从发起读取到 NPU 收齐，包含排队与传输。</p><p><b>S</b>：露在计算之外的等待；<b>T</b>：一次交接的总周期。</p><p><b>V</b>：读取量，取 Volume（数据量）的首字母；原教程写 L，含义相同。<b>W</b>：全部任务的计算时间相加，单位卡·秒。</p></div>
+{note('只有在固定画像、供给规律明确的模型中，才可以继续推：<b>U ≈ 实际带宽 ÷ 需求带宽</b>，并封顶 100%。第 9 页的稳定轮次符合条件。')}
+<p class="small">混合窗口不要直接除平均带宽：4 盘 Ordered、NPU15，那样算出 27.96%，实际为 70.23%。本次读取换算用 1 GiB=1024 MiB；带宽算式中的时间用秒。</p>
+''','对应原教程公式 3、5、8、10–12、21；其余公式可按下一页的路线回看。',tag='17 / 可选公式页')
+
+page('回到原文时，从这些位置读','不需要一次记住 26 个编号。',f'''
+{table(['原文公式','你现在应该怎样理解'],[['1–3：输入与需求','hit 决定要复用的数据量；miss 影响计算。计算成本还受上下文等影响，直接用原始 data 更可靠。'],['4–8：读取、重叠、周期','排队不能漏；两件事并行取较慢的完成时刻。无预取的串行模型才把计算与读取相加。'],['9–12：平均与截止','数窗口内的计算；看截止前目标数据是否到齐。'],['13–16、26：容量与分配','容量检查不等于按时交付。优先低需求流只是一种有前提的模型，不能替代公平性和 SLO 目标。'],['17–21：有限工作量','全部读多少、全部算多久是固定的；完成时间不一定固定。'],['22–25：TTFT/SLO','明确计时起点、每条请求自己的阈值，以及统计了哪些请求。']])}
+<p><b>哪些是教学图？</b>第 1、3、5、10 页是便于理解的示意，第 6、13、14 页是机制示意。第 4、7–9、11–12 页使用本次真实输入或结果；第 15 页是实际请求事件。</p>
+<div class="sources"><b>可复查的项目文件</b><p>原文：docs/L1_L2_L3_NPU_图解教程.md<br>主结果：results/baseline_ab128_32_ratio12_20260912/report.md<br>详细公式核对：同目录 formula_review/README.md<br>数值核验：accounting_checks.json、handoff_checks.json<br>本 PDF 图源与构建脚本：docs/l1_l2_l3_beginner/</p></div>
+<p class="small">核对日期 2026-09-12。结果均来自既有仿真，本次只整理教程、重绘真实日志，没有启动新实验。教程数字保留适合阅读的小数位，原始精度在上述核验文件中。3 盘平均过载；本次 27 格均存在逐盘名义需求超限。</p>
+''','阅读版与详细核对报告配套；Markdown 原教程保留。PDF 为 18 页入门重写版。',tag='18 / 继续阅读')
+
+CSS='''
+@font-face{font-family:YaHei;src:url('file:///home/chguo/.fonts/msyh.ttc')}
+@font-face{font-family:YaHei;src:url('file:///home/chguo/.fonts/msyhbd.ttc');font-weight:700}
+@page{size:A4;margin:0}
+*{box-sizing:border-box}body{margin:0;background:#e8edf3;color:#17283d;font-family:YaHei,"Microsoft YaHei","Noto Sans CJK SC",sans-serif;font-size:15px;line-height:1.65}
+.page{width:210mm;height:297mm;padding:15mm 17mm 20mm;background:white;position:relative;break-after:page;margin:0 auto;overflow:visible}
+.page:last-child{break-after:auto}.page:before{content:'';position:absolute;left:0;right:0;top:0;height:6px;background:#2563eb}
+.eyebrow{display:flex;justify-content:space-between;color:#60728b;font-size:11px;letter-spacing:.6px;margin:0 0 16px}
+h1{font-size:28px;line-height:1.4;margin:0 0 7px;letter-spacing:-.3px} .sub{margin:0 0 21px;color:#617187;font-size:14px}
+p{margin:13px 0}h2{font-size:18px;line-height:1.5;margin:6px 0 9px}h3{font-size:17px;margin:4px 0}small,.small{font-size:12px;line-height:1.7;color:#607084}.center{text-align:center}
+.note{padding:14px 17px;background:#edf4ff;border-left:4px solid #2563eb;border-radius:0 10px 10px 0;margin:17px 0;font-size:15px}
+.formula{background:#f2f6fa;border-radius:10px;padding:16px 15px;text-align:center;font-size:19px;font-weight:700;margin:16px 0}.formula small{display:block;font-size:12px;font-weight:400;margin-top:6px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}.profile{border-radius:14px;padding:19px 21px;border:1px solid #dce5f0}.profile.a{background:#eff5ff}.profile.b{background:#edf8f5}.profile strong{display:block;font-size:29px;margin-top:13px}.profile span{font-size:12px;color:#617187}
+.mini{background:#f2f6fa;border-radius:10px;padding:14px 18px}.mini p{margin:8px 0}.reading{padding:17px 21px;background:#f7f9fc;border-radius:10px;margin-top:21px}.reading p{margin-bottom:0}
+svg{display:block;width:100%;height:auto;margin:14px 0}.steps{display:flex;gap:6px;margin:23px 0}.steps span{flex:1;text-align:center;background:#eaf0f8;padding:15px 0;border-radius:7px;font-size:12px}
+.decision{background:#f6f8fb;padding:15px 20px;border-radius:11px;margin:12px 0}.decision>b{color:#2563eb;font-size:12px}.decision p{margin:4px 0}.down{text-align:center;color:#687990;font-size:12px}
+.qrow{display:flex;align-items:center;gap:5px;margin:7px 0}.qrow label{font-size:12px;width:73px;flex-shrink:0}.token{width:29px;height:30px;line-height:30px;text-align:center;border-radius:5px;font-size:14px;font-weight:bold}.A{background:#dce9ff;color:#1953af}.B{background:#d9f1e9;color:#106d58}.queues{padding:10px 17px;background:#f8fafc;border-radius:10px}
+.stats{margin-top:10px;text-align:center}.stats>div{border-radius:11px;background:#f2f6fa;padding:10px}.stats span{font-size:13px}.stats strong{display:block;font-size:35px;color:#2563eb;line-height:1.5}
+figure{margin:16px 0}figure img{display:block;width:100%;height:auto}figcaption{font-size:11px;color:#617187;margin-top:6px;line-height:1.6}
+table{width:100%;border-collapse:collapse;margin:18px 0;font-size:13px;line-height:1.65}th{background:#17283d;color:white;font-weight:700;text-align:left;padding:11px}td{padding:11px;border-bottom:1px solid #dce4ee}tr:nth-child(even) td{background:#f5f8fc}td:first-child{white-space:normal}
+.finish{margin:25px 0}.finish label{font-size:13px;display:block;margin:15px 0 6px}.finish div{border-radius:0 9px 9px 0;padding:13px 18px;color:white;font-size:17px}
+.path{display:flex;gap:6px;align-items:center;margin:14px 0}.path b{font-size:11px;width:49px}.path i{background:#dce5f0;padding:5px 8px;border-radius:4px;font-style:normal}.clockline{display:flex;align-items:center;gap:6px;margin:25px 0;font-size:12px}.clockline span{padding:12px 9px;text-align:center;border:1px solid #dce4ee;border-radius:8px;flex:1}.clockline em{font-style:normal;font-size:10px;color:#738096}.glossary p{margin:8px 0;font-size:14px}
+.sources{padding:14px;background:#f6f8fb;border-radius:9px;font-size:12px;line-height:1.8}.source{font-size:9px;line-height:1.5;color:#778499;position:absolute;left:17mm;right:17mm;bottom:15mm}.footer{position:absolute;bottom:8mm;left:17mm;right:17mm;border-top:1px solid #dce4ee;padding-top:6px;display:flex;justify-content:space-between;font-size:9px;color:#687990}
+@media screen{.page{margin:18px auto;box-shadow:0 5px 25px #99aabb44}}
+'''
+
+
+def build():
+    for p in PAGES:
+        for name in __import__('re').findall(r'src="(assets/[^\"]+)"',p['body']):
+            assert (HERE/name).exists(), name
+    sections=[]
+    for i,p in enumerate(PAGES,1):
+        sections.append(f'<section class="page" id="p{i}"><header><div class="eyebrow"><span>NPU 为什么会等 · 实验图解入门</span><span>{p["tag"]}</span></div><h1>{p["title"]}</h1><p class="sub">{p["subtitle"]}</p></header><main>{p["body"]}</main><aside class="source">{p["source"]}</aside><footer class="footer"><span>qos_storage_sim · 2026-09-12 · 入门重写版</span><span>{i} / {len(PAGES)}</span></footer></section>')
+    auditjs='''<script>window.addEventListener('load',async()=>{await document.fonts.ready;const rows=[...document.querySelectorAll('.page')].map((p,i)=>{let m=p.querySelector('main'),s=p.querySelector('.source');return{page:i+1,title:p.querySelector('h1').textContent,content_bottom:m.getBoundingClientRect().bottom-p.getBoundingClientRect().top,source_top:s.getBoundingClientRect().top-p.getBoundingClientRect().top,overlap:m.getBoundingClientRect().bottom>s.getBoundingClientRect().top-10}});document.documentElement.dataset.layoutAudit=JSON.stringify(rows);});</script>'''
+    doc='<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><title>L1 L2 L3 与 NPU 利用率：小白图解</title><style>'+CSS+'</style></head><body>'+''.join(sections)+auditjs+'</body></html>'
+    (HERE/'L1_L2_L3_NPU_小白图解.html').write_text(doc)
+    (HERE/'page_content.json').write_text(json.dumps(PAGES,ensure_ascii=False,indent=2)+'\n')
+    sourcefiles=[ROOT/'docs/L1_L2_L3_NPU_图解教程.md', ROOT/'data',STUDY/'formula_review/accounting_checks.json',STUDY/'formula_review/handoff_checks.json']
+    (HERE/'source_audit.json').write_text(json.dumps({'no_new_simulation':True,'page_count':len(PAGES),'sources':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sourcefiles},'main_numbers':'seed7 only; warm 2–4 seconds, longer 2–20 seconds, and full run labeled separately','figure_scope':'four sampled NPU lanes are illustrative excerpts of actual logs; no claim that their mean is fleet mean'},ensure_ascii=False,indent=2)+'\n')
+    browser=['google-chrome','--headless','--no-sandbox','--disable-gpu','--disable-dev-shm-usage','--no-pdf-header-footer','--virtual-time-budget=2500']
+    uri=(HERE/'L1_L2_L3_NPU_小白图解.html').as_uri()
+    dom=subprocess.run(browser+['--dump-dom',uri],capture_output=True,text=True,check=True).stdout
+    class LayoutParser(HTMLParser):
+        rows=None
+        def handle_starttag(self,tag,attrs):
+            if tag=='html' and 'data-layout-audit' in dict(attrs):
+                self.rows=json.loads(dict(attrs)['data-layout-audit'])
+    parser=LayoutParser();parser.feed(dom)
+    assert parser.rows and len(parser.rows)==len(PAGES), 'Missing browser layout audit'
+    (HERE/'layout_audit.json').write_text(json.dumps(parser.rows,ensure_ascii=False,indent=2)+'\n')
+    assert not any(r['overlap'] for r in parser.rows), 'Body overlaps footer/source'
+    subprocess.run(browser+[f'--print-to-pdf={OUT}',uri],capture_output=True,text=True,check=True)
+    reader=PdfReader(OUT)
+    assert len(reader.pages)==len(PAGES)
+    pdfchecks=[]
+    for i,p in enumerate(reader.pages,1):
+        value=p.extract_text()
+        assert len(value)>100 and f'{i} / {len(PAGES)}' in value, (i,'Missing PDF page text or footer')
+        pdfchecks.append(dict(page=i,text_characters=len(value),footer_verified=True))
+    writer=PdfWriter(clone_from=reader)
+    for i,p in enumerate(PAGES):writer.add_outline_item(p['title'],i)
+    writer.add_metadata({'/Title':'L1 / L2 / L3 与 NPU 利用率：小白图解','/Author':'qos_storage_sim 项目分析','/Subject':'真实 A/B 实验与教学示意分开；从一张卡到三级调度'})
+    tmp=OUT.with_suffix('.building.pdf')
+    with tmp.open('wb') as f:writer.write(f)
+    tmp.replace(OUT)
+    (HERE/'pdf_checks.json').write_text(json.dumps({'passed':True,'pages':pdfchecks,'pdf_sha256':hashlib.sha256(OUT.read_bytes()).hexdigest(),'bookmarks':len(PAGES)},ensure_ascii=False,indent=2)+'\n')
+    print(json.dumps({'pages':len(PAGES),'html':str(HERE/'L1_L2_L3_NPU_小白图解.html'),'pdf':str(OUT),'layout_passed':True},ensure_ascii=False))
+
+
+if __name__=='__main__':
+    build()
