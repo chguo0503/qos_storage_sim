@@ -1,0 +1,1615 @@
+{
+  "schema_version": 1,
+  "status": "separate_topology_sensitivity_mathematical_candidates",
+  "primary_study_num_ssu": 3,
+  "source": {
+    "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+    "generator_sha256": "4c1307f19a14a13f5d3bd4dd1d7b37a0262249a1596d2a0101c1d5985da6a7c4"
+  },
+  "no_new_simulations": true,
+  "no_observed_utilization_used_for_selection": true,
+  "scan_scope": {
+    "num_ssu": [
+      6,
+      8
+    ],
+    "long_profiles": [
+      [
+        200,
+        2048
+      ],
+      [
+        200,
+        4096
+      ]
+    ],
+    "short_profiles": [
+      [
+        32,
+        128
+      ],
+      [
+        32,
+        256
+      ],
+      [
+        32,
+        512
+      ],
+      [
+        48,
+        128
+      ]
+    ],
+    "profile_topology_combinations": 16,
+    "count_bound_L": 64,
+    "count_bound_S": 512,
+    "counts_coprime": true,
+    "rho_range": [
+      0.95,
+      1.05
+    ]
+  },
+  "selection": "Explicit coverage: L200/2048 with S32/128 and S32/256 at both 6/8 SSU; S32/512 at 6 SSU; S48/128 at 8 SSU; L200/4096+S32/256 at both. Omit high-f 8SSU S32/512 from priority list because sparse L may fail warm mixed coverage.",
+  "seed_plan": {
+    "pilot": [
+      7
+    ],
+    "confirmation": [
+      19,
+      43,
+      67,
+      101
+    ]
+  },
+  "preserved_files_sha256": {
+    "results/baseline_random_near_capacity_20260914/candidate_math.py": "6ca7fcd51ed2bd1968b1467505fa8a30123c3ea3f282ec983731d0bf79dd80e2",
+    "results/baseline_random_near_capacity_20260914/candidate_math.json": "38e88de44c959571d9f0764ae92ac0139587b78b1d767a867e94af2a4653e39e",
+    "results/baseline_random_near_capacity_20260914/candidate_math.md": "b147f1195e91c8e45f50a1e37d76148dcccd515fa86ee048272a51069653daff",
+    "results/baseline_random_near_capacity_20260914/adaptive_candidates.py": "b2d04d0910a6e2da029f34d94cfbe90a8c2370347454f44d01de2446f6bad364",
+    "results/baseline_random_near_capacity_20260914/adaptive_candidates.json": "3e1ef3761a7d937ce5d74e5c3d23d2f5534b8046dd8ddd80689d68f1890d32f1",
+    "results/baseline_random_near_capacity_20260914/adaptive_candidates.md": "3ac0752bce2a921fa9fd52d5c37903e7f9864fb226196c1311e413ee24ce15e6",
+    "results/baseline_random_near_capacity_20260914/study_plan.json": "c647c98f617851df9b109dbd0ea0e062672c992205ef4ce4fcd0e141dbbc02b5",
+    "results/baseline_random_near_capacity_20260914/experiment.py": "f8313fa4678a2441f2ad55998cb8f449896187d6347d9fedadc30cce926efd5e"
+  },
+  "selected_candidates": [
+    {
+      "candidate_id": "topo6_m2048_s32m128",
+      "status": "mathematically_feasible_not_simulated_by_this_script",
+      "selected": true,
+      "num_npu": 32,
+      "num_ssu": 6,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "L": {
+        "data_key": [
+          200,
+          2048
+        ],
+        "B_GiB_s": 3.7583703593261726,
+        "C_s": 0.0707405378411581,
+        "V_GiB": 0.26586914062500006,
+        "blocks_per_layer": 1584,
+        "category": "LL"
+      },
+      "S": {
+        "data_key": [
+          32,
+          128
+        ],
+        "B_GiB_s": 36.332733584014896,
+        "C_s": 0.0011780259589150035,
+        "V_GiB": 0.0428009033203125,
+        "blocks_per_layer": 255,
+        "category": "SS"
+      },
+      "ratio_L_S": [
+        4,
+        31
+      ],
+      "exact_short_per_long_ratio_at_rho1": 7.792709290392467,
+      "legal_integer_ratios_in_declared_bounds": 2147,
+      "rho_ideal": 0.9975783198164959,
+      "f_short": 0.11430667158753428,
+      "ideal_compute_only_mean_short_cards": 3.657813490801097,
+      "C_short_ms": 1.1780259589150035,
+      "L_layer_balanced_storage_service_ms": 1.1077880859375002,
+      "S_layer_balanced_storage_service_ms": 0.17833709716796875,
+      "S_minimum_NPU_link_service_ms": 0.85601806640625,
+      "S_first_link_start_delay_threshold_ms": 0.3220078925087535,
+      "storage_only_L_layer_equivalent_threshold": 0.9024188601026675,
+      "first_link_delay_L_layer_equivalent_threshold": 0.29067643586024333,
+      "queue_threshold_assumption": "Balanced residual L FIFO prefixes delay all first S blocks. Actual block interleaving and streaming link delivery require trace validation; a whole current L request is not a full queued layer.",
+      "required_mean_short_stall_ms_for_U80": 2.576459323314496,
+      "wait_model": "All S layers, including zero-stall layers; L unstalled; fixed long-run completion proportions; ignores startup and request-boundary effects. Required amount, not prediction.",
+      "L_request_pure_compute_ms": 565.9243027292647,
+      "ideal_compute_work_per_L_request_ms": 638.961912181995,
+      "warm_mix_risk_flags": [],
+      "warm_mix_always_requires_actual_compute_validation": true,
+      "minimum_22s_population": {
+        "L": 36,
+        "S": 279,
+        "repeats": 9,
+        "pure_compute_ms_per_npu": 23002.628838551816,
+        "expected_blocks": 32811264
+      },
+      "cli": "python results/baseline_random_near_capacity_20260914/experiment.py --name topo6_m2048_s32m128 --profiles 200:2048,32:128 --counts 4,31 --roles L,S --num-ssu 6 --horizon-ms 22000 --seed 7 --strategy baseline"
+    },
+    {
+      "candidate_id": "topo8_m2048_s32m128",
+      "status": "mathematically_feasible_not_simulated_by_this_script",
+      "selected": true,
+      "num_npu": 32,
+      "num_ssu": 8,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "L": {
+        "data_key": [
+          200,
+          2048
+        ],
+        "B_GiB_s": 3.7583703593261726,
+        "C_s": 0.0707405378411581,
+        "V_GiB": 0.26586914062500006,
+        "blocks_per_layer": 1584,
+        "category": "LL"
+      },
+      "S": {
+        "data_key": [
+          32,
+          128
+        ],
+        "B_GiB_s": 36.332733584014896,
+        "C_s": 0.0011780259589150035,
+        "V_GiB": 0.0428009033203125,
+        "blocks_per_layer": 255,
+        "category": "SS"
+      },
+      "ratio_L_S": [
+        3,
+        43
+      ],
+      "exact_short_per_long_ratio_at_rho1": 14.233625891619585,
+      "legal_integer_ratios_in_declared_bounds": 1119,
+      "rho_ideal": 1.0035297788011999,
+      "f_short": 0.19269532255747746,
+      "ideal_compute_only_mean_short_cards": 6.166250321839279,
+      "C_short_ms": 1.1780259589150035,
+      "L_layer_balanced_storage_service_ms": 0.8308410644531251,
+      "S_layer_balanced_storage_service_ms": 0.13375282287597656,
+      "S_minimum_NPU_link_service_ms": 0.85601806640625,
+      "S_first_link_start_delay_threshold_ms": 0.3220078925087535,
+      "storage_only_L_layer_equivalent_threshold": 1.2568867629651728,
+      "first_link_delay_L_layer_equivalent_threshold": 0.3875685811469911,
+      "queue_threshold_assumption": "Balanced residual L FIFO prefixes delay all first S blocks. Actual block interleaving and streaming link delivery require trace validation; a whole current L request is not a full queued layer.",
+      "required_mean_short_stall_ms_for_U80": 1.5283530799815084,
+      "wait_model": "All S layers, including zero-stall layers; L unstalled; fixed long-run completion proportions; ignores startup and request-boundary effects. Required amount, not prediction.",
+      "L_request_pure_compute_ms": 565.9243027292647,
+      "ideal_compute_work_per_L_request_ms": 701.0046126848518,
+      "warm_mix_risk_flags": [],
+      "warm_mix_always_requires_actual_compute_validation": true,
+      "minimum_22s_population": {
+        "L": 33,
+        "S": 473,
+        "repeats": 11,
+        "pure_compute_ms_per_npu": 23133.15221860011,
+        "expected_blocks": 44259072
+      },
+      "cli": "python results/baseline_random_near_capacity_20260914/experiment.py --name topo8_m2048_s32m128 --profiles 200:2048,32:128 --counts 3,43 --roles L,S --num-ssu 8 --horizon-ms 22000 --seed 7 --strategy baseline"
+    },
+    {
+      "candidate_id": "topo6_m2048_s32m256",
+      "status": "mathematically_feasible_not_simulated_by_this_script",
+      "selected": true,
+      "num_npu": 32,
+      "num_ssu": 6,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "L": {
+        "data_key": [
+          200,
+          2048
+        ],
+        "B_GiB_s": 3.7583703593261726,
+        "C_s": 0.0707405378411581,
+        "V_GiB": 0.26586914062500006,
+        "blocks_per_layer": 1584,
+        "category": "LL"
+      },
+      "S": {
+        "data_key": [
+          32,
+          256
+        ],
+        "B_GiB_s": 21.343424279388426,
+        "C_s": 0.0019974796959734433,
+        "V_GiB": 0.042633056640625,
+        "blocks_per_layer": 254,
+        "category": "SS"
+      },
+      "ratio_L_S": [
+        2,
+        19
+      ],
+      "exact_short_per_long_ratio_at_rho1": 9.572012382253194,
+      "legal_integer_ratios_in_declared_bounds": 2146,
+      "rho_ideal": 0.9970406315770954,
+      "f_short": 0.21151111588339547,
+      "ideal_compute_only_mean_short_cards": 6.768355708268655,
+      "C_short_ms": 1.9974796959734433,
+      "L_layer_balanced_storage_service_ms": 1.1077880859375002,
+      "S_layer_balanced_storage_service_ms": 0.17763773600260419,
+      "S_minimum_NPU_link_service_ms": 0.8526611328125,
+      "S_first_link_start_delay_threshold_ms": 1.1448185631609433,
+      "storage_only_L_layer_equivalent_threshold": 1.642770835931803,
+      "first_link_delay_L_layer_equivalent_threshold": 1.0334274015883687,
+      "queue_threshold_assumption": "Balanced residual L FIFO prefixes delay all first S blocks. Actual block interleaving and streaming link delivery require trace validation; a whole current L request is not a full queued layer.",
+      "required_mean_short_stall_ms_for_U80": 2.3609630250764684,
+      "wait_model": "All S layers, including zero-stall layers; L unstalled; fixed long-run completion proportions; ignores startup and request-boundary effects. Required amount, not prediction.",
+      "L_request_pure_compute_ms": 565.9243027292647,
+      "ideal_compute_work_per_L_request_ms": 717.7327596232465,
+      "warm_mix_risk_flags": [],
+      "warm_mix_always_requires_actual_compute_validation": true,
+      "minimum_22s_population": {
+        "L": 32,
+        "S": 304,
+        "repeats": 16,
+        "pure_compute_ms_per_npu": 22967.448307943887,
+        "expected_blocks": 32743424
+      },
+      "cli": "python results/baseline_random_near_capacity_20260914/experiment.py --name topo6_m2048_s32m256 --profiles 200:2048,32:256 --counts 2,19 --roles L,S --num-ssu 6 --horizon-ms 22000 --seed 7 --strategy baseline"
+    },
+    {
+      "candidate_id": "topo8_m2048_s32m256",
+      "status": "mathematically_feasible_not_simulated_by_this_script",
+      "selected": true,
+      "num_npu": 32,
+      "num_ssu": 8,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "L": {
+        "data_key": [
+          200,
+          2048
+        ],
+        "B_GiB_s": 3.7583703593261726,
+        "C_s": 0.0707405378411581,
+        "V_GiB": 0.26586914062500006,
+        "blocks_per_layer": 1584,
+        "category": "LL"
+      },
+      "S": {
+        "data_key": [
+          32,
+          256
+        ],
+        "B_GiB_s": 21.343424279388426,
+        "C_s": 0.0019974796959734433,
+        "V_GiB": 0.042633056640625,
+        "blocks_per_layer": 254,
+        "category": "SS"
+      },
+      "ratio_L_S": [
+        2,
+        39
+      ],
+      "exact_short_per_long_ratio_at_rho1": 19.486767474863125,
+      "legal_integer_ratios_in_declared_bounds": 1023,
+      "rho_ideal": 1.000273335934167,
+      "f_short": 0.35509490209134326,
+      "ideal_compute_only_mean_short_cards": 11.363036866922984,
+      "C_short_ms": 1.9974796959734433,
+      "L_layer_balanced_storage_service_ms": 0.8308410644531251,
+      "S_layer_balanced_storage_service_ms": 0.13322830200195312,
+      "S_minimum_NPU_link_service_ms": 0.8526611328125,
+      "S_first_link_start_delay_threshold_ms": 1.1448185631609433,
+      "storage_only_L_layer_equivalent_threshold": 2.2438122930269158,
+      "first_link_delay_L_layer_equivalent_threshold": 1.377903202117825,
+      "queue_threshold_assumption": "Balanced residual L FIFO prefixes delay all first S blocks. Actual block interleaving and streaming link delivery require trace validation; a whole current L request is not a full queued layer.",
+      "required_mean_short_stall_ms_for_U80": 1.4062998963159004,
+      "wait_model": "All S layers, including zero-stall layers; L unstalled; fixed long-run completion proportions; ignores startup and request-boundary effects. Required amount, not prediction.",
+      "L_request_pure_compute_ms": 565.9243027292647,
+      "ideal_compute_work_per_L_request_ms": 877.5311353011219,
+      "warm_mix_risk_flags": [],
+      "warm_mix_always_requires_actual_compute_validation": true,
+      "minimum_22s_population": {
+        "L": 26,
+        "S": 507,
+        "repeats": 13,
+        "pure_compute_ms_per_npu": 22815.80951782917,
+        "expected_blocks": 43510272
+      },
+      "cli": "python results/baseline_random_near_capacity_20260914/experiment.py --name topo8_m2048_s32m256 --profiles 200:2048,32:256 --counts 2,39 --roles L,S --num-ssu 8 --horizon-ms 22000 --seed 7 --strategy baseline"
+    },
+    {
+      "candidate_id": "topo6_m2048_s32m512",
+      "status": "mathematically_feasible_not_simulated_by_this_script",
+      "selected": true,
+      "num_npu": 32,
+      "num_ssu": 6,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "L": {
+        "data_key": [
+          200,
+          2048
+        ],
+        "B_GiB_s": 3.7583703593261726,
+        "C_s": 0.0707405378411581,
+        "V_GiB": 0.26586914062500006,
+        "blocks_per_layer": 1584,
+        "category": "LL"
+      },
+      "S": {
+        "data_key": [
+          32,
+          512
+        ],
+        "B_GiB_s": 11.425134399389648,
+        "C_s": 0.0037021326666852694,
+        "V_GiB": 0.04229736328125,
+        "blocks_per_layer": 252,
+        "category": "SL"
+      },
+      "ratio_L_S": [
+        1,
+        18
+      ],
+      "exact_short_per_long_ratio_at_rho1": 18.214726105851515,
+      "legal_integer_ratios_in_declared_bounds": 1735,
+      "rho_ideal": 0.9969716227292899,
+      "f_short": 0.485069944987209,
+      "ideal_compute_only_mean_short_cards": 15.522238239590688,
+      "C_short_ms": 3.7021326666852694,
+      "L_layer_balanced_storage_service_ms": 1.1077880859375002,
+      "S_layer_balanced_storage_service_ms": 0.176239013671875,
+      "S_minimum_NPU_link_service_ms": 0.845947265625,
+      "S_first_link_start_delay_threshold_ms": 2.8561854010602694,
+      "storage_only_L_layer_equivalent_threshold": 3.182823229254625,
+      "first_link_delay_L_layer_equivalent_threshold": 2.5782777747091705,
+      "queue_threshold_assumption": "Balanced residual L FIFO prefixes delay all first S blocks. Actual block interleaving and streaming link delivery require trace validation; a whole current L request is not a full queued layer.",
+      "required_mean_short_stall_ms_for_U80": 1.908040636687402,
+      "wait_model": "All S layers, including zero-stall layers; L unstalled; fixed long-run completion proportions; ignores startup and request-boundary effects. Required amount, not prediction.",
+      "L_request_pure_compute_ms": 565.9243027292647,
+      "ideal_compute_work_per_L_request_ms": 1099.0314067319437,
+      "warm_mix_risk_flags": [],
+      "warm_mix_always_requires_actual_compute_validation": true,
+      "minimum_22s_population": {
+        "L": 21,
+        "S": 378,
+        "repeats": 21,
+        "pure_compute_ms_per_npu": 23079.659541370816,
+        "expected_blocks": 32901120
+      },
+      "cli": "python results/baseline_random_near_capacity_20260914/experiment.py --name topo6_m2048_s32m512 --profiles 200:2048,32:512 --counts 1,18 --roles L,S --num-ssu 6 --horizon-ms 22000 --seed 7 --strategy baseline"
+    },
+    {
+      "candidate_id": "topo8_m2048_s48m128",
+      "status": "mathematically_feasible_not_simulated_by_this_script",
+      "selected": true,
+      "num_npu": 32,
+      "num_ssu": 8,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "L": {
+        "data_key": [
+          200,
+          2048
+        ],
+        "B_GiB_s": 3.7583703593261726,
+        "C_s": 0.0707405378411581,
+        "V_GiB": 0.26586914062500006,
+        "blocks_per_layer": 1584,
+        "category": "LL"
+      },
+      "S": {
+        "data_key": [
+          48,
+          128
+        ],
+        "B_GiB_s": 42.47260886651917,
+        "C_s": 0.001513570275900525,
+        "V_GiB": 0.0642852783203125,
+        "blocks_per_layer": 383,
+        "category": "SS"
+      },
+      "ratio_L_S": [
+        1,
+        9
+      ],
+      "exact_short_per_long_ratio_at_rho1": 8.98352086959176,
+      "legal_integer_ratios_in_declared_bounds": 1711,
+      "rho_ideal": 1.0009600718683647,
+      "f_short": 0.16147109178438349,
+      "ideal_compute_only_mean_short_cards": 5.1670749371002715,
+      "C_short_ms": 1.513570275900525,
+      "L_layer_balanced_storage_service_ms": 0.8308410644531251,
+      "S_layer_balanced_storage_service_ms": 0.20089149475097656,
+      "S_minimum_NPU_link_service_ms": 1.28570556640625,
+      "S_first_link_start_delay_threshold_ms": 0.22786470949427495,
+      "storage_only_L_layer_equivalent_threshold": 1.5799396988322643,
+      "first_link_delay_L_layer_equivalent_threshold": 0.27425788065044626,
+      "queue_threshold_assumption": "Balanced residual L FIFO prefixes delay all first S blocks. Actual block interleaving and streaming link delivery require trace validation; a whole current L request is not a full queued layer.",
+      "required_mean_short_stall_ms_for_U80": 2.3434075090073003,
+      "wait_model": "All S layers, including zero-stall layers; L unstalled; fixed long-run completion proportions; ignores startup and request-boundary effects. Required amount, not prediction.",
+      "L_request_pure_compute_ms": 565.9243027292647,
+      "ideal_compute_work_per_L_request_ms": 674.9013625941025,
+      "warm_mix_risk_flags": [],
+      "warm_mix_always_requires_actual_compute_validation": true,
+      "minimum_22s_population": {
+        "L": 33,
+        "S": 297,
+        "repeats": 33,
+        "pure_compute_ms_per_npu": 22271.744965605383,
+        "expected_blocks": 42501888
+      },
+      "cli": "python results/baseline_random_near_capacity_20260914/experiment.py --name topo8_m2048_s48m128 --profiles 200:2048,48:128 --counts 1,9 --roles L,S --num-ssu 8 --horizon-ms 22000 --seed 7 --strategy baseline"
+    },
+    {
+      "candidate_id": "topo6_m4096_s32m256",
+      "status": "mathematically_feasible_not_simulated_by_this_script",
+      "selected": true,
+      "num_npu": 32,
+      "num_ssu": 6,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "L": {
+        "data_key": [
+          200,
+          4096
+        ],
+        "B_GiB_s": 1.8621157242187503,
+        "C_s": 0.1413357882794414,
+        "V_GiB": 0.26318359375,
+        "blocks_per_layer": 1568,
+        "category": "LL"
+      },
+      "S": {
+        "data_key": [
+          32,
+          256
+        ],
+        "B_GiB_s": 21.343424279388426,
+        "C_s": 0.0019974796959734433,
+        "V_GiB": 0.042633056640625,
+        "blocks_per_layer": 254,
+        "category": "SS"
+      },
+      "ratio_L_S": [
+        1,
+        29
+      ],
+      "exact_short_per_long_ratio_at_rho1": 28.816577538950742,
+      "legal_integer_ratios_in_declared_bounds": 524,
+      "rho_ideal": 1.0033938382994025,
+      "f_short": 0.2907062452703626,
+      "ideal_compute_only_mean_short_cards": 9.302599848651603,
+      "C_short_ms": 1.9974796959734433,
+      "L_layer_balanced_storage_service_ms": 1.0965983072916665,
+      "S_layer_balanced_storage_service_ms": 0.17763773600260419,
+      "S_minimum_NPU_link_service_ms": 0.8526611328125,
+      "S_first_link_start_delay_threshold_ms": 1.1448185631609433,
+      "storage_only_L_layer_equivalent_threshold": 1.659533803645393,
+      "first_link_delay_L_layer_equivalent_threshold": 1.0439725791555972,
+      "queue_threshold_assumption": "Balanced residual L FIFO prefixes delay all first S blocks. Actual block interleaving and streaming link delivery require trace validation; a whole current L request is not a full queued layer.",
+      "required_mean_short_stall_ms_for_U80": 1.7177818919195798,
+      "wait_model": "All S layers, including zero-stall layers; L unstalled; fixed long-run completion proportions; ignores startup and request-boundary effects. Required amount, not prediction.",
+      "L_request_pure_compute_ms": 1130.6863062355312,
+      "ideal_compute_work_per_L_request_ms": 1594.10159570137,
+      "warm_mix_risk_flags": [
+        "One L request exceeds 1s; two consecutive L can exceed the 2s warm window"
+      ],
+      "warm_mix_always_requires_actual_compute_validation": true,
+      "minimum_22s_population": {
+        "L": 14,
+        "S": 406,
+        "repeats": 14,
+        "pure_compute_ms_per_npu": 22317.422339819183,
+        "expected_blocks": 32019456
+      },
+      "cli": "python results/baseline_random_near_capacity_20260914/experiment.py --name topo6_m4096_s32m256 --profiles 200:4096,32:256 --counts 1,29 --roles L,S --num-ssu 6 --horizon-ms 22000 --seed 7 --strategy baseline"
+    },
+    {
+      "candidate_id": "topo8_m4096_s32m256",
+      "status": "mathematically_feasible_not_simulated_by_this_script",
+      "selected": true,
+      "num_npu": 32,
+      "num_ssu": 8,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "L": {
+        "data_key": [
+          200,
+          4096
+        ],
+        "B_GiB_s": 1.8621157242187503,
+        "C_s": 0.1413357882794414,
+        "V_GiB": 0.26318359375,
+        "blocks_per_layer": 1568,
+        "category": "LL"
+      },
+      "S": {
+        "data_key": [
+          32,
+          256
+        ],
+        "B_GiB_s": 21.343424279388426,
+        "C_s": 0.0019974796959734433,
+        "V_GiB": 0.042633056640625,
+        "blocks_per_layer": 254,
+        "category": "SS"
+      },
+      "ratio_L_S": [
+        1,
+        51
+      ],
+      "exact_short_per_long_ratio_at_rho1": 50.76181071463505,
+      "legal_integer_ratios_in_declared_bounds": 332,
+      "rho_ideal": 1.0022190763718788,
+      "f_short": 0.41886688547595696,
+      "ideal_compute_only_mean_short_cards": 13.403740335230623,
+      "C_short_ms": 1.9974796959734433,
+      "L_layer_balanced_storage_service_ms": 0.82244873046875,
+      "S_layer_balanced_storage_service_ms": 0.13322830200195312,
+      "S_minimum_NPU_link_service_ms": 0.8526611328125,
+      "S_first_link_start_delay_threshold_ms": 1.1448185631609433,
+      "storage_only_L_layer_equivalent_threshold": 2.266708336833313,
+      "first_link_delay_L_layer_equivalent_threshold": 1.3919634388741298,
+      "queue_threshold_assumption": "Balanced residual L FIFO prefixes delay all first S blocks. Actual block interleaving and streaming link delivery require trace validation; a whole current L request is not a full queued layer.",
+      "required_mean_short_stall_ms_for_U80": 1.1921924155592498,
+      "wait_model": "All S layers, including zero-stall layers; L unstalled; fixed long-run completion proportions; ignores startup and request-boundary effects. Required amount, not prediction.",
+      "L_request_pure_compute_ms": 1130.6863062355312,
+      "ideal_compute_work_per_L_request_ms": 1945.658022192696,
+      "warm_mix_risk_flags": [
+        "One L request exceeds 1s; two consecutive L can exceed the 2s warm window"
+      ],
+      "warm_mix_always_requires_actual_compute_validation": true,
+      "minimum_22s_population": {
+        "L": 12,
+        "S": 612,
+        "repeats": 12,
+        "pure_compute_ms_per_npu": 23347.896266312353,
+        "expected_blocks": 44611584
+      },
+      "cli": "python results/baseline_random_near_capacity_20260914/experiment.py --name topo8_m4096_s32m256 --profiles 200:4096,32:256 --counts 1,51 --roles L,S --num-ssu 8 --horizon-ms 22000 --seed 7 --strategy baseline"
+    }
+  ],
+  "full_scan": [
+    {
+      "candidate_id": "topo6_m2048_s32m128",
+      "status": "mathematically_feasible_not_simulated_by_this_script",
+      "selected": true,
+      "num_npu": 32,
+      "num_ssu": 6,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "L": {
+        "data_key": [
+          200,
+          2048
+        ],
+        "B_GiB_s": 3.7583703593261726,
+        "C_s": 0.0707405378411581,
+        "V_GiB": 0.26586914062500006,
+        "blocks_per_layer": 1584,
+        "category": "LL"
+      },
+      "S": {
+        "data_key": [
+          32,
+          128
+        ],
+        "B_GiB_s": 36.332733584014896,
+        "C_s": 0.0011780259589150035,
+        "V_GiB": 0.0428009033203125,
+        "blocks_per_layer": 255,
+        "category": "SS"
+      },
+      "ratio_L_S": [
+        4,
+        31
+      ],
+      "exact_short_per_long_ratio_at_rho1": 7.792709290392467,
+      "legal_integer_ratios_in_declared_bounds": 2147,
+      "rho_ideal": 0.9975783198164959,
+      "f_short": 0.11430667158753428,
+      "ideal_compute_only_mean_short_cards": 3.657813490801097,
+      "C_short_ms": 1.1780259589150035,
+      "L_layer_balanced_storage_service_ms": 1.1077880859375002,
+      "S_layer_balanced_storage_service_ms": 0.17833709716796875,
+      "S_minimum_NPU_link_service_ms": 0.85601806640625,
+      "S_first_link_start_delay_threshold_ms": 0.3220078925087535,
+      "storage_only_L_layer_equivalent_threshold": 0.9024188601026675,
+      "first_link_delay_L_layer_equivalent_threshold": 0.29067643586024333,
+      "queue_threshold_assumption": "Balanced residual L FIFO prefixes delay all first S blocks. Actual block interleaving and streaming link delivery require trace validation; a whole current L request is not a full queued layer.",
+      "required_mean_short_stall_ms_for_U80": 2.576459323314496,
+      "wait_model": "All S layers, including zero-stall layers; L unstalled; fixed long-run completion proportions; ignores startup and request-boundary effects. Required amount, not prediction.",
+      "L_request_pure_compute_ms": 565.9243027292647,
+      "ideal_compute_work_per_L_request_ms": 638.961912181995,
+      "warm_mix_risk_flags": [],
+      "warm_mix_always_requires_actual_compute_validation": true,
+      "minimum_22s_population": {
+        "L": 36,
+        "S": 279,
+        "repeats": 9,
+        "pure_compute_ms_per_npu": 23002.628838551816,
+        "expected_blocks": 32811264
+      },
+      "cli": "python results/baseline_random_near_capacity_20260914/experiment.py --name topo6_m2048_s32m128 --profiles 200:2048,32:128 --counts 4,31 --roles L,S --num-ssu 6 --horizon-ms 22000 --seed 7 --strategy baseline"
+    },
+    {
+      "candidate_id": "topo6_m2048_s32m256",
+      "status": "mathematically_feasible_not_simulated_by_this_script",
+      "selected": true,
+      "num_npu": 32,
+      "num_ssu": 6,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "L": {
+        "data_key": [
+          200,
+          2048
+        ],
+        "B_GiB_s": 3.7583703593261726,
+        "C_s": 0.0707405378411581,
+        "V_GiB": 0.26586914062500006,
+        "blocks_per_layer": 1584,
+        "category": "LL"
+      },
+      "S": {
+        "data_key": [
+          32,
+          256
+        ],
+        "B_GiB_s": 21.343424279388426,
+        "C_s": 0.0019974796959734433,
+        "V_GiB": 0.042633056640625,
+        "blocks_per_layer": 254,
+        "category": "SS"
+      },
+      "ratio_L_S": [
+        2,
+        19
+      ],
+      "exact_short_per_long_ratio_at_rho1": 9.572012382253194,
+      "legal_integer_ratios_in_declared_bounds": 2146,
+      "rho_ideal": 0.9970406315770954,
+      "f_short": 0.21151111588339547,
+      "ideal_compute_only_mean_short_cards": 6.768355708268655,
+      "C_short_ms": 1.9974796959734433,
+      "L_layer_balanced_storage_service_ms": 1.1077880859375002,
+      "S_layer_balanced_storage_service_ms": 0.17763773600260419,
+      "S_minimum_NPU_link_service_ms": 0.8526611328125,
+      "S_first_link_start_delay_threshold_ms": 1.1448185631609433,
+      "storage_only_L_layer_equivalent_threshold": 1.642770835931803,
+      "first_link_delay_L_layer_equivalent_threshold": 1.0334274015883687,
+      "queue_threshold_assumption": "Balanced residual L FIFO prefixes delay all first S blocks. Actual block interleaving and streaming link delivery require trace validation; a whole current L request is not a full queued layer.",
+      "required_mean_short_stall_ms_for_U80": 2.3609630250764684,
+      "wait_model": "All S layers, including zero-stall layers; L unstalled; fixed long-run completion proportions; ignores startup and request-boundary effects. Required amount, not prediction.",
+      "L_request_pure_compute_ms": 565.9243027292647,
+      "ideal_compute_work_per_L_request_ms": 717.7327596232465,
+      "warm_mix_risk_flags": [],
+      "warm_mix_always_requires_actual_compute_validation": true,
+      "minimum_22s_population": {
+        "L": 32,
+        "S": 304,
+        "repeats": 16,
+        "pure_compute_ms_per_npu": 22967.448307943887,
+        "expected_blocks": 32743424
+      },
+      "cli": "python results/baseline_random_near_capacity_20260914/experiment.py --name topo6_m2048_s32m256 --profiles 200:2048,32:256 --counts 2,19 --roles L,S --num-ssu 6 --horizon-ms 22000 --seed 7 --strategy baseline"
+    },
+    {
+      "candidate_id": "topo6_m2048_s32m512",
+      "status": "mathematically_feasible_not_simulated_by_this_script",
+      "selected": true,
+      "num_npu": 32,
+      "num_ssu": 6,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "L": {
+        "data_key": [
+          200,
+          2048
+        ],
+        "B_GiB_s": 3.7583703593261726,
+        "C_s": 0.0707405378411581,
+        "V_GiB": 0.26586914062500006,
+        "blocks_per_layer": 1584,
+        "category": "LL"
+      },
+      "S": {
+        "data_key": [
+          32,
+          512
+        ],
+        "B_GiB_s": 11.425134399389648,
+        "C_s": 0.0037021326666852694,
+        "V_GiB": 0.04229736328125,
+        "blocks_per_layer": 252,
+        "category": "SL"
+      },
+      "ratio_L_S": [
+        1,
+        18
+      ],
+      "exact_short_per_long_ratio_at_rho1": 18.214726105851515,
+      "legal_integer_ratios_in_declared_bounds": 1735,
+      "rho_ideal": 0.9969716227292899,
+      "f_short": 0.485069944987209,
+      "ideal_compute_only_mean_short_cards": 15.522238239590688,
+      "C_short_ms": 3.7021326666852694,
+      "L_layer_balanced_storage_service_ms": 1.1077880859375002,
+      "S_layer_balanced_storage_service_ms": 0.176239013671875,
+      "S_minimum_NPU_link_service_ms": 0.845947265625,
+      "S_first_link_start_delay_threshold_ms": 2.8561854010602694,
+      "storage_only_L_layer_equivalent_threshold": 3.182823229254625,
+      "first_link_delay_L_layer_equivalent_threshold": 2.5782777747091705,
+      "queue_threshold_assumption": "Balanced residual L FIFO prefixes delay all first S blocks. Actual block interleaving and streaming link delivery require trace validation; a whole current L request is not a full queued layer.",
+      "required_mean_short_stall_ms_for_U80": 1.908040636687402,
+      "wait_model": "All S layers, including zero-stall layers; L unstalled; fixed long-run completion proportions; ignores startup and request-boundary effects. Required amount, not prediction.",
+      "L_request_pure_compute_ms": 565.9243027292647,
+      "ideal_compute_work_per_L_request_ms": 1099.0314067319437,
+      "warm_mix_risk_flags": [],
+      "warm_mix_always_requires_actual_compute_validation": true,
+      "minimum_22s_population": {
+        "L": 21,
+        "S": 378,
+        "repeats": 21,
+        "pure_compute_ms_per_npu": 23079.659541370816,
+        "expected_blocks": 32901120
+      },
+      "cli": "python results/baseline_random_near_capacity_20260914/experiment.py --name topo6_m2048_s32m512 --profiles 200:2048,32:512 --counts 1,18 --roles L,S --num-ssu 6 --horizon-ms 22000 --seed 7 --strategy baseline"
+    },
+    {
+      "candidate_id": "topo6_m2048_s48m128",
+      "status": "mathematically_feasible_not_simulated_by_this_script",
+      "selected": false,
+      "num_npu": 32,
+      "num_ssu": 6,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "L": {
+        "data_key": [
+          200,
+          2048
+        ],
+        "B_GiB_s": 3.7583703593261726,
+        "C_s": 0.0707405378411581,
+        "V_GiB": 0.26586914062500006,
+        "blocks_per_layer": 1584,
+        "category": "LL"
+      },
+      "S": {
+        "data_key": [
+          48,
+          128
+        ],
+        "B_GiB_s": 42.47260886651917,
+        "C_s": 0.001513570275900525,
+        "V_GiB": 0.0642852783203125,
+        "blocks_per_layer": 383,
+        "category": "SS"
+      },
+      "ratio_L_S": [
+        1,
+        5
+      ],
+      "exact_short_per_long_ratio_at_rho1": 5.000328467378539,
+      "legal_integer_ratios_in_declared_bounds": 1398,
+      "rho_ideal": 0.9999703958012401,
+      "f_short": 0.09664164280250499,
+      "ideal_compute_only_mean_short_cards": 3.0925325696801598,
+      "C_short_ms": 1.513570275900525,
+      "L_layer_balanced_storage_service_ms": 1.1077880859375002,
+      "S_layer_balanced_storage_service_ms": 0.26785532633463544,
+      "S_minimum_NPU_link_service_ms": 1.28570556640625,
+      "S_first_link_start_delay_threshold_ms": 0.22786470949427495,
+      "storage_only_L_layer_equivalent_threshold": 1.1245065418009659,
+      "first_link_delay_L_layer_equivalent_threshold": 0.2056934104878347,
+      "queue_threshold_assumption": "Balanced residual L FIFO prefixes delay all first S blocks. Actual block interleaving and streaming link delivery require trace validation; a whole current L request is not a full queued layer.",
+      "required_mean_short_stall_ms_for_U80": 3.9154194610330357,
+      "wait_model": "All S layers, including zero-stall layers; L unstalled; fixed long-run completion proportions; ignores startup and request-boundary effects. Required amount, not prediction.",
+      "L_request_pure_compute_ms": 565.9243027292647,
+      "ideal_compute_work_per_L_request_ms": 626.4671137652857,
+      "warm_mix_risk_flags": [],
+      "warm_mix_always_requires_actual_compute_validation": true,
+      "minimum_22s_population": {
+        "L": 36,
+        "S": 180,
+        "repeats": 36,
+        "pure_compute_ms_per_npu": 22552.816095550286,
+        "expected_blocks": 32246784
+      },
+      "cli": null
+    },
+    {
+      "candidate_id": "topo6_m4096_s32m128",
+      "status": "mathematically_feasible_not_simulated_by_this_script",
+      "selected": false,
+      "num_npu": 32,
+      "num_ssu": 6,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "L": {
+        "data_key": [
+          200,
+          4096
+        ],
+        "B_GiB_s": 1.8621157242187503,
+        "C_s": 0.1413357882794414,
+        "V_GiB": 0.26318359375,
+        "blocks_per_layer": 1568,
+        "category": "LL"
+      },
+      "S": {
+        "data_key": [
+          32,
+          128
+        ],
+        "B_GiB_s": 36.332733584014896,
+        "C_s": 0.0011780259589150035,
+        "V_GiB": 0.0428009033203125,
+        "blocks_per_layer": 255,
+        "category": "SS"
+      },
+      "ratio_L_S": [
+        2,
+        47
+      ],
+      "exact_short_per_long_ratio_at_rho1": 23.459979212044903,
+      "legal_integer_ratios_in_declared_bounds": 541,
+      "rho_ideal": 1.001072330108318,
+      "f_short": 0.16378954315694486,
+      "ideal_compute_only_mean_short_cards": 5.241265381022235,
+      "C_short_ms": 1.1780259589150035,
+      "L_layer_balanced_storage_service_ms": 1.0965983072916665,
+      "S_layer_balanced_storage_service_ms": 0.17833709716796875,
+      "S_minimum_NPU_link_service_ms": 0.85601806640625,
+      "S_first_link_start_delay_threshold_ms": 0.3220078925087535,
+      "storage_only_L_layer_equivalent_threshold": 0.911627215818001,
+      "first_link_delay_L_layer_equivalent_threshold": 0.29364252194044993,
+      "queue_threshold_assumption": "Balanced residual L FIFO prefixes delay all first S blocks. Actual block interleaving and streaming link delivery require trace validation; a whole current L request is not a full queued layer.",
+      "required_mean_short_stall_ms_for_U80": 1.7980787054674894,
+      "wait_model": "All S layers, including zero-stall layers; L unstalled; fixed long-run completion proportions; ignores startup and request-boundary effects. Required amount, not prediction.",
+      "L_request_pure_compute_ms": 1130.6863062355312,
+      "ideal_compute_work_per_L_request_ms": 1352.155186511552,
+      "warm_mix_risk_flags": [
+        "One L request exceeds 1s; two consecutive L can exceed the 2s warm window"
+      ],
+      "warm_mix_always_requires_actual_compute_validation": true,
+      "minimum_22s_population": {
+        "L": 18,
+        "S": 423,
+        "repeats": 9,
+        "pure_compute_ms_per_npu": 24338.79335720794,
+        "expected_blocks": 34838784
+      },
+      "cli": null
+    },
+    {
+      "candidate_id": "topo6_m4096_s32m256",
+      "status": "mathematically_feasible_not_simulated_by_this_script",
+      "selected": true,
+      "num_npu": 32,
+      "num_ssu": 6,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "L": {
+        "data_key": [
+          200,
+          4096
+        ],
+        "B_GiB_s": 1.8621157242187503,
+        "C_s": 0.1413357882794414,
+        "V_GiB": 0.26318359375,
+        "blocks_per_layer": 1568,
+        "category": "LL"
+      },
+      "S": {
+        "data_key": [
+          32,
+          256
+        ],
+        "B_GiB_s": 21.343424279388426,
+        "C_s": 0.0019974796959734433,
+        "V_GiB": 0.042633056640625,
+        "blocks_per_layer": 254,
+        "category": "SS"
+      },
+      "ratio_L_S": [
+        1,
+        29
+      ],
+      "exact_short_per_long_ratio_at_rho1": 28.816577538950742,
+      "legal_integer_ratios_in_declared_bounds": 524,
+      "rho_ideal": 1.0033938382994025,
+      "f_short": 0.2907062452703626,
+      "ideal_compute_only_mean_short_cards": 9.302599848651603,
+      "C_short_ms": 1.9974796959734433,
+      "L_layer_balanced_storage_service_ms": 1.0965983072916665,
+      "S_layer_balanced_storage_service_ms": 0.17763773600260419,
+      "S_minimum_NPU_link_service_ms": 0.8526611328125,
+      "S_first_link_start_delay_threshold_ms": 1.1448185631609433,
+      "storage_only_L_layer_equivalent_threshold": 1.659533803645393,
+      "first_link_delay_L_layer_equivalent_threshold": 1.0439725791555972,
+      "queue_threshold_assumption": "Balanced residual L FIFO prefixes delay all first S blocks. Actual block interleaving and streaming link delivery require trace validation; a whole current L request is not a full queued layer.",
+      "required_mean_short_stall_ms_for_U80": 1.7177818919195798,
+      "wait_model": "All S layers, including zero-stall layers; L unstalled; fixed long-run completion proportions; ignores startup and request-boundary effects. Required amount, not prediction.",
+      "L_request_pure_compute_ms": 1130.6863062355312,
+      "ideal_compute_work_per_L_request_ms": 1594.10159570137,
+      "warm_mix_risk_flags": [
+        "One L request exceeds 1s; two consecutive L can exceed the 2s warm window"
+      ],
+      "warm_mix_always_requires_actual_compute_validation": true,
+      "minimum_22s_population": {
+        "L": 14,
+        "S": 406,
+        "repeats": 14,
+        "pure_compute_ms_per_npu": 22317.422339819183,
+        "expected_blocks": 32019456
+      },
+      "cli": "python results/baseline_random_near_capacity_20260914/experiment.py --name topo6_m4096_s32m256 --profiles 200:4096,32:256 --counts 1,29 --roles L,S --num-ssu 6 --horizon-ms 22000 --seed 7 --strategy baseline"
+    },
+    {
+      "candidate_id": "topo6_m4096_s32m512",
+      "status": "mathematically_feasible_not_simulated_by_this_script",
+      "selected": false,
+      "num_npu": 32,
+      "num_ssu": 6,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "L": {
+        "data_key": [
+          200,
+          4096
+        ],
+        "B_GiB_s": 1.8621157242187503,
+        "C_s": 0.1413357882794414,
+        "V_GiB": 0.26318359375,
+        "blocks_per_layer": 1568,
+        "category": "LL"
+      },
+      "S": {
+        "data_key": [
+          32,
+          512
+        ],
+        "B_GiB_s": 11.425134399389648,
+        "C_s": 0.0037021326666852694,
+        "V_GiB": 0.04229736328125,
+        "blocks_per_layer": 252,
+        "category": "SL"
+      },
+      "ratio_L_S": [
+        1,
+        54
+      ],
+      "exact_short_per_long_ratio_at_rho1": 54.835498139678066,
+      "legal_integer_ratios_in_declared_bounds": 471,
+      "rho_ideal": 0.9952563038687662,
+      "f_short": 0.5858303476226223,
+      "ideal_compute_only_mean_short_cards": 18.746571123923914,
+      "C_short_ms": 3.7021326666852694,
+      "L_layer_balanced_storage_service_ms": 1.0965983072916665,
+      "S_layer_balanced_storage_service_ms": 0.176239013671875,
+      "S_minimum_NPU_link_service_ms": 0.845947265625,
+      "S_first_link_start_delay_threshold_ms": 2.8561854010602694,
+      "storage_only_L_layer_equivalent_threshold": 3.2153010173082444,
+      "first_link_delay_L_layer_equivalent_threshold": 2.604586731593958,
+      "queue_threshold_assumption": "Balanced residual L FIFO prefixes delay all first S blocks. Actual block interleaving and streaming link delivery require trace validation; a whole current L request is not a full queued layer.",
+      "required_mean_short_stall_ms_for_U80": 1.5798655198168794,
+      "wait_model": "All S layers, including zero-stall layers; L unstalled; fixed long-run completion proportions; ignores startup and request-boundary effects. Required amount, not prediction.",
+      "L_request_pure_compute_ms": 1130.6863062355312,
+      "ideal_compute_work_per_L_request_ms": 2730.0076182435673,
+      "warm_mix_risk_flags": [
+        "One L request exceeds 1s; two consecutive L can exceed the 2s warm window",
+        "Pure compute work per L exceeds 2s; many cards may have no L in warm"
+      ],
+      "warm_mix_always_requires_actual_compute_validation": true,
+      "minimum_22s_population": {
+        "L": 9,
+        "S": 486,
+        "repeats": 9,
+        "pure_compute_ms_per_npu": 24570.068564192108,
+        "expected_blocks": 34965504
+      },
+      "cli": null
+    },
+    {
+      "candidate_id": "topo6_m4096_s48m128",
+      "status": "mathematically_feasible_not_simulated_by_this_script",
+      "selected": false,
+      "num_npu": 32,
+      "num_ssu": 6,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "L": {
+        "data_key": [
+          200,
+          4096
+        ],
+        "B_GiB_s": 1.8621157242187503,
+        "C_s": 0.1413357882794414,
+        "V_GiB": 0.26318359375,
+        "blocks_per_layer": 1568,
+        "category": "LL"
+      },
+      "S": {
+        "data_key": [
+          48,
+          128
+        ],
+        "B_GiB_s": 42.47260886651917,
+        "C_s": 0.001513570275900525,
+        "V_GiB": 0.0642852783203125,
+        "blocks_per_layer": 383,
+        "category": "SS"
+      },
+      "ratio_L_S": [
+        1,
+        15
+      ],
+      "exact_short_per_long_ratio_at_rho1": 15.053506749279604,
+      "legal_integer_ratios_in_declared_bounds": 822,
+      "rho_ideal": 0.9976978696791604,
+      "f_short": 0.1384031038155615,
+      "ideal_compute_only_mean_short_cards": 4.428899322097968,
+      "C_short_ms": 1.513570275900525,
+      "L_layer_balanced_storage_service_ms": 1.0965983072916665,
+      "S_layer_balanced_storage_service_ms": 0.26785532633463544,
+      "S_minimum_NPU_link_service_ms": 1.28570556640625,
+      "S_first_link_start_delay_threshold_ms": 0.22786470949427495,
+      "storage_only_L_layer_equivalent_threshold": 1.1359810983499556,
+      "first_link_delay_L_layer_equivalent_threshold": 0.20779232283975144,
+      "queue_threshold_assumption": "Balanced residual L FIFO prefixes delay all first S blocks. Actual block interleaving and streaming link delivery require trace validation; a whole current L request is not a full queued layer.",
+      "required_mean_short_stall_ms_for_U80": 2.7339890402991545,
+      "wait_model": "All S layers, including zero-stall layers; L unstalled; fixed long-run completion proportions; ignores startup and request-boundary effects. Required amount, not prediction.",
+      "L_request_pure_compute_ms": 1130.6863062355312,
+      "ideal_compute_work_per_L_request_ms": 1312.3147393435943,
+      "warm_mix_risk_flags": [
+        "One L request exceeds 1s; two consecutive L can exceed the 2s warm window"
+      ],
+      "warm_mix_always_requires_actual_compute_validation": true,
+      "minimum_22s_population": {
+        "L": 17,
+        "S": 255,
+        "repeats": 17,
+        "pure_compute_ms_per_npu": 22309.350568841106,
+        "expected_blocks": 31826176
+      },
+      "cli": null
+    },
+    {
+      "candidate_id": "topo8_m2048_s32m128",
+      "status": "mathematically_feasible_not_simulated_by_this_script",
+      "selected": true,
+      "num_npu": 32,
+      "num_ssu": 8,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "L": {
+        "data_key": [
+          200,
+          2048
+        ],
+        "B_GiB_s": 3.7583703593261726,
+        "C_s": 0.0707405378411581,
+        "V_GiB": 0.26586914062500006,
+        "blocks_per_layer": 1584,
+        "category": "LL"
+      },
+      "S": {
+        "data_key": [
+          32,
+          128
+        ],
+        "B_GiB_s": 36.332733584014896,
+        "C_s": 0.0011780259589150035,
+        "V_GiB": 0.0428009033203125,
+        "blocks_per_layer": 255,
+        "category": "SS"
+      },
+      "ratio_L_S": [
+        3,
+        43
+      ],
+      "exact_short_per_long_ratio_at_rho1": 14.233625891619585,
+      "legal_integer_ratios_in_declared_bounds": 1119,
+      "rho_ideal": 1.0035297788011999,
+      "f_short": 0.19269532255747746,
+      "ideal_compute_only_mean_short_cards": 6.166250321839279,
+      "C_short_ms": 1.1780259589150035,
+      "L_layer_balanced_storage_service_ms": 0.8308410644531251,
+      "S_layer_balanced_storage_service_ms": 0.13375282287597656,
+      "S_minimum_NPU_link_service_ms": 0.85601806640625,
+      "S_first_link_start_delay_threshold_ms": 0.3220078925087535,
+      "storage_only_L_layer_equivalent_threshold": 1.2568867629651728,
+      "first_link_delay_L_layer_equivalent_threshold": 0.3875685811469911,
+      "queue_threshold_assumption": "Balanced residual L FIFO prefixes delay all first S blocks. Actual block interleaving and streaming link delivery require trace validation; a whole current L request is not a full queued layer.",
+      "required_mean_short_stall_ms_for_U80": 1.5283530799815084,
+      "wait_model": "All S layers, including zero-stall layers; L unstalled; fixed long-run completion proportions; ignores startup and request-boundary effects. Required amount, not prediction.",
+      "L_request_pure_compute_ms": 565.9243027292647,
+      "ideal_compute_work_per_L_request_ms": 701.0046126848518,
+      "warm_mix_risk_flags": [],
+      "warm_mix_always_requires_actual_compute_validation": true,
+      "minimum_22s_population": {
+        "L": 33,
+        "S": 473,
+        "repeats": 11,
+        "pure_compute_ms_per_npu": 23133.15221860011,
+        "expected_blocks": 44259072
+      },
+      "cli": "python results/baseline_random_near_capacity_20260914/experiment.py --name topo8_m2048_s32m128 --profiles 200:2048,32:128 --counts 3,43 --roles L,S --num-ssu 8 --horizon-ms 22000 --seed 7 --strategy baseline"
+    },
+    {
+      "candidate_id": "topo8_m2048_s32m256",
+      "status": "mathematically_feasible_not_simulated_by_this_script",
+      "selected": true,
+      "num_npu": 32,
+      "num_ssu": 8,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "L": {
+        "data_key": [
+          200,
+          2048
+        ],
+        "B_GiB_s": 3.7583703593261726,
+        "C_s": 0.0707405378411581,
+        "V_GiB": 0.26586914062500006,
+        "blocks_per_layer": 1584,
+        "category": "LL"
+      },
+      "S": {
+        "data_key": [
+          32,
+          256
+        ],
+        "B_GiB_s": 21.343424279388426,
+        "C_s": 0.0019974796959734433,
+        "V_GiB": 0.042633056640625,
+        "blocks_per_layer": 254,
+        "category": "SS"
+      },
+      "ratio_L_S": [
+        2,
+        39
+      ],
+      "exact_short_per_long_ratio_at_rho1": 19.486767474863125,
+      "legal_integer_ratios_in_declared_bounds": 1023,
+      "rho_ideal": 1.000273335934167,
+      "f_short": 0.35509490209134326,
+      "ideal_compute_only_mean_short_cards": 11.363036866922984,
+      "C_short_ms": 1.9974796959734433,
+      "L_layer_balanced_storage_service_ms": 0.8308410644531251,
+      "S_layer_balanced_storage_service_ms": 0.13322830200195312,
+      "S_minimum_NPU_link_service_ms": 0.8526611328125,
+      "S_first_link_start_delay_threshold_ms": 1.1448185631609433,
+      "storage_only_L_layer_equivalent_threshold": 2.2438122930269158,
+      "first_link_delay_L_layer_equivalent_threshold": 1.377903202117825,
+      "queue_threshold_assumption": "Balanced residual L FIFO prefixes delay all first S blocks. Actual block interleaving and streaming link delivery require trace validation; a whole current L request is not a full queued layer.",
+      "required_mean_short_stall_ms_for_U80": 1.4062998963159004,
+      "wait_model": "All S layers, including zero-stall layers; L unstalled; fixed long-run completion proportions; ignores startup and request-boundary effects. Required amount, not prediction.",
+      "L_request_pure_compute_ms": 565.9243027292647,
+      "ideal_compute_work_per_L_request_ms": 877.5311353011219,
+      "warm_mix_risk_flags": [],
+      "warm_mix_always_requires_actual_compute_validation": true,
+      "minimum_22s_population": {
+        "L": 26,
+        "S": 507,
+        "repeats": 13,
+        "pure_compute_ms_per_npu": 22815.80951782917,
+        "expected_blocks": 43510272
+      },
+      "cli": "python results/baseline_random_near_capacity_20260914/experiment.py --name topo8_m2048_s32m256 --profiles 200:2048,32:256 --counts 2,39 --roles L,S --num-ssu 8 --horizon-ms 22000 --seed 7 --strategy baseline"
+    },
+    {
+      "candidate_id": "topo8_m2048_s32m512",
+      "status": "mathematically_feasible_not_simulated_by_this_script",
+      "selected": false,
+      "num_npu": 32,
+      "num_ssu": 8,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "L": {
+        "data_key": [
+          200,
+          2048
+        ],
+        "B_GiB_s": 3.7583703593261726,
+        "C_s": 0.0707405378411581,
+        "V_GiB": 0.26586914062500006,
+        "blocks_per_layer": 1584,
+        "category": "LL"
+      },
+      "S": {
+        "data_key": [
+          32,
+          512
+        ],
+        "B_GiB_s": 11.425134399389648,
+        "C_s": 0.0037021326666852694,
+        "V_GiB": 0.04229736328125,
+        "blocks_per_layer": 252,
+        "category": "SL"
+      },
+      "ratio_L_S": [
+        1,
+        81
+      ],
+      "exact_short_per_long_ratio_at_rho1": 83.68710645064739,
+      "legal_integer_ratios_in_declared_bounds": 835,
+      "rho_ideal": 0.9961746454758977,
+      "f_short": 0.8091257358406254,
+      "ideal_compute_only_mean_short_cards": 25.892023546900013,
+      "C_short_ms": 3.7021326666852694,
+      "L_layer_balanced_storage_service_ms": 0.8308410644531251,
+      "S_layer_balanced_storage_service_ms": 0.13217926025390625,
+      "S_minimum_NPU_link_service_ms": 0.845947265625,
+      "S_first_link_start_delay_threshold_ms": 2.8561854010602694,
+      "storage_only_L_layer_equivalent_threshold": 4.296794608703136,
+      "first_link_delay_L_layer_equivalent_threshold": 3.437703699612227,
+      "queue_threshold_assumption": "Balanced residual L FIFO prefixes delay all first S blocks. Actual block interleaving and streaming link delivery require trace validation; a whole current L request is not a full queued layer.",
+      "required_mean_short_stall_ms_for_U80": 1.143868160008225,
+      "wait_model": "All S layers, including zero-stall layers; L unstalled; fixed long-run completion proportions; ignores startup and request-boundary effects. Required amount, not prediction.",
+      "L_request_pure_compute_ms": 565.9243027292647,
+      "ideal_compute_work_per_L_request_ms": 2964.906270741319,
+      "warm_mix_risk_flags": [
+        "Pure compute work per L exceeds 2s; many cards may have no L in warm"
+      ],
+      "warm_mix_always_requires_actual_compute_validation": true,
+      "minimum_22s_population": {
+        "L": 8,
+        "S": 648,
+        "repeats": 8,
+        "pure_compute_ms_per_npu": 23719.250165930553,
+        "expected_blocks": 45047808
+      },
+      "cli": null
+    },
+    {
+      "candidate_id": "topo8_m2048_s48m128",
+      "status": "mathematically_feasible_not_simulated_by_this_script",
+      "selected": true,
+      "num_npu": 32,
+      "num_ssu": 8,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "L": {
+        "data_key": [
+          200,
+          2048
+        ],
+        "B_GiB_s": 3.7583703593261726,
+        "C_s": 0.0707405378411581,
+        "V_GiB": 0.26586914062500006,
+        "blocks_per_layer": 1584,
+        "category": "LL"
+      },
+      "S": {
+        "data_key": [
+          48,
+          128
+        ],
+        "B_GiB_s": 42.47260886651917,
+        "C_s": 0.001513570275900525,
+        "V_GiB": 0.0642852783203125,
+        "blocks_per_layer": 383,
+        "category": "SS"
+      },
+      "ratio_L_S": [
+        1,
+        9
+      ],
+      "exact_short_per_long_ratio_at_rho1": 8.98352086959176,
+      "legal_integer_ratios_in_declared_bounds": 1711,
+      "rho_ideal": 1.0009600718683647,
+      "f_short": 0.16147109178438349,
+      "ideal_compute_only_mean_short_cards": 5.1670749371002715,
+      "C_short_ms": 1.513570275900525,
+      "L_layer_balanced_storage_service_ms": 0.8308410644531251,
+      "S_layer_balanced_storage_service_ms": 0.20089149475097656,
+      "S_minimum_NPU_link_service_ms": 1.28570556640625,
+      "S_first_link_start_delay_threshold_ms": 0.22786470949427495,
+      "storage_only_L_layer_equivalent_threshold": 1.5799396988322643,
+      "first_link_delay_L_layer_equivalent_threshold": 0.27425788065044626,
+      "queue_threshold_assumption": "Balanced residual L FIFO prefixes delay all first S blocks. Actual block interleaving and streaming link delivery require trace validation; a whole current L request is not a full queued layer.",
+      "required_mean_short_stall_ms_for_U80": 2.3434075090073003,
+      "wait_model": "All S layers, including zero-stall layers; L unstalled; fixed long-run completion proportions; ignores startup and request-boundary effects. Required amount, not prediction.",
+      "L_request_pure_compute_ms": 565.9243027292647,
+      "ideal_compute_work_per_L_request_ms": 674.9013625941025,
+      "warm_mix_risk_flags": [],
+      "warm_mix_always_requires_actual_compute_validation": true,
+      "minimum_22s_population": {
+        "L": 33,
+        "S": 297,
+        "repeats": 33,
+        "pure_compute_ms_per_npu": 22271.744965605383,
+        "expected_blocks": 42501888
+      },
+      "cli": "python results/baseline_random_near_capacity_20260914/experiment.py --name topo8_m2048_s48m128 --profiles 200:2048,48:128 --counts 1,9 --roles L,S --num-ssu 8 --horizon-ms 22000 --seed 7 --strategy baseline"
+    },
+    {
+      "candidate_id": "topo8_m4096_s32m128",
+      "status": "mathematically_feasible_not_simulated_by_this_script",
+      "selected": false,
+      "num_npu": 32,
+      "num_ssu": 8,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "L": {
+        "data_key": [
+          200,
+          4096
+        ],
+        "B_GiB_s": 1.8621157242187503,
+        "C_s": 0.1413357882794414,
+        "V_GiB": 0.26318359375,
+        "blocks_per_layer": 1568,
+        "category": "LL"
+      },
+      "S": {
+        "data_key": [
+          32,
+          128
+        ],
+        "B_GiB_s": 36.332733584014896,
+        "C_s": 0.0011780259589150035,
+        "V_GiB": 0.0428009033203125,
+        "blocks_per_layer": 255,
+        "category": "SS"
+      },
+      "ratio_L_S": [
+        1,
+        37
+      ],
+      "exact_short_per_long_ratio_at_rho1": 37.07770538265721,
+      "legal_integer_ratios_in_declared_bounds": 352,
+      "rho_ideal": 0.9986964983986147,
+      "f_short": 0.23570361554915997,
+      "ideal_compute_only_mean_short_cards": 7.542515697573119,
+      "C_short_ms": 1.1780259589150035,
+      "L_layer_balanced_storage_service_ms": 0.82244873046875,
+      "S_layer_balanced_storage_service_ms": 0.13375282287597656,
+      "S_minimum_NPU_link_service_ms": 0.85601806640625,
+      "S_first_link_start_delay_threshold_ms": 0.3220078925087535,
+      "storage_only_L_layer_equivalent_threshold": 1.2697121380974707,
+      "first_link_delay_L_layer_equivalent_threshold": 0.3915233625872666,
+      "queue_threshold_assumption": "Balanced residual L FIFO prefixes delay all first S blocks. Actual block interleaving and streaming link delivery require trace validation; a whole current L request is not a full queued layer.",
+      "required_mean_short_stall_ms_for_U80": 1.249478032157409,
+      "wait_model": "All S layers, including zero-stall layers; L unstalled; fixed long-run completion proportions; ignores startup and request-boundary effects. Required amount, not prediction.",
+      "L_request_pure_compute_ms": 1130.6863062355312,
+      "ideal_compute_work_per_L_request_ms": 1479.3819900743724,
+      "warm_mix_risk_flags": [
+        "One L request exceeds 1s; two consecutive L can exceed the 2s warm window"
+      ],
+      "warm_mix_always_requires_actual_compute_validation": true,
+      "minimum_22s_population": {
+        "L": 15,
+        "S": 555,
+        "repeats": 15,
+        "pure_compute_ms_per_npu": 22190.729851115586,
+        "expected_blocks": 42251520
+      },
+      "cli": null
+    },
+    {
+      "candidate_id": "topo8_m4096_s32m256",
+      "status": "mathematically_feasible_not_simulated_by_this_script",
+      "selected": true,
+      "num_npu": 32,
+      "num_ssu": 8,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "L": {
+        "data_key": [
+          200,
+          4096
+        ],
+        "B_GiB_s": 1.8621157242187503,
+        "C_s": 0.1413357882794414,
+        "V_GiB": 0.26318359375,
+        "blocks_per_layer": 1568,
+        "category": "LL"
+      },
+      "S": {
+        "data_key": [
+          32,
+          256
+        ],
+        "B_GiB_s": 21.343424279388426,
+        "C_s": 0.0019974796959734433,
+        "V_GiB": 0.042633056640625,
+        "blocks_per_layer": 254,
+        "category": "SS"
+      },
+      "ratio_L_S": [
+        1,
+        51
+      ],
+      "exact_short_per_long_ratio_at_rho1": 50.76181071463505,
+      "legal_integer_ratios_in_declared_bounds": 332,
+      "rho_ideal": 1.0022190763718788,
+      "f_short": 0.41886688547595696,
+      "ideal_compute_only_mean_short_cards": 13.403740335230623,
+      "C_short_ms": 1.9974796959734433,
+      "L_layer_balanced_storage_service_ms": 0.82244873046875,
+      "S_layer_balanced_storage_service_ms": 0.13322830200195312,
+      "S_minimum_NPU_link_service_ms": 0.8526611328125,
+      "S_first_link_start_delay_threshold_ms": 1.1448185631609433,
+      "storage_only_L_layer_equivalent_threshold": 2.266708336833313,
+      "first_link_delay_L_layer_equivalent_threshold": 1.3919634388741298,
+      "queue_threshold_assumption": "Balanced residual L FIFO prefixes delay all first S blocks. Actual block interleaving and streaming link delivery require trace validation; a whole current L request is not a full queued layer.",
+      "required_mean_short_stall_ms_for_U80": 1.1921924155592498,
+      "wait_model": "All S layers, including zero-stall layers; L unstalled; fixed long-run completion proportions; ignores startup and request-boundary effects. Required amount, not prediction.",
+      "L_request_pure_compute_ms": 1130.6863062355312,
+      "ideal_compute_work_per_L_request_ms": 1945.658022192696,
+      "warm_mix_risk_flags": [
+        "One L request exceeds 1s; two consecutive L can exceed the 2s warm window"
+      ],
+      "warm_mix_always_requires_actual_compute_validation": true,
+      "minimum_22s_population": {
+        "L": 12,
+        "S": 612,
+        "repeats": 12,
+        "pure_compute_ms_per_npu": 23347.896266312353,
+        "expected_blocks": 44611584
+      },
+      "cli": "python results/baseline_random_near_capacity_20260914/experiment.py --name topo8_m4096_s32m256 --profiles 200:4096,32:256 --counts 1,51 --roles L,S --num-ssu 8 --horizon-ms 22000 --seed 7 --strategy baseline"
+    },
+    {
+      "candidate_id": "topo8_m4096_s32m512",
+      "status": "mathematically_feasible_not_simulated_by_this_script",
+      "selected": false,
+      "num_npu": 32,
+      "num_ssu": 8,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "L": {
+        "data_key": [
+          200,
+          4096
+        ],
+        "B_GiB_s": 1.8621157242187503,
+        "C_s": 0.1413357882794414,
+        "V_GiB": 0.26318359375,
+        "blocks_per_layer": 1568,
+        "category": "LL"
+      },
+      "S": {
+        "data_key": [
+          32,
+          512
+        ],
+        "B_GiB_s": 11.425134399389648,
+        "C_s": 0.0037021326666852694,
+        "V_GiB": 0.04229736328125,
+        "blocks_per_layer": 252,
+        "category": "SL"
+      },
+      "ratio_L_S": [
+        1,
+        210
+      ],
+      "exact_short_per_long_ratio_at_rho1": 217.99967913524432,
+      "legal_integer_ratios_in_declared_bounds": 349,
+      "rho_ideal": 0.9954062525927798,
+      "f_short": 0.8461707622425446,
+      "ideal_compute_only_mean_short_cards": 27.077464391761428,
+      "C_short_ms": 3.7021326666852694,
+      "L_layer_balanced_storage_service_ms": 0.82244873046875,
+      "S_layer_balanced_storage_service_ms": 0.13217926025390625,
+      "S_minimum_NPU_link_service_ms": 0.845947265625,
+      "S_first_link_start_delay_threshold_ms": 2.8561854010602694,
+      "storage_only_L_layer_equivalent_threshold": 4.340639451649087,
+      "first_link_delay_L_layer_equivalent_threshold": 3.4727823087919445,
+      "queue_threshold_assumption": "Balanced residual L FIFO prefixes delay all first S blocks. Actual block interleaving and streaming link delivery require trace validation; a whole current L request is not a full queued layer.",
+      "required_mean_short_stall_ms_for_U80": 1.0937900574801762,
+      "wait_model": "All S layers, including zero-stall layers; L unstalled; fixed long-run completion proportions; ignores startup and request-boundary effects. Required amount, not prediction.",
+      "L_request_pure_compute_ms": 1130.6863062355312,
+      "ideal_compute_work_per_L_request_ms": 7350.269186266783,
+      "warm_mix_risk_flags": [
+        "One L request exceeds 1s; two consecutive L can exceed the 2s warm window",
+        "Pure compute work per L exceeds 2s; many cards may have no L in warm"
+      ],
+      "warm_mix_always_requires_actual_compute_validation": true,
+      "minimum_22s_population": {
+        "L": 3,
+        "S": 630,
+        "repeats": 3,
+        "pure_compute_ms_per_npu": 22050.807558800352,
+        "expected_blocks": 41846784
+      },
+      "cli": null
+    },
+    {
+      "candidate_id": "topo8_m4096_s48m128",
+      "status": "mathematically_feasible_not_simulated_by_this_script",
+      "selected": false,
+      "num_npu": 32,
+      "num_ssu": 8,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "L": {
+        "data_key": [
+          200,
+          4096
+        ],
+        "B_GiB_s": 1.8621157242187503,
+        "C_s": 0.1413357882794414,
+        "V_GiB": 0.26318359375,
+        "blocks_per_layer": 1568,
+        "category": "LL"
+      },
+      "S": {
+        "data_key": [
+          48,
+          128
+        ],
+        "B_GiB_s": 42.47260886651917,
+        "C_s": 0.001513570275900525,
+        "V_GiB": 0.0642852783203125,
+        "blocks_per_layer": 383,
+        "category": "SS"
+      },
+      "ratio_L_S": [
+        2,
+        47
+      ],
+      "exact_short_per_long_ratio_at_rho1": 23.401510102762366,
+      "legal_integer_ratios_in_declared_bounds": 524,
+      "rho_ideal": 1.0027363529213322,
+      "f_short": 0.20106251299099698,
+      "ideal_compute_only_mean_short_cards": 6.434000415711903,
+      "C_short_ms": 1.513570275900525,
+      "L_layer_balanced_storage_service_ms": 0.82244873046875,
+      "S_layer_balanced_storage_service_ms": 0.20089149475097656,
+      "S_minimum_NPU_link_service_ms": 1.28570556640625,
+      "S_first_link_start_delay_threshold_ms": 0.22786470949427495,
+      "storage_only_L_layer_equivalent_threshold": 1.5960615324938183,
+      "first_link_delay_L_layer_equivalent_threshold": 0.2770564304530019,
+      "queue_threshold_assumption": "Balanced residual L FIFO prefixes delay all first S blocks. Actual block interleaving and streaming link delivery require trace validation; a whole current L request is not a full queued layer.",
+      "required_mean_short_stall_ms_for_U80": 1.8819647847138696,
+      "wait_model": "All S layers, including zero-stall layers; L unstalled; fixed long-run completion proportions; ignores startup and request-boundary effects. Required amount, not prediction.",
+      "L_request_pure_compute_ms": 1130.6863062355312,
+      "ideal_compute_work_per_L_request_ms": 1415.23751810483,
+      "warm_mix_risk_flags": [
+        "One L request exceeds 1s; two consecutive L can exceed the 2s warm window"
+      ],
+      "warm_mix_always_requires_actual_compute_validation": true,
+      "minimum_22s_population": {
+        "L": 16,
+        "S": 376,
+        "repeats": 8,
+        "pure_compute_ms_per_npu": 22643.80028967728,
+        "expected_blocks": 43288576
+      },
+      "cli": null
+    }
+  ]
+}

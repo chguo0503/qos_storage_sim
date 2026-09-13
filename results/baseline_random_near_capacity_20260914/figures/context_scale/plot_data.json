@@ -1,0 +1,798 @@
+{
+  "updated_utc": "2026-09-13T17:54:49.923928+00:00",
+  "scope": "32 NPU · 8 SSU × 40 GiB/s · Baseline / 独立 Random · 探索 seed7（n=1）",
+  "definitions": {
+    "B": "Per-layer required bandwidthV/C; both class lines are demand. 320/32=10 is only a mean-capacity reference, not actual grant.",
+    "mean_wait": "All same-request internal cycles entirely inside[2000,20000)ms, zero waits included. Positive threshold>1e-7ms.",
+    "actual_U": "Exact compute-window overlap/(32*T); fullwarm[2,4)s andlong[2,20)s, no clipping of denominator by activity.",
+    "exact_loss": "Exact window overlap: compute+short_internal+long_internal+exposedL0+idle=100%.",
+    "finite8": "U≈8ΣnC/(8ΣnC+7Σn*w_internal+Σn*d_L0); substitutes observed per-role waits, so it is posthoc explanation, not independent prediction.",
+    "zoom": "A positive-wait selected layer or positive-only median is not the all-cycle mean. Context384 all-cycle mean is.467224ms; context512 is.529443ms."
+  },
+  "rows": [
+    {
+      "candidate": "context8_L200m1024_S10m128",
+      "num_ssu": 8,
+      "seed": 7,
+      "strategy": "baseline",
+      "source_family": "constructed_C_extrapolation",
+      "profiles": {
+        "S": {
+          "role": "S",
+          "seq_len_k": 10,
+          "miss_tokens": 128,
+          "total_tokens": 10240,
+          "hit_tokens": 10112,
+          "C_ms": 0.7166525096318267,
+          "V_GiB": 0.0132598876953125,
+          "B_GiB_s": 18.5025343762832,
+          "requests": 27328,
+          "constructed_profile": true,
+          "construction": {
+            "candidate_plan_path": "/home/chguo/work/last_code/qos_storage_sim/results/baseline_random_near_capacity_20260914/long_scale_math.json",
+            "candidate_plan_sha256": "2df85dcba496aab5cacc40f657b0e70cfd13c6b7dc4f5c207ac95aef95096225",
+            "compute_model": {
+              "fixed_miss": 128,
+              "frozen_source": "constructed_candidates.json",
+              "frozen_source_sha256": "7f224648e87a398922a0303afebd1b3967b723dccbfab17354ac49c710ee710a",
+              "intercept_ms": 0.5069373084555413,
+              "method": "affine_extrapolation_below_raw_minimum",
+              "raw_support_total_K_range": [
+                32,
+                200
+              ],
+              "slope_ms_per_K": 0.020971520117628543
+            },
+            "compute_model_scale": 1.0,
+            "limitation": "Affine extrapolated prefill compute, not measured at this context length. Exact KV-prefix block volume is part of a simulator model stress test, not a real-device claim.",
+            "measured_data_row": false,
+            "method": "affine_extrapolation_below_raw_minimum",
+            "model_provenance": {
+              "V_model": "Exact128-token cached blocks at176KiB per block; no tail and no padding",
+              "context_support": "256K/384K/512K context support is an unverified stress-test assumption; not a claim that a real deployment supports these lengths.",
+              "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+              "long_compute_model": {
+                "fixed_miss": 1024,
+                "intercept_ms": 1.8885230058657498,
+                "method": "direct_data_row",
+                "raw_key": [
+                  200,
+                  1024
+                ],
+                "raw_support_total_K_range": [
+                  32,
+                  200
+                ],
+                "slope_ms_per_K": 0.16777215389889077
+              },
+              "long_source_ttft_ms": 2764.5501731299546,
+              "short_compute_model": {
+                "fixed_miss": 128,
+                "frozen_source": "constructed_candidates.json",
+                "frozen_source_sha256": "7f224648e87a398922a0303afebd1b3967b723dccbfab17354ac49c710ee710a",
+                "intercept_ms": 0.5069373084555413,
+                "method": "affine_extrapolation_below_raw_minimum",
+                "raw_support_total_K_range": [
+                  32,
+                  200
+                ],
+                "slope_ms_per_K": 0.020971520117628543
+              },
+              "short_source_ttft_ms": null,
+              "source_data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b"
+            },
+            "raw_data_max_total_k": 200,
+            "raw_data_min_total_k": 32
+          },
+          "source_ttft_ms": null
+        },
+        "L": {
+          "role": "L",
+          "seq_len_k": 200,
+          "miss_tokens": 1024,
+          "total_tokens": 204800,
+          "hit_tokens": 203776,
+          "C_ms": 35.44295093756352,
+          "V_GiB": 0.26721191406250006,
+          "B_GiB_s": 7.539211803588868,
+          "requests": 1952,
+          "constructed_profile": false,
+          "construction": {
+            "method": "direct_data_row"
+          },
+          "source_ttft_ms": 2764.5501731299546
+        }
+      },
+      "count_ratio_by_role": {
+        "S": 14,
+        "L": 1
+      },
+      "short_roles": [
+        "S"
+      ],
+      "long_roles": [
+        "L"
+      ],
+      "ideal_load_ratio": 0.9957988492585447,
+      "ideal_short_compute_fraction": 0.22062442046728378,
+      "actual_long_window_short_compute_fraction": 0.21718919346117666,
+      "count_weighted_short_C_ms": 0.7166525096318267,
+      "observed_short_internal_wait_ms": 0.3139611775075922,
+      "observed_internal_wait_by_role_ms": {
+        "S": 0.3139611775075922,
+        "L": 0.0
+      },
+      "observed_L0_wait_by_role_ms": {
+        "S": 0.29029484519424953,
+        "L": 4.831945463090551
+      },
+      "targets": {
+        "89": {
+          "U_percent": 89.0,
+          "continuous_layer_required_mean_short_wait_ms": 0.40147427511757655,
+          "finite8_zero_L0_and_zero_long_wait_required_mean_short_wait_ms": 0.4588277429915161,
+          "finite8_with_observed_L0_and_long_wait_required_mean_short_wait_ms": 0.3680514848710054,
+          "observed_over_continuous_required": 0.7820206597686612
+        },
+        "85": {
+          "U_percent": 85.0,
+          "continuous_layer_required_mean_short_wait_ms": 0.5732279757026358,
+          "finite8_zero_L0_and_zero_long_wait_required_mean_short_wait_ms": 0.655117686517298,
+          "finite8_with_observed_L0_and_long_wait_required_mean_short_wait_ms": 0.5643414283967875,
+          "observed_over_continuous_required": 0.5477073534709352
+        }
+      },
+      "observed_warm_U_percent": 90.13662674843053,
+      "observed_long_U_percent": 90.28545465560765,
+      "all_32_active_long": true,
+      "warm_mixed_cards": 32,
+      "long_mixed_cards": 32,
+      "exact_long_loss_pp": {
+        "short_internal": 7.519481648536816,
+        "long_internal": 0.0,
+        "L0_exposed_handoff": 2.19506369594199,
+        "idle": 2.4253192047278086e-13,
+        "total": 9.714545344392349
+      },
+      "observed_wait_substitution_U_percent": 91.18644369173634,
+      "observed_7internal_1L0_substitution_U_percent": 90.16928694308255,
+      "capacity_upper_bound_complete_finite_U_percent": 100.0,
+      "analysis_path": "runs/context8_L200m1024_S10m128_ssu8_h22000_seed7/baseline/analysis.json",
+      "analysis_sha256": "92b1880a2917d3874554351b4e8741f3984c450237289daba07407d29266b5b4",
+      "result_sha256": "cae62607142037493bfaa43c441a2ab3fbecf583026a795a0b3f3a322cff08ac",
+      "long_total_K": 200,
+      "short_internal_complete_count": 137898,
+      "short_internal_positive_count": 61102,
+      "short_internal_zero_fraction": 0.5569043785986744,
+      "short_internal_all_median_ms": 0.0,
+      "short_internal_positive_mean_ms": 0.7085630332221851,
+      "short_internal_positive_median_ms": 0.5002359181025895,
+      "finite8_model_error_pp": -0.1161677125250975
+    },
+    {
+      "candidate": "context8_L256m1024_S10m128",
+      "num_ssu": 8,
+      "seed": 7,
+      "strategy": "baseline",
+      "source_family": "constructed_C_extrapolation",
+      "profiles": {
+        "S": {
+          "role": "S",
+          "seq_len_k": 10,
+          "miss_tokens": 128,
+          "total_tokens": 10240,
+          "hit_tokens": 10112,
+          "C_ms": 0.7166525096318267,
+          "V_GiB": 0.0132598876953125,
+          "B_GiB_s": 18.5025343762832,
+          "requests": 26656,
+          "constructed_profile": true,
+          "construction": {
+            "candidate_plan_path": "/home/chguo/work/last_code/qos_storage_sim/results/baseline_random_near_capacity_20260914/long_scale_math.json",
+            "candidate_plan_sha256": "2df85dcba496aab5cacc40f657b0e70cfd13c6b7dc4f5c207ac95aef95096225",
+            "compute_model": {
+              "fixed_miss": 128,
+              "frozen_source": "constructed_candidates.json",
+              "frozen_source_sha256": "7f224648e87a398922a0303afebd1b3967b723dccbfab17354ac49c710ee710a",
+              "intercept_ms": 0.5069373084555413,
+              "method": "affine_extrapolation_below_raw_minimum",
+              "raw_support_total_K_range": [
+                32,
+                200
+              ],
+              "slope_ms_per_K": 0.020971520117628543
+            },
+            "compute_model_scale": 1.0,
+            "limitation": "Affine extrapolated prefill compute, not measured at this context length. Exact KV-prefix block volume is part of a simulator model stress test, not a real-device claim.",
+            "measured_data_row": false,
+            "method": "affine_extrapolation_below_raw_minimum",
+            "model_provenance": {
+              "V_model": "Exact128-token cached blocks at176KiB per block; no tail and no padding",
+              "context_support": "256K/384K/512K context support is an unverified stress-test assumption; not a claim that a real deployment supports these lengths.",
+              "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+              "long_compute_model": {
+                "fixed_miss": 1024,
+                "intercept_ms": 1.8885230058657498,
+                "method": "affine_extrapolation_above_raw_maximum",
+                "raw_support_total_K_range": [
+                  32,
+                  200
+                ],
+                "slope_ms_per_K": 0.16777215389889077
+              },
+              "long_source_ttft_ms": null,
+              "short_compute_model": {
+                "fixed_miss": 128,
+                "frozen_source": "constructed_candidates.json",
+                "frozen_source_sha256": "7f224648e87a398922a0303afebd1b3967b723dccbfab17354ac49c710ee710a",
+                "intercept_ms": 0.5069373084555413,
+                "method": "affine_extrapolation_below_raw_minimum",
+                "raw_support_total_K_range": [
+                  32,
+                  200
+                ],
+                "slope_ms_per_K": 0.020971520117628543
+              },
+              "short_source_ttft_ms": null,
+              "source_data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b"
+            },
+            "raw_data_max_total_k": 200,
+            "raw_data_min_total_k": 32
+          },
+          "source_ttft_ms": null
+        },
+        "L": {
+          "role": "L",
+          "seq_len_k": 256,
+          "miss_tokens": 1024,
+          "total_tokens": 262144,
+          "hit_tokens": 261120,
+          "C_ms": 44.83819440398179,
+          "V_GiB": 0.3424072265625,
+          "B_GiB_s": 7.6365079172789585,
+          "requests": 1568,
+          "constructed_profile": true,
+          "construction": {
+            "candidate_plan_path": "/home/chguo/work/last_code/qos_storage_sim/results/baseline_random_near_capacity_20260914/long_scale_math.json",
+            "candidate_plan_sha256": "2df85dcba496aab5cacc40f657b0e70cfd13c6b7dc4f5c207ac95aef95096225",
+            "compute_model": {
+              "fixed_miss": 1024,
+              "intercept_ms": 1.8885230058657498,
+              "method": "affine_extrapolation_above_raw_maximum",
+              "raw_support_total_K_range": [
+                32,
+                200
+              ],
+              "slope_ms_per_K": 0.16777215389889077
+            },
+            "compute_model_scale": 1.0,
+            "limitation": "Affine extrapolated prefill compute, not measured at this context length. Exact KV-prefix block volume is part of a simulator model stress test, not a real-device claim.",
+            "measured_data_row": false,
+            "method": "affine_extrapolation_above_raw_maximum",
+            "model_provenance": {
+              "V_model": "Exact128-token cached blocks at176KiB per block; no tail and no padding",
+              "context_support": "256K/384K/512K context support is an unverified stress-test assumption; not a claim that a real deployment supports these lengths.",
+              "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+              "long_compute_model": {
+                "fixed_miss": 1024,
+                "intercept_ms": 1.8885230058657498,
+                "method": "affine_extrapolation_above_raw_maximum",
+                "raw_support_total_K_range": [
+                  32,
+                  200
+                ],
+                "slope_ms_per_K": 0.16777215389889077
+              },
+              "long_source_ttft_ms": null,
+              "short_compute_model": {
+                "fixed_miss": 128,
+                "frozen_source": "constructed_candidates.json",
+                "frozen_source_sha256": "7f224648e87a398922a0303afebd1b3967b723dccbfab17354ac49c710ee710a",
+                "intercept_ms": 0.5069373084555413,
+                "method": "affine_extrapolation_below_raw_minimum",
+                "raw_support_total_K_range": [
+                  32,
+                  200
+                ],
+                "slope_ms_per_K": 0.020971520117628543
+              },
+              "short_source_ttft_ms": null,
+              "source_data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b"
+            },
+            "raw_data_max_total_k": 200,
+            "raw_data_min_total_k": 32
+          },
+          "source_ttft_ms": null
+        }
+      },
+      "count_ratio_by_role": {
+        "S": 17,
+        "L": 1
+      },
+      "short_roles": [
+        "S"
+      ],
+      "long_roles": [
+        "L"
+      ],
+      "ideal_load_ratio": 0.9958128737227899,
+      "ideal_short_compute_fraction": 0.21365867538681615,
+      "actual_long_window_short_compute_fraction": 0.20434839139072966,
+      "count_weighted_short_C_ms": 0.7166525096318267,
+      "observed_short_internal_wait_ms": 0.3814904659031548,
+      "observed_internal_wait_by_role_ms": {
+        "S": 0.3814904659031548,
+        "L": 0.0
+      },
+      "observed_L0_wait_by_role_ms": {
+        "S": 0.3587418886792361,
+        "L": 6.407063143954508
+      },
+      "targets": {
+        "89": {
+          "U_percent": 89.0,
+          "continuous_layer_required_mean_short_wait_ms": 0.4145632238895914,
+          "finite8_zero_L0_and_zero_long_wait_required_mean_short_wait_ms": 0.47378654158810446,
+          "finite8_with_observed_L0_and_long_wait_required_mean_short_wait_ms": 0.36869683359229327,
+          "observed_over_continuous_required": 0.9202226437836543
+        },
+        "85": {
+          "U_percent": 85.0,
+          "continuous_layer_required_mean_short_wait_ms": 0.5919164747514485,
+          "finite8_zero_L0_and_zero_long_wait_required_mean_short_wait_ms": 0.6764759711445125,
+          "finite8_with_observed_L0_and_long_wait_required_mean_short_wait_ms": 0.5713862631487013,
+          "observed_over_continuous_required": 0.6445005033241326
+        }
+      },
+      "observed_warm_U_percent": 89.18020101370249,
+      "observed_long_U_percent": 89.11611593855186,
+      "all_32_active_long": true,
+      "warm_mixed_cards": 32,
+      "long_mixed_cards": 32,
+      "exact_long_loss_pp": {
+        "short_internal": 8.482906559567025,
+        "long_internal": 0.0,
+        "L0_exposed_handoff": 2.400977501946224,
+        "idle": 1.0105496686365869e-13,
+        "total": 10.883884061448143
+      },
+      "observed_wait_substitution_U_percent": 89.78793484684273,
+      "observed_7internal_1L0_substitution_U_percent": 88.7364240663931,
+      "capacity_upper_bound_complete_finite_U_percent": 100.0,
+      "analysis_path": "runs/context8_L256m1024_S10m128_ssu8_h22000_seed7/baseline/analysis.json",
+      "analysis_sha256": "b74f02a6e2fc7faa8b08b1c689868af5b6438c9465a80f173d39e7a5051cea2e",
+      "result_sha256": "b0b262c1510ba645fc93d08b72925053f744f86bb61c1b249885b48243b85839",
+      "long_total_K": 256,
+      "short_internal_complete_count": 128064,
+      "short_internal_positive_count": 52929,
+      "short_internal_zero_fraction": 0.5866988380809595,
+      "short_internal_all_median_ms": 0.0,
+      "short_internal_positive_mean_ms": 0.9230326479892236,
+      "short_internal_positive_median_ms": 0.6848672657588395,
+      "finite8_model_error_pp": -0.37969187215875877
+    },
+    {
+      "candidate": "context8_L384m1024_S10m128",
+      "num_ssu": 8,
+      "seed": 7,
+      "strategy": "baseline",
+      "source_family": "constructed_C_extrapolation",
+      "profiles": {
+        "S": {
+          "role": "S",
+          "seq_len_k": 10,
+          "miss_tokens": 128,
+          "total_tokens": 10240,
+          "hit_tokens": 10112,
+          "C_ms": 0.7166525096318267,
+          "V_GiB": 0.0132598876953125,
+          "B_GiB_s": 18.5025343762832,
+          "requests": 25344,
+          "constructed_profile": true,
+          "construction": {
+            "candidate_plan_path": "/home/chguo/work/last_code/qos_storage_sim/results/baseline_random_near_capacity_20260914/long_scale_math.json",
+            "candidate_plan_sha256": "2df85dcba496aab5cacc40f657b0e70cfd13c6b7dc4f5c207ac95aef95096225",
+            "compute_model": {
+              "fixed_miss": 128,
+              "frozen_source": "constructed_candidates.json",
+              "frozen_source_sha256": "7f224648e87a398922a0303afebd1b3967b723dccbfab17354ac49c710ee710a",
+              "intercept_ms": 0.5069373084555413,
+              "method": "affine_extrapolation_below_raw_minimum",
+              "raw_support_total_K_range": [
+                32,
+                200
+              ],
+              "slope_ms_per_K": 0.020971520117628543
+            },
+            "compute_model_scale": 1.0,
+            "limitation": "Affine extrapolated prefill compute, not measured at this context length. Exact KV-prefix block volume is part of a simulator model stress test, not a real-device claim.",
+            "measured_data_row": false,
+            "method": "affine_extrapolation_below_raw_minimum",
+            "model_provenance": {
+              "V_model": "Exact128-token cached blocks at176KiB per block; no tail and no padding",
+              "context_support": "256K/384K/512K context support is an unverified stress-test assumption; not a claim that a real deployment supports these lengths.",
+              "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+              "long_compute_model": {
+                "fixed_miss": 1024,
+                "intercept_ms": 1.8885230058657498,
+                "method": "affine_extrapolation_above_raw_maximum",
+                "raw_support_total_K_range": [
+                  32,
+                  200
+                ],
+                "slope_ms_per_K": 0.16777215389889077
+              },
+              "long_source_ttft_ms": null,
+              "short_compute_model": {
+                "fixed_miss": 128,
+                "frozen_source": "constructed_candidates.json",
+                "frozen_source_sha256": "7f224648e87a398922a0303afebd1b3967b723dccbfab17354ac49c710ee710a",
+                "intercept_ms": 0.5069373084555413,
+                "method": "affine_extrapolation_below_raw_minimum",
+                "raw_support_total_K_range": [
+                  32,
+                  200
+                ],
+                "slope_ms_per_K": 0.020971520117628543
+              },
+              "short_source_ttft_ms": null,
+              "source_data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b"
+            },
+            "raw_data_max_total_k": 200,
+            "raw_data_min_total_k": 32
+          },
+          "source_ttft_ms": null
+        },
+        "L": {
+          "role": "L",
+          "seq_len_k": 384,
+          "miss_tokens": 1024,
+          "total_tokens": 393216,
+          "hit_tokens": 392192,
+          "C_ms": 66.31303010303981,
+          "V_GiB": 0.5142822265625,
+          "B_GiB_s": 7.755372145766645,
+          "requests": 1056,
+          "constructed_profile": true,
+          "construction": {
+            "candidate_plan_path": "/home/chguo/work/last_code/qos_storage_sim/results/baseline_random_near_capacity_20260914/long_scale_math.json",
+            "candidate_plan_sha256": "2df85dcba496aab5cacc40f657b0e70cfd13c6b7dc4f5c207ac95aef95096225",
+            "compute_model": {
+              "fixed_miss": 1024,
+              "intercept_ms": 1.8885230058657498,
+              "method": "affine_extrapolation_above_raw_maximum",
+              "raw_support_total_K_range": [
+                32,
+                200
+              ],
+              "slope_ms_per_K": 0.16777215389889077
+            },
+            "compute_model_scale": 1.0,
+            "limitation": "Affine extrapolated prefill compute, not measured at this context length. Exact KV-prefix block volume is part of a simulator model stress test, not a real-device claim.",
+            "measured_data_row": false,
+            "method": "affine_extrapolation_above_raw_maximum",
+            "model_provenance": {
+              "V_model": "Exact128-token cached blocks at176KiB per block; no tail and no padding",
+              "context_support": "256K/384K/512K context support is an unverified stress-test assumption; not a claim that a real deployment supports these lengths.",
+              "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+              "long_compute_model": {
+                "fixed_miss": 1024,
+                "intercept_ms": 1.8885230058657498,
+                "method": "affine_extrapolation_above_raw_maximum",
+                "raw_support_total_K_range": [
+                  32,
+                  200
+                ],
+                "slope_ms_per_K": 0.16777215389889077
+              },
+              "long_source_ttft_ms": null,
+              "short_compute_model": {
+                "fixed_miss": 128,
+                "frozen_source": "constructed_candidates.json",
+                "frozen_source_sha256": "7f224648e87a398922a0303afebd1b3967b723dccbfab17354ac49c710ee710a",
+                "intercept_ms": 0.5069373084555413,
+                "method": "affine_extrapolation_below_raw_minimum",
+                "raw_support_total_K_range": [
+                  32,
+                  200
+                ],
+                "slope_ms_per_K": 0.020971520117628543
+              },
+              "short_source_ttft_ms": null,
+              "source_data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b"
+            },
+            "raw_data_max_total_k": 200,
+            "raw_data_min_total_k": 32
+          },
+          "source_ttft_ms": null
+        }
+      },
+      "count_ratio_by_role": {
+        "S": 24,
+        "L": 1
+      },
+      "short_roles": [
+        "S"
+      ],
+      "long_roles": [
+        "L"
+      ],
+      "ideal_load_ratio": 0.9968778731931612,
+      "ideal_short_compute_fraction": 0.20595265416948866,
+      "actual_long_window_short_compute_fraction": 0.19823125001164385,
+      "count_weighted_short_C_ms": 0.7166525096318267,
+      "observed_short_internal_wait_ms": 0.46722353898338354,
+      "observed_internal_wait_by_role_ms": {
+        "S": 0.46722353898338354,
+        "L": 0.0
+      },
+      "observed_L0_wait_by_role_ms": {
+        "S": 0.4407745061478672,
+        "L": 9.788093771299023
+      },
+      "targets": {
+        "89": {
+          "U_percent": 89.0,
+          "continuous_layer_required_mean_short_wait_ms": 0.4300747161405621,
+          "finite8_zero_L0_and_zero_long_wait_required_mean_short_wait_ms": 0.49151396130349956,
+          "finite8_with_observed_L0_and_long_wait_required_mean_short_wait_ms": 0.3702837117865482,
+          "observed_over_continuous_required": 1.0863776024226452
+        },
+        "85": {
+          "U_percent": 85.0,
+          "continuous_layer_required_mean_short_wait_ms": 0.6140638995162034,
+          "finite8_zero_L0_and_zero_long_wait_required_mean_short_wait_ms": 0.7017873137328038,
+          "finite8_with_observed_L0_and_long_wait_required_mean_short_wait_ms": 0.5805570642158525,
+          "observed_over_continuous_required": 0.7608712046930138
+        }
+      },
+      "observed_warm_U_percent": 87.48376496592759,
+      "observed_long_U_percent": 87.48659659502975,
+      "all_32_active_long": true,
+      "warm_mixed_cards": 32,
+      "long_mixed_cards": 32,
+      "exact_long_loss_pp": {
+        "short_internal": 9.893304504169405,
+        "long_internal": 0.0,
+        "L0_exposed_handoff": 2.620098900873119,
+        "idle": 2.627429138455126e-13,
+        "total": 12.513403404970248
+      },
+      "observed_wait_substitution_U_percent": 88.16232249547122,
+      "observed_7internal_1L0_substitution_U_percent": 87.11014789333282,
+      "capacity_upper_bound_complete_finite_U_percent": 100.0,
+      "analysis_path": "runs/context8_L384m1024_S10m128_ssu8_h22000_seed7/baseline/analysis.json",
+      "analysis_sha256": "ff6818f42a5e246c1a09d03d08122a33c41b69c87a5c0c06dbaed36e3421a394",
+      "result_sha256": "ae898761775c1bf85649ac6064faebf7a430fa63f34f74396e7a8d8d3b0f55e2",
+      "long_total_K": 384,
+      "short_internal_complete_count": 121963,
+      "short_internal_positive_count": 41206,
+      "short_internal_zero_fraction": 0.6621434369439911,
+      "short_internal_all_median_ms": 0.0,
+      "short_internal_positive_mean_ms": 1.3829050256038053,
+      "short_internal_positive_median_ms": 1.1162136158527574,
+      "finite8_model_error_pp": -0.3764487016969298
+    },
+    {
+      "candidate": "context8_L512m1024_S10m128",
+      "num_ssu": 8,
+      "seed": 7,
+      "strategy": "baseline",
+      "source_family": "constructed_C_extrapolation",
+      "profiles": {
+        "S": {
+          "role": "S",
+          "seq_len_k": 10,
+          "miss_tokens": 128,
+          "total_tokens": 10240,
+          "hit_tokens": 10112,
+          "C_ms": 0.7166525096318267,
+          "V_GiB": 0.0132598876953125,
+          "B_GiB_s": 18.5025343762832,
+          "requests": 24800,
+          "constructed_profile": true,
+          "construction": {
+            "candidate_plan_path": "/home/chguo/work/last_code/qos_storage_sim/results/baseline_random_near_capacity_20260914/long_scale_math.json",
+            "candidate_plan_sha256": "2df85dcba496aab5cacc40f657b0e70cfd13c6b7dc4f5c207ac95aef95096225",
+            "compute_model": {
+              "fixed_miss": 128,
+              "frozen_source": "constructed_candidates.json",
+              "frozen_source_sha256": "7f224648e87a398922a0303afebd1b3967b723dccbfab17354ac49c710ee710a",
+              "intercept_ms": 0.5069373084555413,
+              "method": "affine_extrapolation_below_raw_minimum",
+              "raw_support_total_K_range": [
+                32,
+                200
+              ],
+              "slope_ms_per_K": 0.020971520117628543
+            },
+            "compute_model_scale": 1.0,
+            "limitation": "Affine extrapolated prefill compute, not measured at this context length. Exact KV-prefix block volume is part of a simulator model stress test, not a real-device claim.",
+            "measured_data_row": false,
+            "method": "affine_extrapolation_below_raw_minimum",
+            "model_provenance": {
+              "V_model": "Exact128-token cached blocks at176KiB per block; no tail and no padding",
+              "context_support": "256K/384K/512K context support is an unverified stress-test assumption; not a claim that a real deployment supports these lengths.",
+              "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+              "long_compute_model": {
+                "fixed_miss": 1024,
+                "intercept_ms": 1.8885230058657498,
+                "method": "affine_extrapolation_above_raw_maximum",
+                "raw_support_total_K_range": [
+                  32,
+                  200
+                ],
+                "slope_ms_per_K": 0.16777215389889077
+              },
+              "long_source_ttft_ms": null,
+              "short_compute_model": {
+                "fixed_miss": 128,
+                "frozen_source": "constructed_candidates.json",
+                "frozen_source_sha256": "7f224648e87a398922a0303afebd1b3967b723dccbfab17354ac49c710ee710a",
+                "intercept_ms": 0.5069373084555413,
+                "method": "affine_extrapolation_below_raw_minimum",
+                "raw_support_total_K_range": [
+                  32,
+                  200
+                ],
+                "slope_ms_per_K": 0.020971520117628543
+              },
+              "short_source_ttft_ms": null,
+              "source_data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b"
+            },
+            "raw_data_max_total_k": 200,
+            "raw_data_min_total_k": 32
+          },
+          "source_ttft_ms": null
+        },
+        "L": {
+          "role": "L",
+          "seq_len_k": 512,
+          "miss_tokens": 1024,
+          "total_tokens": 524288,
+          "hit_tokens": 523264,
+          "C_ms": 87.78786580209783,
+          "V_GiB": 0.6861572265625,
+          "B_GiB_s": 7.816082784257676,
+          "requests": 800,
+          "constructed_profile": true,
+          "construction": {
+            "candidate_plan_path": "/home/chguo/work/last_code/qos_storage_sim/results/baseline_random_near_capacity_20260914/long_scale_math.json",
+            "candidate_plan_sha256": "2df85dcba496aab5cacc40f657b0e70cfd13c6b7dc4f5c207ac95aef95096225",
+            "compute_model": {
+              "fixed_miss": 1024,
+              "intercept_ms": 1.8885230058657498,
+              "method": "affine_extrapolation_above_raw_maximum",
+              "raw_support_total_K_range": [
+                32,
+                200
+              ],
+              "slope_ms_per_K": 0.16777215389889077
+            },
+            "compute_model_scale": 1.0,
+            "limitation": "Affine extrapolated prefill compute, not measured at this context length. Exact KV-prefix block volume is part of a simulator model stress test, not a real-device claim.",
+            "measured_data_row": false,
+            "method": "affine_extrapolation_above_raw_maximum",
+            "model_provenance": {
+              "V_model": "Exact128-token cached blocks at176KiB per block; no tail and no padding",
+              "context_support": "256K/384K/512K context support is an unverified stress-test assumption; not a claim that a real deployment supports these lengths.",
+              "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+              "long_compute_model": {
+                "fixed_miss": 1024,
+                "intercept_ms": 1.8885230058657498,
+                "method": "affine_extrapolation_above_raw_maximum",
+                "raw_support_total_K_range": [
+                  32,
+                  200
+                ],
+                "slope_ms_per_K": 0.16777215389889077
+              },
+              "long_source_ttft_ms": null,
+              "short_compute_model": {
+                "fixed_miss": 128,
+                "frozen_source": "constructed_candidates.json",
+                "frozen_source_sha256": "7f224648e87a398922a0303afebd1b3967b723dccbfab17354ac49c710ee710a",
+                "intercept_ms": 0.5069373084555413,
+                "method": "affine_extrapolation_below_raw_minimum",
+                "raw_support_total_K_range": [
+                  32,
+                  200
+                ],
+                "slope_ms_per_K": 0.020971520117628543
+              },
+              "short_source_ttft_ms": null,
+              "source_data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b"
+            },
+            "raw_data_max_total_k": 200,
+            "raw_data_min_total_k": 32
+          },
+          "source_ttft_ms": null
+        }
+      },
+      "count_ratio_by_role": {
+        "S": 31,
+        "L": 1
+      },
+      "short_roles": [
+        "S"
+      ],
+      "long_roles": [
+        "L"
+      ],
+      "ideal_load_ratio": 0.9974299221082448,
+      "ideal_short_compute_fraction": 0.20195819147632518,
+      "actual_long_window_short_compute_fraction": 0.1951354204459339,
+      "count_weighted_short_C_ms": 0.7166525096318267,
+      "observed_short_internal_wait_ms": 0.5294427754302421,
+      "observed_internal_wait_by_role_ms": {
+        "S": 0.5294427754302421,
+        "L": 0.0
+      },
+      "observed_L0_wait_by_role_ms": {
+        "S": 0.5025813058013363,
+        "L": 13.284865680858104
+      },
+      "targets": {
+        "89": {
+          "U_percent": 89.0,
+          "continuous_layer_required_mean_short_wait_ms": 0.43858101834270735,
+          "finite8_zero_L0_and_zero_long_wait_required_mean_short_wait_ms": 0.5012354495345227,
+          "finite8_with_observed_L0_and_long_wait_required_mean_short_wait_ms": 0.36821754095987047,
+          "observed_over_continuous_required": 1.2071721148144523
+        },
+        "85": {
+          "U_percent": 85.0,
+          "continuous_layer_required_mean_short_wait_ms": 0.6262092614839723,
+          "finite8_zero_L0_and_zero_long_wait_required_mean_short_wait_ms": 0.715667727410254,
+          "finite8_with_observed_L0_and_long_wait_required_mean_short_wait_ms": 0.5826498188356019,
+          "observed_over_continuous_required": 0.8454726047576878
+        }
+      },
+      "observed_warm_U_percent": 87.25312785498213,
+      "observed_long_U_percent": 86.31749494060166,
+      "all_32_active_long": true,
+      "warm_mixed_cards": 32,
+      "long_mixed_cards": 32,
+      "exact_long_loss_pp": {
+        "short_internal": 10.889545701884938,
+        "long_internal": 0.0,
+        "L0_exposed_handoff": 2.792959357578616,
+        "idle": 2.021099337273174e-14,
+        "total": 13.682505059398338
+      },
+      "observed_wait_substitution_U_percent": 87.01697599638769,
+      "observed_7internal_1L0_substitution_U_percent": 85.95860192273527,
+      "capacity_upper_bound_complete_finite_U_percent": 100.0,
+      "analysis_path": "runs/context8_L512m1024_S10m128_ssu8_h22000_seed7/baseline/analysis.json",
+      "analysis_sha256": "699ca82d56ff7f86fa0019f997f66d9de1b4f505c6054283c6dc0601db5baecd",
+      "result_sha256": "7d67b410e4d9599014a677ff2c9f6648e3f185a4d8160c72f70ab20fbdb3713a",
+      "long_total_K": 512,
+      "short_internal_complete_count": 118455,
+      "short_internal_positive_count": 34108,
+      "short_internal_zero_fraction": 0.7120594318517581,
+      "short_internal_all_median_ms": 0.0,
+      "short_internal_positive_mean_ms": 1.8387224100970248,
+      "short_internal_positive_median_ms": 1.475877939716156,
+      "finite8_model_error_pp": -0.35889301786639294
+    }
+  ],
+  "warnings": [
+    "短请求固定总10K / miss128，C为外推；长请求miss1024：200K长C来自data，256/384/512K长C外推。",
+    "理想输入平均 rho≈1，不等于逐盘逐时欠载；外推不代表真实硬件支持该上下文或已测得其计算时间。",
+    "n=1探索，完整32NPU独立随机输入；其他确认seed结果不在本四图。"
+  ],
+  "source_sha256": {
+    "runs/context8_L200m1024_S10m128_ssu8_h22000_seed7/baseline/analysis.json": "92b1880a2917d3874554351b4e8741f3984c450237289daba07407d29266b5b4",
+    "runs/context8_L200m1024_S10m128_ssu8_h22000_seed7/baseline/result.json.gz": "cae62607142037493bfaa43c441a2ab3fbecf583026a795a0b3f3a322cff08ac",
+    "runs/context8_L200m1024_S10m128_ssu8_h22000_seed7/baseline/manifest.json.gz": "8c34e4b334d4562788e0a418422a406c90c1b8d7ad83529d523ed10094d99b10",
+    "runs/context8_L256m1024_S10m128_ssu8_h22000_seed7/baseline/analysis.json": "b74f02a6e2fc7faa8b08b1c689868af5b6438c9465a80f173d39e7a5051cea2e",
+    "runs/context8_L256m1024_S10m128_ssu8_h22000_seed7/baseline/result.json.gz": "b0b262c1510ba645fc93d08b72925053f744f86bb61c1b249885b48243b85839",
+    "runs/context8_L256m1024_S10m128_ssu8_h22000_seed7/baseline/manifest.json.gz": "de15256bacccf0223153f874921a228f2f588170ba817e8be3cbebe3f3bc5f16",
+    "runs/context8_L384m1024_S10m128_ssu8_h22000_seed7/baseline/analysis.json": "ff6818f42a5e246c1a09d03d08122a33c41b69c87a5c0c06dbaed36e3421a394",
+    "runs/context8_L384m1024_S10m128_ssu8_h22000_seed7/baseline/result.json.gz": "ae898761775c1bf85649ac6064faebf7a430fa63f34f74396e7a8d8d3b0f55e2",
+    "runs/context8_L384m1024_S10m128_ssu8_h22000_seed7/baseline/manifest.json.gz": "755fbb72999457be2311f530574aae5eac570c5a8057545f25cc65be0406ec59",
+    "runs/context8_L512m1024_S10m128_ssu8_h22000_seed7/baseline/analysis.json": "699ca82d56ff7f86fa0019f997f66d9de1b4f505c6054283c6dc0601db5baecd",
+    "runs/context8_L512m1024_S10m128_ssu8_h22000_seed7/baseline/result.json.gz": "7d67b410e4d9599014a677ff2c9f6648e3f185a4d8160c72f70ab20fbdb3713a",
+    "runs/context8_L512m1024_S10m128_ssu8_h22000_seed7/baseline/manifest.json.gz": "79e34a27aaa7b8ce842db50479ec1325e26ef03c3a4742f888bee25418612cda"
+  }
+}

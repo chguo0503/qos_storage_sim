@@ -1,5 +1,7 @@
 # 项目整理记录：2026-09-11
 
+> 这是2026-09-11的历史整理记录；当前项目范围见[现行清单](../../CURRENT_PROJECT_MANIFEST.md)。旧实验入口已固定到保留其内容的历史提交，原清理证据与哈希不改。
+
 本次整理保留模拟器、全部调度策略、实质回归测试、正式报告/图片、正式输入/完成运行、负对照与失败原因记录。没有新增性能实验，也没有按结果是否有利筛选数据。当前项目入口见[根README](../../README.md)和[实验目录](../../results/README.md)。
 
 ## 清理范围
@@ -18,7 +20,7 @@
 ## 保留了什么
 
 - 最新总输入超过10K、32 NPU / 6 SSU的长期混合实验：五个完整长运行、全部输入、正式图、补充约束审计及未成功的机制对照。
-- 最新[逐NPU带宽交付研究](../../results/baseline_32npu6ssu_underload/sustained_mixed_ge10k_20260911/bandwidth_delivery/README.md)：32张单卡图、4张说明/总览图及三种格式、真实SSD/链路trace、CSV和独立审计。
+- 最新[逐NPU带宽交付研究](https://github.com/chguo0503/qos_storage_sim/blob/38edfa31cb5b61da02f4d198e97dc09d18356ad6/results/baseline_32npu6ssu_underload/sustained_mixed_ge10k_20260911/bandwidth_delivery/README.md)：32张单卡图、4张说明/总览图及三种格式、真实SSD/链路trace、CSV和独立审计。
 - 固定选卡、卡内混合、原始data随机抽样等全部正式结果，包括Baseline表现很好或Once没有改善的结果。
 - 原coflow/shared-path正式矩阵、旧32卡研究的screen/formal/holdout/grid、跨环境和机制对照、旧4卡/1盘、多SSU实验。
 - 完整`baseline_two_reports/`及冻结的原版本源码。只删除重复ZIP，没有用当前源码替换旧执行版本。
@@ -57,7 +59,7 @@ git restore --source=e56b1f95bca63b0f500fb114d056611de310e567 --worktree -- \
 
 原文件：`results/baseline_32npu6ssu_underload/analysis.json`，255.900 MiB。
 
-当前文件：[analysis.json.gz](../../results/baseline_32npu6ssu_underload/analysis.json.gz)，14.272 MiB。
+当前文件：[analysis.json.gz](https://github.com/chguo0503/qos_storage_sim/blob/38edfa31cb5b61da02f4d198e97dc09d18356ad6/results/baseline_32npu6ssu_underload/analysis.json.gz)，14.272 MiB。
 
 解压后字节SHA256仍为：`452d09f3115e5104a156b70431efd572b07b2e2d5ed3c1e0458b0e793ca05628`。没有删除字段、舍入数值或重算统计。四个分析/读取脚本已支持gzip，读取时优先gzip并兼容旧plain JSON；教程审计中的`analysis_sha256`继续对解压后的原字节计算。
 

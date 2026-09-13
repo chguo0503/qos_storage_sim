@@ -1,78 +1,85 @@
-# Current project manifest
+# 当前项目保留范围
 
-## Scope
+项目聚焦两项研究：周六的 128K/32K、A:B=1:2 对照，以及本次接近容量时的 Baseline Random 输入搜索。`data`、教程、可复现输入、完整结果、绘图脚本和审计证据均保留。
 
-This is the complete retained project for the 32-NPU/5-SSU fixed 28:4 V/B
-experiment. Historical material is intentionally outside the checkout.
+| 内容 | 位置 |
+|---|---|
+| 周六结果 | `results/baseline_ab128_32_ratio12_20260912/` |
+| 本次研究 | `results/baseline_random_near_capacity_20260914/` |
+| 教程与手稿 | `docs/` |
+| 原始请求画像 | `data` |
+| 核心运行模块及回归测试 | 根目录 Python 文件 |
 
-The saved result was produced before cleanup at Git commit
-`9b7e3320551732856d2715a607a24284b68778f2`. Cleanup did not change the runner,
-simulator, policy, workload input, or JSON artifacts. It changed only project
-organization, documentation, and the plotter's default output format.
+本次研究内部既保留有利候选，也保留高利用率候选、窗口长短覆盖失败的种子和外推画像的失败方向；它们是判断选择偏差的证据，不属于可删的临时结果。等价 trace 重播与长窗口不同人口分别归档，不计为新增随机种子。未完成的中断尝试与原输入恢复记录也保留，但中断尝试不进入性能均值，恢复不计为新种子。
 
-## Runtime dependency closure
+## 运行依赖
 
-The runner's complete local dependency closure is:
+根目录保留35项运行文件（含`data`）和16个回归测试模块。部分运行模块使用历史实验名，是实际导入依赖；名称相似不表示可以删除。两项研究的运行命令以各自目录里的冻结命令为准。
 
 ```text
-run_vb_fixed_split_npu32_ssu5_experiment.py
 authenticated_workload_inputs.py
+baseline_path0_layout.py
+coflow_capacity_analysis.py
+coflow_client_policy.py
+coflow_disk_adapter.py
+coflow_disk_policy.py
+coflow_joint_policy.py
+coflow_sim_adapter.py
 continuous_batch_control.py
 continuous_batch_sim.py
 continuous_prefill_client.py
 continuous_prefill_workload.py
+data
+multi_ssu_npu_assignment.py
+multi_ssu_qos_controller.py
 policy_logic.py
 random_steady_state_workload.py
+run_baseline_4npu_ssu1_low_utilization.py
+run_baseline_npu32_stress.py
+run_coflow_experiments.py
+run_multi_ssu_stall_experiments.py
+run_shared_path_experiments.py
+shared_path_baseline.py
+shared_path_common.py
+shared_path_new_once.py
+shared_path_once.py
+shared_path_sim_adapter.py
+shared_path_strategy1.py
+shared_path_strategy2.py
+shared_ssu_state.py
 sim.py
 six_request_workload.py
 strategy_profiles.py
-vb_pool_policy.py
-data
+sweep_coflow_development.py
+sweep_coflow_experiments.py
+test_coflow_capacity_analysis.py
+test_coflow_capacity_simulation.py
+test_coflow_client_policy.py
+test_coflow_disk_adapter.py
+test_coflow_disk_policy.py
+test_coflow_experiment_inputs.py
+test_coflow_sim_adapter.py
+test_continuous_batch_profile_cycle_frontier.py
+test_multi_ssu_experiment_inputs.py
+test_multi_ssu_npu_assignment.py
+test_multi_ssu_qos_controller.py
+test_shared_path_jit_causality.py
+test_shared_path_policies.py
+test_shared_path_reorder_integration.py
+test_shared_path_sim_adapter.py
+test_shared_ssu_state.py
 ```
 
-The plotter additionally requires `plot_vb_fixed_split_npu32_ssu5_4s.py` and
-matplotlib. NumPy and matplotlib are the only non-standard dependencies.
+精确保留文件副本的159项测试已通过，记录见[验证](results/baseline_random_near_capacity_20260914/retained_tests_check.json)。本次清理不修改核心模拟器、策略或`data`。最终执行范围与文件校验见[清理记录](results/baseline_random_near_capacity_20260914/cleanup_execution.md)，科学结果完整性见[90例最终核验](results/baseline_random_near_capacity_20260914/final_research_audit.json)。
 
-## Frozen input identity
+## 历史与完整性
 
-All five valid case JSON files agree on:
+- 更早已入库内容见提交 [`38edfa31`](https://github.com/chguo0503/qos_storage_sim/tree/38edfa31cb5b61da02f4d198e97dc09d18356ad6)。
+- 周六研究、原始教程及其历史审计版本在提交 [`929102a7`](https://github.com/chguo0503/qos_storage_sim/tree/929102a70c2316789003f4969e12a9fc92397f8a)。之后的教程修改仅修复导航，旧审计不会被改写成新文档的校验结果。
+- 本次运行最初冻结的完整源码副本保存在 `results/baseline_random_near_capacity_20260914/audit_remote_sources.tar.gz`；原始106项源码审计包含后来精简的历史文件。需要重查该原始快照时，应解压到独立目录，不能要求清理后的根目录仍包含全部旧文件。
+- `CURRENT_PROJECT_SHA256SUMS` 对保留交付文件列出 SHA256，清单不包含自身、Git元数据、缓存和运行日志。最终交付后可在项目根目录运行 `sha256sum -c CURRENT_PROJECT_SHA256SUMS`。
+- 保留科学结果的输入指纹、核心源码SHA、结果SHA和独立分析分别记在case与审计JSON中；不以图像标题代替原始数据验证。
 
-```text
-fixed split input  66c60cc004653aafdd1ecb7fd0fe932b74d69cbb4845006c5d98260c26cdf388
-raw input          50751065918710c1015a6a885da8eed1a99d3f7ad45d0bd534ed14c2e8393a9a
-workload           ea0d14d517bfcc1154742c7c7e35fccb040cf3ea02584ead4b62e1f80f5ab636
-placement          e8612c481608b06d12f7228639a31df98c70fc9901222c66d9f7c6ad17e9024b
-trace              2d47bc9108bbc2152404362ab3304e2ff20e6c56e4590cb3046c0abf0a134f22
-```
+物理带宽观测器只保存0–20秒；65秒工作量实验中20秒以后只有完整计算/等待日志，不声称有未记录的实际SSD带宽。
 
-Each has 31/31 true simulator invariants, all 32 NPUs represented in the SLO
-sample, and `no_backlog_exhaustion=true`.
-
-## Integrity check
-
-Run:
-
-```bash
-sha256sum --check CURRENT_PROJECT_SHA256SUMS
-```
-
-This covers the full runtime source closure, input, tests, plotter, raw JSON,
-summary, failure log, and retained PNGs. A regenerated PNG can have a different
-binary hash under another matplotlib version even when its plotted data are
-identical; the JSON and input fingerprints are the authoritative evidence.
-
-The JSONs contain legacy `source_sha256` entries for only five files. Use this
-manifest, not that smaller subset, when auditing the cleaned project.
-
-## Local archive and Git recovery
-
-The pre-cleanup local archive is:
-
-```text
-/home/chguo/work/last_code/qos_storage_sim_legacy_20260904_X2ASSo
-```
-
-It contains old results and top-level files that were never committed, four
-regenerable PDFs, and `pre_cleanup_tracked.patch`. It is not a runtime
-dependency and is deliberately outside the Git repository. Tracked history is
-recoverable from the commit named above.
+384K seed7 Once的122.76MiB原始压缩trace以64MiB无损分片发布。使用研究目录内的`publish_large_artifact.py`和对应`trace.json.gz.parts/manifest.json`恢复；已实际往返重建并验证整体SHA一致。Git中的分片包含原始全部字节，原trace本地副本不重复入库。原命令和绘图审计的SHA不改写。

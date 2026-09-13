@@ -1,5 +1,7 @@
 # L1 / L2 / L3 与 NPU 利用率：逐公式图解教程
 
+> 阅读提示（2026-09-14）：此原稿引用的10张配图在本次整理前已经缺失。建议阅读[完整通俗教程与PDF](l1_l2_l3_beginner/README.md)。本次仅补导航提示、将旧实验链接固定到历史提交；原公式和论述保留。
+
 PDF 与 Markdown 内容一致；图片位于同目录 figures/。
 
 
@@ -500,12 +502,12 @@ $$
 资料与可复核入口
 
 [1] 指定目录 README 与独立图：实验配置、欠载口径、Random/Ordered 输入定义。
-[点击打开图表说明](https://github.com/chguo0503/qos_storage_sim/blob/main/results/baseline_32npu6ssu_underload/figures/separate/README.md)
+[点击打开图表说明](https://github.com/chguo0503/qos_storage_sim/blob/38edfa31cb5b61da02f4d198e97dc09d18356ad6/results/baseline_32npu6ssu_underload/figures/separate/README.md)
 
 [2] ordered_zoom_evidence.json：局部层时刻、关键短块排队与前方长块服务记录。
-[点击打开逐事件数值](https://github.com/chguo0503/qos_storage_sim/blob/main/results/baseline_32npu6ssu_underload/figures/separate/ordered_zoom_evidence.json)
+[点击打开逐事件数值](https://github.com/chguo0503/qos_storage_sim/blob/38edfa31cb5b61da02f4d198e97dc09d18356ad6/results/baseline_32npu6ssu_underload/figures/separate/ordered_zoom_evidence.json)
 
 [3] utilization_ttft_slo_seed7.md 与 paired_once_5seeds/comparison.md：四组利用率、SLO 定义与逐种子结果。
-[点击打开对应统计](https://github.com/chguo0503/qos_storage_sim/blob/main/results/baseline_32npu6ssu_underload/figures/separate/utilization_ttft_slo_seed7.md) · [点击打开完整配对报告](https://github.com/chguo0503/qos_storage_sim/blob/main/results/baseline_32npu6ssu_underload/paired_once_5seeds/comparison.md)
+[点击打开对应统计](https://github.com/chguo0503/qos_storage_sim/blob/38edfa31cb5b61da02f4d198e97dc09d18356ad6/results/baseline_32npu6ssu_underload/figures/separate/utilization_ttft_slo_seed7.md) · [点击打开完整配对报告](https://github.com/chguo0503/qos_storage_sim/blob/38edfa31cb5b61da02f4d198e97dc09d18356ad6/results/baseline_32npu6ssu_underload/paired_once_5seeds/comparison.md)
 
 理论原稿：用户在本次对话提供的两页手写照片。本文重新推导并明确适用条件，不把原稿中的所有结论视作已证定理。除标注 [1][2][3] 的仓库记录外，所有整数案例与相应图都是教学构造，没有新增仿真。

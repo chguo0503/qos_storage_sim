@@ -1,0 +1,874 @@
+{
+  "schema_version": 1,
+  "status": "mathematical_candidates_not_simulation_results",
+  "source": {
+    "data_path": "data",
+    "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+    "study_plan_path": "results/baseline_random_near_capacity_20260914/study_plan.json",
+    "study_plan_sha256": "c647c98f617851df9b109dbd0ea0e062672c992205ef4ce4fcd0e141dbbc02b5",
+    "generator_sha256": "6ca7fcd51ed2bd1968b1467505fa8a30123c3ea3f282ec983731d0bf79dd80e2"
+  },
+  "configuration": {
+    "num_npu": 32,
+    "num_ssu": 3,
+    "per_ssu_bandwidth_GiB_s": 40.0,
+    "npu_link_bandwidth_GiB_s": 50.0,
+    "n_layers": 8,
+    "batch_size": 1,
+    "cross_request_layer0_prefetch": true,
+    "order": "random",
+    "assignment": "fixed",
+    "primary_strategy": "baseline",
+    "all_arrivals_ms": 0,
+    "warm_ms": [
+      2000,
+      4000
+    ],
+    "long_ms": [
+      2000,
+      20000
+    ],
+    "minimum_pure_compute_horizon_ms": 22000.0,
+    "ideal_rho_range": [
+      0.95,
+      1.05
+    ],
+    "minimum_total_input_tokens": 32768,
+    "full_queue_independent_shuffle_per_npu": true,
+    "strict_per_disk_per_instant_underload_not_guaranteed": true
+  },
+  "seed_plan": {
+    "pilot": [
+      7
+    ],
+    "confirmation": [
+      19,
+      43,
+      67,
+      101
+    ],
+    "report_every_started_run": true,
+    "choose_only_bad_seeds": false,
+    "selection": "Candidate selection may use pilot seed 7 only; record the rule and all pilot outcomes before confirmation seeds 19/43/67/101.",
+    "mixed_window_gate": "Each NPU must compute blocker and any victim profile in warm; reference B/A, others L/(S or S1+S2). Report individual subtype coverage separately; retain and flag failures rather than silently resampling."
+  },
+  "historical_reference": {
+    "per_npu_counts": {
+      "A": 40,
+      "B": 80
+    },
+    "pure_compute_ms_per_npu": 20227.102572912234,
+    "covers_20s": true,
+    "meets_new_22s_population_rule": false,
+    "identical_to_new_reference_input": false,
+    "use": "Context only unless clearly labeled; new 44/88 full-queue shuffle is a different finite input."
+  },
+  "candidates": [
+    {
+      "id": "ref128_32",
+      "priority": 0,
+      "family": "reference",
+      "blocker_label": "B",
+      "profiles": [
+        {
+          "label": "A",
+          "data_key": [
+            128,
+            256
+          ],
+          "ratio_count": 1,
+          "category": "LS",
+          "total_input_tokens": 131072,
+          "miss_tokens": 256,
+          "hit_tokens": 130816,
+          "V_GiB": 0.171539306640625,
+          "V_MiB": 175.65625,
+          "C_ms": 6.024011548589168,
+          "B_GiB_s": 28.475925926934814,
+          "source_ttft_ms_not_used_as_threshold": 469.87290078995505,
+          "blocks_per_layer": 1022,
+          "raw_profile": true,
+          "request_count_share_percent": 33.333333333333336,
+          "pure_compute_share_percent": 9.530201810169553,
+          "ideal_compute_only_mean_current_cards": 3.049664579254257,
+          "balanced_3disk_layer_service_ms": 1.4294942220052085
+        },
+        {
+          "label": "B",
+          "data_key": [
+            32,
+            4096
+          ],
+          "ratio_count": 2,
+          "category": "SL",
+          "total_input_tokens": 32768,
+          "miss_tokens": 4096,
+          "hit_tokens": 28672,
+          "V_GiB": 0.03759765625,
+          "V_MiB": 38.5,
+          "C_ms": 28.592841995880782,
+          "B_GiB_s": 1.3149324665039066,
+          "source_ttft_ms_not_used_as_threshold": 2230.2416756787015,
+          "blocks_per_layer": 224,
+          "raw_profile": true,
+          "request_count_share_percent": 66.66666666666667,
+          "pure_compute_share_percent": 90.46979818983044,
+          "ideal_compute_only_mean_current_cards": 28.95033542074574,
+          "balanced_3disk_layer_service_ms": 0.31331380208333337
+        }
+      ],
+      "ratio_labels": "A:B",
+      "ratio_counts": "1:2",
+      "rho_ideal": 1.0409146551813135,
+      "ideal_time_weighted_mean_B_per_npu_GiB_s": 3.903429956929926,
+      "victim_pure_compute_fraction": 0.09530201810169553,
+      "request_weighted_CV_layer_V": 0.7677159338596802,
+      "request_weighted_CV_layer_C": 0.5049406714051315,
+      "blocker_balanced_3disk_layer_service_ms": 0.31331380208333337,
+      "victim_queue_conditions": [
+        {
+          "label": "A",
+          "queued_blocker_layer_equivalent_threshold": 14.66426724910745,
+          "strict_condition": "queued residual blocker layer equivalents > threshold; balanced disks, victim bytes queued after that prefix",
+          "condition_is_not_current_card_count": true
+        }
+      ],
+      "common_victim_wait_ms_for_target_U": {
+        "0.9": 7.023299504483418,
+        "0.85": 11.154652154179544,
+        "0.8": 15.802423885087682
+      },
+      "wait_model_assumptions": [
+        "blocker has no exposed stalls; each victim layer has the same mean extra wait in milliseconds",
+        "mean wait includes zero-wait layers; for unequal victim means use sum(count_j * wait_j)",
+        "fixed completion proportions and long-run complete cycles; startup and request-boundary effects omitted",
+        "required waiting to obtain target U, not predicted waiting and not an exact warm-window identity"
+      ],
+      "full_finite_work_conservation_U_upper_bound": 0.9606935544834012,
+      "full_finite_upper_bound_not_warm_bound": true,
+      "suggested_minimum_22s_population": {
+        "minimum_pure_compute_horizon_ms": 22000.0,
+        "ratio_unit_copies": 44,
+        "per_npu_counts": {
+          "A": 44,
+          "B": 88
+        },
+        "requests_per_npu": 132,
+        "total_requests": 4224,
+        "pure_compute_ms_per_npu": 22249.812830203457,
+        "total_8layer_read_GiB": 2779.21875
+      },
+      "rationale": "保留当前参考；大读取 A 的计算很短，小读取 B 的 28.59 ms 计算通常能隐藏等待。",
+      "failure_or_confounding_risk": "用于对照，不预期它提供明显更低的 Random 利用率。"
+    },
+    {
+      "id": "main512",
+      "priority": 1,
+      "family": "primary",
+      "blocker_label": "L",
+      "profiles": [
+        {
+          "label": "L",
+          "data_key": [
+            192,
+            4096
+          ],
+          "ratio_count": 1,
+          "category": "LL",
+          "total_input_tokens": 196608,
+          "miss_tokens": 4096,
+          "hit_tokens": 192512,
+          "V_GiB": 0.25244140625,
+          "V_MiB": 258.5,
+          "C_ms": 135.967080955643,
+          "B_GiB_s": 1.8566362127929688,
+          "source_ttft_ms_not_used_as_threshold": 10605.432314540154,
+          "blocks_per_layer": 1504,
+          "raw_profile": true,
+          "request_count_share_percent": 10.0,
+          "pure_compute_share_percent": 80.31784088292753,
+          "ideal_compute_only_mean_current_cards": 25.70170908253681,
+          "balanced_3disk_layer_service_ms": 2.103678385416667
+        },
+        {
+          "label": "S",
+          "data_key": [
+            32,
+            512
+          ],
+          "ratio_count": 9,
+          "category": "SL",
+          "total_input_tokens": 32768,
+          "miss_tokens": 512,
+          "hit_tokens": 32256,
+          "V_GiB": 0.04229736328125,
+          "V_MiB": 43.3125,
+          "C_ms": 3.7021326666852694,
+          "B_GiB_s": 11.425134399389648,
+          "source_ttft_ms_not_used_as_threshold": 288.76634800145104,
+          "blocks_per_layer": 252,
+          "raw_profile": true,
+          "request_count_share_percent": 90.0,
+          "pure_compute_share_percent": 19.68215911707248,
+          "ideal_compute_only_mean_current_cards": 6.298290917463194,
+          "balanced_3disk_layer_service_ms": 0.35247802734375
+        }
+      ],
+      "ratio_labels": "L:S",
+      "ratio_counts": "1:9",
+      "rho_ideal": 0.9973128669314992,
+      "ideal_time_weighted_mean_B_per_npu_GiB_s": 3.739923250993122,
+      "victim_pure_compute_fraction": 0.1968215911707248,
+      "request_weighted_CV_layer_V": 0.9957582184517496,
+      "request_weighted_CV_layer_C": 2.3439280294309173,
+      "blocker_balanced_3disk_layer_service_ms": 2.103678385416667,
+      "victim_queue_conditions": [
+        {
+          "label": "S",
+          "queued_blocker_layer_equivalent_threshold": 1.5922845728521697,
+          "strict_condition": "queued residual blocker layer equivalents > threshold; balanced disks, victim bytes queued after that prefix",
+          "condition_is_not_current_card_count": true
+        }
+      ],
+      "common_victim_wait_ms_for_target_U": {
+        "0.9": 2.0899540118001294,
+        "0.85": 3.3193387246237345,
+        "0.8": 4.70239652655029
+      },
+      "wait_model_assumptions": [
+        "blocker has no exposed stalls; each victim layer has the same mean extra wait in milliseconds",
+        "mean wait includes zero-wait layers; for unequal victim means use sum(count_j * wait_j)",
+        "fixed completion proportions and long-run complete cycles; startup and request-boundary effects omitted",
+        "required waiting to obtain target U, not predicted waiting and not an exact warm-window identity"
+      ],
+      "full_finite_work_conservation_U_upper_bound": 1.0,
+      "full_finite_upper_bound_not_warm_bound": true,
+      "suggested_minimum_22s_population": {
+        "minimum_pure_compute_horizon_ms": 22000.0,
+        "ratio_unit_copies": 17,
+        "per_npu_counts": {
+          "L": 17,
+          "S": 153
+        },
+        "requests_per_npu": 170,
+        "total_requests": 5440,
+        "pure_compute_ms_per_npu": 23022.933393990217,
+        "total_8layer_read_GiB": 2755.328125
+      },
+      "rationale": "短类计算约 3.70 ms，纯计算贡献约 19.7%；兼顾较紧截止时间与整机影响。",
+      "failure_or_confounding_risk": "仍需多个读取在 FIFO 中积累；一段孤立长读取通常不够。"
+    },
+    {
+      "id": "main1024",
+      "priority": 2,
+      "family": "primary",
+      "blocker_label": "L",
+      "profiles": [
+        {
+          "label": "L",
+          "data_key": [
+            192,
+            4096
+          ],
+          "ratio_count": 1,
+          "category": "LL",
+          "total_input_tokens": 196608,
+          "miss_tokens": 4096,
+          "hit_tokens": 192512,
+          "V_GiB": 0.25244140625,
+          "V_MiB": 258.5,
+          "C_ms": 135.967080955643,
+          "B_GiB_s": 1.8566362127929688,
+          "source_ttft_ms_not_used_as_threshold": 10605.432314540154,
+          "blocks_per_layer": 1504,
+          "raw_profile": true,
+          "request_count_share_percent": 5.2631578947368425,
+          "pure_compute_share_percent": 51.00093165714152,
+          "ideal_compute_only_mean_current_cards": 16.320298130285288,
+          "balanced_3disk_layer_service_ms": 2.103678385416667
+        },
+        {
+          "label": "S",
+          "data_key": [
+            32,
+            1024
+          ],
+          "ratio_count": 18,
+          "category": "SL",
+          "total_input_tokens": 32768,
+          "miss_tokens": 1024,
+          "hit_tokens": 31744,
+          "V_GiB": 0.04162597656250001,
+          "V_MiB": 42.62500000000001,
+          "C_ms": 7.257231579079756,
+          "B_GiB_s": 5.735792789428712,
+          "source_ttft_ms_not_used_as_threshold": 566.0640631682209,
+          "blocks_per_layer": 248,
+          "raw_profile": true,
+          "request_count_share_percent": 94.73684210526316,
+          "pure_compute_share_percent": 48.9990683428585,
+          "ideal_compute_only_mean_current_cards": 15.67970186971472,
+          "balanced_3disk_layer_service_ms": 0.3468831380208334
+        }
+      ],
+      "ratio_labels": "L:S",
+      "ratio_counts": "1:18",
+      "rho_ideal": 1.0019698119747216,
+      "ideal_time_weighted_mean_B_per_npu_GiB_s": 3.757386794905206,
+      "victim_pure_compute_fraction": 0.489990683428585,
+      "request_weighted_CV_layer_V": 0.8928881875036566,
+      "request_weighted_CV_layer_C": 2.0482943656389243,
+      "blocker_balanced_3disk_layer_service_ms": 2.103678385416667,
+      "victim_queue_conditions": [
+        {
+          "label": "S",
+          "queued_blocker_layer_equivalent_threshold": 3.2848882647478543,
+          "strict_condition": "queued residual blocker layer equivalents > threshold; balanced disks, victim bytes queued after that prefix",
+          "condition_is_not_current_card_count": true
+        }
+      ],
+      "common_victim_wait_ms_for_target_U": {
+        "0.9": 1.6456620332041896,
+        "0.85": 2.6136985233243006,
+        "0.8": 3.7027395747094243
+      },
+      "wait_model_assumptions": [
+        "blocker has no exposed stalls; each victim layer has the same mean extra wait in milliseconds",
+        "mean wait includes zero-wait layers; for unequal victim means use sum(count_j * wait_j)",
+        "fixed completion proportions and long-run complete cycles; startup and request-boundary effects omitted",
+        "required waiting to obtain target U, not predicted waiting and not an exact warm-window identity"
+      ],
+      "full_finite_work_conservation_U_upper_bound": 0.9980340605563361,
+      "full_finite_upper_bound_not_warm_bound": true,
+      "suggested_minimum_22s_population": {
+        "minimum_pure_compute_horizon_ms": 22000.0,
+        "ratio_unit_copies": 11,
+        "per_npu_counts": {
+          "L": 11,
+          "S": 198
+        },
+        "requests_per_npu": 209,
+        "total_requests": 6688,
+        "pure_compute_ms_per_npu": 23460.557945358913,
+        "total_8layer_read_GiB": 2820.8125
+      },
+      "rationale": "短类纯计算贡献约 49%；若短类经常等待，对整机平均的影响更大。",
+      "failure_or_confounding_risk": "7.26 ms 计算更能隐藏读取，长类卡数和长读取频率也降低，未必更差。"
+    },
+    {
+      "id": "load095",
+      "priority": 4,
+      "family": "load_control",
+      "blocker_label": "L",
+      "profiles": [
+        {
+          "label": "L",
+          "data_key": [
+            192,
+            4096
+          ],
+          "ratio_count": 1,
+          "category": "LL",
+          "total_input_tokens": 196608,
+          "miss_tokens": 4096,
+          "hit_tokens": 192512,
+          "V_GiB": 0.25244140625,
+          "V_MiB": 258.5,
+          "C_ms": 135.967080955643,
+          "B_GiB_s": 1.8566362127929688,
+          "source_ttft_ms_not_used_as_threshold": 10605.432314540154,
+          "blocks_per_layer": 1504,
+          "raw_profile": true,
+          "request_count_share_percent": 11.11111111111111,
+          "pure_compute_share_percent": 82.11358834001868,
+          "ideal_compute_only_mean_current_cards": 26.27634826880598,
+          "balanced_3disk_layer_service_ms": 2.103678385416667
+        },
+        {
+          "label": "S",
+          "data_key": [
+            32,
+            512
+          ],
+          "ratio_count": 8,
+          "category": "SL",
+          "total_input_tokens": 32768,
+          "miss_tokens": 512,
+          "hit_tokens": 32256,
+          "V_GiB": 0.04229736328125,
+          "V_MiB": 43.3125,
+          "C_ms": 3.7021326666852694,
+          "B_GiB_s": 11.425134399389648,
+          "source_ttft_ms_not_used_as_threshold": 288.76634800145104,
+          "blocks_per_layer": 252,
+          "raw_profile": true,
+          "request_count_share_percent": 88.88888888888889,
+          "pure_compute_share_percent": 17.886411659981327,
+          "ideal_compute_only_mean_current_cards": 5.723651731194025,
+          "balanced_3disk_layer_service_ms": 0.35247802734375
+        }
+      ],
+      "ratio_labels": "L:S",
+      "ratio_counts": "1:8",
+      "rho_ideal": 0.9514925835001331,
+      "ideal_time_weighted_mean_B_per_npu_GiB_s": 3.568097188125499,
+      "victim_pure_compute_fraction": 0.17886411659981327,
+      "request_weighted_CV_layer_V": 1.006020102324497,
+      "request_weighted_CV_layer_C": 2.259284990832178,
+      "blocker_balanced_3disk_layer_service_ms": 2.103678385416667,
+      "victim_queue_conditions": [
+        {
+          "label": "S",
+          "queued_blocker_layer_equivalent_threshold": 1.5922845728521697,
+          "strict_condition": "queued residual blocker layer equivalents > threshold; balanced disks, victim bytes queued after that prefix",
+          "condition_is_not_current_card_count": true
+        }
+      ],
+      "common_victim_wait_ms_for_target_U": {
+        "0.9": 2.299779754015628,
+        "0.85": 3.6525913740248206,
+        "0.8": 5.1745044465351615
+      },
+      "wait_model_assumptions": [
+        "blocker has no exposed stalls; each victim layer has the same mean extra wait in milliseconds",
+        "mean wait includes zero-wait layers; for unequal victim means use sum(count_j * wait_j)",
+        "fixed completion proportions and long-run complete cycles; startup and request-boundary effects omitted",
+        "required waiting to obtain target U, not predicted waiting and not an exact warm-window identity"
+      ],
+      "full_finite_work_conservation_U_upper_bound": 1.0,
+      "full_finite_upper_bound_not_warm_bound": true,
+      "suggested_minimum_22s_population": {
+        "minimum_pure_compute_horizon_ms": 22000.0,
+        "ratio_unit_copies": 17,
+        "per_npu_counts": {
+          "L": 17,
+          "S": 136
+        },
+        "requests_per_npu": 153,
+        "total_requests": 4896,
+        "pure_compute_ms_per_npu": 22519.443351321024,
+        "total_8layer_read_GiB": 2571.25
+      },
+      "rationale": "与 main512 同画像，将理想平均负载降到约 95%，检查下降是否依赖略微过载。",
+      "failure_or_confounding_risk": "平均低于容量仍不代表逐盘逐时欠载。"
+    },
+    {
+      "id": "load104",
+      "priority": 5,
+      "family": "load_control",
+      "blocker_label": "L",
+      "profiles": [
+        {
+          "label": "L",
+          "data_key": [
+            192,
+            4096
+          ],
+          "ratio_count": 1,
+          "category": "LL",
+          "total_input_tokens": 196608,
+          "miss_tokens": 4096,
+          "hit_tokens": 192512,
+          "V_GiB": 0.25244140625,
+          "V_MiB": 258.5,
+          "C_ms": 135.967080955643,
+          "B_GiB_s": 1.8566362127929688,
+          "source_ttft_ms_not_used_as_threshold": 10605.432314540154,
+          "blocks_per_layer": 1504,
+          "raw_profile": true,
+          "request_count_share_percent": 9.090909090909092,
+          "pure_compute_share_percent": 78.5989551695033,
+          "ideal_compute_only_mean_current_cards": 25.151665654241057,
+          "balanced_3disk_layer_service_ms": 2.103678385416667
+        },
+        {
+          "label": "S",
+          "data_key": [
+            32,
+            512
+          ],
+          "ratio_count": 10,
+          "category": "SL",
+          "total_input_tokens": 32768,
+          "miss_tokens": 512,
+          "hit_tokens": 32256,
+          "V_GiB": 0.04229736328125,
+          "V_MiB": 43.3125,
+          "C_ms": 3.7021326666852694,
+          "B_GiB_s": 11.425134399389648,
+          "source_ttft_ms_not_used_as_threshold": 288.76634800145104,
+          "blocks_per_layer": 252,
+          "raw_profile": true,
+          "request_count_share_percent": 90.9090909090909,
+          "pure_compute_share_percent": 21.401044830496712,
+          "ideal_compute_only_mean_current_cards": 6.848334345758948,
+          "balanced_3disk_layer_service_ms": 0.35247802734375
+        }
+      ],
+      "ratio_labels": "L:S",
+      "ratio_counts": "1:10",
+      "rho_ideal": 1.041171946483144,
+      "ideal_time_weighted_mean_B_per_npu_GiB_s": 3.904394799311789,
+      "victim_pure_compute_fraction": 0.21401044830496713,
+      "request_weighted_CV_layer_V": 0.9838895702114341,
+      "request_weighted_CV_layer_C": 2.41784115447922,
+      "blocker_balanced_3disk_layer_service_ms": 2.103678385416667,
+      "victim_queue_conditions": [
+        {
+          "label": "S",
+          "queued_blocker_layer_equivalent_threshold": 1.5922845728521697,
+          "strict_condition": "queued residual blocker layer equivalents > threshold; balanced disks, victim bytes queued after that prefix",
+          "condition_is_not_current_card_count": true
+        }
+      ],
+      "common_victim_wait_ms_for_target_U": {
+        "0.9": 1.9220934180277305,
+        "0.85": 3.052736605102866,
+        "0.8": 4.324710190562392
+      },
+      "wait_model_assumptions": [
+        "blocker has no exposed stalls; each victim layer has the same mean extra wait in milliseconds",
+        "mean wait includes zero-wait layers; for unequal victim means use sum(count_j * wait_j)",
+        "fixed completion proportions and long-run complete cycles; startup and request-boundary effects omitted",
+        "required waiting to obtain target U, not predicted waiting and not an exact warm-window identity"
+      ],
+      "full_finite_work_conservation_U_upper_bound": 0.9604561507614434,
+      "full_finite_upper_bound_not_warm_bound": true,
+      "suggested_minimum_22s_population": {
+        "minimum_pure_compute_horizon_ms": 22000.0,
+        "ratio_unit_copies": 16,
+        "per_npu_counts": {
+          "L": 16,
+          "S": 160
+        },
+        "requests_per_npu": 176,
+        "total_requests": 5632,
+        "pure_compute_ms_per_npu": 22142.516175679448,
+        "total_8layer_read_GiB": 2766.5
+      },
+      "rationale": "与 main512 同画像，将理想平均负载升到约 104%，观察小范围负载响应。",
+      "failure_or_confounding_risk": "必须区分容量不足与额外等待，不能把全部损失归因于 FIFO。"
+    },
+    {
+      "id": "tight256",
+      "priority": 3,
+      "family": "deadline_control",
+      "blocker_label": "L",
+      "profiles": [
+        {
+          "label": "L",
+          "data_key": [
+            192,
+            4096
+          ],
+          "ratio_count": 1,
+          "category": "LL",
+          "total_input_tokens": 196608,
+          "miss_tokens": 4096,
+          "hit_tokens": 192512,
+          "V_GiB": 0.25244140625,
+          "V_MiB": 258.5,
+          "C_ms": 135.967080955643,
+          "B_GiB_s": 1.8566362127929688,
+          "source_ttft_ms_not_used_as_threshold": 10605.432314540154,
+          "blocks_per_layer": 1504,
+          "raw_profile": true,
+          "request_count_share_percent": 12.5,
+          "pure_compute_share_percent": 90.67528496195092,
+          "ideal_compute_only_mean_current_cards": 29.016091187824294,
+          "balanced_3disk_layer_service_ms": 2.103678385416667
+        },
+        {
+          "label": "S",
+          "data_key": [
+            32,
+            256
+          ],
+          "ratio_count": 7,
+          "category": "SS",
+          "total_input_tokens": 32768,
+          "miss_tokens": 256,
+          "hit_tokens": 32512,
+          "V_GiB": 0.042633056640625,
+          "V_MiB": 43.65625,
+          "C_ms": 1.9974796959734433,
+          "B_GiB_s": 21.343424279388426,
+          "source_ttft_ms_not_used_as_threshold": 155.80341628592856,
+          "blocks_per_layer": 254,
+          "raw_profile": true,
+          "request_count_share_percent": 87.5,
+          "pure_compute_share_percent": 9.324715038049083,
+          "ideal_compute_only_mean_current_cards": 2.9839088121757067,
+          "balanced_3disk_layer_service_ms": 0.35527547200520837
+        }
+      ],
+      "ratio_labels": "L:S",
+      "ratio_counts": "1:7",
+      "rho_ideal": 0.9796596453524131,
+      "ideal_time_weighted_mean_B_per_npu_GiB_s": 3.6737236700715497,
+      "victim_pure_compute_fraction": 0.09324715038049083,
+      "request_weighted_CV_layer_V": 1.00767493565836,
+      "request_weighted_CV_layer_C": 2.3637984306391955,
+      "blocker_balanced_3disk_layer_service_ms": 2.103678385416667,
+      "victim_queue_conditions": [
+        {
+          "label": "S",
+          "queued_blocker_layer_equivalent_threshold": 0.78063464232579,
+          "strict_condition": "queued residual blocker layer equivalents > threshold; balanced disks, victim bytes queued after that prefix",
+          "condition_is_not_current_card_count": true
+        }
+      ],
+      "common_victim_wait_ms_for_target_U": {
+        "0.9": 2.3801498226580504,
+        "0.85": 3.7802379536333732,
+        "0.8": 5.355337100980611
+      },
+      "wait_model_assumptions": [
+        "blocker has no exposed stalls; each victim layer has the same mean extra wait in milliseconds",
+        "mean wait includes zero-wait layers; for unequal victim means use sum(count_j * wait_j)",
+        "fixed completion proportions and long-run complete cycles; startup and request-boundary effects omitted",
+        "required waiting to obtain target U, not predicted waiting and not an exact warm-window identity"
+      ],
+      "full_finite_work_conservation_U_upper_bound": 1.0,
+      "full_finite_upper_bound_not_warm_bound": true,
+      "suggested_minimum_22s_population": {
+        "minimum_pure_compute_horizon_ms": 22000.0,
+        "ratio_unit_copies": 19,
+        "per_npu_counts": {
+          "L": 19,
+          "S": 133
+        },
+        "requests_per_npu": 152,
+        "total_requests": 4864,
+        "pure_compute_ms_per_npu": 22792.31470177348,
+        "total_8layer_read_GiB": 2679.4453125
+      },
+      "rationale": "截止时间约 2 ms；检查短类更容易被卡住是否会被其较小计算占比掩盖。",
+      "failure_or_confounding_risk": "短类纯计算贡献只有约 9.3%；短类很差未必使整机很差。"
+    },
+    {
+      "id": "smaller_blocker",
+      "priority": 6,
+      "family": "burst_control",
+      "blocker_label": "L",
+      "profiles": [
+        {
+          "label": "L",
+          "data_key": [
+            128,
+            4096
+          ],
+          "ratio_count": 5,
+          "category": "LL",
+          "total_input_tokens": 131072,
+          "miss_tokens": 4096,
+          "hit_tokens": 126976,
+          "V_GiB": 0.16650390625,
+          "V_MiB": 170.5,
+          "C_ms": 93.01732520235409,
+          "B_GiB_s": 1.7900311139648435,
+          "source_ttft_ms_not_used_as_threshold": 7255.351365783618,
+          "blocks_per_layer": 992,
+          "raw_profile": true,
+          "request_count_share_percent": 13.513513513513514,
+          "pure_compute_share_percent": 79.69886789553543,
+          "ideal_compute_only_mean_current_cards": 25.503637726571338,
+          "balanced_3disk_layer_service_ms": 1.3875325520833335
+        },
+        {
+          "label": "S",
+          "data_key": [
+            32,
+            512
+          ],
+          "ratio_count": 32,
+          "category": "SL",
+          "total_input_tokens": 32768,
+          "miss_tokens": 512,
+          "hit_tokens": 32256,
+          "V_GiB": 0.04229736328125,
+          "V_MiB": 43.3125,
+          "C_ms": 3.7021326666852694,
+          "B_GiB_s": 11.425134399389648,
+          "source_ttft_ms_not_used_as_threshold": 288.76634800145104,
+          "blocks_per_layer": 252,
+          "raw_profile": true,
+          "request_count_share_percent": 86.48648648648648,
+          "pure_compute_share_percent": 20.301132104464568,
+          "ideal_compute_only_mean_current_cards": 6.4963622734286615,
+          "balanced_3disk_layer_service_ms": 0.35247802734375
+        }
+      ],
+      "ratio_labels": "L:S",
+      "ratio_counts": "5:32",
+      "rho_ideal": 0.9989509760908104,
+      "ideal_time_weighted_mean_B_per_npu_GiB_s": 3.746066160340539,
+      "victim_pure_compute_fraction": 0.20301132104464567,
+      "request_weighted_CV_layer_V": 0.7186994682200862,
+      "request_weighted_CV_layer_C": 1.935992325231506,
+      "blocker_balanced_3disk_layer_service_ms": 1.3875325520833335,
+      "victim_queue_conditions": [
+        {
+          "label": "S",
+          "queued_blocker_layer_equivalent_threshold": 2.414108868517806,
+          "strict_condition": "queued residual blocker layer equivalents > threshold; balanced disks, victim bytes queued after that prefix",
+          "condition_is_not_current_card_count": true
+        }
+      ],
+      "common_victim_wait_ms_for_target_U": {
+        "0.9": 2.026232192172567,
+        "0.85": 3.2181334816858413,
+        "0.8": 4.559022432388274
+      },
+      "wait_model_assumptions": [
+        "blocker has no exposed stalls; each victim layer has the same mean extra wait in milliseconds",
+        "mean wait includes zero-wait layers; for unequal victim means use sum(count_j * wait_j)",
+        "fixed completion proportions and long-run complete cycles; startup and request-boundary effects omitted",
+        "required waiting to obtain target U, not predicted waiting and not an exact warm-window identity"
+      ],
+      "full_finite_work_conservation_U_upper_bound": 1.0,
+      "full_finite_upper_bound_not_warm_bound": true,
+      "suggested_minimum_22s_population": {
+        "minimum_pure_compute_horizon_ms": 22000.0,
+        "ratio_unit_copies": 5,
+        "per_npu_counts": {
+          "L": 25,
+          "S": 160
+        },
+        "requests_per_npu": 185,
+        "total_requests": 5920,
+        "pure_compute_ms_per_npu": 23342.194853827965,
+        "total_8layer_read_GiB": 2798.125
+      },
+      "rationale": "与 main512 接近相同负载和短计算贡献，但长类单层读取由 258.5 降至 170.5 MiB。",
+      "failure_or_confounding_risk": "长类计算时间也随原始画像变化；这是成组画像对照，不是只改变读取量。"
+    },
+    {
+      "id": "three_profile",
+      "priority": 7,
+      "family": "heterogeneity",
+      "blocker_label": "L",
+      "profiles": [
+        {
+          "label": "L",
+          "data_key": [
+            192,
+            4096
+          ],
+          "ratio_count": 1,
+          "category": "LL",
+          "total_input_tokens": 196608,
+          "miss_tokens": 4096,
+          "hit_tokens": 192512,
+          "V_GiB": 0.25244140625,
+          "V_MiB": 258.5,
+          "C_ms": 135.967080955643,
+          "B_GiB_s": 1.8566362127929688,
+          "source_ttft_ms_not_used_as_threshold": 10605.432314540154,
+          "blocks_per_layer": 1504,
+          "raw_profile": true,
+          "request_count_share_percent": 6.666666666666667,
+          "pure_compute_share_percent": 60.87680442367,
+          "ideal_compute_only_mean_current_cards": 19.480577415574402,
+          "balanced_3disk_layer_service_ms": 2.103678385416667
+        },
+        {
+          "label": "S1",
+          "data_key": [
+            32,
+            512
+          ],
+          "ratio_count": 4,
+          "category": "SL",
+          "total_input_tokens": 32768,
+          "miss_tokens": 512,
+          "hit_tokens": 32256,
+          "V_GiB": 0.04229736328125,
+          "V_MiB": 43.3125,
+          "C_ms": 3.7021326666852694,
+          "B_GiB_s": 11.425134399389648,
+          "source_ttft_ms_not_used_as_threshold": 288.76634800145104,
+          "blocks_per_layer": 252,
+          "raw_profile": true,
+          "request_count_share_percent": 26.666666666666668,
+          "pure_compute_share_percent": 6.630252108561588,
+          "ideal_compute_only_mean_current_cards": 2.121680674739708,
+          "balanced_3disk_layer_service_ms": 0.35247802734375
+        },
+        {
+          "label": "S2",
+          "data_key": [
+            32,
+            1024
+          ],
+          "ratio_count": 10,
+          "category": "SL",
+          "total_input_tokens": 32768,
+          "miss_tokens": 1024,
+          "hit_tokens": 31744,
+          "V_GiB": 0.04162597656250001,
+          "V_MiB": 42.62500000000001,
+          "C_ms": 7.257231579079756,
+          "B_GiB_s": 5.735792789428712,
+          "source_ttft_ms_not_used_as_threshold": 566.0640631682209,
+          "blocks_per_layer": 248,
+          "raw_profile": true,
+          "request_count_share_percent": 66.66666666666667,
+          "pure_compute_share_percent": 32.49294346776842,
+          "ideal_compute_only_mean_current_cards": 10.397741909685895,
+          "balanced_3disk_layer_service_ms": 0.3468831380208334
+        }
+      ],
+      "ratio_labels": "L:S1:S2",
+      "ratio_counts": "1:4:10",
+      "rho_ideal": 1.0004010450773186,
+      "ideal_time_weighted_mean_B_per_npu_GiB_s": 3.7515039190399446,
+      "victim_pure_compute_fraction": 0.39123195576330005,
+      "request_weighted_CV_layer_V": 0.940568613691284,
+      "request_weighted_CV_layer_C": 2.1757370642313942,
+      "blocker_balanced_3disk_layer_service_ms": 2.103678385416667,
+      "victim_queue_conditions": [
+        {
+          "label": "S1",
+          "queued_blocker_layer_equivalent_threshold": 1.5922845728521697,
+          "strict_condition": "queued residual blocker layer equivalents > threshold; balanced disks, victim bytes queued after that prefix",
+          "condition_is_not_current_card_count": true
+        },
+        {
+          "label": "S2",
+          "queued_blocker_layer_equivalent_threshold": 3.2848882647478543,
+          "strict_condition": "queued residual blocker layer equivalents > threshold; balanced disks, victim bytes queued after that prefix",
+          "condition_is_not_current_card_count": true
+        }
+      ],
+      "common_victim_wait_ms_for_target_U": {
+        "0.9": 1.7726025985173153,
+        "0.85": 2.815310009409853,
+        "0.8": 3.9883558466639575
+      },
+      "wait_model_assumptions": [
+        "blocker has no exposed stalls; each victim layer has the same mean extra wait in milliseconds",
+        "mean wait includes zero-wait layers; for unequal victim means use sum(count_j * wait_j)",
+        "fixed completion proportions and long-run complete cycles; startup and request-boundary effects omitted",
+        "required waiting to obtain target U, not predicted waiting and not an exact warm-window identity"
+      ],
+      "full_finite_work_conservation_U_upper_bound": 0.9995991156953583,
+      "full_finite_upper_bound_not_warm_bound": true,
+      "suggested_minimum_22s_population": {
+        "minimum_pure_compute_horizon_ms": 22000.0,
+        "ratio_unit_copies": 13,
+        "per_npu_counts": {
+          "L": 13,
+          "S1": 52,
+          "S2": 130
+        },
+        "requests_per_npu": 195,
+        "total_requests": 6240,
+        "pure_compute_ms_per_npu": 23228.18445097089,
+        "total_8layer_read_GiB": 2788.5
+      },
+      "rationale": "混合两种短类，检查现象是否依赖所有短请求采用同一个计算时间。",
+      "failure_or_confounding_risk": "S1/S2 的等待必须分开统计，不能套一个共同截止时间。"
+    }
+  ]
+}

@@ -1,0 +1,3126 @@
+{
+  "schema_version": "constructed-affine128-candidates-v1",
+  "family": "data_affine_extrapolation",
+  "status": "Adaptive mathematical candidates, not simulated by this builder",
+  "no_new_simulations": true,
+  "fit": {
+    "method": "ordinary_least_squares_affine_C_at_fixed_miss128",
+    "C_ms_formula": "intercept_ms + slope_ms_per_K * total_input_K",
+    "intercept_ms": 0.5069373084555413,
+    "slope_ms_per_K": 0.020971520117628543,
+    "source_data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+    "source_points": [
+      {
+        "total_k": 32,
+        "C_ms": 1.1780259589150035
+      },
+      {
+        "total_k": 48,
+        "C_ms": 1.5135702759005252
+      },
+      {
+        "total_k": 64,
+        "C_ms": 1.849114595189163
+      },
+      {
+        "total_k": 80,
+        "C_ms": 2.1846589028459564
+      },
+      {
+        "total_k": 96,
+        "C_ms": 2.520203244593126
+      },
+      {
+        "total_k": 112,
+        "C_ms": 2.8557475535748824
+      },
+      {
+        "total_k": 128,
+        "C_ms": 3.1912918804865735
+      },
+      {
+        "total_k": 144,
+        "C_ms": 3.5268362439928436
+      },
+      {
+        "total_k": 160,
+        "C_ms": 3.8623805178090707
+      },
+      {
+        "total_k": 176,
+        "C_ms": 4.197924834778913
+      },
+      {
+        "total_k": 192,
+        "C_ms": 4.533469108194381
+      },
+      {
+        "total_k": 200,
+        "C_ms": 4.701241393630131
+      }
+    ],
+    "source_total_k_range": [
+      32,
+      200
+    ],
+    "max_abs_training_residual_ms": 6.284584141980076e-08,
+    "training_rmse_ms": 2.8734769252312286e-08,
+    "leave_one_out_max_abs_residual_ms": 8.420676689269158e-08,
+    "leave_one_out_rmse_ms": 3.717185463223515e-08,
+    "lowest_four_point_fit": {
+      "intercept_ms": 0.5069373303341382,
+      "slope_ms_per_K": 0.020971519694259356
+    },
+    "V_GiB_formula": "((total_K*1024-128)/128) * (176/1048576)",
+    "V_rule": "One cached 128-token block occupies 176 KiB. Exact integer KV-block construction; verified against every fixed-miss128 raw row.",
+    "limitation": "The requested totals10/12/16K are below the raw minimum32K. Tiny in-range residuals do not establish extrapolation accuracy or a hardware measurement at the new lengths."
+  },
+  "protocol": {
+    "pilot_seed": 7,
+    "confirmation_seeds": [
+      19,
+      43,
+      67,
+      101
+    ],
+    "minimum_pure_compute_ms": 22000,
+    "windows_ms": [
+      [
+        2000,
+        4000
+      ],
+      [
+        2000,
+        20000
+      ]
+    ],
+    "random": "Every card independently shuffles its entire fixed-count queue; seed+100003*npu; no synchronized decks or seed replacement"
+  },
+  "integer_ratio_selection": "Coprime nL<=64,nS<=1024. Within abs(rho-1)<=.005 choose minimum count sum, then minimum error; if unavailable choose closest among rho .95..1.05.",
+  "selection": "Eight requested: S10K with both L200/2048 and L200/4096 at6/8 disks; S12K/S16K with L200/4096 at6/8 disks. Full12-cell math scan is retained.",
+  "source_calibrations": [
+    {
+      "source": "results/baseline_random_near_capacity_20260914/runs/topo6_m2048_s32m128_ssu6_h22000_seed7/baseline/analysis.json",
+      "source_sha256": "5e13cc39a079a0e034fca975104c912676d844c1872a7934867bed695662cf85",
+      "actual_long_U_percent": 92.9469269615691,
+      "mean_S_internal_stall_ms_including_zeros": 0.7414330308583782,
+      "kappa": 0.6692913927043342,
+      "all_32_long_mixed": true,
+      "assumption_for_new_candidate": "Only a sensitivity anchor: retain this raw32K short-layer mean wait while replacing short V,C and request counts. New queues can change the wait substantially."
+    },
+    {
+      "source": "results/baseline_random_near_capacity_20260914/runs/topo6_m4096_s32m128_ssu6_h22000_seed7/baseline/analysis.json",
+      "source_sha256": "f62b337984c2aea6960c158e9dc6ee1fc8136f49f36f913de8c60d80c47a9467",
+      "actual_long_U_percent": 93.21487187061926,
+      "mean_S_internal_stall_ms_including_zeros": 0.5348821755758849,
+      "kappa": 0.48776491083313356,
+      "all_32_long_mixed": true,
+      "assumption_for_new_candidate": "Only a sensitivity anchor: retain this raw32K short-layer mean wait while replacing short V,C and request counts. New queues can change the wait substantially."
+    },
+    {
+      "source": "results/baseline_random_near_capacity_20260914/runs/topo8_m2048_s32m128_ssu8_h22000_seed7/baseline/analysis.json",
+      "source_sha256": "0efb7a28d64e5280702acb92778090bb7b2486b527382ba7493158bea14f5be7",
+      "actual_long_U_percent": 93.20082520822773,
+      "mean_S_internal_stall_ms_including_zeros": 0.42598955098003083,
+      "kappa": 0.5127208670895739,
+      "all_32_long_mixed": true,
+      "assumption_for_new_candidate": "Only a sensitivity anchor: retain this raw32K short-layer mean wait while replacing short V,C and request counts. New queues can change the wait substantially."
+    },
+    {
+      "source": "results/baseline_random_near_capacity_20260914/runs/topo8_m4096_s32m128_ssu8_h22000_seed7/baseline/analysis.json",
+      "source_sha256": "c088449e490172323b249de9d9bdf6424bf7ee3abfd23c29eae0244eaa8ec69d",
+      "actual_long_U_percent": 94.98545102150185,
+      "mean_S_internal_stall_ms_including_zeros": 0.26107270430399193,
+      "kappa": 0.317433409077299,
+      "all_32_long_mixed": true,
+      "assumption_for_new_candidate": "Only a sensitivity anchor: retain this raw32K short-layer mean wait while replacing short V,C and request counts. New queues can change the wait substantially."
+    }
+  ],
+  "selected_candidates": [
+    {
+      "name": "fit6_m2048_s10m128",
+      "candidate_id": "fit6_m2048_s10m128",
+      "selected": true,
+      "num_npu": 32,
+      "num_ssu": 6,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "long_total_k": 200,
+      "long_nql": 2048,
+      "short_total_k": 10,
+      "short_nql": 128,
+      "long_compute_us": 70740.53784115809,
+      "long_V_GiB": 0.26586914062500006,
+      "long_B_GiB_s": 3.7583703593261726,
+      "short_compute_us": 716.6525096318267,
+      "short_V_GiB": 0.0132598876953125,
+      "short_B_GiB_s": 18.5025343762832,
+      "short_blocks_per_layer": 79,
+      "short_constructed_profile": true,
+      "short_construction": "affine_extrapolation_below_raw_minimum",
+      "counts": [
+        1,
+        34
+      ],
+      "roles": [
+        "L",
+        "S"
+      ],
+      "rho_ideal": 1.0047734424197485,
+      "f_short": 0.25619834766335886,
+      "per_card_population": {
+        "L": 29,
+        "S": 986,
+        "repeats": 29,
+        "pure_compute_ms": 22064.759775124527,
+        "total_blocks_all_32_npu": 31700480
+      },
+      "C_short_ms": 0.7166525096318267,
+      "L_request_pure_compute_ms": 565.9243027292647,
+      "mean_pure_compute_work_per_L_request_ms": 760.8537853491216,
+      "L_balanced_storage_layer_service_ms": 1.1077880859375002,
+      "short_link_minimum_ms": 0.26519775390625,
+      "first_link_start_delay_threshold_ms": 0.4514547557255767,
+      "required_mean_S_stall_ms_for_U80": 0.6993141409458837,
+      "model_provenance": {
+        "fit_reference": "top_level.fit",
+        "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+        "long_source": "direct_data_row",
+        "short_source": "affine_extrapolation_below_raw_minimum",
+        "original_short_total_k_not_in_data": true,
+        "source_ttft_for_short": null,
+        "low_four_point_fit_C_ms": 0.7166525272767318,
+        "all_point_vs_low_four_prediction_difference_ms": -1.764490509259531e-08
+      },
+      "stationary_no_stall_coverage_risk": {
+        "no_L_per_card": 1.0398188966255225e-05,
+        "no_S_per_card": 8.348217751512946e-06,
+        "all_32_mixed_if_cards_independent": 0.9994002892605284,
+        "union_bound_all_32_mixed": 0.9994001149850315,
+        "assumed_mean_S_stall_ms": 0.0,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "stationary_constant_U80_wait_coverage_risk": {
+        "no_L_per_card": 0.002425195525641708,
+        "no_S_per_card": 6.678574201210357e-06,
+        "all_32_mixed_if_cards_independent": 0.925043283981548,
+        "union_bound_all_32_mixed": 0.9221800288050266,
+        "assumed_mean_S_stall_ms": 0.6993141409458837,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "pure_compute_clock_warm_coverage_by_seed": [
+        {
+          "seed": 7,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 19,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 43,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 67,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 101,
+          "mixed_cards": 32,
+          "missing_cards": []
+        }
+      ],
+      "same_topology_raw_wait_sensitivity": {
+        "calibration": {
+          "source": "results/baseline_random_near_capacity_20260914/runs/topo6_m2048_s32m128_ssu6_h22000_seed7/baseline/analysis.json",
+          "source_sha256": "5e13cc39a079a0e034fca975104c912676d844c1872a7934867bed695662cf85",
+          "actual_long_U_percent": 92.9469269615691,
+          "mean_S_internal_stall_ms_including_zeros": 0.7414330308583782,
+          "kappa": 0.6692913927043342,
+          "all_32_long_mixed": true,
+          "assumption_for_new_candidate": "Only a sensitivity anchor: retain this raw32K short-layer mean wait while replacing short V,C and request counts. New queues can change the wait substantially."
+        },
+        "hypothetical_mean_S_stall_ms": 0.7414330308583782,
+        "approximate_U_percent": 79.04780820615024,
+        "mixed_risk_under_same_constant_wait": {
+          "no_L_per_card": 0.002860769803382565,
+          "no_S_per_card": 6.599083156847741e-06,
+          "all_32_mixed_if_cards_independent": 0.9122076711397104,
+          "union_bound_all_32_mixed": 0.9082441956307388,
+          "assumed_mean_S_stall_ms": 0.7414330308583782,
+          "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+        },
+        "not_a_measured_new_result": true
+      },
+      "fixed_count_fit_error_sensitivity": [
+        {
+          "relative_short_C_error": -0.25,
+          "resulting_rho_if_counts_unchanged": 1.0735327730758741,
+          "resulting_short_B_GiB_s": 24.670045835044267
+        },
+        {
+          "relative_short_C_error": -0.1,
+          "resulting_rho_if_counts_unchanged": 1.0311924218806279,
+          "resulting_short_B_GiB_s": 20.558371529203555
+        },
+        {
+          "relative_short_C_error": 0.1,
+          "resulting_rho_if_counts_unchanged": 0.9796743475116814,
+          "resulting_short_B_GiB_s": 16.82048579662109
+        },
+        {
+          "relative_short_C_error": 0.25,
+          "resulting_rho_if_counts_unchanged": 0.9442919341119207,
+          "resulting_short_B_GiB_s": 14.802027501026561
+        }
+      ]
+    },
+    {
+      "name": "fit6_m4096_s10m128",
+      "candidate_id": "fit6_m4096_s10m128",
+      "selected": true,
+      "num_npu": 32,
+      "num_ssu": 6,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "long_total_k": 200,
+      "long_nql": 4096,
+      "short_total_k": 10,
+      "short_nql": 128,
+      "long_compute_us": 141335.78827944142,
+      "long_V_GiB": 0.26318359375,
+      "long_B_GiB_s": 1.8621157242187503,
+      "short_compute_us": 716.6525096318267,
+      "short_V_GiB": 0.0132598876953125,
+      "short_B_GiB_s": 18.5025343762832,
+      "short_blocks_per_layer": 79,
+      "short_constructed_profile": true,
+      "short_construction": "affine_extrapolation_below_raw_minimum",
+      "counts": [
+        1,
+        101
+      ],
+      "roles": [
+        "L",
+        "S"
+      ],
+      "rho_ideal": 0.9997189830742517,
+      "f_short": 0.33867997955321577,
+      "per_card_population": {
+        "L": 13,
+        "S": 1313,
+        "repeats": 13,
+        "pure_compute_ms": 22226.639942234615,
+        "total_blocks_all_32_npu": 31772416
+      },
+      "C_short_ms": 0.7166525096318267,
+      "L_request_pure_compute_ms": 1130.6863062355314,
+      "mean_pure_compute_work_per_L_request_ms": 1709.7415340180473,
+      "L_balanced_storage_layer_service_ms": 1.0965983072916665,
+      "short_link_minimum_ms": 0.26519775390625,
+      "first_link_start_delay_threshold_ms": 0.4514547557255767,
+      "required_mean_S_stall_ms_for_U80": 0.5290041875055839,
+      "model_provenance": {
+        "fit_reference": "top_level.fit",
+        "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+        "long_source": "direct_data_row",
+        "short_source": "affine_extrapolation_below_raw_minimum",
+        "original_short_total_k_not_in_data": true,
+        "source_ttft_for_short": null,
+        "low_four_point_fit_C_ms": 0.7166525272767318,
+        "all_point_vs_low_four_prediction_difference_ms": -1.764490509259531e-08
+      },
+      "stationary_no_stall_coverage_risk": {
+        "no_L_per_card": 0.010893285175111605,
+        "no_S_per_card": 0.0015476212389775956,
+        "all_32_mixed_if_cards_independent": 0.6699138502894579,
+        "union_bound_all_32_mixed": 0.6018909947491455,
+        "assumed_mean_S_stall_ms": 0.0,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "stationary_constant_U80_wait_coverage_risk": {
+        "no_L_per_card": 0.06519740127145053,
+        "no_S_per_card": 0.0012380969911820765,
+        "all_32_mixed_if_cards_independent": 0.11082010200382544,
+        "union_bound_all_32_mixed": 0.0,
+        "assumed_mean_S_stall_ms": 0.5290041875055839,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "pure_compute_clock_warm_coverage_by_seed": [
+        {
+          "seed": 7,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 19,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 43,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 67,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 101,
+          "mixed_cards": 32,
+          "missing_cards": []
+        }
+      ],
+      "same_topology_raw_wait_sensitivity": {
+        "calibration": {
+          "source": "results/baseline_random_near_capacity_20260914/runs/topo6_m4096_s32m128_ssu6_h22000_seed7/baseline/analysis.json",
+          "source_sha256": "f62b337984c2aea6960c158e9dc6ee1fc8136f49f36f913de8c60d80c47a9467",
+          "actual_long_U_percent": 93.21487187061926,
+          "mean_S_internal_stall_ms_including_zeros": 0.5348821755758849,
+          "kappa": 0.48776491083313356,
+          "all_32_long_mixed": true,
+          "assumption_for_new_candidate": "Only a sensitivity anchor: retain this raw32K short-layer mean wait while replacing short V,C and request counts. New queues can change the wait substantially."
+        },
+        "hypothetical_mean_S_stall_ms": 0.5348821755758849,
+        "approximate_U_percent": 79.82261147677747,
+        "mixed_risk_under_same_constant_wait": {
+          "no_L_per_card": 0.06596953186657446,
+          "no_S_per_card": 0.0012353516887211758,
+          "all_32_mixed_if_cards_independent": 0.10793453849181966,
+          "union_bound_all_32_mixed": 0.0,
+          "assumed_mean_S_stall_ms": 0.5348821755758849,
+          "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+        },
+        "not_a_measured_new_result": true
+      },
+      "fixed_count_fit_error_sensitivity": [
+        {
+          "relative_short_C_error": -0.25,
+          "resulting_rho_if_counts_unchanged": 1.0921951399946273,
+          "resulting_short_B_GiB_s": 24.670045835044267
+        },
+        {
+          "relative_short_C_error": -0.1,
+          "resulting_rho_if_counts_unchanged": 1.034764381014697,
+          "resulting_short_B_GiB_s": 20.558371529203555
+        },
+        {
+          "relative_short_C_error": 0.1,
+          "resulting_rho_if_counts_unchanged": 0.9669696567176793,
+          "resulting_short_B_GiB_s": 16.82048579662109
+        },
+        {
+          "relative_short_C_error": 0.25,
+          "resulting_rho_if_counts_unchanged": 0.9216803154743852,
+          "resulting_short_B_GiB_s": 14.802027501026561
+        }
+      ]
+    },
+    {
+      "name": "fit6_m4096_s12m128",
+      "candidate_id": "fit6_m4096_s12m128",
+      "selected": true,
+      "num_npu": 32,
+      "num_ssu": 6,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "long_total_k": 200,
+      "long_nql": 4096,
+      "short_total_k": 12,
+      "short_nql": 128,
+      "long_compute_us": 141335.78827944142,
+      "long_V_GiB": 0.26318359375,
+      "long_B_GiB_s": 1.8621157242187503,
+      "short_compute_us": 758.5955498670837,
+      "short_V_GiB": 0.0159454345703125,
+      "short_B_GiB_s": 21.01967850075888,
+      "short_blocks_per_layer": 95,
+      "short_constructed_profile": true,
+      "short_construction": "affine_extrapolation_below_raw_minimum",
+      "counts": [
+        1,
+        77
+      ],
+      "roles": [
+        "L",
+        "S"
+      ],
+      "rho_ideal": 0.9952438077836323,
+      "f_short": 0.29242826446685694,
+      "per_card_population": {
+        "L": 14,
+        "S": 1078,
+        "repeats": 14,
+        "pure_compute_ms": 22371.73630935117,
+        "total_blocks_all_32_npu": 31836672
+      },
+      "C_short_ms": 0.7585955498670838,
+      "L_request_pure_compute_ms": 1130.6863062355314,
+      "mean_pure_compute_work_per_L_request_ms": 1597.981164953655,
+      "L_balanced_storage_layer_service_ms": 1.0965983072916665,
+      "short_link_minimum_ms": 0.31890869140625,
+      "first_link_start_delay_threshold_ms": 0.4396868584608338,
+      "required_mean_S_stall_ms_for_U80": 0.6485313169454769,
+      "model_provenance": {
+        "fit_reference": "top_level.fit",
+        "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+        "long_source": "direct_data_row",
+        "short_source": "affine_extrapolation_below_raw_minimum",
+        "original_short_total_k_not_in_data": true,
+        "source_ttft_for_short": null,
+        "low_four_point_fit_C_ms": 0.7585955666652505,
+        "all_point_vs_low_four_prediction_difference_ms": -1.679816674649004e-08
+      },
+      "stationary_no_stall_coverage_risk": {
+        "no_L_per_card": 0.0041613544619331375,
+        "no_S_per_card": 0.0021863938250672424,
+        "all_32_mixed_if_cards_independent": 0.8156455535407904,
+        "union_bound_all_32_mixed": 0.7968720548159878,
+        "assumed_mean_S_stall_ms": 0.0,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "stationary_constant_U80_wait_coverage_risk": {
+        "no_L_per_card": 0.043834521414179366,
+        "no_S_per_card": 0.001749115060053794,
+        "all_32_mixed_if_cards_independent": 0.22470464775694954,
+        "union_bound_all_32_mixed": 0.0,
+        "assumed_mean_S_stall_ms": 0.6485313169454769,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "pure_compute_clock_warm_coverage_by_seed": [
+        {
+          "seed": 7,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 19,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 43,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 67,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 101,
+          "mixed_cards": 32,
+          "missing_cards": []
+        }
+      ],
+      "same_topology_raw_wait_sensitivity": {
+        "calibration": {
+          "source": "results/baseline_random_near_capacity_20260914/runs/topo6_m4096_s32m128_ssu6_h22000_seed7/baseline/analysis.json",
+          "source_sha256": "f62b337984c2aea6960c158e9dc6ee1fc8136f49f36f913de8c60d80c47a9467",
+          "actual_long_U_percent": 93.21487187061926,
+          "mean_S_internal_stall_ms_including_zeros": 0.5348821755758849,
+          "kappa": 0.48776491083313356,
+          "all_32_long_mixed": true,
+          "assumption_for_new_candidate": "Only a sensitivity anchor: retain this raw32K short-layer mean wait while replacing short V,C and request counts. New queues can change the wait substantially."
+        },
+        "hypothetical_mean_S_stall_ms": 0.5348821755758849,
+        "approximate_U_percent": 82.90569181254827,
+        "mixed_risk_under_same_constant_wait": {
+          "no_L_per_card": 0.03413946927283058,
+          "no_S_per_card": 0.001812644926418834,
+          "all_32_mixed_if_cards_independent": 0.30985278877210964,
+          "union_bound_all_32_mixed": 0.0,
+          "assumed_mean_S_stall_ms": 0.5348821755758849,
+          "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+        },
+        "not_a_measured_new_result": true
+      },
+      "fixed_count_fit_error_sensitivity": [
+        {
+          "relative_short_C_error": -0.25,
+          "resulting_rho_if_counts_unchanged": 1.073741930056566,
+          "resulting_short_B_GiB_s": 28.026238001011837
+        },
+        {
+          "relative_short_C_error": -0.1,
+          "resulting_rho_if_counts_unchanged": 1.0252242629747337,
+          "resulting_short_B_GiB_s": 23.35519833417653
+        },
+        {
+          "relative_short_C_error": 0.1,
+          "resulting_rho_if_counts_unchanged": 0.9669669607701515,
+          "resulting_short_B_GiB_s": 19.108798637053525
+        },
+        {
+          "relative_short_C_error": 0.25,
+          "resulting_rho_if_counts_unchanged": 0.9274412956622791,
+          "resulting_short_B_GiB_s": 16.815742800607104
+        }
+      ]
+    },
+    {
+      "name": "fit6_m4096_s16m128",
+      "candidate_id": "fit6_m4096_s16m128",
+      "selected": true,
+      "num_npu": 32,
+      "num_ssu": 6,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "long_total_k": 200,
+      "long_nql": 4096,
+      "short_total_k": 16,
+      "short_nql": 128,
+      "long_compute_us": 141335.78827944142,
+      "long_V_GiB": 0.26318359375,
+      "long_B_GiB_s": 1.8621157242187503,
+      "short_compute_us": 842.481630337598,
+      "short_V_GiB": 0.0213165283203125,
+      "short_B_GiB_s": 25.302068974216773,
+      "short_blocks_per_layer": 127,
+      "short_constructed_profile": true,
+      "short_construction": "affine_extrapolation_below_raw_minimum",
+      "counts": [
+        1,
+        53
+      ],
+      "roles": [
+        "L",
+        "S"
+      ],
+      "rho_ideal": 0.998605449386543,
+      "f_short": 0.24007834342335121,
+      "per_card_population": {
+        "L": 15,
+        "S": 795,
+        "repeats": 15,
+        "pure_compute_ms": 22318.47776248009,
+        "total_blocks_all_32_npu": 31868160
+      },
+      "C_short_ms": 0.8424816303375979,
+      "L_request_pure_compute_ms": 1130.6863062355314,
+      "mean_pure_compute_work_per_L_request_ms": 1487.8985174986728,
+      "L_balanced_storage_layer_service_ms": 1.0965983072916665,
+      "short_link_minimum_ms": 0.42633056640625,
+      "first_link_start_delay_threshold_ms": 0.41615106393134793,
+      "required_mean_S_stall_ms_for_U80": 0.8772986541855382,
+      "model_provenance": {
+        "fit_reference": "top_level.fit",
+        "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+        "long_source": "direct_data_row",
+        "short_source": "affine_extrapolation_below_raw_minimum",
+        "original_short_total_k_not_in_data": true,
+        "source_ttft_for_short": null,
+        "low_four_point_fit_C_ms": 0.8424816454422879,
+        "all_point_vs_low_four_prediction_difference_ms": -1.51046899432572e-08
+      },
+      "stationary_no_stall_coverage_risk": {
+        "no_L_per_card": 0.0009363657380948933,
+        "no_S_per_card": 0.003453429151600193,
+        "all_32_mixed_if_cards_independent": 0.868678083979938,
+        "union_bound_all_32_mixed": 0.8595265635297572,
+        "assumed_mean_S_stall_ms": 0.0,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "stationary_constant_U80_wait_coverage_risk": {
+        "no_L_per_card": 0.02589980257373153,
+        "no_S_per_card": 0.0027627433212801546,
+        "all_32_mixed_if_cards_independent": 0.3943159322275696,
+        "union_bound_all_32_mixed": 0.08279853135962612,
+        "assumed_mean_S_stall_ms": 0.8772986541855382,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "pure_compute_clock_warm_coverage_by_seed": [
+        {
+          "seed": 7,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 19,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 43,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 67,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 101,
+          "mixed_cards": 32,
+          "missing_cards": []
+        }
+      ],
+      "same_topology_raw_wait_sensitivity": {
+        "calibration": {
+          "source": "results/baseline_random_near_capacity_20260914/runs/topo6_m4096_s32m128_ssu6_h22000_seed7/baseline/analysis.json",
+          "source_sha256": "f62b337984c2aea6960c158e9dc6ee1fc8136f49f36f913de8c60d80c47a9467",
+          "actual_long_U_percent": 93.21487187061926,
+          "mean_S_internal_stall_ms_including_zeros": 0.5348821755758849,
+          "kappa": 0.48776491083313356,
+          "all_32_long_mixed": true,
+          "assumption_for_new_candidate": "Only a sensitivity anchor: retain this raw32K short-layer mean wait while replacing short V,C and request counts. New queues can change the wait substantially."
+        },
+        "hypothetical_mean_S_stall_ms": 0.5348821755758849,
+        "approximate_U_percent": 86.77368895190307,
+        "mixed_risk_under_same_constant_wait": {
+          "no_L_per_card": 0.01144988823622283,
+          "no_S_per_card": 0.002996667870183896,
+          "all_32_mixed_if_cards_independent": 0.6277196960088686,
+          "union_bound_all_32_mixed": 0.5377102045949848,
+          "assumed_mean_S_stall_ms": 0.5348821755758849,
+          "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+        },
+        "not_a_measured_new_result": true
+      },
+      "fixed_count_fit_error_sensitivity": [
+        {
+          "relative_short_C_error": -0.25,
+          "resulting_rho_if_counts_unchanged": 1.062368358276654,
+          "resulting_short_B_GiB_s": 33.736091965622364
+        },
+        {
+          "relative_short_C_error": -0.1,
+          "resulting_rho_if_counts_unchanged": 1.0231695340644875,
+          "resulting_short_B_GiB_s": 28.11340997135197
+        },
+        {
+          "relative_short_C_error": 0.1,
+          "resulting_rho_if_counts_unchanged": 0.9751931732318174,
+          "resulting_short_B_GiB_s": 23.00188088565161
+        },
+        {
+          "relative_short_C_error": 0.25,
+          "resulting_rho_if_counts_unchanged": 0.9420632059173601,
+          "resulting_short_B_GiB_s": 20.241655179373417
+        }
+      ]
+    },
+    {
+      "name": "fit8_m2048_s10m128",
+      "candidate_id": "fit8_m2048_s10m128",
+      "selected": true,
+      "num_npu": 32,
+      "num_ssu": 8,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "long_total_k": 200,
+      "long_nql": 2048,
+      "short_total_k": 10,
+      "short_nql": 128,
+      "long_compute_us": 70740.53784115809,
+      "long_V_GiB": 0.26586914062500006,
+      "long_B_GiB_s": 3.7583703593261726,
+      "short_compute_us": 716.6525096318267,
+      "short_V_GiB": 0.0132598876953125,
+      "short_B_GiB_s": 18.5025343762832,
+      "short_blocks_per_layer": 79,
+      "short_constructed_profile": true,
+      "short_construction": "affine_extrapolation_below_raw_minimum",
+      "counts": [
+        1,
+        72
+      ],
+      "roles": [
+        "L",
+        "S"
+      ],
+      "rho_ideal": 0.9976997370165397,
+      "f_short": 0.4217687081944613,
+      "per_card_population": {
+        "L": 23,
+        "S": 1656,
+        "repeats": 23,
+        "pure_compute_ms": 22510.47141037553,
+        "total_blocks_all_32_npu": 42817536
+      },
+      "C_short_ms": 0.7166525096318267,
+      "L_request_pure_compute_ms": 565.9243027292647,
+      "mean_pure_compute_work_per_L_request_ms": 978.7161482771969,
+      "L_balanced_storage_layer_service_ms": 0.8308410644531251,
+      "short_link_minimum_ms": 0.26519775390625,
+      "first_link_start_delay_threshold_ms": 0.4514547557255767,
+      "required_mean_S_stall_ms_for_U80": 0.42478999491197783,
+      "model_provenance": {
+        "fit_reference": "top_level.fit",
+        "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+        "long_source": "direct_data_row",
+        "short_source": "affine_extrapolation_below_raw_minimum",
+        "original_short_total_k_not_in_data": true,
+        "source_ttft_for_short": null,
+        "low_four_point_fit_C_ms": 0.7166525272767318,
+        "all_point_vs_low_four_prediction_difference_ms": -1.764490509259531e-08
+      },
+      "stationary_no_stall_coverage_risk": {
+        "no_L_per_card": 0.003430652878232029,
+        "no_S_per_card": 7.034702521797876e-07,
+        "all_32_mixed_if_cards_independent": 0.8958411026600297,
+        "union_bound_all_32_mixed": 0.8901965968485053,
+        "assumed_mean_S_stall_ms": 0.0,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "stationary_constant_U80_wait_coverage_risk": {
+        "no_L_per_card": 0.026199591813864775,
+        "no_S_per_card": 5.627762017438301e-07,
+        "all_32_mixed_if_cards_independent": 0.4275928558814263,
+        "union_bound_all_32_mixed": 0.16159505311787137,
+        "assumed_mean_S_stall_ms": 0.42478999491197783,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "pure_compute_clock_warm_coverage_by_seed": [
+        {
+          "seed": 7,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 19,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 43,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 67,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 101,
+          "mixed_cards": 32,
+          "missing_cards": []
+        }
+      ],
+      "same_topology_raw_wait_sensitivity": {
+        "calibration": {
+          "source": "results/baseline_random_near_capacity_20260914/runs/topo8_m2048_s32m128_ssu8_h22000_seed7/baseline/analysis.json",
+          "source_sha256": "0efb7a28d64e5280702acb92778090bb7b2486b527382ba7493158bea14f5be7",
+          "actual_long_U_percent": 93.20082520822773,
+          "mean_S_internal_stall_ms_including_zeros": 0.42598955098003083,
+          "kappa": 0.5127208670895739,
+          "all_32_long_mixed": true,
+          "assumption_for_new_candidate": "Only a sensitivity anchor: retain this raw32K short-layer mean wait while replacing short V,C and request counts. New queues can change the wait substantially."
+        },
+        "hypothetical_mean_S_stall_ms": 0.42598955098003083,
+        "approximate_U_percent": 79.95484341969296,
+        "mixed_risk_under_same_constant_wait": {
+          "no_L_per_card": 0.026295948567605032,
+          "no_S_per_card": 5.624585386344685e-07,
+          "all_32_mixed_if_cards_independent": 0.4262410151949172,
+          "union_bound_all_32_mixed": 0.1585116471634027,
+          "assumed_mean_S_stall_ms": 0.42598955098003083,
+          "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+        },
+        "not_a_measured_new_result": true
+      },
+      "fixed_count_fit_error_sensitivity": [
+        {
+          "relative_short_C_error": -0.25,
+          "resulting_rho_if_counts_unchanged": 1.11529932601211,
+          "resulting_short_B_GiB_s": 24.670045835044267
+        },
+        {
+          "relative_short_C_error": -0.1,
+          "resulting_rho_if_counts_unchanged": 1.0416325380136742,
+          "resulting_short_B_GiB_s": 20.558371529203555
+        },
+        {
+          "relative_short_C_error": 0.1,
+          "resulting_rho_if_counts_unchanged": 0.9573228546437278,
+          "resulting_short_B_GiB_s": 16.82048579662109
+        },
+        {
+          "relative_short_C_error": 0.25,
+          "resulting_rho_if_counts_unchanged": 0.9025345311866662,
+          "resulting_short_B_GiB_s": 14.802027501026561
+        }
+      ]
+    },
+    {
+      "name": "fit8_m4096_s10m128",
+      "candidate_id": "fit8_m4096_s10m128",
+      "selected": true,
+      "num_npu": 32,
+      "num_ssu": 8,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "long_total_k": 200,
+      "long_nql": 4096,
+      "short_total_k": 10,
+      "short_nql": 128,
+      "long_compute_us": 141335.78827944142,
+      "long_V_GiB": 0.26318359375,
+      "long_B_GiB_s": 1.8621157242187503,
+      "short_compute_us": 716.6525096318267,
+      "short_V_GiB": 0.0132598876953125,
+      "short_B_GiB_s": 18.5025343762832,
+      "short_blocks_per_layer": 79,
+      "short_constructed_profile": true,
+      "short_construction": "affine_extrapolation_below_raw_minimum",
+      "counts": [
+        1,
+        187
+      ],
+      "roles": [
+        "L",
+        "S"
+      ],
+      "rho_ideal": 0.9961084109240365,
+      "f_short": 0.4867046048758417,
+      "per_card_population": {
+        "L": 10,
+        "S": 1870,
+        "repeats": 10,
+        "pure_compute_ms": 22027.984606447444,
+        "total_blocks_all_32_npu": 41832960
+      },
+      "C_short_ms": 0.7166525096318267,
+      "L_request_pure_compute_ms": 1130.6863062355314,
+      "mean_pure_compute_work_per_L_request_ms": 2202.7984606447444,
+      "L_balanced_storage_layer_service_ms": 0.82244873046875,
+      "short_link_minimum_ms": 0.26519775390625,
+      "first_link_start_delay_threshold_ms": 0.4514547557255767,
+      "required_mean_S_stall_ms_for_U80": 0.36811471601683565,
+      "model_provenance": {
+        "fit_reference": "top_level.fit",
+        "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+        "long_source": "direct_data_row",
+        "short_source": "affine_extrapolation_below_raw_minimum",
+        "original_short_total_k_not_in_data": true,
+        "source_ttft_for_short": null,
+        "low_four_point_fit_C_ms": 0.7166525272767318,
+        "all_point_vs_low_four_prediction_difference_ms": -1.764490509259531e-08
+      },
+      "stationary_no_stall_coverage_risk": {
+        "no_L_per_card": 0.07572837865565142,
+        "no_S_per_card": 0.0006423082599024846,
+        "all_32_mixed_if_cards_independent": 0.0786912860943548,
+        "union_bound_all_32_mixed": 0.0,
+        "assumed_mean_S_stall_ms": 0.0,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "stationary_constant_U80_wait_coverage_risk": {
+        "no_L_per_card": 0.17241454625539923,
+        "no_S_per_card": 0.0005138466079219876,
+        "all_32_mixed_if_cards_independent": 0.0022981564183516693,
+        "union_bound_all_32_mixed": 0.0,
+        "assumed_mean_S_stall_ms": 0.36811471601683565,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "pure_compute_clock_warm_coverage_by_seed": [
+        {
+          "seed": 7,
+          "mixed_cards": 28,
+          "missing_cards": [
+            13,
+            17,
+            24,
+            27
+          ]
+        },
+        {
+          "seed": 19,
+          "mixed_cards": 30,
+          "missing_cards": [
+            2,
+            8
+          ]
+        },
+        {
+          "seed": 43,
+          "mixed_cards": 29,
+          "missing_cards": [
+            11,
+            17,
+            22
+          ]
+        },
+        {
+          "seed": 67,
+          "mixed_cards": 29,
+          "missing_cards": [
+            0,
+            3,
+            26
+          ]
+        },
+        {
+          "seed": 101,
+          "mixed_cards": 29,
+          "missing_cards": [
+            10,
+            13,
+            30
+          ]
+        }
+      ],
+      "same_topology_raw_wait_sensitivity": {
+        "calibration": {
+          "source": "results/baseline_random_near_capacity_20260914/runs/topo8_m4096_s32m128_ssu8_h22000_seed7/baseline/analysis.json",
+          "source_sha256": "c088449e490172323b249de9d9bdf6424bf7ee3abfd23c29eae0244eaa8ec69d",
+          "actual_long_U_percent": 94.98545102150185,
+          "mean_S_internal_stall_ms_including_zeros": 0.26107270430399193,
+          "kappa": 0.317433409077299,
+          "all_32_long_mixed": true,
+          "assumption_for_new_candidate": "Only a sensitivity anchor: retain this raw32K short-layer mean wait while replacing short V,C and request counts. New queues can change the wait substantially."
+        },
+        "hypothetical_mean_S_stall_ms": 0.26107270430399193,
+        "approximate_U_percent": 84.93983558953751,
+        "mixed_risk_under_same_constant_wait": {
+          "no_L_per_card": 0.1442226192902662,
+          "no_S_per_card": 0.0005455755799391896,
+          "all_32_mixed_if_cards_independent": 0.006709389271752561,
+          "union_bound_all_32_mixed": 0.0,
+          "assumed_mean_S_stall_ms": 0.26107270430399193,
+          "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+        },
+        "not_a_measured_new_result": true
+      },
+      "fixed_count_fit_error_sensitivity": [
+        {
+          "relative_short_C_error": -0.25,
+          "resulting_rho_if_counts_unchanged": 1.1341015188264116,
+          "resulting_short_B_GiB_s": 24.670045835044267
+        },
+        {
+          "relative_short_C_error": -0.1,
+          "resulting_rho_if_counts_unchanged": 1.047069779242397,
+          "resulting_short_B_GiB_s": 20.558371529203555
+        },
+        {
+          "relative_short_C_error": 0.1,
+          "resulting_rho_if_counts_unchanged": 0.9498774385815074,
+          "resulting_short_B_GiB_s": 16.82048579662109
+        },
+        {
+          "relative_short_C_error": 0.25,
+          "resulting_rho_if_counts_unchanged": 0.8880534812490526,
+          "resulting_short_B_GiB_s": 14.802027501026561
+        }
+      ]
+    },
+    {
+      "name": "fit8_m4096_s12m128",
+      "candidate_id": "fit8_m4096_s12m128",
+      "selected": true,
+      "num_npu": 32,
+      "num_ssu": 8,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "long_total_k": 200,
+      "long_nql": 4096,
+      "short_total_k": 12,
+      "short_nql": 128,
+      "long_compute_us": 141335.78827944142,
+      "long_V_GiB": 0.26318359375,
+      "long_B_GiB_s": 1.8621157242187503,
+      "short_compute_us": 758.5955498670837,
+      "short_V_GiB": 0.0159454345703125,
+      "short_B_GiB_s": 21.01967850075888,
+      "short_blocks_per_layer": 95,
+      "short_constructed_profile": true,
+      "short_construction": "affine_extrapolation_below_raw_minimum",
+      "counts": [
+        1,
+        137
+      ],
+      "roles": [
+        "L",
+        "S"
+      ],
+      "rho_ideal": 0.9979916870356277,
+      "f_short": 0.42373872088146747,
+      "per_card_population": {
+        "L": 12,
+        "S": 1644,
+        "repeats": 12,
+        "pure_compute_ms": 23545.284346678265,
+        "total_blocks_all_32_npu": 44798976
+      },
+      "C_short_ms": 0.7585955498670838,
+      "L_request_pure_compute_ms": 1130.6863062355314,
+      "mean_pure_compute_work_per_L_request_ms": 1962.1070288898554,
+      "L_balanced_storage_layer_service_ms": 0.82244873046875,
+      "short_link_minimum_ms": 0.31890869140625,
+      "first_link_start_delay_threshold_ms": 0.4396868584608338,
+      "required_mean_S_stall_ms_for_U80": 0.4475609098745108,
+      "model_provenance": {
+        "fit_reference": "top_level.fit",
+        "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+        "long_source": "direct_data_row",
+        "short_source": "affine_extrapolation_below_raw_minimum",
+        "original_short_total_k_not_in_data": true,
+        "source_ttft_for_short": null,
+        "low_four_point_fit_C_ms": 0.7585955666652505,
+        "all_point_vs_low_four_prediction_difference_ms": -1.679816674649004e-08
+      },
+      "stationary_no_stall_coverage_risk": {
+        "no_L_per_card": 0.03856477769001206,
+        "no_S_per_card": 0.000988555696305801,
+        "all_32_mixed_if_cards_independent": 0.2748806157321907,
+        "union_bound_all_32_mixed": 0.0,
+        "assumed_mean_S_stall_ms": 0.0,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "stationary_constant_U80_wait_coverage_risk": {
+        "no_L_per_card": 0.11937615904688245,
+        "no_S_per_card": 0.0007908445570446406,
+        "all_32_mixed_if_cards_independent": 0.016626768486701197,
+        "union_bound_all_32_mixed": 0.0,
+        "assumed_mean_S_stall_ms": 0.4475609098745108,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "pure_compute_clock_warm_coverage_by_seed": [
+        {
+          "seed": 7,
+          "mixed_cards": 31,
+          "missing_cards": [
+            17
+          ]
+        },
+        {
+          "seed": 19,
+          "mixed_cards": 29,
+          "missing_cards": [
+            11,
+            19,
+            30
+          ]
+        },
+        {
+          "seed": 43,
+          "mixed_cards": 30,
+          "missing_cards": [
+            20,
+            22
+          ]
+        },
+        {
+          "seed": 67,
+          "mixed_cards": 31,
+          "missing_cards": [
+            23
+          ]
+        },
+        {
+          "seed": 101,
+          "mixed_cards": 31,
+          "missing_cards": [
+            10
+          ]
+        }
+      ],
+      "same_topology_raw_wait_sensitivity": {
+        "calibration": {
+          "source": "results/baseline_random_near_capacity_20260914/runs/topo8_m4096_s32m128_ssu8_h22000_seed7/baseline/analysis.json",
+          "source_sha256": "c088449e490172323b249de9d9bdf6424bf7ee3abfd23c29eae0244eaa8ec69d",
+          "actual_long_U_percent": 94.98545102150185,
+          "mean_S_internal_stall_ms_including_zeros": 0.26107270430399193,
+          "kappa": 0.317433409077299,
+          "all_32_long_mixed": true,
+          "assumption_for_new_candidate": "Only a sensitivity anchor: retain this raw32K short-layer mean wait while replacing short V,C and request counts. New queues can change the wait substantially."
+        },
+        "hypothetical_mean_S_stall_ms": 0.26107270430399193,
+        "approximate_U_percent": 87.27291843148367,
+        "mixed_risk_under_same_constant_wait": {
+          "no_L_per_card": 0.08356591916438393,
+          "no_S_per_card": 0.0008627414064867468,
+          "all_32_mixed_if_cards_independent": 0.05944975335333374,
+          "union_bound_all_32_mixed": 0.0,
+          "assumed_mean_S_stall_ms": 0.26107270430399193,
+          "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+        },
+        "not_a_measured_new_result": true
+      },
+      "fixed_count_fit_error_sensitivity": [
+        {
+          "relative_short_C_error": -0.25,
+          "resulting_rho_if_counts_unchanged": 1.1162402398983668,
+          "resulting_short_B_GiB_s": 28.026238001011837
+        },
+        {
+          "relative_short_C_error": -0.1,
+          "resulting_rho_if_counts_unchanged": 1.0421516894195373,
+          "resulting_short_B_GiB_s": 23.35519833417653
+        },
+        {
+          "relative_short_C_error": 0.1,
+          "resulting_rho_if_counts_unchanged": 0.9574220092800196,
+          "resulting_short_B_GiB_s": 19.108798637053525
+        },
+        {
+          "relative_short_C_error": 0.25,
+          "resulting_rho_if_counts_unchanged": 0.9023965925697974,
+          "resulting_short_B_GiB_s": 16.815742800607104
+        }
+      ]
+    },
+    {
+      "name": "fit8_m4096_s16m128",
+      "candidate_id": "fit8_m4096_s16m128",
+      "selected": true,
+      "num_npu": 32,
+      "num_ssu": 8,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "long_total_k": 200,
+      "long_nql": 4096,
+      "short_total_k": 16,
+      "short_nql": 128,
+      "long_compute_us": 141335.78827944142,
+      "long_V_GiB": 0.26318359375,
+      "long_B_GiB_s": 1.8621157242187503,
+      "short_compute_us": 842.481630337598,
+      "short_V_GiB": 0.0213165283203125,
+      "short_B_GiB_s": 25.302068974216773,
+      "short_blocks_per_layer": 127,
+      "short_constructed_profile": true,
+      "short_construction": "affine_extrapolation_below_raw_minimum",
+      "counts": [
+        1,
+        89
+      ],
+      "roles": [
+        "L",
+        "S"
+      ],
+      "rho_ideal": 0.9987000910502571,
+      "f_short": 0.34662548596527204,
+      "per_card_population": {
+        "L": 13,
+        "S": 1157,
+        "repeats": 13,
+        "pure_compute_ms": 22496.931951466715,
+        "total_blocks_all_32_npu": 42834688
+      },
+      "C_short_ms": 0.8424816303375979,
+      "L_request_pure_compute_ms": 1130.6863062355314,
+      "mean_pure_compute_work_per_L_request_ms": 1730.5332270359013,
+      "L_balanced_storage_layer_service_ms": 0.82244873046875,
+      "short_link_minimum_ms": 0.42633056640625,
+      "first_link_start_delay_threshold_ms": 0.41615106393134793,
+      "required_mean_S_stall_ms_for_U80": 0.6076310488187856,
+      "model_provenance": {
+        "fit_reference": "top_level.fit",
+        "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+        "long_source": "direct_data_row",
+        "short_source": "affine_extrapolation_below_raw_minimum",
+        "original_short_total_k_not_in_data": true,
+        "source_ttft_for_short": null,
+        "low_four_point_fit_C_ms": 0.8424816454422879,
+        "all_point_vs_low_four_prediction_difference_ms": -1.51046899432572e-08
+      },
+      "stationary_no_stall_coverage_risk": {
+        "no_L_per_card": 0.012587007210255524,
+        "no_S_per_card": 0.0017401935829732646,
+        "all_32_mixed_if_cards_independent": 0.630156904924533,
+        "union_bound_all_32_mixed": 0.5415295746166788,
+        "assumed_mean_S_stall_ms": 0.0,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "stationary_constant_U80_wait_coverage_risk": {
+        "no_L_per_card": 0.06953843120125724,
+        "no_S_per_card": 0.0013921548663786117,
+        "all_32_mixed_if_cards_independent": 0.0949601102800447,
+        "union_bound_all_32_mixed": 0.0,
+        "assumed_mean_S_stall_ms": 0.6076310488187856,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "pure_compute_clock_warm_coverage_by_seed": [
+        {
+          "seed": 7,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 19,
+          "mixed_cards": 31,
+          "missing_cards": [
+            13
+          ]
+        },
+        {
+          "seed": 43,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 67,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 101,
+          "mixed_cards": 30,
+          "missing_cards": [
+            17,
+            30
+          ]
+        }
+      ],
+      "same_topology_raw_wait_sensitivity": {
+        "calibration": {
+          "source": "results/baseline_random_near_capacity_20260914/runs/topo8_m4096_s32m128_ssu8_h22000_seed7/baseline/analysis.json",
+          "source_sha256": "c088449e490172323b249de9d9bdf6424bf7ee3abfd23c29eae0244eaa8ec69d",
+          "actual_long_U_percent": 94.98545102150185,
+          "mean_S_internal_stall_ms_including_zeros": 0.26107270430399193,
+          "kappa": 0.317433409077299,
+          "all_32_long_mixed": true,
+          "assumption_for_new_candidate": "Only a sensitivity anchor: retain this raw32K short-layer mean wait while replacing short V,C and request counts. New queues can change the wait substantially."
+        },
+        "hypothetical_mean_S_stall_ms": 0.26107270430399193,
+        "approximate_U_percent": 90.30045307509404,
+        "mixed_risk_under_same_constant_wait": {
+          "no_L_per_card": 0.03262127494291673,
+          "no_S_per_card": 0.0015714026898085707,
+          "all_32_mixed_if_cards_independent": 0.3284700670946953,
+          "union_bound_all_32_mixed": 0.0,
+          "assumed_mean_S_stall_ms": 0.26107270430399193,
+          "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+        },
+        "not_a_measured_new_result": true
+      },
+      "fixed_count_fit_error_sensitivity": [
+        {
+          "relative_short_C_error": -0.25,
+          "resulting_rho_if_counts_unchanged": 1.093454927452602,
+          "resulting_short_B_GiB_s": 33.736091965622364
+        },
+        {
+          "relative_short_C_error": -0.1,
+          "resulting_rho_if_counts_unchanged": 1.0345605980564407,
+          "resulting_short_B_GiB_s": 28.11340997135197
+        },
+        {
+          "relative_short_C_error": 0.1,
+          "resulting_rho_if_counts_unchanged": 0.9652423318162511,
+          "resulting_short_B_GiB_s": 23.00188088565161
+        },
+        {
+          "relative_short_C_error": 0.25,
+          "resulting_rho_if_counts_unchanged": 0.9190578707780912,
+          "resulting_short_B_GiB_s": 20.241655179373417
+        }
+      ]
+    }
+  ],
+  "all_mathematical_candidates": [
+    {
+      "name": "fit6_m2048_s10m128",
+      "candidate_id": "fit6_m2048_s10m128",
+      "selected": true,
+      "num_npu": 32,
+      "num_ssu": 6,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "long_total_k": 200,
+      "long_nql": 2048,
+      "short_total_k": 10,
+      "short_nql": 128,
+      "long_compute_us": 70740.53784115809,
+      "long_V_GiB": 0.26586914062500006,
+      "long_B_GiB_s": 3.7583703593261726,
+      "short_compute_us": 716.6525096318267,
+      "short_V_GiB": 0.0132598876953125,
+      "short_B_GiB_s": 18.5025343762832,
+      "short_blocks_per_layer": 79,
+      "short_constructed_profile": true,
+      "short_construction": "affine_extrapolation_below_raw_minimum",
+      "counts": [
+        1,
+        34
+      ],
+      "roles": [
+        "L",
+        "S"
+      ],
+      "rho_ideal": 1.0047734424197485,
+      "f_short": 0.25619834766335886,
+      "per_card_population": {
+        "L": 29,
+        "S": 986,
+        "repeats": 29,
+        "pure_compute_ms": 22064.759775124527,
+        "total_blocks_all_32_npu": 31700480
+      },
+      "C_short_ms": 0.7166525096318267,
+      "L_request_pure_compute_ms": 565.9243027292647,
+      "mean_pure_compute_work_per_L_request_ms": 760.8537853491216,
+      "L_balanced_storage_layer_service_ms": 1.1077880859375002,
+      "short_link_minimum_ms": 0.26519775390625,
+      "first_link_start_delay_threshold_ms": 0.4514547557255767,
+      "required_mean_S_stall_ms_for_U80": 0.6993141409458837,
+      "model_provenance": {
+        "fit_reference": "top_level.fit",
+        "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+        "long_source": "direct_data_row",
+        "short_source": "affine_extrapolation_below_raw_minimum",
+        "original_short_total_k_not_in_data": true,
+        "source_ttft_for_short": null,
+        "low_four_point_fit_C_ms": 0.7166525272767318,
+        "all_point_vs_low_four_prediction_difference_ms": -1.764490509259531e-08
+      },
+      "stationary_no_stall_coverage_risk": {
+        "no_L_per_card": 1.0398188966255225e-05,
+        "no_S_per_card": 8.348217751512946e-06,
+        "all_32_mixed_if_cards_independent": 0.9994002892605284,
+        "union_bound_all_32_mixed": 0.9994001149850315,
+        "assumed_mean_S_stall_ms": 0.0,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "stationary_constant_U80_wait_coverage_risk": {
+        "no_L_per_card": 0.002425195525641708,
+        "no_S_per_card": 6.678574201210357e-06,
+        "all_32_mixed_if_cards_independent": 0.925043283981548,
+        "union_bound_all_32_mixed": 0.9221800288050266,
+        "assumed_mean_S_stall_ms": 0.6993141409458837,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "pure_compute_clock_warm_coverage_by_seed": [
+        {
+          "seed": 7,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 19,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 43,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 67,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 101,
+          "mixed_cards": 32,
+          "missing_cards": []
+        }
+      ],
+      "same_topology_raw_wait_sensitivity": {
+        "calibration": {
+          "source": "results/baseline_random_near_capacity_20260914/runs/topo6_m2048_s32m128_ssu6_h22000_seed7/baseline/analysis.json",
+          "source_sha256": "5e13cc39a079a0e034fca975104c912676d844c1872a7934867bed695662cf85",
+          "actual_long_U_percent": 92.9469269615691,
+          "mean_S_internal_stall_ms_including_zeros": 0.7414330308583782,
+          "kappa": 0.6692913927043342,
+          "all_32_long_mixed": true,
+          "assumption_for_new_candidate": "Only a sensitivity anchor: retain this raw32K short-layer mean wait while replacing short V,C and request counts. New queues can change the wait substantially."
+        },
+        "hypothetical_mean_S_stall_ms": 0.7414330308583782,
+        "approximate_U_percent": 79.04780820615024,
+        "mixed_risk_under_same_constant_wait": {
+          "no_L_per_card": 0.002860769803382565,
+          "no_S_per_card": 6.599083156847741e-06,
+          "all_32_mixed_if_cards_independent": 0.9122076711397104,
+          "union_bound_all_32_mixed": 0.9082441956307388,
+          "assumed_mean_S_stall_ms": 0.7414330308583782,
+          "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+        },
+        "not_a_measured_new_result": true
+      },
+      "fixed_count_fit_error_sensitivity": [
+        {
+          "relative_short_C_error": -0.25,
+          "resulting_rho_if_counts_unchanged": 1.0735327730758741,
+          "resulting_short_B_GiB_s": 24.670045835044267
+        },
+        {
+          "relative_short_C_error": -0.1,
+          "resulting_rho_if_counts_unchanged": 1.0311924218806279,
+          "resulting_short_B_GiB_s": 20.558371529203555
+        },
+        {
+          "relative_short_C_error": 0.1,
+          "resulting_rho_if_counts_unchanged": 0.9796743475116814,
+          "resulting_short_B_GiB_s": 16.82048579662109
+        },
+        {
+          "relative_short_C_error": 0.25,
+          "resulting_rho_if_counts_unchanged": 0.9442919341119207,
+          "resulting_short_B_GiB_s": 14.802027501026561
+        }
+      ]
+    },
+    {
+      "name": "fit6_m2048_s12m128",
+      "candidate_id": "fit6_m2048_s12m128",
+      "selected": false,
+      "num_npu": 32,
+      "num_ssu": 6,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "long_total_k": 200,
+      "long_nql": 2048,
+      "short_total_k": 12,
+      "short_nql": 128,
+      "long_compute_us": 70740.53784115809,
+      "long_V_GiB": 0.26586914062500006,
+      "long_B_GiB_s": 3.7583703593261726,
+      "short_compute_us": 758.5955498670837,
+      "short_V_GiB": 0.0159454345703125,
+      "short_B_GiB_s": 21.01967850075888,
+      "short_blocks_per_layer": 95,
+      "short_constructed_profile": true,
+      "short_construction": "affine_extrapolation_below_raw_minimum",
+      "counts": [
+        1,
+        26
+      ],
+      "roles": [
+        "L",
+        "S"
+      ],
+      "rho_ideal": 1.0029039513887024,
+      "f_short": 0.21802572813445703,
+      "per_card_population": {
+        "L": 31,
+        "S": 806,
+        "repeats": 31,
+        "pure_compute_ms": 22435.077490150165,
+        "total_blocks_all_32_npu": 32172544
+      },
+      "C_short_ms": 0.7585955498670838,
+      "L_request_pure_compute_ms": 565.9243027292647,
+      "mean_pure_compute_work_per_L_request_ms": 723.7121771016182,
+      "L_balanced_storage_layer_service_ms": 1.1077880859375002,
+      "short_link_minimum_ms": 0.31890869140625,
+      "first_link_start_delay_threshold_ms": 0.4396868584608338,
+      "required_mean_S_stall_ms_for_U80": 0.8698463667086757,
+      "model_provenance": {
+        "fit_reference": "top_level.fit",
+        "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+        "long_source": "direct_data_row",
+        "short_source": "affine_extrapolation_below_raw_minimum",
+        "original_short_total_k_not_in_data": true,
+        "source_ttft_for_short": null,
+        "low_four_point_fit_C_ms": 0.7585955666652505,
+        "all_point_vs_low_four_prediction_difference_ms": -1.679816674649004e-08
+      },
+      "stationary_no_stall_coverage_risk": {
+        "no_L_per_card": 8.65003838240786e-07,
+        "no_S_per_card": 1.9297588599642396e-05,
+        "all_32_mixed_if_cards_independent": 0.999354998640285,
+        "union_bound_all_32_mixed": 0.9993547970419877,
+        "assumed_mean_S_stall_ms": 0.0,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "stationary_constant_U80_wait_coverage_risk": {
+        "no_L_per_card": 0.001140680901706438,
+        "no_S_per_card": 1.5438070879713916e-05,
+        "all_32_mixed_if_cards_independent": 0.9636595512062497,
+        "union_bound_all_32_mixed": 0.9630041928772431,
+        "assumed_mean_S_stall_ms": 0.8698463667086757,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "pure_compute_clock_warm_coverage_by_seed": [
+        {
+          "seed": 7,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 19,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 43,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 67,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 101,
+          "mixed_cards": 32,
+          "missing_cards": []
+        }
+      ],
+      "same_topology_raw_wait_sensitivity": {
+        "calibration": {
+          "source": "results/baseline_random_near_capacity_20260914/runs/topo6_m2048_s32m128_ssu6_h22000_seed7/baseline/analysis.json",
+          "source_sha256": "5e13cc39a079a0e034fca975104c912676d844c1872a7934867bed695662cf85",
+          "actual_long_U_percent": 92.9469269615691,
+          "mean_S_internal_stall_ms_including_zeros": 0.7414330308583782,
+          "kappa": 0.6692913927043342,
+          "all_32_long_mixed": true,
+          "assumption_for_new_candidate": "Only a sensitivity anchor: retain this raw32K short-layer mean wait while replacing short V,C and request counts. New queues can change the wait substantially."
+        },
+        "hypothetical_mean_S_stall_ms": 0.7414330308583782,
+        "approximate_U_percent": 82.43390396285427,
+        "mixed_risk_under_same_constant_wait": {
+          "no_L_per_card": 0.0006593077958733971,
+          "no_S_per_card": 1.590775565337593e-05,
+          "all_32_mixed_if_cards_independent": 0.9786177172595957,
+          "union_bound_all_32_mixed": 0.9783931023511433,
+          "assumed_mean_S_stall_ms": 0.7414330308583782,
+          "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+        },
+        "not_a_measured_new_result": true
+      },
+      "fixed_count_fit_error_sensitivity": [
+        {
+          "relative_short_C_error": -0.25,
+          "resulting_rho_if_counts_unchanged": 1.0607200147810605,
+          "resulting_short_B_GiB_s": 28.026238001011837
+        },
+        {
+          "relative_short_C_error": -0.1,
+          "resulting_rho_if_counts_unchanged": 1.025257196058272,
+          "resulting_short_B_GiB_s": 23.35519833417653
+        },
+        {
+          "relative_short_C_error": 0.1,
+          "resulting_rho_if_counts_unchanged": 0.9815046253282494,
+          "resulting_short_B_GiB_s": 19.108798637053525
+        },
+        {
+          "relative_short_C_error": 0.25,
+          "resulting_rho_if_counts_unchanged": 0.9510648023783065,
+          "resulting_short_B_GiB_s": 16.815742800607104
+        }
+      ]
+    },
+    {
+      "name": "fit6_m2048_s16m128",
+      "candidate_id": "fit6_m2048_s16m128",
+      "selected": false,
+      "num_npu": 32,
+      "num_ssu": 6,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "long_total_k": 200,
+      "long_nql": 2048,
+      "short_total_k": 16,
+      "short_nql": 128,
+      "long_compute_us": 70740.53784115809,
+      "long_V_GiB": 0.26586914062500006,
+      "long_B_GiB_s": 3.7583703593261726,
+      "short_compute_us": 842.481630337598,
+      "short_V_GiB": 0.0213165283203125,
+      "short_B_GiB_s": 25.302068974216773,
+      "short_blocks_per_layer": 127,
+      "short_constructed_profile": true,
+      "short_construction": "affine_extrapolation_below_raw_minimum",
+      "counts": [
+        2,
+        35
+      ],
+      "roles": [
+        "L",
+        "S"
+      ],
+      "rho_ideal": 0.9965352386663042,
+      "f_short": 0.17247010353658246,
+      "per_card_population": {
+        "L": 34,
+        "S": 595,
+        "repeats": 17,
+        "pure_compute_ms": 23251.638853201966,
+        "total_blocks_all_32_npu": 33131776
+      },
+      "C_short_ms": 0.8424816303375979,
+      "L_request_pure_compute_ms": 565.9243027292647,
+      "mean_pure_compute_work_per_L_request_ms": 683.8717309765284,
+      "L_balanced_storage_layer_service_ms": 1.1077880859375002,
+      "short_link_minimum_ms": 0.42633056640625,
+      "first_link_start_delay_threshold_ms": 0.41615106393134793,
+      "required_mean_S_stall_ms_for_U80": 1.2211995196009435,
+      "model_provenance": {
+        "fit_reference": "top_level.fit",
+        "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+        "long_source": "direct_data_row",
+        "short_source": "affine_extrapolation_below_raw_minimum",
+        "original_short_total_k_not_in_data": true,
+        "source_ttft_for_short": null,
+        "low_four_point_fit_C_ms": 0.8424816454422879,
+        "all_point_vs_low_four_prediction_difference_ms": -1.51046899432572e-08
+      },
+      "stationary_no_stall_coverage_risk": {
+        "no_L_per_card": 1.1894817318713065e-08,
+        "no_S_per_card": 6.467264645414448e-05,
+        "all_32_mixed_if_cards_independent": 0.9979321686461174,
+        "union_bound_all_32_mixed": 0.9979300946793132,
+        "assumed_mean_S_stall_ms": 0.0,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "stationary_constant_U80_wait_coverage_risk": {
+        "no_L_per_card": 0.0004030386790921966,
+        "no_S_per_card": 5.173811716331558e-05,
+        "all_32_mixed_if_cards_independent": 0.9855492612068125,
+        "union_bound_all_32_mixed": 0.9854471425198236,
+        "assumed_mean_S_stall_ms": 1.2211995196009435,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "pure_compute_clock_warm_coverage_by_seed": [
+        {
+          "seed": 7,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 19,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 43,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 67,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 101,
+          "mixed_cards": 32,
+          "missing_cards": []
+        }
+      ],
+      "same_topology_raw_wait_sensitivity": {
+        "calibration": {
+          "source": "results/baseline_random_near_capacity_20260914/runs/topo6_m2048_s32m128_ssu6_h22000_seed7/baseline/analysis.json",
+          "source_sha256": "5e13cc39a079a0e034fca975104c912676d844c1872a7934867bed695662cf85",
+          "actual_long_U_percent": 92.9469269615691,
+          "mean_S_internal_stall_ms_including_zeros": 0.7414330308583782,
+          "kappa": 0.6692913927043342,
+          "all_32_long_mixed": true,
+          "assumption_for_new_candidate": "Only a sensitivity anchor: retain this raw32K short-layer mean wait while replacing short V,C and request counts. New queues can change the wait substantially."
+        },
+        "hypothetical_mean_S_stall_ms": 0.7414330308583782,
+        "approximate_U_percent": 86.82185256062805,
+        "mixed_risk_under_same_constant_wait": {
+          "no_L_per_card": 4.369427008370105e-05,
+          "no_S_per_card": 5.614998975147356e-05,
+          "all_32_mixed_if_cards_independent": 0.9968099233145922,
+          "union_bound_all_32_mixed": 0.9968049836852744,
+          "assumed_mean_S_stall_ms": 0.7414330308583782,
+          "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+        },
+        "not_a_measured_new_result": true
+      },
+      "fixed_count_fit_error_sensitivity": [
+        {
+          "relative_short_C_error": -0.25,
+          "resulting_rho_if_counts_unchanged": 1.0414395347632304,
+          "resulting_short_B_GiB_s": 33.736091965622364
+        },
+        {
+          "relative_short_C_error": -0.1,
+          "resulting_rho_if_counts_unchanged": 1.0140241232183096,
+          "resulting_short_B_GiB_s": 28.11340997135197
+        },
+        {
+          "relative_short_C_error": 0.1,
+          "resulting_rho_if_counts_unchanged": 0.9796393879986404,
+          "resulting_short_B_GiB_s": 23.00188088565161
+        },
+        {
+          "relative_short_C_error": 0.25,
+          "resulting_rho_if_counts_unchanged": 0.9553432033668897,
+          "resulting_short_B_GiB_s": 20.241655179373417
+        }
+      ]
+    },
+    {
+      "name": "fit6_m4096_s10m128",
+      "candidate_id": "fit6_m4096_s10m128",
+      "selected": true,
+      "num_npu": 32,
+      "num_ssu": 6,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "long_total_k": 200,
+      "long_nql": 4096,
+      "short_total_k": 10,
+      "short_nql": 128,
+      "long_compute_us": 141335.78827944142,
+      "long_V_GiB": 0.26318359375,
+      "long_B_GiB_s": 1.8621157242187503,
+      "short_compute_us": 716.6525096318267,
+      "short_V_GiB": 0.0132598876953125,
+      "short_B_GiB_s": 18.5025343762832,
+      "short_blocks_per_layer": 79,
+      "short_constructed_profile": true,
+      "short_construction": "affine_extrapolation_below_raw_minimum",
+      "counts": [
+        1,
+        101
+      ],
+      "roles": [
+        "L",
+        "S"
+      ],
+      "rho_ideal": 0.9997189830742517,
+      "f_short": 0.33867997955321577,
+      "per_card_population": {
+        "L": 13,
+        "S": 1313,
+        "repeats": 13,
+        "pure_compute_ms": 22226.639942234615,
+        "total_blocks_all_32_npu": 31772416
+      },
+      "C_short_ms": 0.7166525096318267,
+      "L_request_pure_compute_ms": 1130.6863062355314,
+      "mean_pure_compute_work_per_L_request_ms": 1709.7415340180473,
+      "L_balanced_storage_layer_service_ms": 1.0965983072916665,
+      "short_link_minimum_ms": 0.26519775390625,
+      "first_link_start_delay_threshold_ms": 0.4514547557255767,
+      "required_mean_S_stall_ms_for_U80": 0.5290041875055839,
+      "model_provenance": {
+        "fit_reference": "top_level.fit",
+        "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+        "long_source": "direct_data_row",
+        "short_source": "affine_extrapolation_below_raw_minimum",
+        "original_short_total_k_not_in_data": true,
+        "source_ttft_for_short": null,
+        "low_four_point_fit_C_ms": 0.7166525272767318,
+        "all_point_vs_low_four_prediction_difference_ms": -1.764490509259531e-08
+      },
+      "stationary_no_stall_coverage_risk": {
+        "no_L_per_card": 0.010893285175111605,
+        "no_S_per_card": 0.0015476212389775956,
+        "all_32_mixed_if_cards_independent": 0.6699138502894579,
+        "union_bound_all_32_mixed": 0.6018909947491455,
+        "assumed_mean_S_stall_ms": 0.0,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "stationary_constant_U80_wait_coverage_risk": {
+        "no_L_per_card": 0.06519740127145053,
+        "no_S_per_card": 0.0012380969911820765,
+        "all_32_mixed_if_cards_independent": 0.11082010200382544,
+        "union_bound_all_32_mixed": 0.0,
+        "assumed_mean_S_stall_ms": 0.5290041875055839,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "pure_compute_clock_warm_coverage_by_seed": [
+        {
+          "seed": 7,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 19,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 43,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 67,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 101,
+          "mixed_cards": 32,
+          "missing_cards": []
+        }
+      ],
+      "same_topology_raw_wait_sensitivity": {
+        "calibration": {
+          "source": "results/baseline_random_near_capacity_20260914/runs/topo6_m4096_s32m128_ssu6_h22000_seed7/baseline/analysis.json",
+          "source_sha256": "f62b337984c2aea6960c158e9dc6ee1fc8136f49f36f913de8c60d80c47a9467",
+          "actual_long_U_percent": 93.21487187061926,
+          "mean_S_internal_stall_ms_including_zeros": 0.5348821755758849,
+          "kappa": 0.48776491083313356,
+          "all_32_long_mixed": true,
+          "assumption_for_new_candidate": "Only a sensitivity anchor: retain this raw32K short-layer mean wait while replacing short V,C and request counts. New queues can change the wait substantially."
+        },
+        "hypothetical_mean_S_stall_ms": 0.5348821755758849,
+        "approximate_U_percent": 79.82261147677747,
+        "mixed_risk_under_same_constant_wait": {
+          "no_L_per_card": 0.06596953186657446,
+          "no_S_per_card": 0.0012353516887211758,
+          "all_32_mixed_if_cards_independent": 0.10793453849181966,
+          "union_bound_all_32_mixed": 0.0,
+          "assumed_mean_S_stall_ms": 0.5348821755758849,
+          "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+        },
+        "not_a_measured_new_result": true
+      },
+      "fixed_count_fit_error_sensitivity": [
+        {
+          "relative_short_C_error": -0.25,
+          "resulting_rho_if_counts_unchanged": 1.0921951399946273,
+          "resulting_short_B_GiB_s": 24.670045835044267
+        },
+        {
+          "relative_short_C_error": -0.1,
+          "resulting_rho_if_counts_unchanged": 1.034764381014697,
+          "resulting_short_B_GiB_s": 20.558371529203555
+        },
+        {
+          "relative_short_C_error": 0.1,
+          "resulting_rho_if_counts_unchanged": 0.9669696567176793,
+          "resulting_short_B_GiB_s": 16.82048579662109
+        },
+        {
+          "relative_short_C_error": 0.25,
+          "resulting_rho_if_counts_unchanged": 0.9216803154743852,
+          "resulting_short_B_GiB_s": 14.802027501026561
+        }
+      ]
+    },
+    {
+      "name": "fit6_m4096_s12m128",
+      "candidate_id": "fit6_m4096_s12m128",
+      "selected": true,
+      "num_npu": 32,
+      "num_ssu": 6,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "long_total_k": 200,
+      "long_nql": 4096,
+      "short_total_k": 12,
+      "short_nql": 128,
+      "long_compute_us": 141335.78827944142,
+      "long_V_GiB": 0.26318359375,
+      "long_B_GiB_s": 1.8621157242187503,
+      "short_compute_us": 758.5955498670837,
+      "short_V_GiB": 0.0159454345703125,
+      "short_B_GiB_s": 21.01967850075888,
+      "short_blocks_per_layer": 95,
+      "short_constructed_profile": true,
+      "short_construction": "affine_extrapolation_below_raw_minimum",
+      "counts": [
+        1,
+        77
+      ],
+      "roles": [
+        "L",
+        "S"
+      ],
+      "rho_ideal": 0.9952438077836323,
+      "f_short": 0.29242826446685694,
+      "per_card_population": {
+        "L": 14,
+        "S": 1078,
+        "repeats": 14,
+        "pure_compute_ms": 22371.73630935117,
+        "total_blocks_all_32_npu": 31836672
+      },
+      "C_short_ms": 0.7585955498670838,
+      "L_request_pure_compute_ms": 1130.6863062355314,
+      "mean_pure_compute_work_per_L_request_ms": 1597.981164953655,
+      "L_balanced_storage_layer_service_ms": 1.0965983072916665,
+      "short_link_minimum_ms": 0.31890869140625,
+      "first_link_start_delay_threshold_ms": 0.4396868584608338,
+      "required_mean_S_stall_ms_for_U80": 0.6485313169454769,
+      "model_provenance": {
+        "fit_reference": "top_level.fit",
+        "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+        "long_source": "direct_data_row",
+        "short_source": "affine_extrapolation_below_raw_minimum",
+        "original_short_total_k_not_in_data": true,
+        "source_ttft_for_short": null,
+        "low_four_point_fit_C_ms": 0.7585955666652505,
+        "all_point_vs_low_four_prediction_difference_ms": -1.679816674649004e-08
+      },
+      "stationary_no_stall_coverage_risk": {
+        "no_L_per_card": 0.0041613544619331375,
+        "no_S_per_card": 0.0021863938250672424,
+        "all_32_mixed_if_cards_independent": 0.8156455535407904,
+        "union_bound_all_32_mixed": 0.7968720548159878,
+        "assumed_mean_S_stall_ms": 0.0,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "stationary_constant_U80_wait_coverage_risk": {
+        "no_L_per_card": 0.043834521414179366,
+        "no_S_per_card": 0.001749115060053794,
+        "all_32_mixed_if_cards_independent": 0.22470464775694954,
+        "union_bound_all_32_mixed": 0.0,
+        "assumed_mean_S_stall_ms": 0.6485313169454769,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "pure_compute_clock_warm_coverage_by_seed": [
+        {
+          "seed": 7,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 19,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 43,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 67,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 101,
+          "mixed_cards": 32,
+          "missing_cards": []
+        }
+      ],
+      "same_topology_raw_wait_sensitivity": {
+        "calibration": {
+          "source": "results/baseline_random_near_capacity_20260914/runs/topo6_m4096_s32m128_ssu6_h22000_seed7/baseline/analysis.json",
+          "source_sha256": "f62b337984c2aea6960c158e9dc6ee1fc8136f49f36f913de8c60d80c47a9467",
+          "actual_long_U_percent": 93.21487187061926,
+          "mean_S_internal_stall_ms_including_zeros": 0.5348821755758849,
+          "kappa": 0.48776491083313356,
+          "all_32_long_mixed": true,
+          "assumption_for_new_candidate": "Only a sensitivity anchor: retain this raw32K short-layer mean wait while replacing short V,C and request counts. New queues can change the wait substantially."
+        },
+        "hypothetical_mean_S_stall_ms": 0.5348821755758849,
+        "approximate_U_percent": 82.90569181254827,
+        "mixed_risk_under_same_constant_wait": {
+          "no_L_per_card": 0.03413946927283058,
+          "no_S_per_card": 0.001812644926418834,
+          "all_32_mixed_if_cards_independent": 0.30985278877210964,
+          "union_bound_all_32_mixed": 0.0,
+          "assumed_mean_S_stall_ms": 0.5348821755758849,
+          "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+        },
+        "not_a_measured_new_result": true
+      },
+      "fixed_count_fit_error_sensitivity": [
+        {
+          "relative_short_C_error": -0.25,
+          "resulting_rho_if_counts_unchanged": 1.073741930056566,
+          "resulting_short_B_GiB_s": 28.026238001011837
+        },
+        {
+          "relative_short_C_error": -0.1,
+          "resulting_rho_if_counts_unchanged": 1.0252242629747337,
+          "resulting_short_B_GiB_s": 23.35519833417653
+        },
+        {
+          "relative_short_C_error": 0.1,
+          "resulting_rho_if_counts_unchanged": 0.9669669607701515,
+          "resulting_short_B_GiB_s": 19.108798637053525
+        },
+        {
+          "relative_short_C_error": 0.25,
+          "resulting_rho_if_counts_unchanged": 0.9274412956622791,
+          "resulting_short_B_GiB_s": 16.815742800607104
+        }
+      ]
+    },
+    {
+      "name": "fit6_m4096_s16m128",
+      "candidate_id": "fit6_m4096_s16m128",
+      "selected": true,
+      "num_npu": 32,
+      "num_ssu": 6,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "long_total_k": 200,
+      "long_nql": 4096,
+      "short_total_k": 16,
+      "short_nql": 128,
+      "long_compute_us": 141335.78827944142,
+      "long_V_GiB": 0.26318359375,
+      "long_B_GiB_s": 1.8621157242187503,
+      "short_compute_us": 842.481630337598,
+      "short_V_GiB": 0.0213165283203125,
+      "short_B_GiB_s": 25.302068974216773,
+      "short_blocks_per_layer": 127,
+      "short_constructed_profile": true,
+      "short_construction": "affine_extrapolation_below_raw_minimum",
+      "counts": [
+        1,
+        53
+      ],
+      "roles": [
+        "L",
+        "S"
+      ],
+      "rho_ideal": 0.998605449386543,
+      "f_short": 0.24007834342335121,
+      "per_card_population": {
+        "L": 15,
+        "S": 795,
+        "repeats": 15,
+        "pure_compute_ms": 22318.47776248009,
+        "total_blocks_all_32_npu": 31868160
+      },
+      "C_short_ms": 0.8424816303375979,
+      "L_request_pure_compute_ms": 1130.6863062355314,
+      "mean_pure_compute_work_per_L_request_ms": 1487.8985174986728,
+      "L_balanced_storage_layer_service_ms": 1.0965983072916665,
+      "short_link_minimum_ms": 0.42633056640625,
+      "first_link_start_delay_threshold_ms": 0.41615106393134793,
+      "required_mean_S_stall_ms_for_U80": 0.8772986541855382,
+      "model_provenance": {
+        "fit_reference": "top_level.fit",
+        "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+        "long_source": "direct_data_row",
+        "short_source": "affine_extrapolation_below_raw_minimum",
+        "original_short_total_k_not_in_data": true,
+        "source_ttft_for_short": null,
+        "low_four_point_fit_C_ms": 0.8424816454422879,
+        "all_point_vs_low_four_prediction_difference_ms": -1.51046899432572e-08
+      },
+      "stationary_no_stall_coverage_risk": {
+        "no_L_per_card": 0.0009363657380948933,
+        "no_S_per_card": 0.003453429151600193,
+        "all_32_mixed_if_cards_independent": 0.868678083979938,
+        "union_bound_all_32_mixed": 0.8595265635297572,
+        "assumed_mean_S_stall_ms": 0.0,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "stationary_constant_U80_wait_coverage_risk": {
+        "no_L_per_card": 0.02589980257373153,
+        "no_S_per_card": 0.0027627433212801546,
+        "all_32_mixed_if_cards_independent": 0.3943159322275696,
+        "union_bound_all_32_mixed": 0.08279853135962612,
+        "assumed_mean_S_stall_ms": 0.8772986541855382,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "pure_compute_clock_warm_coverage_by_seed": [
+        {
+          "seed": 7,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 19,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 43,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 67,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 101,
+          "mixed_cards": 32,
+          "missing_cards": []
+        }
+      ],
+      "same_topology_raw_wait_sensitivity": {
+        "calibration": {
+          "source": "results/baseline_random_near_capacity_20260914/runs/topo6_m4096_s32m128_ssu6_h22000_seed7/baseline/analysis.json",
+          "source_sha256": "f62b337984c2aea6960c158e9dc6ee1fc8136f49f36f913de8c60d80c47a9467",
+          "actual_long_U_percent": 93.21487187061926,
+          "mean_S_internal_stall_ms_including_zeros": 0.5348821755758849,
+          "kappa": 0.48776491083313356,
+          "all_32_long_mixed": true,
+          "assumption_for_new_candidate": "Only a sensitivity anchor: retain this raw32K short-layer mean wait while replacing short V,C and request counts. New queues can change the wait substantially."
+        },
+        "hypothetical_mean_S_stall_ms": 0.5348821755758849,
+        "approximate_U_percent": 86.77368895190307,
+        "mixed_risk_under_same_constant_wait": {
+          "no_L_per_card": 0.01144988823622283,
+          "no_S_per_card": 0.002996667870183896,
+          "all_32_mixed_if_cards_independent": 0.6277196960088686,
+          "union_bound_all_32_mixed": 0.5377102045949848,
+          "assumed_mean_S_stall_ms": 0.5348821755758849,
+          "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+        },
+        "not_a_measured_new_result": true
+      },
+      "fixed_count_fit_error_sensitivity": [
+        {
+          "relative_short_C_error": -0.25,
+          "resulting_rho_if_counts_unchanged": 1.062368358276654,
+          "resulting_short_B_GiB_s": 33.736091965622364
+        },
+        {
+          "relative_short_C_error": -0.1,
+          "resulting_rho_if_counts_unchanged": 1.0231695340644875,
+          "resulting_short_B_GiB_s": 28.11340997135197
+        },
+        {
+          "relative_short_C_error": 0.1,
+          "resulting_rho_if_counts_unchanged": 0.9751931732318174,
+          "resulting_short_B_GiB_s": 23.00188088565161
+        },
+        {
+          "relative_short_C_error": 0.25,
+          "resulting_rho_if_counts_unchanged": 0.9420632059173601,
+          "resulting_short_B_GiB_s": 20.241655179373417
+        }
+      ]
+    },
+    {
+      "name": "fit8_m2048_s10m128",
+      "candidate_id": "fit8_m2048_s10m128",
+      "selected": true,
+      "num_npu": 32,
+      "num_ssu": 8,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "long_total_k": 200,
+      "long_nql": 2048,
+      "short_total_k": 10,
+      "short_nql": 128,
+      "long_compute_us": 70740.53784115809,
+      "long_V_GiB": 0.26586914062500006,
+      "long_B_GiB_s": 3.7583703593261726,
+      "short_compute_us": 716.6525096318267,
+      "short_V_GiB": 0.0132598876953125,
+      "short_B_GiB_s": 18.5025343762832,
+      "short_blocks_per_layer": 79,
+      "short_constructed_profile": true,
+      "short_construction": "affine_extrapolation_below_raw_minimum",
+      "counts": [
+        1,
+        72
+      ],
+      "roles": [
+        "L",
+        "S"
+      ],
+      "rho_ideal": 0.9976997370165397,
+      "f_short": 0.4217687081944613,
+      "per_card_population": {
+        "L": 23,
+        "S": 1656,
+        "repeats": 23,
+        "pure_compute_ms": 22510.47141037553,
+        "total_blocks_all_32_npu": 42817536
+      },
+      "C_short_ms": 0.7166525096318267,
+      "L_request_pure_compute_ms": 565.9243027292647,
+      "mean_pure_compute_work_per_L_request_ms": 978.7161482771969,
+      "L_balanced_storage_layer_service_ms": 0.8308410644531251,
+      "short_link_minimum_ms": 0.26519775390625,
+      "first_link_start_delay_threshold_ms": 0.4514547557255767,
+      "required_mean_S_stall_ms_for_U80": 0.42478999491197783,
+      "model_provenance": {
+        "fit_reference": "top_level.fit",
+        "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+        "long_source": "direct_data_row",
+        "short_source": "affine_extrapolation_below_raw_minimum",
+        "original_short_total_k_not_in_data": true,
+        "source_ttft_for_short": null,
+        "low_four_point_fit_C_ms": 0.7166525272767318,
+        "all_point_vs_low_four_prediction_difference_ms": -1.764490509259531e-08
+      },
+      "stationary_no_stall_coverage_risk": {
+        "no_L_per_card": 0.003430652878232029,
+        "no_S_per_card": 7.034702521797876e-07,
+        "all_32_mixed_if_cards_independent": 0.8958411026600297,
+        "union_bound_all_32_mixed": 0.8901965968485053,
+        "assumed_mean_S_stall_ms": 0.0,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "stationary_constant_U80_wait_coverage_risk": {
+        "no_L_per_card": 0.026199591813864775,
+        "no_S_per_card": 5.627762017438301e-07,
+        "all_32_mixed_if_cards_independent": 0.4275928558814263,
+        "union_bound_all_32_mixed": 0.16159505311787137,
+        "assumed_mean_S_stall_ms": 0.42478999491197783,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "pure_compute_clock_warm_coverage_by_seed": [
+        {
+          "seed": 7,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 19,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 43,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 67,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 101,
+          "mixed_cards": 32,
+          "missing_cards": []
+        }
+      ],
+      "same_topology_raw_wait_sensitivity": {
+        "calibration": {
+          "source": "results/baseline_random_near_capacity_20260914/runs/topo8_m2048_s32m128_ssu8_h22000_seed7/baseline/analysis.json",
+          "source_sha256": "0efb7a28d64e5280702acb92778090bb7b2486b527382ba7493158bea14f5be7",
+          "actual_long_U_percent": 93.20082520822773,
+          "mean_S_internal_stall_ms_including_zeros": 0.42598955098003083,
+          "kappa": 0.5127208670895739,
+          "all_32_long_mixed": true,
+          "assumption_for_new_candidate": "Only a sensitivity anchor: retain this raw32K short-layer mean wait while replacing short V,C and request counts. New queues can change the wait substantially."
+        },
+        "hypothetical_mean_S_stall_ms": 0.42598955098003083,
+        "approximate_U_percent": 79.95484341969296,
+        "mixed_risk_under_same_constant_wait": {
+          "no_L_per_card": 0.026295948567605032,
+          "no_S_per_card": 5.624585386344685e-07,
+          "all_32_mixed_if_cards_independent": 0.4262410151949172,
+          "union_bound_all_32_mixed": 0.1585116471634027,
+          "assumed_mean_S_stall_ms": 0.42598955098003083,
+          "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+        },
+        "not_a_measured_new_result": true
+      },
+      "fixed_count_fit_error_sensitivity": [
+        {
+          "relative_short_C_error": -0.25,
+          "resulting_rho_if_counts_unchanged": 1.11529932601211,
+          "resulting_short_B_GiB_s": 24.670045835044267
+        },
+        {
+          "relative_short_C_error": -0.1,
+          "resulting_rho_if_counts_unchanged": 1.0416325380136742,
+          "resulting_short_B_GiB_s": 20.558371529203555
+        },
+        {
+          "relative_short_C_error": 0.1,
+          "resulting_rho_if_counts_unchanged": 0.9573228546437278,
+          "resulting_short_B_GiB_s": 16.82048579662109
+        },
+        {
+          "relative_short_C_error": 0.25,
+          "resulting_rho_if_counts_unchanged": 0.9025345311866662,
+          "resulting_short_B_GiB_s": 14.802027501026561
+        }
+      ]
+    },
+    {
+      "name": "fit8_m2048_s12m128",
+      "candidate_id": "fit8_m2048_s12m128",
+      "selected": false,
+      "num_npu": 32,
+      "num_ssu": 8,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "long_total_k": 200,
+      "long_nql": 2048,
+      "short_total_k": 12,
+      "short_nql": 128,
+      "long_compute_us": 70740.53784115809,
+      "long_V_GiB": 0.26586914062500006,
+      "long_B_GiB_s": 3.7583703593261726,
+      "short_compute_us": 758.5955498670837,
+      "short_V_GiB": 0.0159454345703125,
+      "short_B_GiB_s": 21.01967850075888,
+      "short_blocks_per_layer": 95,
+      "short_constructed_profile": true,
+      "short_construction": "affine_extrapolation_below_raw_minimum",
+      "counts": [
+        1,
+        53
+      ],
+      "roles": [
+        "L",
+        "S"
+      ],
+      "rho_ideal": 1.0013665671738914,
+      "f_short": 0.3623882536108615,
+      "per_card_population": {
+        "L": 25,
+        "S": 1325,
+        "repeats": 25,
+        "pure_compute_ms": 22189.220396822704,
+        "total_blocks_all_32_npu": 42361600
+      },
+      "C_short_ms": 0.7585955498670838,
+      "L_request_pure_compute_ms": 565.9243027292647,
+      "mean_pure_compute_work_per_L_request_ms": 887.5688158729082,
+      "L_balanced_storage_layer_service_ms": 0.8308410644531251,
+      "short_link_minimum_ms": 0.31890869140625,
+      "first_link_start_delay_threshold_ms": 0.4396868584608338,
+      "required_mean_S_stall_ms_for_U80": 0.5233306697363845,
+      "model_provenance": {
+        "fit_reference": "top_level.fit",
+        "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+        "long_source": "direct_data_row",
+        "short_source": "affine_extrapolation_below_raw_minimum",
+        "original_short_total_k_not_in_data": true,
+        "source_ttft_for_short": null,
+        "low_four_point_fit_C_ms": 0.7585955666652505,
+        "all_point_vs_low_four_prediction_difference_ms": -1.679816674649004e-08
+      },
+      "stationary_no_stall_coverage_risk": {
+        "no_L_per_card": 0.0007654033732080946,
+        "no_S_per_card": 1.926829899979579e-06,
+        "all_32_mixed_if_cards_independent": 0.9757352476201544,
+        "union_bound_all_32_mixed": 0.9754454335005416,
+        "assumed_mean_S_stall_ms": 0.0,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "stationary_constant_U80_wait_coverage_risk": {
+        "no_L_per_card": 0.012793083052517721,
+        "no_S_per_card": 1.541463919983663e-06,
+        "all_32_mixed_if_cards_independent": 0.6622780598511898,
+        "union_bound_all_32_mixed": 0.5905720154739935,
+        "assumed_mean_S_stall_ms": 0.5233306697363845,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "pure_compute_clock_warm_coverage_by_seed": [
+        {
+          "seed": 7,
+          "mixed_cards": 31,
+          "missing_cards": [
+            8
+          ]
+        },
+        {
+          "seed": 19,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 43,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 67,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 101,
+          "mixed_cards": 31,
+          "missing_cards": [
+            17
+          ]
+        }
+      ],
+      "same_topology_raw_wait_sensitivity": {
+        "calibration": {
+          "source": "results/baseline_random_near_capacity_20260914/runs/topo8_m2048_s32m128_ssu8_h22000_seed7/baseline/analysis.json",
+          "source_sha256": "0efb7a28d64e5280702acb92778090bb7b2486b527382ba7493158bea14f5be7",
+          "actual_long_U_percent": 93.20082520822773,
+          "mean_S_internal_stall_ms_including_zeros": 0.42598955098003083,
+          "kappa": 0.5127208670895739,
+          "all_32_long_mixed": true,
+          "assumption_for_new_candidate": "Only a sensitivity anchor: retain this raw32K short-layer mean wait while replacing short V,C and request counts. New queues can change the wait substantially."
+        },
+        "hypothetical_mean_S_stall_ms": 0.42598955098003083,
+        "approximate_U_percent": 83.09103786660789,
+        "mixed_risk_under_same_constant_wait": {
+          "no_L_per_card": 0.009100233860087615,
+          "no_S_per_card": 1.6010229618171547e-06,
+          "all_32_mixed_if_cards_independent": 0.7463263492989018,
+          "union_bound_all_32_mixed": 0.7087412837424182,
+          "assumed_mean_S_stall_ms": 0.42598955098003083,
+          "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+        },
+        "not_a_measured_new_result": true
+      },
+      "fixed_count_fit_error_sensitivity": [
+        {
+          "relative_short_C_error": -0.25,
+          "resulting_rho_if_counts_unchanged": 1.1011252843769201,
+          "resulting_short_B_GiB_s": 28.026238001011837
+        },
+        {
+          "relative_short_C_error": -0.1,
+          "resulting_rho_if_counts_unchanged": 1.0390194101241594,
+          "resulting_short_B_GiB_s": 23.35519833417653
+        },
+        {
+          "relative_short_C_error": 0.1,
+          "resulting_rho_if_counts_unchanged": 0.9663472769657678,
+          "resulting_short_B_GiB_s": 19.108798637053525
+        },
+        {
+          "relative_short_C_error": 0.25,
+          "resulting_rho_if_counts_unchanged": 0.9181819764391989,
+          "resulting_short_B_GiB_s": 16.815742800607104
+        }
+      ]
+    },
+    {
+      "name": "fit8_m2048_s16m128",
+      "candidate_id": "fit8_m2048_s16m128",
+      "selected": false,
+      "num_npu": 32,
+      "num_ssu": 8,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "long_total_k": 200,
+      "long_nql": 2048,
+      "short_total_k": 16,
+      "short_nql": 128,
+      "long_compute_us": 70740.53784115809,
+      "long_V_GiB": 0.26586914062500006,
+      "long_B_GiB_s": 3.7583703593261726,
+      "short_compute_us": 842.481630337598,
+      "short_V_GiB": 0.0213165283203125,
+      "short_B_GiB_s": 25.302068974216773,
+      "short_blocks_per_layer": 127,
+      "short_constructed_profile": true,
+      "short_construction": "affine_extrapolation_below_raw_minimum",
+      "counts": [
+        1,
+        34
+      ],
+      "roles": [
+        "L",
+        "S"
+      ],
+      "rho_ideal": 0.9967620546169705,
+      "f_short": 0.2882165359736241,
+      "per_card_population": {
+        "L": 28,
+        "S": 952,
+        "repeats": 28,
+        "pure_compute_ms": 22262.22057307056,
+        "total_blocks_all_32_npu": 42305536
+      },
+      "C_short_ms": 0.8424816303375979,
+      "L_request_pure_compute_ms": 565.9243027292647,
+      "mean_pure_compute_work_per_L_request_ms": 795.0793061810914,
+      "L_balanced_storage_layer_service_ms": 0.8308410644531251,
+      "short_link_minimum_ms": 0.42633056640625,
+      "first_link_start_delay_threshold_ms": 0.41615106393134793,
+      "required_mean_S_stall_ms_for_U80": 0.7307714211223266,
+      "model_provenance": {
+        "fit_reference": "top_level.fit",
+        "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+        "long_source": "direct_data_row",
+        "short_source": "affine_extrapolation_below_raw_minimum",
+        "original_short_total_k_not_in_data": true,
+        "source_ttft_for_short": null,
+        "low_four_point_fit_C_ms": 0.8424816454422879,
+        "all_point_vs_low_four_prediction_difference_ms": -1.51046899432572e-08
+      },
+      "stationary_no_stall_coverage_risk": {
+        "no_L_per_card": 5.296956615743569e-05,
+        "no_S_per_card": 7.988854731568934e-06,
+        "all_32_mixed_if_cards_independent": 0.9980511725093476,
+        "union_bound_all_32_mixed": 0.9980493305315519,
+        "assumed_mean_S_stall_ms": 0.0,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "stationary_constant_U80_wait_coverage_risk": {
+        "no_L_per_card": 0.004301001101262677,
+        "no_S_per_card": 6.391083785255147e-06,
+        "all_32_mixed_if_cards_independent": 0.8709817431165384,
+        "union_bound_all_32_mixed": 0.8621634500784662,
+        "assumed_mean_S_stall_ms": 0.7307714211223266,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "pure_compute_clock_warm_coverage_by_seed": [
+        {
+          "seed": 7,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 19,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 43,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 67,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 101,
+          "mixed_cards": 32,
+          "missing_cards": []
+        }
+      ],
+      "same_topology_raw_wait_sensitivity": {
+        "calibration": {
+          "source": "results/baseline_random_near_capacity_20260914/runs/topo8_m2048_s32m128_ssu8_h22000_seed7/baseline/analysis.json",
+          "source_sha256": "0efb7a28d64e5280702acb92778090bb7b2486b527382ba7493158bea14f5be7",
+          "actual_long_U_percent": 93.20082520822773,
+          "mean_S_internal_stall_ms_including_zeros": 0.42598955098003083,
+          "kappa": 0.5127208670895739,
+          "all_32_long_mixed": true,
+          "assumption_for_new_candidate": "Only a sensitivity anchor: retain this raw32K short-layer mean wait while replacing short V,C and request counts. New queues can change the wait substantially."
+        },
+        "hypothetical_mean_S_stall_ms": 0.42598955098003083,
+        "approximate_U_percent": 87.2803827615317,
+        "mixed_risk_under_same_constant_wait": {
+          "no_L_per_card": 0.0012508599890590066,
+          "no_S_per_card": 6.972702987976101e-06,
+          "all_32_mixed_if_cards_independent": 0.9605243154529169,
+          "union_bound_all_32_mixed": 0.9597493538544966,
+          "assumed_mean_S_stall_ms": 0.42598955098003083,
+          "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+        },
+        "not_a_measured_new_result": true
+      },
+      "fixed_count_fit_error_sensitivity": [
+        {
+          "relative_short_C_error": -0.25,
+          "resulting_rho_if_counts_unchanged": 1.0741597016930808,
+          "resulting_short_B_GiB_s": 33.736091965622364
+        },
+        {
+          "relative_short_C_error": -0.1,
+          "resulting_rho_if_counts_unchanged": 1.0263429557599777,
+          "resulting_short_B_GiB_s": 28.11340997135197
+        },
+        {
+          "relative_short_C_error": 0.1,
+          "resulting_rho_if_counts_unchanged": 0.9688385262224091,
+          "resulting_short_B_GiB_s": 23.00188088565161
+        },
+        {
+          "relative_short_C_error": 0.25,
+          "resulting_rho_if_counts_unchanged": 0.9297683978923973,
+          "resulting_short_B_GiB_s": 20.241655179373417
+        }
+      ]
+    },
+    {
+      "name": "fit8_m4096_s10m128",
+      "candidate_id": "fit8_m4096_s10m128",
+      "selected": true,
+      "num_npu": 32,
+      "num_ssu": 8,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "long_total_k": 200,
+      "long_nql": 4096,
+      "short_total_k": 10,
+      "short_nql": 128,
+      "long_compute_us": 141335.78827944142,
+      "long_V_GiB": 0.26318359375,
+      "long_B_GiB_s": 1.8621157242187503,
+      "short_compute_us": 716.6525096318267,
+      "short_V_GiB": 0.0132598876953125,
+      "short_B_GiB_s": 18.5025343762832,
+      "short_blocks_per_layer": 79,
+      "short_constructed_profile": true,
+      "short_construction": "affine_extrapolation_below_raw_minimum",
+      "counts": [
+        1,
+        187
+      ],
+      "roles": [
+        "L",
+        "S"
+      ],
+      "rho_ideal": 0.9961084109240365,
+      "f_short": 0.4867046048758417,
+      "per_card_population": {
+        "L": 10,
+        "S": 1870,
+        "repeats": 10,
+        "pure_compute_ms": 22027.984606447444,
+        "total_blocks_all_32_npu": 41832960
+      },
+      "C_short_ms": 0.7166525096318267,
+      "L_request_pure_compute_ms": 1130.6863062355314,
+      "mean_pure_compute_work_per_L_request_ms": 2202.7984606447444,
+      "L_balanced_storage_layer_service_ms": 0.82244873046875,
+      "short_link_minimum_ms": 0.26519775390625,
+      "first_link_start_delay_threshold_ms": 0.4514547557255767,
+      "required_mean_S_stall_ms_for_U80": 0.36811471601683565,
+      "model_provenance": {
+        "fit_reference": "top_level.fit",
+        "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+        "long_source": "direct_data_row",
+        "short_source": "affine_extrapolation_below_raw_minimum",
+        "original_short_total_k_not_in_data": true,
+        "source_ttft_for_short": null,
+        "low_four_point_fit_C_ms": 0.7166525272767318,
+        "all_point_vs_low_four_prediction_difference_ms": -1.764490509259531e-08
+      },
+      "stationary_no_stall_coverage_risk": {
+        "no_L_per_card": 0.07572837865565142,
+        "no_S_per_card": 0.0006423082599024846,
+        "all_32_mixed_if_cards_independent": 0.0786912860943548,
+        "union_bound_all_32_mixed": 0.0,
+        "assumed_mean_S_stall_ms": 0.0,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "stationary_constant_U80_wait_coverage_risk": {
+        "no_L_per_card": 0.17241454625539923,
+        "no_S_per_card": 0.0005138466079219876,
+        "all_32_mixed_if_cards_independent": 0.0022981564183516693,
+        "union_bound_all_32_mixed": 0.0,
+        "assumed_mean_S_stall_ms": 0.36811471601683565,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "pure_compute_clock_warm_coverage_by_seed": [
+        {
+          "seed": 7,
+          "mixed_cards": 28,
+          "missing_cards": [
+            13,
+            17,
+            24,
+            27
+          ]
+        },
+        {
+          "seed": 19,
+          "mixed_cards": 30,
+          "missing_cards": [
+            2,
+            8
+          ]
+        },
+        {
+          "seed": 43,
+          "mixed_cards": 29,
+          "missing_cards": [
+            11,
+            17,
+            22
+          ]
+        },
+        {
+          "seed": 67,
+          "mixed_cards": 29,
+          "missing_cards": [
+            0,
+            3,
+            26
+          ]
+        },
+        {
+          "seed": 101,
+          "mixed_cards": 29,
+          "missing_cards": [
+            10,
+            13,
+            30
+          ]
+        }
+      ],
+      "same_topology_raw_wait_sensitivity": {
+        "calibration": {
+          "source": "results/baseline_random_near_capacity_20260914/runs/topo8_m4096_s32m128_ssu8_h22000_seed7/baseline/analysis.json",
+          "source_sha256": "c088449e490172323b249de9d9bdf6424bf7ee3abfd23c29eae0244eaa8ec69d",
+          "actual_long_U_percent": 94.98545102150185,
+          "mean_S_internal_stall_ms_including_zeros": 0.26107270430399193,
+          "kappa": 0.317433409077299,
+          "all_32_long_mixed": true,
+          "assumption_for_new_candidate": "Only a sensitivity anchor: retain this raw32K short-layer mean wait while replacing short V,C and request counts. New queues can change the wait substantially."
+        },
+        "hypothetical_mean_S_stall_ms": 0.26107270430399193,
+        "approximate_U_percent": 84.93983558953751,
+        "mixed_risk_under_same_constant_wait": {
+          "no_L_per_card": 0.1442226192902662,
+          "no_S_per_card": 0.0005455755799391896,
+          "all_32_mixed_if_cards_independent": 0.006709389271752561,
+          "union_bound_all_32_mixed": 0.0,
+          "assumed_mean_S_stall_ms": 0.26107270430399193,
+          "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+        },
+        "not_a_measured_new_result": true
+      },
+      "fixed_count_fit_error_sensitivity": [
+        {
+          "relative_short_C_error": -0.25,
+          "resulting_rho_if_counts_unchanged": 1.1341015188264116,
+          "resulting_short_B_GiB_s": 24.670045835044267
+        },
+        {
+          "relative_short_C_error": -0.1,
+          "resulting_rho_if_counts_unchanged": 1.047069779242397,
+          "resulting_short_B_GiB_s": 20.558371529203555
+        },
+        {
+          "relative_short_C_error": 0.1,
+          "resulting_rho_if_counts_unchanged": 0.9498774385815074,
+          "resulting_short_B_GiB_s": 16.82048579662109
+        },
+        {
+          "relative_short_C_error": 0.25,
+          "resulting_rho_if_counts_unchanged": 0.8880534812490526,
+          "resulting_short_B_GiB_s": 14.802027501026561
+        }
+      ]
+    },
+    {
+      "name": "fit8_m4096_s12m128",
+      "candidate_id": "fit8_m4096_s12m128",
+      "selected": true,
+      "num_npu": 32,
+      "num_ssu": 8,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "long_total_k": 200,
+      "long_nql": 4096,
+      "short_total_k": 12,
+      "short_nql": 128,
+      "long_compute_us": 141335.78827944142,
+      "long_V_GiB": 0.26318359375,
+      "long_B_GiB_s": 1.8621157242187503,
+      "short_compute_us": 758.5955498670837,
+      "short_V_GiB": 0.0159454345703125,
+      "short_B_GiB_s": 21.01967850075888,
+      "short_blocks_per_layer": 95,
+      "short_constructed_profile": true,
+      "short_construction": "affine_extrapolation_below_raw_minimum",
+      "counts": [
+        1,
+        137
+      ],
+      "roles": [
+        "L",
+        "S"
+      ],
+      "rho_ideal": 0.9979916870356277,
+      "f_short": 0.42373872088146747,
+      "per_card_population": {
+        "L": 12,
+        "S": 1644,
+        "repeats": 12,
+        "pure_compute_ms": 23545.284346678265,
+        "total_blocks_all_32_npu": 44798976
+      },
+      "C_short_ms": 0.7585955498670838,
+      "L_request_pure_compute_ms": 1130.6863062355314,
+      "mean_pure_compute_work_per_L_request_ms": 1962.1070288898554,
+      "L_balanced_storage_layer_service_ms": 0.82244873046875,
+      "short_link_minimum_ms": 0.31890869140625,
+      "first_link_start_delay_threshold_ms": 0.4396868584608338,
+      "required_mean_S_stall_ms_for_U80": 0.4475609098745108,
+      "model_provenance": {
+        "fit_reference": "top_level.fit",
+        "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+        "long_source": "direct_data_row",
+        "short_source": "affine_extrapolation_below_raw_minimum",
+        "original_short_total_k_not_in_data": true,
+        "source_ttft_for_short": null,
+        "low_four_point_fit_C_ms": 0.7585955666652505,
+        "all_point_vs_low_four_prediction_difference_ms": -1.679816674649004e-08
+      },
+      "stationary_no_stall_coverage_risk": {
+        "no_L_per_card": 0.03856477769001206,
+        "no_S_per_card": 0.000988555696305801,
+        "all_32_mixed_if_cards_independent": 0.2748806157321907,
+        "union_bound_all_32_mixed": 0.0,
+        "assumed_mean_S_stall_ms": 0.0,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "stationary_constant_U80_wait_coverage_risk": {
+        "no_L_per_card": 0.11937615904688245,
+        "no_S_per_card": 0.0007908445570446406,
+        "all_32_mixed_if_cards_independent": 0.016626768486701197,
+        "union_bound_all_32_mixed": 0.0,
+        "assumed_mean_S_stall_ms": 0.4475609098745108,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "pure_compute_clock_warm_coverage_by_seed": [
+        {
+          "seed": 7,
+          "mixed_cards": 31,
+          "missing_cards": [
+            17
+          ]
+        },
+        {
+          "seed": 19,
+          "mixed_cards": 29,
+          "missing_cards": [
+            11,
+            19,
+            30
+          ]
+        },
+        {
+          "seed": 43,
+          "mixed_cards": 30,
+          "missing_cards": [
+            20,
+            22
+          ]
+        },
+        {
+          "seed": 67,
+          "mixed_cards": 31,
+          "missing_cards": [
+            23
+          ]
+        },
+        {
+          "seed": 101,
+          "mixed_cards": 31,
+          "missing_cards": [
+            10
+          ]
+        }
+      ],
+      "same_topology_raw_wait_sensitivity": {
+        "calibration": {
+          "source": "results/baseline_random_near_capacity_20260914/runs/topo8_m4096_s32m128_ssu8_h22000_seed7/baseline/analysis.json",
+          "source_sha256": "c088449e490172323b249de9d9bdf6424bf7ee3abfd23c29eae0244eaa8ec69d",
+          "actual_long_U_percent": 94.98545102150185,
+          "mean_S_internal_stall_ms_including_zeros": 0.26107270430399193,
+          "kappa": 0.317433409077299,
+          "all_32_long_mixed": true,
+          "assumption_for_new_candidate": "Only a sensitivity anchor: retain this raw32K short-layer mean wait while replacing short V,C and request counts. New queues can change the wait substantially."
+        },
+        "hypothetical_mean_S_stall_ms": 0.26107270430399193,
+        "approximate_U_percent": 87.27291843148367,
+        "mixed_risk_under_same_constant_wait": {
+          "no_L_per_card": 0.08356591916438393,
+          "no_S_per_card": 0.0008627414064867468,
+          "all_32_mixed_if_cards_independent": 0.05944975335333374,
+          "union_bound_all_32_mixed": 0.0,
+          "assumed_mean_S_stall_ms": 0.26107270430399193,
+          "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+        },
+        "not_a_measured_new_result": true
+      },
+      "fixed_count_fit_error_sensitivity": [
+        {
+          "relative_short_C_error": -0.25,
+          "resulting_rho_if_counts_unchanged": 1.1162402398983668,
+          "resulting_short_B_GiB_s": 28.026238001011837
+        },
+        {
+          "relative_short_C_error": -0.1,
+          "resulting_rho_if_counts_unchanged": 1.0421516894195373,
+          "resulting_short_B_GiB_s": 23.35519833417653
+        },
+        {
+          "relative_short_C_error": 0.1,
+          "resulting_rho_if_counts_unchanged": 0.9574220092800196,
+          "resulting_short_B_GiB_s": 19.108798637053525
+        },
+        {
+          "relative_short_C_error": 0.25,
+          "resulting_rho_if_counts_unchanged": 0.9023965925697974,
+          "resulting_short_B_GiB_s": 16.815742800607104
+        }
+      ]
+    },
+    {
+      "name": "fit8_m4096_s16m128",
+      "candidate_id": "fit8_m4096_s16m128",
+      "selected": true,
+      "num_npu": 32,
+      "num_ssu": 8,
+      "per_ssu_GiB_s": 40,
+      "npu_link_GiB_s": 50,
+      "n_layers": 8,
+      "long_total_k": 200,
+      "long_nql": 4096,
+      "short_total_k": 16,
+      "short_nql": 128,
+      "long_compute_us": 141335.78827944142,
+      "long_V_GiB": 0.26318359375,
+      "long_B_GiB_s": 1.8621157242187503,
+      "short_compute_us": 842.481630337598,
+      "short_V_GiB": 0.0213165283203125,
+      "short_B_GiB_s": 25.302068974216773,
+      "short_blocks_per_layer": 127,
+      "short_constructed_profile": true,
+      "short_construction": "affine_extrapolation_below_raw_minimum",
+      "counts": [
+        1,
+        89
+      ],
+      "roles": [
+        "L",
+        "S"
+      ],
+      "rho_ideal": 0.9987000910502571,
+      "f_short": 0.34662548596527204,
+      "per_card_population": {
+        "L": 13,
+        "S": 1157,
+        "repeats": 13,
+        "pure_compute_ms": 22496.931951466715,
+        "total_blocks_all_32_npu": 42834688
+      },
+      "C_short_ms": 0.8424816303375979,
+      "L_request_pure_compute_ms": 1130.6863062355314,
+      "mean_pure_compute_work_per_L_request_ms": 1730.5332270359013,
+      "L_balanced_storage_layer_service_ms": 0.82244873046875,
+      "short_link_minimum_ms": 0.42633056640625,
+      "first_link_start_delay_threshold_ms": 0.41615106393134793,
+      "required_mean_S_stall_ms_for_U80": 0.6076310488187856,
+      "model_provenance": {
+        "fit_reference": "top_level.fit",
+        "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+        "long_source": "direct_data_row",
+        "short_source": "affine_extrapolation_below_raw_minimum",
+        "original_short_total_k_not_in_data": true,
+        "source_ttft_for_short": null,
+        "low_four_point_fit_C_ms": 0.8424816454422879,
+        "all_point_vs_low_four_prediction_difference_ms": -1.51046899432572e-08
+      },
+      "stationary_no_stall_coverage_risk": {
+        "no_L_per_card": 0.012587007210255524,
+        "no_S_per_card": 0.0017401935829732646,
+        "all_32_mixed_if_cards_independent": 0.630156904924533,
+        "union_bound_all_32_mixed": 0.5415295746166788,
+        "assumed_mean_S_stall_ms": 0.0,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "stationary_constant_U80_wait_coverage_risk": {
+        "no_L_per_card": 0.06953843120125724,
+        "no_S_per_card": 0.0013921548663786117,
+        "all_32_mixed_if_cards_independent": 0.0949601102800447,
+        "union_bound_all_32_mixed": 0.0,
+        "assumed_mean_S_stall_ms": 0.6076310488187856,
+        "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+      },
+      "pure_compute_clock_warm_coverage_by_seed": [
+        {
+          "seed": 7,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 19,
+          "mixed_cards": 31,
+          "missing_cards": [
+            13
+          ]
+        },
+        {
+          "seed": 43,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 67,
+          "mixed_cards": 32,
+          "missing_cards": []
+        },
+        {
+          "seed": 101,
+          "mixed_cards": 30,
+          "missing_cards": [
+            17,
+            30
+          ]
+        }
+      ],
+      "same_topology_raw_wait_sensitivity": {
+        "calibration": {
+          "source": "results/baseline_random_near_capacity_20260914/runs/topo8_m4096_s32m128_ssu8_h22000_seed7/baseline/analysis.json",
+          "source_sha256": "c088449e490172323b249de9d9bdf6424bf7ee3abfd23c29eae0244eaa8ec69d",
+          "actual_long_U_percent": 94.98545102150185,
+          "mean_S_internal_stall_ms_including_zeros": 0.26107270430399193,
+          "kappa": 0.317433409077299,
+          "all_32_long_mixed": true,
+          "assumption_for_new_candidate": "Only a sensitivity anchor: retain this raw32K short-layer mean wait while replacing short V,C and request counts. New queues can change the wait substantially."
+        },
+        "hypothetical_mean_S_stall_ms": 0.26107270430399193,
+        "approximate_U_percent": 90.30045307509404,
+        "mixed_risk_under_same_constant_wait": {
+          "no_L_per_card": 0.03262127494291673,
+          "no_S_per_card": 0.0015714026898085707,
+          "all_32_mixed_if_cards_independent": 0.3284700670946953,
+          "union_bound_all_32_mixed": 0.0,
+          "assumed_mean_S_stall_ms": 0.26107270430399193,
+          "assumptions": "Infinite iid request labels; stationary observation time; deterministic request durations 8*CL and 8*(CS+w); no storage coupling. This is a risk indicator, not an actual warm pass probability."
+        },
+        "not_a_measured_new_result": true
+      },
+      "fixed_count_fit_error_sensitivity": [
+        {
+          "relative_short_C_error": -0.25,
+          "resulting_rho_if_counts_unchanged": 1.093454927452602,
+          "resulting_short_B_GiB_s": 33.736091965622364
+        },
+        {
+          "relative_short_C_error": -0.1,
+          "resulting_rho_if_counts_unchanged": 1.0345605980564407,
+          "resulting_short_B_GiB_s": 28.11340997135197
+        },
+        {
+          "relative_short_C_error": 0.1,
+          "resulting_rho_if_counts_unchanged": 0.9652423318162511,
+          "resulting_short_B_GiB_s": 23.00188088565161
+        },
+        {
+          "relative_short_C_error": 0.25,
+          "resulting_rho_if_counts_unchanged": 0.9190578707780912,
+          "resulting_short_B_GiB_s": 20.241655179373417
+        }
+      ]
+    }
+  ],
+  "warnings": [
+    "Fitted short C is constructed, never direct_data_row or a raw10/12/16K measurement.",
+    "Smaller total length lowers both V and C but not proportionally: a positive fitted intercept lowers short B. Near-capacity balancing therefore increases short pure-compute share.",
+    "The new short V/C/counts alter queue traffic. Retaining observed raw32K short mean wait is a conditional sensitivity, not a validated prediction.",
+    "Uniform full finite shuffles are not stationary Bernoulli streams; real waits are variable and cards are storage-coupled. Coverage probabilities and compute-only clocks are diagnostics; real per-card warm compute overlap is mandatory.",
+    "Long141ms layers make1.13s requests. Candidate coverage failures must be retained and reported; a good long window does not repair failed2s warm mixed coverage.",
+    "Whole-population rho near1 does not enforce per-disk per-instant underload. Fit uncertainty can move fixed-count cases out of the near-capacity range.",
+    "U approximation assumes long layers unstalled, stable completion mix, and ignores startup/request-boundary/window-clipping residuals; do not claim Once improvement before paired execution."
+  ],
+  "formulas": {
+    "U_proxy": "1/(1+f_short*w/C_short), with mean w over ALL short layers including zero waits",
+    "required_w_U80": ".25*C_short/f_short",
+    "same_full_population_conservation": "SSD_busy=rho_ideal*U only over same complete batch and time denominator; middle windows must be measured separately"
+  },
+  "preserved_files_sha256": {
+    "results/baseline_random_near_capacity_20260914/experiment.py": "f8313fa4678a2441f2ad55998cb8f449896187d6347d9fedadc30cce926efd5e",
+    "results/baseline_random_near_capacity_20260914/study_plan.json": "c647c98f617851df9b109dbd0ea0e062672c992205ef4ce4fcd0e141dbbc02b5",
+    "results/baseline_random_near_capacity_20260914/candidate_math.json": "38e88de44c959571d9f0764ae92ac0139587b78b1d767a867e94af2a4653e39e",
+    "results/baseline_random_near_capacity_20260914/adaptive_candidates.json": "3e1ef3761a7d937ce5d74e5c3d23d2f5534b8046dd8ddd80689d68f1890d32f1",
+    "results/baseline_random_near_capacity_20260914/topology_candidates.json": "57814572eec5643245ed4a526cbd07b615948eefc84dbeb635f8b2bdc4d47dfd",
+    "results/baseline_random_near_capacity_20260914/topology_s128_appendix.json": "654bd675111b6c298533db9508122a85f33b1acb3cd5b804de266b8621411ec2"
+  },
+  "generator_sha256": "1113b41bfd8cb183ba2b3b43352247a698d2eb12af7b06a0fea195f20ad8211a"
+}

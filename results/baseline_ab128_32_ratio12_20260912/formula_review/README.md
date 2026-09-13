@@ -217,7 +217,7 @@ r_{\mathrm{ideal}}=\frac{32(V_A+2V_B)}{C_A+2C_B}
 
 **公式 16 有一个可明确修正的小地方。** 若写有限增量 `Δu/Δb=1/r`，除了起点 `b<r`，还要求终点 `b+Δb≤r`，否则跨过 100% 饱和后就不相等。更清晰的写法是 `du/db=1/r，0<b<r`。它对固定画像、可分配的恒定供给模型成立，不足以证明本次应当优先服务哪类，更没有包含公平性和 deadline 目标。
 
-以前的 [持续混合、总输入超过 10K 实验](../../baseline_32npu6ssu_underload/sustained_mixed_ge10k_20260911/report.md) 已有按原“当前请求 V/C”定义欠载的四格对照：`[2,60)` Ordered Baseline 89.9647%，Ordered Once 99.9611%。它能作为另一组输入的机制证据，无需把本次 AB 硬说成欠载；但其画像、每卡配额和跨请求需求代理不同，而且并非每个 2 秒小窗都满足全部卡两类混合，不能混入本次结果。
+以前的 [持续混合、总输入超过 10K 实验](https://github.com/chguo0503/qos_storage_sim/blob/38edfa31cb5b61da02f4d198e97dc09d18356ad6/results/baseline_32npu6ssu_underload/sustained_mixed_ge10k_20260911/report.md) 已有按原“当前请求 V/C”定义欠载的四格对照：`[2,60)` Ordered Baseline 89.9647%，Ordered Once 99.9611%。它能作为另一组输入的机制证据，无需把本次 AB 硬说成欠载；但其画像、每卡配额和跨请求需求代理不同，而且并非每个 2 秒小窗都满足全部卡两类混合，不能混入本次结果。
 
 ## 7. 公式 22—25：SLO 能对上，但不是当前真实用户 TTFT
 
