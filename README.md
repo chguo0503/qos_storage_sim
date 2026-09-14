@@ -28,7 +28,7 @@ python3 -m venv .venv
 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -q -p no:cacheprovider test_*.py
 ```
 
-保留的16个测试模块覆盖核心规则、事件因果关系、存储/链路适配和输入构造。清理前在精确保留文件副本中运行159项测试通过，记录见[验证结果](results/baseline_random_near_capacity_20260914/retained_tests_check.json)。历史图表重绘还可能需要中文字体、ReportLab或浏览器，不能由单元测试通过推断所有PDF可在任意机器一键重建。
+当前保留4个测试模块、10个已有测试例，覆盖两组结果使用的Baseline/Once路由、I/O守恒、5ms采样、运行入口与SSU放置校验，全部通过。12个旧测试文件及保留文件中的无关用例已删除，见[逐文件依据与验证](docs/maintenance_20260914/README.md)。此前159项测试的[验证记录](results/baseline_random_near_capacity_20260914/retained_tests_check.json)保留为历史证据。历史图表重绘还可能需要中文字体、ReportLab或浏览器，不能由单元测试通过推断所有PDF可在任意机器一键重建。
 
 新实验和历史复现均应使用新输出位置，避免覆盖冻结结果。复现本次已保存输入可用：
 

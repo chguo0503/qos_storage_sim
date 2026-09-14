@@ -1,6 +1,4 @@
-"""Native small-trace integration: no hidden reads, missing I/O or migration."""
-
-from dataclasses import replace
+"""Baseline / Once integration used by the two retained result studies."""
 
 import pytest
 import sim
@@ -35,8 +33,8 @@ def run(policy, trace=None):
     return summary, adapter.statistics(), adapter.assignment_log
 
 
-@pytest.mark.parametrize("policy", ("baseline", "once", "new_once", "strategy1", "strategy2"))
-def test_native_five_policies_obey_clock_and_conserve_io(policy):
+@pytest.mark.parametrize("policy", ("baseline", "once"))
+def test_baseline_and_once_obey_clock_and_conserve_io(policy):
     summary, stats, assignments = run(policy)
     assert all(summary["invariants"].values())
     assert summary["request_count"] == 12
@@ -49,9 +47,8 @@ def test_native_five_policies_obey_clock_and_conserve_io(policy):
     assert stats["native_fresh_reads_by_ssu"] == [len(times)] * 2
     assert stats["max_snapshot_age_ms"] <= 5 + 1e-9
     assert stats["cir_write_events"] == []
-    assert len(assignments) == (12 if policy in ("strategy1", "strategy2") else 0)
-    if policy != "strategy2":
-        assert stats["reorder_calls"] == 0
+    assert len(assignments) == 0
+    assert stats["reorder_calls"] == 0
 
 
 def test_baseline_periodic_observation_does_not_change_native_data_plane():
@@ -64,23 +61,3 @@ def test_baseline_periodic_observation_does_not_change_native_data_plane():
     assert expected["makespan_ms"] == pytest.approx(actual["makespan_ms"], abs=1e-9)
     for left, right in zip(expected["request_metrics"], actual["request_metrics"]):
         assert left["completion_time_ms"] == pytest.approx(right["completion_time_ms"], abs=1e-9)
-
-
-@pytest.mark.parametrize("policy", ("strategy1", "strategy2"))
-def test_real_jit_delays_only_unsubmitted_io_and_keeps_all_work(policy):
-    # A long compute window actually exercises JIT; the usual 2-ms trace
-    # cannot exercise a 10-ms guard and would leave the hook untested.
-    trace = tuple(replace(r, load={**r.load, "per_layer_us": 30000.0})
-                  for r in example_trace())
-    summary, stats, _ = run(policy, trace)
-    assert all(summary["invariants"].values())
-    assert stats["reserved_blocks"] == stats["acknowledged_blocks"] == 12 * 8 * 32
-    jit = stats["jit_prefetch"]
-    assert jit["activation_count"] == 12 * 8
-    assert jit["delay_count"] > 0
-    assert jit["max_delay_ms"] > 10
-    for event in jit["release_examples"]:
-        assert event["activation_ms"] < event["release_ms"] < event["deadline_ms"]
-        assert 0 <= event["activation_ms"] - event["snapshot_time_ms"] <= 5
-    assert stats["native_fresh_reads_by_ssu"] == stats["fresh_reads_by_ssu"]
-    assert stats["cir_write_events"] == []

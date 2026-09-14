@@ -156,12 +156,10 @@ def draw(data):
     fig,axes=plt.subplots(N,1,figsize=(18,32),dpi=150,sharex=True,sharey=True,facecolor='white')
     fig.subplots_adjust(left=.108,right=.848,top=.930,bottom=.054,hspace=.34)
     fig.text(.045,.986,title,fontsize=25,color=INK)
-    fig.text(.045,.972,f'32 NPU / 3 SSU × 40 GiB/s · seed 7 · warm [2,4) 秒 · 整机 U={totals["U_percent"]:.2f}% · 平均每卡需求={totals["per_card_mean_demand_GiB_s"]:.3f}、供给={totals["per_card_mean_supply_GiB_s"]:.3f} GiB/s',fontsize=15,color=MUTED)
     handles=[Line2D([],[],color=PURPLE,lw=2.8,ls='--',label='B_i：当前请求每层 V/C'),
         Line2D([],[],color=BLUE,lw=2.3,marker='o',markerfacecolor='white',label='平均 b_i：每个完整内部层周期一个值'),
         Patch(facecolor=GRAY,label='灰区：跨请求 / 窗口截断；蓝线不填值')]
     fig.legend(handles=handles,loc='upper left',bbox_to_anchor=(.043,.965),frameon=False,ncol=3,fontsize=13)
-    fig.text(.045,.943,'每行一张卡；左侧 U 和右侧带宽均统计完整 warm [2,4) 秒。蓝线仍按各自层周期取均值。',fontsize=13,color=MUTED)
     fig.text(.865,.937,'整窗平均（GiB/s）',fontsize=12,color=INK)
     displayed=[]
     for npu,ax in enumerate(axes):
@@ -195,7 +193,8 @@ def draw(data):
     assert ''.join(title.split()) in normalized
     assert 'Onceperlayer' not in normalized
     assert '时间（秒）' in normalized
-    for forbidden in ('周期D=','右侧需求=','两个整窗均值相除','仿真时间（秒）','所有行带宽单位'):
+    for forbidden in ('周期D=','右侧需求=','两个整窗均值相除','仿真时间（秒）','所有行带宽单位',
+                      '32NPU/3SSU','平均每卡需求','每行一张卡；左侧U'):
         assert forbidden not in normalized,forbidden
     for row in displayed:
         assert ''.join(row['U_label'].split()) in normalized,row
@@ -207,6 +206,7 @@ def draw(data):
     return dict(strategy=data['strategy'],order=data['order'],path=str(path.relative_to(ROOT)),
         sha256=sha(path),pages=1,title=title,pagesize_pt=pagesize,vector_no_embedded_images=True,
         x_axis_label='时间（秒）',old_bottom_explanations_removed=True,all_32_U_labels_verified=True,
+        top_context_and_reading_notes_removed=True,
         all_32_mean_bandwidth_labels_verified=True,visible_labels_inside_canvas=True,
         original_png=data['original_png'],original_png_sha256=data['original_png_sha256'],
         U_percent=totals['U_percent'],per_npu=displayed)

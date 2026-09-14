@@ -14,7 +14,7 @@
 
 ## 运行依赖
 
-根目录保留35项运行文件（含`data`）和16个回归测试模块。部分运行模块使用历史实验名，是实际导入依赖；名称相似不表示可以删除。两项研究的运行命令以各自目录里的冻结命令为准。
+根目录保留35项运行文件（含`data`）和4个回归测试模块，共10个已有测试例。部分运行模块使用历史实验名，是实际导入依赖；名称相似不表示可以删除。测试则按现有两组结果实际使用的功能精简，见[本轮维护记录](docs/maintenance_20260914/README.md)。两项研究的运行命令以各自目录里的冻结命令为准。
 
 ```text
 authenticated_workload_inputs.py
@@ -52,25 +52,13 @@ six_request_workload.py
 strategy_profiles.py
 sweep_coflow_development.py
 sweep_coflow_experiments.py
-test_coflow_capacity_analysis.py
-test_coflow_capacity_simulation.py
-test_coflow_client_policy.py
-test_coflow_disk_adapter.py
-test_coflow_disk_policy.py
 test_coflow_experiment_inputs.py
-test_coflow_sim_adapter.py
-test_continuous_batch_profile_cycle_frontier.py
-test_multi_ssu_experiment_inputs.py
-test_multi_ssu_npu_assignment.py
-test_multi_ssu_qos_controller.py
-test_shared_path_jit_causality.py
 test_shared_path_policies.py
-test_shared_path_reorder_integration.py
 test_shared_path_sim_adapter.py
 test_shared_ssu_state.py
 ```
 
-精确保留文件副本的159项测试已通过，记录见[验证](results/baseline_random_near_capacity_20260914/retained_tests_check.json)。本次清理不修改核心模拟器、策略或`data`。最终执行范围与文件校验见[清理记录](results/baseline_random_near_capacity_20260914/cleanup_execution.md)，科学结果完整性见[90例最终核验](results/baseline_random_near_capacity_20260914/final_research_audit.json)。
+本轮精简后的10项测试全部通过，记录见[当前验证](docs/maintenance_20260914/root_test_cleanup.json)。核心模拟器、策略及`data`保持不变。此前159项测试的[验证](results/baseline_random_near_capacity_20260914/retained_tests_check.json)、[清理记录](results/baseline_random_near_capacity_20260914/cleanup_execution.md)与[90例核验](results/baseline_random_near_capacity_20260914/final_research_audit.json)保留为历史证据。
 
 ## 历史与完整性
 
@@ -79,6 +67,7 @@ test_shared_ssu_state.py
 - 本次运行最初冻结的完整源码副本保存在 `results/baseline_random_near_capacity_20260914/audit_remote_sources.tar.gz`；原始106项源码审计包含后来精简的历史文件。需要重查该原始快照时，应解压到独立目录，不能要求清理后的根目录仍包含全部旧文件。
 - `CURRENT_PROJECT_SHA256SUMS` 对保留交付文件列出 SHA256，清单不包含自身、Git元数据、缓存和运行日志。最终交付后可在项目根目录运行 `sha256sum -c CURRENT_PROJECT_SHA256SUMS`。
 - 保留科学结果的输入指纹、核心源码SHA、结果SHA和独立分析分别记在case与审计JSON中；不以图像标题代替原始数据验证。
+- 本轮按要求更新周六研究`presentation_pdf`下四张PDF的顶部文字，并精简根目录测试；旧审计对应修改前的文件版本，最新修改见[本轮记录](docs/maintenance_20260914/README.md)。
 
 物理带宽观测器只保存0–20秒；65秒工作量实验中20秒以后只有完整计算/等待日志，不声称有未记录的实际SSD带宽。
 

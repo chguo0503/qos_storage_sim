@@ -1,4 +1,4 @@
-"""The SSU must not be read between collector ticks, even after a write."""
+"""Periodic snapshots used by Baseline and Once; no dynamic CIR tests."""
 
 import pytest
 
@@ -26,23 +26,6 @@ def test_lookup_does_not_read_hardware_or_refresh_stale_copy():
     assert state.statistics()["max_snapshot_age_ms"] == 4.999
 
 
-def test_whole_ssu_cir_writes_are_separated_and_do_not_refresh_snapshot():
-    state = PeriodicSSUState(1)
-    state.collect(0, lambda s: ((1, 2), (3, 4)))
-    writes = []
-    def write(s, cirs, t):
-        writes.append((s, cirs, t))
-    assert not state.write_cir(0, (8, 9), 99.999, write)
-    assert state.write_cir(0, (8, 9), 100, write)
-    assert not state.write_cir(0, (10, 9), 150, write)
-    assert state.write_cir(0, (10, 9), 200, write)
-    assert state.cirs == ((3, 4),)
-    assert len(writes) == 2
-    assert state.fresh_reads_by_ssu == [1]
-
-
-def test_control_minimum_periods_are_hard_constraints():
+def test_sampling_minimum_period_is_a_hard_constraint():
     with pytest.raises(ValueError):
         PeriodicSSUState(1, interval_ms=4.9)
-    with pytest.raises(ValueError):
-        PeriodicSSUState(1, cir_min_interval_ms=99)
