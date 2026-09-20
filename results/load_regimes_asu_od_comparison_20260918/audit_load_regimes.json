@@ -1,0 +1,1776 @@
+{
+  "status": "passed",
+  "audited_utc": "2026-09-18T13:20:14.031300+00:00",
+  "window_ms": [
+    2000.0,
+    4000.0
+  ],
+  "case_count": 18,
+  "methodology": "Independent midpoint scan from raw request admission/completion intervals and manifest per-SSU V/C; U from layer overlap; SLO from request latency. No simulator run or metrics imports.",
+  "shared_settings": {
+    "num_npu": 32,
+    "num_ssu": 3,
+    "n_layers": 8,
+    "batch_size": 1,
+    "prefetch_policy": "next_layer_at_batch_compute_start",
+    "cross_request_layer0_prefetch": true,
+    "client_issue_interval_us": 0.1,
+    "client_submit_batch_size": 1,
+    "bandwidth_unit_assumption": "configured numeric rates applied directly; no GiB-to-GB conversion",
+    "execution_model": "full_prefill_layer_synchronous_microbatch_v1",
+    "policy": "qos_static_cir"
+  },
+  "identical_core_and_policy_source_sha256": true,
+  "core_and_policy_source_sha256": {
+    "authenticated_workload_inputs.py": "d3b2f9917108916164006b70a6f7f2687911484f3231da1cd3328211b86ac95f",
+    "coflow_capacity_analysis.py": "c343351f0d9d2bded9eda395840d1bd58c5689a5451659346476f63cf41f8dfc",
+    "coflow_client_policy.py": "7a79e24ad380c91dc97f9e2c3173aabf9dfa2b64111d5b9836c6a7de6154378f",
+    "coflow_disk_adapter.py": "c1893e63c3274eb52b68dd0c970f206ce2dda2ded5bd19e0ac9e278682cb80f5",
+    "coflow_disk_policy.py": "a91d80b9903fad4160f522db8e3c76aa472258af20c39b84b5abfbe5c701ff8a",
+    "coflow_joint_policy.py": "8c586646c2eed9b0e104f5c49d7b203178e68f14219447af6aa64b2d110579dc",
+    "coflow_sim_adapter.py": "5f65a1392e4387d35bdc637faf7e136bfe4e73de36e812c75a13bc822bd364c6",
+    "continuous_batch_control.py": "fe7ee3933ba37362cf7b67e1c39c9f4720bd682a66bd008b57c06aa72076591f",
+    "continuous_batch_sim.py": "30d1c848ac43da2b50ae96a4ee60a3a2e27b9e839d1af09f5ba91b20a3c4db4a",
+    "continuous_prefill_client.py": "04a8c4dc2d6430ff803b43127007c6fcb58d1279b4c260468425c3899ed0c9da",
+    "continuous_prefill_workload.py": "65c901ed1d63df88b4ccf35d309e586d563e470a3874ae0d1da2b221f2b5b5de",
+    "data": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+    "policy_logic.py": "fb72249119635558a8db6efbc12e9dbc33e4a065327c558b15e49bb996f5d229",
+    "random_steady_state_workload.py": "70284f3ede4097453338e396ec0a0d252909be6999ec158d854d36b7df015607",
+    "run_coflow_experiments.py": "18c60664aa88358c9cc36137d932db0d6543caed24a67f6140cf43042924e523",
+    "run_shared_path_experiments.py": "2867afae57f4c7e555e3047df4b8ef8ffd9a7c089efd54574c6aafbc8f1fda37",
+    "shared_path_baseline.py": "3ff95dfc3e79bc40b18f91cd45eb34e849404d6331b38794bb46189359ef6a28",
+    "shared_path_common.py": "0ea11b61594786f8b689d8aab5126d5647e18e9db713e2aea242b2b84c41a892",
+    "shared_path_new_once.py": "083c418f7f2e30231fffb08aadc28f3d421ab2b9768991009a1f5104063d46f1",
+    "shared_path_once.py": "c229a16794bc1a19fba389aedd88963cb9092e5ea025373c3108c6cf3a97a8c7",
+    "shared_path_sim_adapter.py": "bd974cd357e9c2218949f7f26a7c09d63e8edff0ce01456a0b1f371399d606fc",
+    "shared_path_strategy1.py": "6a2d7ed0b386190a4a34c321ce780164c3d2147db5121e4b7c950afa4cabf233",
+    "shared_path_strategy2.py": "7e4627bf67db620f0922b10679f9a6e774662b70dd6bf68c81340fc06849c720",
+    "shared_ssu_state.py": "e8f1aff1e46ebb51772de113e4192a6f40d7f1daaca938288d201cb3a708a481",
+    "sim.py": "5f3a9bb82c5740a86c9c916e01495326a0bf4363fb6a5312cb99ac747e8600fd",
+    "six_request_workload.py": "f5d3654d5ce3aa86858d4b6d8695054354d98b1ed84863dc63e05d3ab3fb2e26",
+    "strategy_profiles.py": "d72d471d08fb0d28ab2412cc24fa69b52fd15677c859fd43bafbcf66bdddc2fb",
+    "sweep_coflow_development.py": "cd1657d06e4edcb03609e00409b09f7175e38db90270d6bd5f4baebfe0d5938e",
+    "sweep_coflow_experiments.py": "b7e246055af5d92a8e84c1fd9bc86402cd733858b6c35fe8601627fe40e34221"
+  },
+  "per_case": [
+    {
+      "regime": "full",
+      "policy": "asu_baseline",
+      "seed": 7,
+      "label": "full_asu_baseline_seed7_remote",
+      "source_directory": "results/od_baseline_diverse_ssu3_20260918/runs/full_asu_baseline_seed7_remote",
+      "sha256": {
+        "result.json.gz": "1a9b3c18a2994366526ce132efb29bf81859b3f98051ef6f568804eb0a46e357",
+        "manifest.json.gz": "d58fccd96f96714c5755dddd576b41e67d7bf907a6e620077a82d953ac4539a1",
+        "command.json": "b573e918e89705ebcad12dd1f26c61ab0281eaf74969dabb2281c070a04ccf20"
+      },
+      "requests": 1344,
+      "requests_per_npu": 42,
+      "profile_count": 24,
+      "profiles": {
+        "32:256": 96,
+        "32:1024": 64,
+        "32:2048": 32,
+        "32:4096": 32,
+        "64:256": 96,
+        "64:1024": 64,
+        "64:2048": 32,
+        "64:4096": 32,
+        "80:256": 96,
+        "80:1024": 64,
+        "80:2048": 32,
+        "80:4096": 32,
+        "128:256": 96,
+        "128:1024": 64,
+        "128:2048": 32,
+        "128:4096": 32,
+        "160:256": 96,
+        "160:1024": 64,
+        "160:2048": 32,
+        "160:4096": 32,
+        "200:256": 96,
+        "200:1024": 64,
+        "200:2048": 32,
+        "200:4096": 32
+      },
+      "all32active": true,
+      "U_percent": 63.05796619661301,
+      "slo15": {
+        "count": 198,
+        "passed": 74,
+        "percent": 37.37373737373738
+      },
+      "normalized_latency_over_1p5_compute": {
+        "min": 0.6666666666666651,
+        "median": 1.785600891781356,
+        "max": 12.01642948491727
+      },
+      "SSD_GiB_s": [
+        37.25654557277419,
+        40.0,
+        39.42243912746168
+      ],
+      "total_SSD_GiB_s": 116.67898470023587,
+      "demand": {
+        "all_disks_under_percent": 0.0,
+        "any_disk_under_percent": 0.0,
+        "all_disks_over_percent": 100.0,
+        "any_disk_over_percent": 100.0,
+        "some_disks_under_some_over_percent": 0.0,
+        "any_disk_exactly_capacity_percent": 0.0,
+        "per_disk_min_GiB_s": [
+          59.09364164744568,
+          66.13980470151672,
+          66.20018265351563
+        ],
+        "per_disk_max_GiB_s": [
+          147.9313933378601,
+          164.40938801789244,
+          157.74672862094422
+        ],
+        "per_disk_mean_GiB_s": [
+          110.98862804812794,
+          121.44161598210789,
+          117.83624671424107
+        ],
+        "per_disk_over_percent": [
+          100.0,
+          100.0,
+          100.0
+        ]
+      },
+      "segments": 199,
+      "identity_rule": "request_id=npu*1000000+position; original_request_id retains pre-shuffle identity",
+      "first_npu_shuffle_seed": 7,
+      "second_npu_shuffle_seed": 100010,
+      "source_data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b"
+    },
+    {
+      "regime": "full",
+      "policy": "asu_baseline",
+      "seed": 19,
+      "label": "full_asu_baseline_seed19_remote",
+      "source_directory": "results/od_baseline_diverse_ssu3_20260918/runs/full_asu_baseline_seed19_remote",
+      "sha256": {
+        "result.json.gz": "f6586718e7638af030f89dca05d992cbacbb40185d6e69d5ec45c51ada25d58d",
+        "manifest.json.gz": "0c47f81d8c5dd71462a9db27fb5a99cd23eca366373034b9abc78c8db7eb6f50",
+        "command.json": "cb032ddf5d895b0544a789ceb6a067181e7291b516c06688b1a3b4e2b3fabbe8"
+      },
+      "requests": 1344,
+      "requests_per_npu": 42,
+      "profile_count": 24,
+      "profiles": {
+        "32:256": 96,
+        "32:1024": 64,
+        "32:2048": 32,
+        "32:4096": 32,
+        "64:256": 96,
+        "64:1024": 64,
+        "64:2048": 32,
+        "64:4096": 32,
+        "80:256": 96,
+        "80:1024": 64,
+        "80:2048": 32,
+        "80:4096": 32,
+        "128:256": 96,
+        "128:1024": 64,
+        "128:2048": 32,
+        "128:4096": 32,
+        "160:256": 96,
+        "160:1024": 64,
+        "160:2048": 32,
+        "160:4096": 32,
+        "200:256": 96,
+        "200:1024": 64,
+        "200:2048": 32,
+        "200:4096": 32
+      },
+      "all32active": true,
+      "U_percent": 61.230832601918806,
+      "slo15": {
+        "count": 190,
+        "passed": 77,
+        "percent": 40.526315789473685
+      },
+      "normalized_latency_over_1p5_compute": {
+        "min": 0.6666666666666651,
+        "median": 1.527117896512623,
+        "max": 11.374317486374695
+      },
+      "SSD_GiB_s": [
+        36.53087961662256,
+        40.0,
+        39.05091094970702
+      ],
+      "total_SSD_GiB_s": 115.58179056632959,
+      "demand": {
+        "all_disks_under_percent": 0.0,
+        "any_disk_under_percent": 0.0,
+        "all_disks_over_percent": 100.0,
+        "any_disk_over_percent": 100.0,
+        "some_disks_under_some_over_percent": 0.0,
+        "any_disk_exactly_capacity_percent": 0.0,
+        "per_disk_min_GiB_s": [
+          83.54831601737365,
+          89.20423673503419,
+          88.50917919349365
+        ],
+        "per_disk_max_GiB_s": [
+          146.41245856472167,
+          161.76082098646546,
+          158.0972606168976
+        ],
+        "per_disk_mean_GiB_s": [
+          112.17381705519655,
+          122.1300114904019,
+          119.36499372820539
+        ],
+        "per_disk_over_percent": [
+          100.0,
+          100.0,
+          100.0
+        ]
+      },
+      "segments": 191,
+      "identity_rule": "request_id=npu*1000000+position; original_request_id retains pre-shuffle identity",
+      "first_npu_shuffle_seed": 19,
+      "second_npu_shuffle_seed": 100022,
+      "source_data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b"
+    },
+    {
+      "regime": "full",
+      "policy": "asu_baseline",
+      "seed": 43,
+      "label": "full_asu_baseline_seed43_local",
+      "source_directory": "results/od_baseline_diverse_ssu3_20260918/runs/full_asu_baseline_seed43_local",
+      "sha256": {
+        "result.json.gz": "9b37f5efe3506573c64aef9eaebae5b2fd638c74cc7088bbc3be4283d212ac24",
+        "manifest.json.gz": "ab42a8ed82d9eedc189732d60ec66dbec9ea022cf071269494858a6c39f5683f",
+        "command.json": "1127b01de1688315cd7f3f3fcaaca9705d18c1bb2a9e8c5c1603ebf039a5cade"
+      },
+      "requests": 1344,
+      "requests_per_npu": 42,
+      "profile_count": 24,
+      "profiles": {
+        "32:256": 96,
+        "32:1024": 64,
+        "32:2048": 32,
+        "32:4096": 32,
+        "64:256": 96,
+        "64:1024": 64,
+        "64:2048": 32,
+        "64:4096": 32,
+        "80:256": 96,
+        "80:1024": 64,
+        "80:2048": 32,
+        "80:4096": 32,
+        "128:256": 96,
+        "128:1024": 64,
+        "128:2048": 32,
+        "128:4096": 32,
+        "160:256": 96,
+        "160:1024": 64,
+        "160:2048": 32,
+        "160:4096": 32,
+        "200:256": 96,
+        "200:1024": 64,
+        "200:2048": 32,
+        "200:4096": 32
+      },
+      "all32active": true,
+      "U_percent": 56.185520922456206,
+      "slo15": {
+        "count": 178,
+        "passed": 68,
+        "percent": 38.20224719101124
+      },
+      "normalized_latency_over_1p5_compute": {
+        "min": 0.6666666666666651,
+        "median": 1.8567742217367393,
+        "max": 12.488799734597988
+      },
+      "SSD_GiB_s": [
+        36.132057189941406,
+        40.0,
+        38.742240905761705
+      ],
+      "total_SSD_GiB_s": 114.87429809570311,
+      "demand": {
+        "all_disks_under_percent": 0.0,
+        "any_disk_under_percent": 0.0,
+        "all_disks_over_percent": 100.0,
+        "any_disk_over_percent": 100.0,
+        "some_disks_under_some_over_percent": 0.0,
+        "any_disk_exactly_capacity_percent": 0.0,
+        "per_disk_min_GiB_s": [
+          83.10386824948425,
+          92.1046190788147,
+          88.22450627390441
+        ],
+        "per_disk_max_GiB_s": [
+          196.78291465299682,
+          220.6946923966278,
+          210.42327578026428
+        ],
+        "per_disk_mean_GiB_s": [
+          131.97739477014312,
+          147.2618701450184,
+          142.25992998686036
+        ],
+        "per_disk_over_percent": [
+          100.0,
+          100.0,
+          100.0
+        ]
+      },
+      "segments": 179,
+      "identity_rule": "request_id=npu*1000000+position; original_request_id retains pre-shuffle identity",
+      "first_npu_shuffle_seed": 43,
+      "second_npu_shuffle_seed": 100046,
+      "source_data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b"
+    },
+    {
+      "regime": "full",
+      "policy": "od_baseline",
+      "seed": 7,
+      "label": "full_od_baseline_seed7_remote",
+      "source_directory": "results/od_baseline_diverse_ssu3_20260918/runs/full_od_baseline_seed7_remote",
+      "sha256": {
+        "result.json.gz": "fee36b40cb36934fb5a65e33c867c7b756de9b98ee587855be6a76b29d0d78bc",
+        "manifest.json.gz": "d58fccd96f96714c5755dddd576b41e67d7bf907a6e620077a82d953ac4539a1",
+        "command.json": "a5225103b13ccb4566f47f33900268856a3731ec01cfd5b6fa70264ab28ee2ab"
+      },
+      "requests": 1344,
+      "requests_per_npu": 42,
+      "profile_count": 24,
+      "profiles": {
+        "32:256": 96,
+        "32:1024": 64,
+        "32:2048": 32,
+        "32:4096": 32,
+        "64:256": 96,
+        "64:1024": 64,
+        "64:2048": 32,
+        "64:4096": 32,
+        "80:256": 96,
+        "80:1024": 64,
+        "80:2048": 32,
+        "80:4096": 32,
+        "128:256": 96,
+        "128:1024": 64,
+        "128:2048": 32,
+        "128:4096": 32,
+        "160:256": 96,
+        "160:1024": 64,
+        "160:2048": 32,
+        "160:4096": 32,
+        "200:256": 96,
+        "200:1024": 64,
+        "200:2048": 32,
+        "200:4096": 32
+      },
+      "all32active": true,
+      "U_percent": 61.21773759528999,
+      "slo15": {
+        "count": 191,
+        "passed": 66,
+        "percent": 34.55497382198953
+      },
+      "normalized_latency_over_1p5_compute": {
+        "min": 0.6666666666666629,
+        "median": 1.1690081104355143,
+        "max": 5.192191985360766
+      },
+      "SSD_GiB_s": [
+        36.87007904052734,
+        40.0,
+        39.13743591308592
+      ],
+      "total_SSD_GiB_s": 116.00751495361327,
+      "demand": {
+        "all_disks_under_percent": 0.0,
+        "any_disk_under_percent": 0.0,
+        "all_disks_over_percent": 100.0,
+        "any_disk_over_percent": 100.0,
+        "some_disks_under_some_over_percent": 0.0,
+        "any_disk_exactly_capacity_percent": 0.0,
+        "per_disk_min_GiB_s": [
+          65.78125723175354,
+          73.32477069249573,
+          72.42202782407227
+        ],
+        "per_disk_max_GiB_s": [
+          159.72439969770812,
+          175.44039107199097,
+          166.67157255187684
+        ],
+        "per_disk_mean_GiB_s": [
+          121.82195919852369,
+          133.46137705792756,
+          129.27031494888595
+        ],
+        "per_disk_over_percent": [
+          100.0,
+          100.0,
+          100.0
+        ]
+      },
+      "segments": 192,
+      "identity_rule": "request_id=npu*1000000+position; original_request_id retains pre-shuffle identity",
+      "first_npu_shuffle_seed": 7,
+      "second_npu_shuffle_seed": 100010,
+      "source_data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b"
+    },
+    {
+      "regime": "full",
+      "policy": "od_baseline",
+      "seed": 19,
+      "label": "full_od_baseline_seed19_remote",
+      "source_directory": "results/od_baseline_diverse_ssu3_20260918/runs/full_od_baseline_seed19_remote",
+      "sha256": {
+        "result.json.gz": "6fee93976c7ba3402af3b0136a059ef706a558bf88ba005c5bfd371cf2b1925b",
+        "manifest.json.gz": "0c47f81d8c5dd71462a9db27fb5a99cd23eca366373034b9abc78c8db7eb6f50",
+        "command.json": "76f14a89645e830bf78f9ad707f54ff1b8e0b15ef9d6d578b42d20de3fa88c85"
+      },
+      "requests": 1344,
+      "requests_per_npu": 42,
+      "profile_count": 24,
+      "profiles": {
+        "32:256": 96,
+        "32:1024": 64,
+        "32:2048": 32,
+        "32:4096": 32,
+        "64:256": 96,
+        "64:1024": 64,
+        "64:2048": 32,
+        "64:4096": 32,
+        "80:256": 96,
+        "80:1024": 64,
+        "80:2048": 32,
+        "80:4096": 32,
+        "128:256": 96,
+        "128:1024": 64,
+        "128:2048": 32,
+        "128:4096": 32,
+        "160:256": 96,
+        "160:1024": 64,
+        "160:2048": 32,
+        "160:4096": 32,
+        "200:256": 96,
+        "200:1024": 64,
+        "200:2048": 32,
+        "200:4096": 32
+      },
+      "all32active": true,
+      "U_percent": 60.112326100900624,
+      "slo15": {
+        "count": 194,
+        "passed": 68,
+        "percent": 35.05154639175258
+      },
+      "normalized_latency_over_1p5_compute": {
+        "min": 0.6666666666666629,
+        "median": 1.1253819254988688,
+        "max": 4.910673906142225
+      },
+      "SSD_GiB_s": [
+        36.52984666552735,
+        40.0,
+        38.95926666259764
+      ],
+      "total_SSD_GiB_s": 115.48911332812499,
+      "demand": {
+        "all_disks_under_percent": 0.0,
+        "any_disk_under_percent": 0.0,
+        "all_disks_over_percent": 100.0,
+        "any_disk_over_percent": 100.0,
+        "some_disks_under_some_over_percent": 0.0,
+        "any_disk_exactly_capacity_percent": 0.0,
+        "per_disk_min_GiB_s": [
+          94.88452763768005,
+          104.18770254854736,
+          101.6859439608673
+        ],
+        "per_disk_max_GiB_s": [
+          150.3173113380066,
+          163.58294169711914,
+          161.5426137616516
+        ],
+        "per_disk_mean_GiB_s": [
+          120.34499684901093,
+          131.8450046877373,
+          128.3149859725502
+        ],
+        "per_disk_over_percent": [
+          100.0,
+          100.0,
+          100.0
+        ]
+      },
+      "segments": 195,
+      "identity_rule": "request_id=npu*1000000+position; original_request_id retains pre-shuffle identity",
+      "first_npu_shuffle_seed": 19,
+      "second_npu_shuffle_seed": 100022,
+      "source_data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b"
+    },
+    {
+      "regime": "full",
+      "policy": "od_baseline",
+      "seed": 43,
+      "label": "full_od_baseline_seed43_local",
+      "source_directory": "results/od_baseline_diverse_ssu3_20260918/runs/full_od_baseline_seed43_local",
+      "sha256": {
+        "result.json.gz": "a3a75807e04afe177f5fe4699b9b41163c413f3e34411b5dd510143a129bd9dc",
+        "manifest.json.gz": "ab42a8ed82d9eedc189732d60ec66dbec9ea022cf071269494858a6c39f5683f",
+        "command.json": "579f5d3eaf57bbb4e6adc8f60c3a20a090a0afa76b368d64dc4e2380da4da5cf"
+      },
+      "requests": 1344,
+      "requests_per_npu": 42,
+      "profile_count": 24,
+      "profiles": {
+        "32:256": 96,
+        "32:1024": 64,
+        "32:2048": 32,
+        "32:4096": 32,
+        "64:256": 96,
+        "64:1024": 64,
+        "64:2048": 32,
+        "64:4096": 32,
+        "80:256": 96,
+        "80:1024": 64,
+        "80:2048": 32,
+        "80:4096": 32,
+        "128:256": 96,
+        "128:1024": 64,
+        "128:2048": 32,
+        "128:4096": 32,
+        "160:256": 96,
+        "160:1024": 64,
+        "160:2048": 32,
+        "160:4096": 32,
+        "200:256": 96,
+        "200:1024": 64,
+        "200:2048": 32,
+        "200:4096": 32
+      },
+      "all32active": true,
+      "U_percent": 59.34285884690564,
+      "slo15": {
+        "count": 181,
+        "passed": 62,
+        "percent": 34.25414364640884
+      },
+      "normalized_latency_over_1p5_compute": {
+        "min": 0.6666666666666634,
+        "median": 1.2053772571310981,
+        "max": 4.919370729010967
+      },
+      "SSD_GiB_s": [
+        36.12474140795501,
+        40.0,
+        38.79543385180265
+      ],
+      "total_SSD_GiB_s": 114.92017525975766,
+      "demand": {
+        "all_disks_under_percent": 0.0,
+        "any_disk_under_percent": 0.0,
+        "all_disks_over_percent": 100.0,
+        "any_disk_over_percent": 100.0,
+        "some_disks_under_some_over_percent": 0.0,
+        "any_disk_exactly_capacity_percent": 0.0,
+        "per_disk_min_GiB_s": [
+          84.39373944405213,
+          94.94913046724854,
+          88.62045532078858
+        ],
+        "per_disk_max_GiB_s": [
+          172.89234512293396,
+          193.21749010589903,
+          189.4389226247864
+        ],
+        "per_disk_mean_GiB_s": [
+          131.0099335727284,
+          145.1933478062975,
+          140.45818717019742
+        ],
+        "per_disk_over_percent": [
+          100.0,
+          100.0,
+          100.0
+        ]
+      },
+      "segments": 182,
+      "identity_rule": "request_id=npu*1000000+position; original_request_id retains pre-shuffle identity",
+      "first_npu_shuffle_seed": 43,
+      "second_npu_shuffle_seed": 100046,
+      "source_data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b"
+    },
+    {
+      "regime": "semi",
+      "policy": "asu_baseline",
+      "seed": 7,
+      "label": "semi_asu_baseline_seed7_remote",
+      "source_directory": "results/od_baseline_diverse_ssu3_20260918/runs/semi_asu_baseline_seed7_remote",
+      "sha256": {
+        "result.json.gz": "9d41ad9f232a9274a0f388531ede7164b1d4d2d2c2d19d8f39cfbf8490e546bb",
+        "manifest.json.gz": "b7d951ff178ea9135fab210e2a3ce14aed05a8104a96402862a5595d5a972325",
+        "command.json": "c836b6fbb1d63a023b66a44559d20b4dce8ddea41012201b21d3828fee47868a"
+      },
+      "requests": 960,
+      "requests_per_npu": 30,
+      "profile_count": 24,
+      "profiles": {
+        "32:256": 32,
+        "32:1024": 32,
+        "32:2048": 32,
+        "32:4096": 64,
+        "64:256": 32,
+        "64:1024": 32,
+        "64:2048": 32,
+        "64:4096": 64,
+        "80:256": 32,
+        "80:1024": 32,
+        "80:2048": 32,
+        "80:4096": 64,
+        "128:256": 32,
+        "128:1024": 32,
+        "128:2048": 32,
+        "128:4096": 64,
+        "160:256": 32,
+        "160:1024": 32,
+        "160:2048": 32,
+        "160:4096": 64,
+        "200:256": 32,
+        "200:1024": 32,
+        "200:2048": 32,
+        "200:4096": 64
+      },
+      "all32active": true,
+      "U_percent": 98.46492524736092,
+      "slo15": {
+        "count": 175,
+        "passed": 161,
+        "percent": 92.0
+      },
+      "normalized_latency_over_1p5_compute": {
+        "min": 0.6666666666666622,
+        "median": 0.6666666666666689,
+        "max": 2.400571172654355
+      },
+      "SSD_GiB_s": [
+        32.234827468403644,
+        35.49142971922946,
+        34.386365829120614
+      ],
+      "total_SSD_GiB_s": 102.11262301675373,
+      "demand": {
+        "all_disks_under_percent": 60.85515675607732,
+        "any_disk_under_percent": 72.31224949415778,
+        "all_disks_over_percent": 27.68775050584221,
+        "any_disk_over_percent": 39.14484324392268,
+        "some_disks_under_some_over_percent": 11.457092738080473,
+        "any_disk_exactly_capacity_percent": 0.0,
+        "per_disk_min_GiB_s": [
+          21.105625583697513,
+          23.5091437251709,
+          23.039531237274172
+        ],
+        "per_disk_max_GiB_s": [
+          67.54021274986268,
+          72.40455630681153,
+          73.52069076376648
+        ],
+        "per_disk_mean_GiB_s": [
+          35.49215718202126,
+          39.00347329918983,
+          37.92855608036963
+        ],
+        "per_disk_over_percent": [
+          27.68775050584221,
+          39.14484324392268,
+          32.53350586682867
+        ]
+      },
+      "segments": 176,
+      "identity_rule": "request_id=npu*1000000+position; original_request_id retains pre-shuffle identity",
+      "first_npu_shuffle_seed": 7,
+      "second_npu_shuffle_seed": 100010,
+      "source_data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b"
+    },
+    {
+      "regime": "semi",
+      "policy": "asu_baseline",
+      "seed": 19,
+      "label": "semi_asu_baseline_seed19_remote",
+      "source_directory": "results/od_baseline_diverse_ssu3_20260918/runs/semi_asu_baseline_seed19_remote",
+      "sha256": {
+        "result.json.gz": "487cd77c01f011b212191f89900f2360f575c8a0784a8c3c600b06e6de834b08",
+        "manifest.json.gz": "eb253e86623bbef486168fb5032e9410affc6768ede5335bb72237ab12a5d686",
+        "command.json": "9d6657c51a5c8fe71f9249055c134ff3b294a8776657cfcf2ef3ba952c93cb72"
+      },
+      "requests": 960,
+      "requests_per_npu": 30,
+      "profile_count": 24,
+      "profiles": {
+        "32:256": 32,
+        "32:1024": 32,
+        "32:2048": 32,
+        "32:4096": 64,
+        "64:256": 32,
+        "64:1024": 32,
+        "64:2048": 32,
+        "64:4096": 64,
+        "80:256": 32,
+        "80:1024": 32,
+        "80:2048": 32,
+        "80:4096": 64,
+        "128:256": 32,
+        "128:1024": 32,
+        "128:2048": 32,
+        "128:4096": 64,
+        "160:256": 32,
+        "160:1024": 32,
+        "160:2048": 32,
+        "160:4096": 64,
+        "200:256": 32,
+        "200:1024": 32,
+        "200:2048": 32,
+        "200:4096": 64
+      },
+      "all32active": true,
+      "U_percent": 99.37043630788132,
+      "slo15": {
+        "count": 170,
+        "passed": 164,
+        "percent": 96.47058823529412
+      },
+      "normalized_latency_over_1p5_compute": {
+        "min": 0.6666666666666629,
+        "median": 0.6666666666666675,
+        "max": 1.3621603197407024
+      },
+      "SSD_GiB_s": [
+        31.311228986072276,
+        34.7092945717681,
+        33.755178498341124
+      ],
+      "total_SSD_GiB_s": 99.7757020561815,
+      "demand": {
+        "all_disks_under_percent": 69.54556268280179,
+        "any_disk_under_percent": 87.24369447780258,
+        "all_disks_over_percent": 12.756305522197419,
+        "any_disk_over_percent": 30.454437317198224,
+        "some_disks_under_some_over_percent": 17.6981317950008,
+        "any_disk_exactly_capacity_percent": 0.0,
+        "per_disk_min_GiB_s": [
+          23.22144741734619,
+          25.323193409866334,
+          25.07339258819275
+        ],
+        "per_disk_max_GiB_s": [
+          54.810330342398075,
+          62.015920945651246,
+          60.77067416795654
+        ],
+        "per_disk_mean_GiB_s": [
+          32.71988245400058,
+          36.14285214118107,
+          35.231646605549074
+        ],
+        "per_disk_over_percent": [
+          12.756305522197419,
+          29.43839748936307,
+          19.349786452009266
+        ]
+      },
+      "segments": 171,
+      "identity_rule": "request_id=npu*1000000+position; original_request_id retains pre-shuffle identity",
+      "first_npu_shuffle_seed": 19,
+      "second_npu_shuffle_seed": 100022,
+      "source_data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b"
+    },
+    {
+      "regime": "semi",
+      "policy": "asu_baseline",
+      "seed": 43,
+      "label": "semi_asu_baseline_seed43_local",
+      "source_directory": "results/od_baseline_diverse_ssu3_20260918/runs/semi_asu_baseline_seed43_local",
+      "sha256": {
+        "result.json.gz": "80c3ea37bc9a3a567e8b9639697ce1035de9768a3537092b3c020b48b4c3a1c1",
+        "manifest.json.gz": "140c38e8edde69dd1bb74ea7d95557427be51679b3c184eff3adf68db8df53cf",
+        "command.json": "f1d408e96b852d21fff1c5baca03ac5c1f8802a13f1794aa6a4adb0e6b6d18ca"
+      },
+      "requests": 960,
+      "requests_per_npu": 30,
+      "profile_count": 24,
+      "profiles": {
+        "32:256": 32,
+        "32:1024": 32,
+        "32:2048": 32,
+        "32:4096": 64,
+        "64:256": 32,
+        "64:1024": 32,
+        "64:2048": 32,
+        "64:4096": 64,
+        "80:256": 32,
+        "80:1024": 32,
+        "80:2048": 32,
+        "80:4096": 64,
+        "128:256": 32,
+        "128:1024": 32,
+        "128:2048": 32,
+        "128:4096": 64,
+        "160:256": 32,
+        "160:1024": 32,
+        "160:2048": 32,
+        "160:4096": 64,
+        "200:256": 32,
+        "200:1024": 32,
+        "200:2048": 32,
+        "200:4096": 64
+      },
+      "all32active": true,
+      "U_percent": 98.3616992449969,
+      "slo15": {
+        "count": 158,
+        "passed": 144,
+        "percent": 91.13924050632912
+      },
+      "normalized_latency_over_1p5_compute": {
+        "min": 0.6666666666666622,
+        "median": 0.6666666666666677,
+        "max": 2.726060483799393
+      },
+      "SSD_GiB_s": [
+        29.517230569011787,
+        32.72379414434872,
+        31.40458255875787
+      ],
+      "total_SSD_GiB_s": 93.64560727211838,
+      "demand": {
+        "all_disks_under_percent": 72.17260544343796,
+        "any_disk_under_percent": 75.84557336235504,
+        "all_disks_over_percent": 24.154426637644974,
+        "any_disk_over_percent": 27.827394556562034,
+        "some_disks_under_some_over_percent": 3.672967918917061,
+        "any_disk_exactly_capacity_percent": 0.0,
+        "per_disk_min_GiB_s": [
+          20.56478577857666,
+          22.79984033187561,
+          21.976025257360842
+        ],
+        "per_disk_max_GiB_s": [
+          67.37244785118713,
+          77.99047472428894,
+          72.74733198067017
+        ],
+        "per_disk_mean_GiB_s": [
+          33.0065649116293,
+          36.53015034919989,
+          35.16440800672156
+        ],
+        "per_disk_over_percent": [
+          24.154426637644974,
+          27.827394556562034,
+          27.792790610129373
+        ]
+      },
+      "segments": 159,
+      "identity_rule": "request_id=npu*1000000+position; original_request_id retains pre-shuffle identity",
+      "first_npu_shuffle_seed": 43,
+      "second_npu_shuffle_seed": 100046,
+      "source_data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b"
+    },
+    {
+      "regime": "semi",
+      "policy": "od_baseline",
+      "seed": 7,
+      "label": "semi_od_baseline_seed7_remote",
+      "source_directory": "results/od_baseline_diverse_ssu3_20260918/runs/semi_od_baseline_seed7_remote",
+      "sha256": {
+        "result.json.gz": "d90f49533cb97680fdab3ad2e0645a37bd094fc95b45ecd680c26056bbf5e952",
+        "manifest.json.gz": "b7d951ff178ea9135fab210e2a3ce14aed05a8104a96402862a5595d5a972325",
+        "command.json": "cc3d99e7023fc2f5d9a9ec85172c1adcb6e7425a8c2ea2bc55e56b059bf3c4bb"
+      },
+      "requests": 960,
+      "requests_per_npu": 30,
+      "profile_count": 24,
+      "profiles": {
+        "32:256": 32,
+        "32:1024": 32,
+        "32:2048": 32,
+        "32:4096": 64,
+        "64:256": 32,
+        "64:1024": 32,
+        "64:2048": 32,
+        "64:4096": 64,
+        "80:256": 32,
+        "80:1024": 32,
+        "80:2048": 32,
+        "80:4096": 64,
+        "128:256": 32,
+        "128:1024": 32,
+        "128:2048": 32,
+        "128:4096": 64,
+        "160:256": 32,
+        "160:1024": 32,
+        "160:2048": 32,
+        "160:4096": 64,
+        "200:256": 32,
+        "200:1024": 32,
+        "200:2048": 32,
+        "200:4096": 64
+      },
+      "all32active": true,
+      "U_percent": 98.44046450514662,
+      "slo15": {
+        "count": 178,
+        "passed": 163,
+        "percent": 91.57303370786516
+      },
+      "normalized_latency_over_1p5_compute": {
+        "min": 0.6666666666666622,
+        "median": 0.6666666666666694,
+        "max": 1.6993764173861816
+      },
+      "SSD_GiB_s": [
+        32.39751500458941,
+        35.60959691376909,
+        34.50652369751208
+      ],
+      "total_SSD_GiB_s": 102.51363561587058,
+      "demand": {
+        "all_disks_under_percent": 54.00991880010683,
+        "any_disk_under_percent": 72.14014941180986,
+        "all_disks_over_percent": 27.859850588190138,
+        "any_disk_over_percent": 45.99008119989317,
+        "some_disks_under_some_over_percent": 18.13023061170303,
+        "any_disk_exactly_capacity_percent": 0.0,
+        "per_disk_min_GiB_s": [
+          21.403398424401857,
+          23.607707117990113,
+          22.489219006631473
+        ],
+        "per_disk_max_GiB_s": [
+          63.58263594596558,
+          71.4731797097992,
+          69.74143208703919
+        ],
+        "per_disk_mean_GiB_s": [
+          35.992740843436444,
+          39.56237766155935,
+          38.430274627952016
+        ],
+        "per_disk_over_percent": [
+          27.859850588190138,
+          45.99008119989317,
+          37.13401559136552
+        ]
+      },
+      "segments": 179,
+      "identity_rule": "request_id=npu*1000000+position; original_request_id retains pre-shuffle identity",
+      "first_npu_shuffle_seed": 7,
+      "second_npu_shuffle_seed": 100010,
+      "source_data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b"
+    },
+    {
+      "regime": "semi",
+      "policy": "od_baseline",
+      "seed": 19,
+      "label": "semi_od_baseline_seed19_remote",
+      "source_directory": "results/od_baseline_diverse_ssu3_20260918/runs/semi_od_baseline_seed19_remote",
+      "sha256": {
+        "result.json.gz": "50532d6ca7a4741f8518ed60bd93ce6457690a6e12a5acc5bc41c74a80168623",
+        "manifest.json.gz": "eb253e86623bbef486168fb5032e9410affc6768ede5335bb72237ab12a5d686",
+        "command.json": "c633c606d7a443a2a4fcb82fa5c6a85e466ec4717fd09d8c5c4511be0609f8a9"
+      },
+      "requests": 960,
+      "requests_per_npu": 30,
+      "profile_count": 24,
+      "profiles": {
+        "32:256": 32,
+        "32:1024": 32,
+        "32:2048": 32,
+        "32:4096": 64,
+        "64:256": 32,
+        "64:1024": 32,
+        "64:2048": 32,
+        "64:4096": 64,
+        "80:256": 32,
+        "80:1024": 32,
+        "80:2048": 32,
+        "80:4096": 64,
+        "128:256": 32,
+        "128:1024": 32,
+        "128:2048": 32,
+        "128:4096": 64,
+        "160:256": 32,
+        "160:1024": 32,
+        "160:2048": 32,
+        "160:4096": 64,
+        "200:256": 32,
+        "200:1024": 32,
+        "200:2048": 32,
+        "200:4096": 64
+      },
+      "all32active": true,
+      "U_percent": 98.42312764436537,
+      "slo15": {
+        "count": 169,
+        "passed": 160,
+        "percent": 94.67455621301775
+      },
+      "normalized_latency_over_1p5_compute": {
+        "min": 0.6666666666666432,
+        "median": 0.6666666666666677,
+        "max": 1.8976857278693389
+      },
+      "SSD_GiB_s": [
+        31.172894175311217,
+        34.573858240837865,
+        33.66849325060348
+      ],
+      "total_SSD_GiB_s": 99.41524566675255,
+      "demand": {
+        "all_disks_under_percent": 68.7733365110169,
+        "any_disk_under_percent": 76.0958263861273,
+        "all_disks_over_percent": 23.904173613872697,
+        "any_disk_over_percent": 31.226663488983103,
+        "some_disks_under_some_over_percent": 7.322489875110409,
+        "any_disk_exactly_capacity_percent": 0.0,
+        "per_disk_min_GiB_s": [
+          22.524260852023314,
+          24.892794298791504,
+          24.330320308291626
+        ],
+        "per_disk_max_GiB_s": [
+          80.40488497257385,
+          88.1528261435669,
+          88.36037846840516
+        ],
+        "per_disk_mean_GiB_s": [
+          35.132253695646966,
+          38.897214737843534,
+          37.88622889293515
+        ],
+        "per_disk_over_percent": [
+          23.904173613872697,
+          31.226663488983103,
+          26.215718479176257
+        ]
+      },
+      "segments": 170,
+      "identity_rule": "request_id=npu*1000000+position; original_request_id retains pre-shuffle identity",
+      "first_npu_shuffle_seed": 19,
+      "second_npu_shuffle_seed": 100022,
+      "source_data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b"
+    },
+    {
+      "regime": "semi",
+      "policy": "od_baseline",
+      "seed": 43,
+      "label": "semi_od_baseline_seed43_local",
+      "source_directory": "results/od_baseline_diverse_ssu3_20260918/runs/semi_od_baseline_seed43_local",
+      "sha256": {
+        "result.json.gz": "50f5212e1558a74518c9069b81dfa01a15cfa1591297c40ff5b58f28df127288",
+        "manifest.json.gz": "140c38e8edde69dd1bb74ea7d95557427be51679b3c184eff3adf68db8df53cf",
+        "command.json": "72f70385044ddd64adb74a4d4f07662b78fc1fe97a0ba74b116a99fd310011eb"
+      },
+      "requests": 960,
+      "requests_per_npu": 30,
+      "profile_count": 24,
+      "profiles": {
+        "32:256": 32,
+        "32:1024": 32,
+        "32:2048": 32,
+        "32:4096": 64,
+        "64:256": 32,
+        "64:1024": 32,
+        "64:2048": 32,
+        "64:4096": 64,
+        "80:256": 32,
+        "80:1024": 32,
+        "80:2048": 32,
+        "80:4096": 64,
+        "128:256": 32,
+        "128:1024": 32,
+        "128:2048": 32,
+        "128:4096": 64,
+        "160:256": 32,
+        "160:1024": 32,
+        "160:2048": 32,
+        "160:4096": 64,
+        "200:256": 32,
+        "200:1024": 32,
+        "200:2048": 32,
+        "200:4096": 64
+      },
+      "all32active": true,
+      "U_percent": 98.41033790018516,
+      "slo15": {
+        "count": 159,
+        "passed": 150,
+        "percent": 94.33962264150944
+      },
+      "normalized_latency_over_1p5_compute": {
+        "min": 0.6666666666666629,
+        "median": 0.6666666666666677,
+        "max": 2.1696671938756515
+      },
+      "SSD_GiB_s": [
+        29.565759873436797,
+        32.79423185447176,
+        31.491154156717858
+      ],
+      "total_SSD_GiB_s": 93.85114588462642,
+      "demand": {
+        "all_disks_under_percent": 75.68070677725878,
+        "any_disk_under_percent": 78.08313879849464,
+        "all_disks_over_percent": 21.916861201505345,
+        "any_disk_over_percent": 24.319293222741223,
+        "some_disks_under_some_over_percent": 2.4024320212358816,
+        "any_disk_exactly_capacity_percent": 0.0,
+        "per_disk_min_GiB_s": [
+          20.614423457400513,
+          23.378711470092775,
+          21.891511292477418
+        ],
+        "per_disk_max_GiB_s": [
+          68.83301983855591,
+          77.08185796110536,
+          72.73864954199524
+        ],
+        "per_disk_mean_GiB_s": [
+          33.63258969320221,
+          37.278861349247,
+          35.781120610790445
+        ],
+        "per_disk_over_percent": [
+          21.916861201505345,
+          24.319293222741223,
+          23.745448317763543
+        ]
+      },
+      "segments": 160,
+      "identity_rule": "request_id=npu*1000000+position; original_request_id retains pre-shuffle identity",
+      "first_npu_shuffle_seed": 43,
+      "second_npu_shuffle_seed": 100046,
+      "source_data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b"
+    },
+    {
+      "regime": "under",
+      "policy": "asu_baseline",
+      "seed": 7,
+      "label": "random_asu_baseline_seed7_remote",
+      "source_directory": "results/continuous_underload_asu_od_20260918/runs/random_asu_baseline_seed7_remote",
+      "sha256": {
+        "result.json.gz": "c19b906a1ca11f44bc87416573db1cf79e514dde6359a905b03104b8329e103e",
+        "manifest.json.gz": "771fedfd3b85a6ec1c9b62adbfea3a683e458f7f249be826c842c8e8afd4f8bb",
+        "command.json": "23dbedf739ea61352eebcdcaa9fcd7a2fba8e3da68f0343abf0ac8c6d02d2dcf"
+      },
+      "requests": 640,
+      "requests_per_npu": 20,
+      "profile_count": 10,
+      "profiles": {
+        "32:2048": 64,
+        "32:4096": 64,
+        "64:2048": 64,
+        "64:4096": 64,
+        "80:2048": 64,
+        "80:4096": 64,
+        "128:2048": 64,
+        "128:4096": 64,
+        "160:2048": 64,
+        "160:4096": 64
+      },
+      "all32active": true,
+      "U_percent": 100.0,
+      "slo15": {
+        "count": 148,
+        "passed": 148,
+        "percent": 100.0
+      },
+      "normalized_latency_over_1p5_compute": {
+        "min": 0.6666666666666629,
+        "median": 0.6666666666666651,
+        "max": 0.6666666666666706
+      },
+      "SSD_GiB_s": [
+        24.09619061423772,
+        26.346298695582185,
+        26.004439515604894
+      ],
+      "total_SSD_GiB_s": 76.4469288254248,
+      "demand": {
+        "all_disks_under_percent": 100.0,
+        "any_disk_under_percent": 100.0,
+        "all_disks_over_percent": 0.0,
+        "any_disk_over_percent": 0.0,
+        "some_disks_under_some_over_percent": 0.0,
+        "any_disk_exactly_capacity_percent": 0.0,
+        "per_disk_min_GiB_s": [
+          21.628150840997314,
+          23.564593433624268,
+          23.209402380889895
+        ],
+        "per_disk_max_GiB_s": [
+          27.532070188879395,
+          29.786927320907594,
+          29.620013995349122
+        ],
+        "per_disk_mean_GiB_s": [
+          24.249632690617723,
+          26.48870912133175,
+          26.16149581427409
+        ],
+        "per_disk_over_percent": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "segments": 149,
+      "identity_rule": "original_request_id=npu*20+canonical_ordinal; runtime request_id=npu*20+queue_position",
+      "first_npu_shuffle_seed": 7,
+      "second_npu_shuffle_seed": 8,
+      "source_data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b"
+    },
+    {
+      "regime": "under",
+      "policy": "asu_baseline",
+      "seed": 19,
+      "label": "random_asu_baseline_seed19_remote",
+      "source_directory": "results/continuous_underload_asu_od_20260918/runs/random_asu_baseline_seed19_remote",
+      "sha256": {
+        "result.json.gz": "f66503fd38b94f6b022ee425bc19dd93b336c3820728d608fce337ee8ede0397",
+        "manifest.json.gz": "aa9a626f7f953439778297e6fe89d9cd62fda9557cffc44a1a798a591c854273",
+        "command.json": "3d03f4946b18d704086155bdf147b47656905312a1eb826884274ce8033b7a0a"
+      },
+      "requests": 640,
+      "requests_per_npu": 20,
+      "profile_count": 10,
+      "profiles": {
+        "32:2048": 64,
+        "32:4096": 64,
+        "64:2048": 64,
+        "64:4096": 64,
+        "80:2048": 64,
+        "80:4096": 64,
+        "128:2048": 64,
+        "128:4096": 64,
+        "160:2048": 64,
+        "160:4096": 64
+      },
+      "all32active": true,
+      "U_percent": 100.0,
+      "slo15": {
+        "count": 142,
+        "passed": 142,
+        "percent": 100.0
+      },
+      "normalized_latency_over_1p5_compute": {
+        "min": 0.6666666666666629,
+        "median": 0.6666666666666653,
+        "max": 0.6666666666666697
+      },
+      "SSD_GiB_s": [
+        23.36427483961698,
+        25.92094229206497,
+        25.199510435320086
+      ],
+      "total_SSD_GiB_s": 74.48472756700204,
+      "demand": {
+        "all_disks_under_percent": 100.0,
+        "any_disk_under_percent": 100.0,
+        "all_disks_over_percent": 0.0,
+        "any_disk_over_percent": 0.0,
+        "some_disks_under_some_over_percent": 0.0,
+        "any_disk_exactly_capacity_percent": 0.0,
+        "per_disk_min_GiB_s": [
+          20.46299401150818,
+          23.424864516293336,
+          22.469107299938965
+        ],
+        "per_disk_max_GiB_s": [
+          26.518868700787355,
+          29.45295859888916,
+          29.12488372128296
+        ],
+        "per_disk_mean_GiB_s": [
+          23.71404391993691,
+          26.278693060970824,
+          25.55976828975496
+        ],
+        "per_disk_over_percent": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "segments": 143,
+      "identity_rule": "original_request_id=npu*20+canonical_ordinal; runtime request_id=npu*20+queue_position",
+      "first_npu_shuffle_seed": 19,
+      "second_npu_shuffle_seed": 20,
+      "source_data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b"
+    },
+    {
+      "regime": "under",
+      "policy": "asu_baseline",
+      "seed": 43,
+      "label": "random_asu_baseline_seed43_local",
+      "source_directory": "results/continuous_underload_asu_od_20260918/runs/random_asu_baseline_seed43_local",
+      "sha256": {
+        "result.json.gz": "4e4a8da764969a443e10d406a822445d0e2c8a7559a6c62d68140d73ff4538be",
+        "manifest.json.gz": "bf7ccc9e454fcbc76ba8f3d47f42da3187d075c1c2f57fc32ad916ca99b8109c",
+        "command.json": "fbb0655b9ca1002a24a07827e5b53e19ca8318b683b58b6a62471f8b90f39fee"
+      },
+      "requests": 640,
+      "requests_per_npu": 20,
+      "profile_count": 10,
+      "profiles": {
+        "32:2048": 64,
+        "32:4096": 64,
+        "64:2048": 64,
+        "64:4096": 64,
+        "80:2048": 64,
+        "80:4096": 64,
+        "128:2048": 64,
+        "128:4096": 64,
+        "160:2048": 64,
+        "160:4096": 64
+      },
+      "all32active": true,
+      "U_percent": 100.0,
+      "slo15": {
+        "count": 145,
+        "passed": 145,
+        "percent": 100.0
+      },
+      "normalized_latency_over_1p5_compute": {
+        "min": 0.6666666666666629,
+        "median": 0.6666666666666653,
+        "max": 0.66666666666667
+      },
+      "SSD_GiB_s": [
+        23.11405315760992,
+        25.52928295497319,
+        25.226319698137253
+      ],
+      "total_SSD_GiB_s": 73.86965581072036,
+      "demand": {
+        "all_disks_under_percent": 100.0,
+        "any_disk_under_percent": 100.0,
+        "all_disks_over_percent": 0.0,
+        "any_disk_over_percent": 0.0,
+        "some_disks_under_some_over_percent": 0.0,
+        "any_disk_exactly_capacity_percent": 0.0,
+        "per_disk_min_GiB_s": [
+          18.814835355111697,
+          21.620840154959108,
+          21.179887553549197
+        ],
+        "per_disk_max_GiB_s": [
+          25.813909860717775,
+          28.488244302951053,
+          27.701917092581176
+        ],
+        "per_disk_mean_GiB_s": [
+          23.0477783509918,
+          25.473541313008063,
+          25.15331563231066
+        ],
+        "per_disk_over_percent": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "segments": 146,
+      "identity_rule": "original_request_id=npu*20+canonical_ordinal; runtime request_id=npu*20+queue_position",
+      "first_npu_shuffle_seed": 43,
+      "second_npu_shuffle_seed": 44,
+      "source_data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b"
+    },
+    {
+      "regime": "under",
+      "policy": "od_baseline",
+      "seed": 7,
+      "label": "random_od_baseline_seed7_remote",
+      "source_directory": "results/continuous_underload_asu_od_20260918/runs/random_od_baseline_seed7_remote",
+      "sha256": {
+        "result.json.gz": "31504eb7d2a68914429068c7495ed8a4bc7c9e7c1511815232d76a3da15a672b",
+        "manifest.json.gz": "771fedfd3b85a6ec1c9b62adbfea3a683e458f7f249be826c842c8e8afd4f8bb",
+        "command.json": "8f134ce5904c9314604fcc3d4189e6a492bd5e9e9a7fd2bbe54f8accf10dab58"
+      },
+      "requests": 640,
+      "requests_per_npu": 20,
+      "profile_count": 10,
+      "profiles": {
+        "32:2048": 64,
+        "32:4096": 64,
+        "64:2048": 64,
+        "64:4096": 64,
+        "80:2048": 64,
+        "80:4096": 64,
+        "128:2048": 64,
+        "128:4096": 64,
+        "160:2048": 64,
+        "160:4096": 64
+      },
+      "all32active": true,
+      "U_percent": 100.0,
+      "slo15": {
+        "count": 147,
+        "passed": 147,
+        "percent": 100.0
+      },
+      "normalized_latency_over_1p5_compute": {
+        "min": 0.6666666666666629,
+        "median": 0.6666666666666651,
+        "max": 0.66666666666667
+      },
+      "SSD_GiB_s": [
+        24.01605668834809,
+        26.25798278893402,
+        25.91733595250824
+      ],
+      "total_SSD_GiB_s": 76.19137542979036,
+      "demand": {
+        "all_disks_under_percent": 100.0,
+        "any_disk_under_percent": 100.0,
+        "all_disks_over_percent": 0.0,
+        "any_disk_over_percent": 0.0,
+        "some_disks_under_some_over_percent": 0.0,
+        "any_disk_exactly_capacity_percent": 0.0,
+        "per_disk_min_GiB_s": [
+          21.628150840997314,
+          23.564593433624268,
+          23.209402380889895
+        ],
+        "per_disk_max_GiB_s": [
+          27.532070188879395,
+          29.786927320907594,
+          29.575417214465332
+        ],
+        "per_disk_mean_GiB_s": [
+          24.231281696942524,
+          26.466388558004265,
+          26.14384761749267
+        ],
+        "per_disk_over_percent": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "segments": 148,
+      "identity_rule": "original_request_id=npu*20+canonical_ordinal; runtime request_id=npu*20+queue_position",
+      "first_npu_shuffle_seed": 7,
+      "second_npu_shuffle_seed": 8,
+      "source_data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b"
+    },
+    {
+      "regime": "under",
+      "policy": "od_baseline",
+      "seed": 19,
+      "label": "random_od_baseline_seed19_remote",
+      "source_directory": "results/continuous_underload_asu_od_20260918/runs/random_od_baseline_seed19_remote",
+      "sha256": {
+        "result.json.gz": "8602e55a8b29793767ad39966247e32f2b61c76797aa8ebc51de329801f5b09f",
+        "manifest.json.gz": "aa9a626f7f953439778297e6fe89d9cd62fda9557cffc44a1a798a591c854273",
+        "command.json": "be4fee7068c1a2e2ed3876cd7ea7bf28443b7964d2928cf5bb13813e1481a9de"
+      },
+      "requests": 640,
+      "requests_per_npu": 20,
+      "profile_count": 10,
+      "profiles": {
+        "32:2048": 64,
+        "32:4096": 64,
+        "64:2048": 64,
+        "64:4096": 64,
+        "80:2048": 64,
+        "80:4096": 64,
+        "128:2048": 64,
+        "128:4096": 64,
+        "160:2048": 64,
+        "160:4096": 64
+      },
+      "all32active": true,
+      "U_percent": 100.0,
+      "slo15": {
+        "count": 141,
+        "passed": 141,
+        "percent": 100.0
+      },
+      "normalized_latency_over_1p5_compute": {
+        "min": 0.6666666666666629,
+        "median": 0.6666666666666653,
+        "max": 0.6666666666666706
+      },
+      "SSD_GiB_s": [
+        23.3621019848707,
+        25.915639446296485,
+        25.192641873542577
+      ],
+      "total_SSD_GiB_s": 74.47038330470977,
+      "demand": {
+        "all_disks_under_percent": 100.0,
+        "any_disk_under_percent": 100.0,
+        "all_disks_over_percent": 0.0,
+        "any_disk_over_percent": 0.0,
+        "some_disks_under_some_over_percent": 0.0,
+        "any_disk_exactly_capacity_percent": 0.0,
+        "per_disk_min_GiB_s": [
+          20.46299401150818,
+          23.446356340127565,
+          22.469107299938965
+        ],
+        "per_disk_max_GiB_s": [
+          26.458049655670166,
+          29.45295859888916,
+          29.053443422735597
+        ],
+        "per_disk_mean_GiB_s": [
+          23.698809442581982,
+          26.261377106861808,
+          25.54297703209947
+        ],
+        "per_disk_over_percent": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "segments": 142,
+      "identity_rule": "original_request_id=npu*20+canonical_ordinal; runtime request_id=npu*20+queue_position",
+      "first_npu_shuffle_seed": 19,
+      "second_npu_shuffle_seed": 20,
+      "source_data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b"
+    },
+    {
+      "regime": "under",
+      "policy": "od_baseline",
+      "seed": 43,
+      "label": "random_od_baseline_seed43_local",
+      "source_directory": "results/continuous_underload_asu_od_20260918/runs/random_od_baseline_seed43_local",
+      "sha256": {
+        "result.json.gz": "a6332fffa1b0315691e5a79fb8182bdec954e35f1856e0b154b99179354458e6",
+        "manifest.json.gz": "bf7ccc9e454fcbc76ba8f3d47f42da3187d075c1c2f57fc32ad916ca99b8109c",
+        "command.json": "b8fd39bc8b3a58581d74b572f6be642d1a089490d4fb1e1bde9b3685ba87e40b"
+      },
+      "requests": 640,
+      "requests_per_npu": 20,
+      "profile_count": 10,
+      "profiles": {
+        "32:2048": 64,
+        "32:4096": 64,
+        "64:2048": 64,
+        "64:4096": 64,
+        "80:2048": 64,
+        "80:4096": 64,
+        "128:2048": 64,
+        "128:4096": 64,
+        "160:2048": 64,
+        "160:4096": 64
+      },
+      "all32active": true,
+      "U_percent": 100.0,
+      "slo15": {
+        "count": 143,
+        "passed": 143,
+        "percent": 100.0
+      },
+      "normalized_latency_over_1p5_compute": {
+        "min": 0.6666666666666629,
+        "median": 0.6666666666666653,
+        "max": 0.66666666666667
+      },
+      "SSD_GiB_s": [
+        23.061050512815733,
+        25.45404062512041,
+        25.174240210081347
+      ],
+      "total_SSD_GiB_s": 73.68933134801749,
+      "demand": {
+        "all_disks_under_percent": 100.0,
+        "any_disk_under_percent": 100.0,
+        "all_disks_over_percent": 0.0,
+        "any_disk_over_percent": 0.0,
+        "some_disks_under_some_over_percent": 0.0,
+        "any_disk_exactly_capacity_percent": 0.0,
+        "per_disk_min_GiB_s": [
+          19.478030772866823,
+          21.707030687924195,
+          21.87248083650513
+        ],
+        "per_disk_max_GiB_s": [
+          25.813909860717775,
+          28.488244302951053,
+          27.701917092581176
+        ],
+        "per_disk_mean_GiB_s": [
+          23.0323720149982,
+          25.45569978895168,
+          25.1385107472931
+        ],
+        "per_disk_over_percent": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "segments": 144,
+      "identity_rule": "original_request_id=npu*20+canonical_ordinal; runtime request_id=npu*20+queue_position",
+      "first_npu_shuffle_seed": 43,
+      "second_npu_shuffle_seed": 44,
+      "source_data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b"
+    }
+  ],
+  "aggregates": [
+    {
+      "regime": "full",
+      "policy": "asu_baseline",
+      "U_mean": 60.15810657366267,
+      "slo15_seed_mean": 38.700766784740765,
+      "slo15_pooled_count": 566,
+      "slo15_pooled_passed": 219,
+      "slo15_pooled_percent": 38.69257950530035,
+      "demand_time_percent_seed_means": {
+        "all_disks_under_percent": 0.0,
+        "any_disk_under_percent": 0.0,
+        "all_disks_over_percent": 100.0,
+        "any_disk_over_percent": 100.0,
+        "some_disks_under_some_over_percent": 0.0
+      },
+      "total_demand_mean_GiB_s": 375.14483597343417,
+      "total_SSD_mean_GiB_s": 115.71169112075619
+    },
+    {
+      "regime": "full",
+      "policy": "od_baseline",
+      "U_mean": 60.22430751436542,
+      "slo15_seed_mean": 34.62022128671698,
+      "slo15_pooled_count": 566,
+      "slo15_pooled_passed": 196,
+      "slo15_pooled_percent": 34.628975265017665,
+      "demand_time_percent_seed_means": {
+        "all_disks_under_percent": 0.0,
+        "any_disk_under_percent": 0.0,
+        "all_disks_over_percent": 100.0,
+        "any_disk_over_percent": 100.0,
+        "some_disks_under_some_over_percent": 0.0
+      },
+      "total_demand_mean_GiB_s": 393.9067024212863,
+      "total_SSD_mean_GiB_s": 115.4722678471653
+    },
+    {
+      "regime": "semi",
+      "policy": "asu_baseline",
+      "U_mean": 98.73235360007972,
+      "slo15_seed_mean": 93.20327624720774,
+      "slo15_pooled_count": 503,
+      "slo15_pooled_passed": 469,
+      "slo15_pooled_percent": 93.24055666003976,
+      "demand_time_percent_seed_means": {
+        "all_disks_under_percent": 67.52444162743902,
+        "any_disk_under_percent": 78.4671724447718,
+        "all_disks_over_percent": 21.532827555228202,
+        "any_disk_over_percent": 32.47555837256098,
+        "some_disks_under_some_over_percent": 10.942730817332778
+      },
+      "total_demand_mean_GiB_s": 107.0732303432874,
+      "total_SSD_mean_GiB_s": 98.51131078168454
+    },
+    {
+      "regime": "semi",
+      "policy": "od_baseline",
+      "U_mean": 98.42464334989904,
+      "slo15_seed_mean": 93.52907085413078,
+      "slo15_pooled_count": 506,
+      "slo15_pooled_passed": 473,
+      "slo15_pooled_percent": 93.47826086956522,
+      "demand_time_percent_seed_means": {
+        "all_disks_under_percent": 66.15465402946083,
+        "any_disk_under_percent": 75.43970486547727,
+        "all_disks_over_percent": 24.560295134522725,
+        "any_disk_over_percent": 33.845345970539164,
+        "some_disks_under_some_over_percent": 9.28505083601644
+      },
+      "total_demand_mean_GiB_s": 110.86455403753772,
+      "total_SSD_mean_GiB_s": 98.59334238908319
+    },
+    {
+      "regime": "under",
+      "policy": "asu_baseline",
+      "U_mean": 100.0,
+      "slo15_seed_mean": 100.0,
+      "slo15_pooled_count": 435,
+      "slo15_pooled_passed": 435,
+      "slo15_pooled_percent": 100.0,
+      "demand_time_percent_seed_means": {
+        "all_disks_under_percent": 100.0,
+        "any_disk_under_percent": 100.0,
+        "all_disks_over_percent": 0.0,
+        "any_disk_over_percent": 0.0,
+        "some_disks_under_some_over_percent": 0.0
+      },
+      "total_demand_mean_GiB_s": 75.37565939773226,
+      "total_SSD_mean_GiB_s": 74.9337707343824
+    },
+    {
+      "regime": "under",
+      "policy": "od_baseline",
+      "U_mean": 100.0,
+      "slo15_seed_mean": 100.0,
+      "slo15_pooled_count": 431,
+      "slo15_pooled_passed": 431,
+      "slo15_pooled_percent": 100.0,
+      "demand_time_percent_seed_means": {
+        "all_disks_under_percent": 100.0,
+        "any_disk_under_percent": 100.0,
+        "all_disks_over_percent": 0.0,
+        "any_disk_over_percent": 0.0,
+        "some_disks_under_some_over_percent": 0.0
+      },
+      "total_demand_mean_GiB_s": 75.32375466840857,
+      "total_SSD_mean_GiB_s": 74.78369669417253
+    }
+  ],
+  "conclusion": {
+    "full_strict_every_disk_over_entire_warm_all_six": true,
+    "under_strict_every_disk_under_entire_warm_all_six": true,
+    "semi_each_case_has_some_all_disk_under_time_and_some_over_time": true
+  },
+  "caveats": [
+    "All regime names here refer to the warm [2,4) second window, not the entire finite workload.",
+    "Demand is sum of currently admitted requests per-layer bytes / pure layer compute time. It is not instantaneous IO submission rate, queue backlog, or actual throughput; next-request pre-admission L0 prefetch is not double counted.",
+    "Same-policy cross-regime comparison changes profile distributions, request counts, identity layout and shuffle rules. It is descriptive, not a controlled change to utilization alone.",
+    "Within each regime and seed, ASU and OD share the exact frozen manifest. Active warm cohorts may differ because policies change admission timing.",
+    "Use admission-based uncensored cohort [2,4) and follow through each request completion. Arrival-based latency includes queue waiting and is a different metric.",
+    "Actual plotted CDF x=(completion-admission)/own_compute; threshold x=1.5. Each seed has its own ECDF and the three ECDFs are averaged equally, matching the arithmetic mean of seed SLO values. Pooling all requests would use different weights.",
+    "Rates are GiB/s despite some field suffixes gb or gbps. Capacity is 40 GiB/s per disk, 120 GiB/s total.",
+    "Supply curve is measured backend service averaged over 10ms bins. Demand should be time-integrated to the same bins if overlaid; smoothed supply need not equal the nominal demand at every time.",
+    "Old diverse demand used >40+1e-8; this audit uses literal >40/<40 and matches all stored durations. No selected segment equals capacity exactly.",
+    "Cross-study schema differs: continuous has request_statistics/by_profile/full_population, diverse has slo_by_profile and lacks these fields. Common fields are analysis U_percent/slo/demand/SSD_GiB_s and raw summary request/layer metrics."
+  ],
+  "shared_hardware": {
+    "num_npu": 32,
+    "num_ssu": 3,
+    "per_ssu_GiB_s": 40,
+    "total_ssu_GiB_s": 120,
+    "per_npu_link_GiB_s": 50,
+    "io_block_KiB": 176,
+    "placement": "block_ring_hash",
+    "n_layers": 8,
+    "all_arrival_ms": 0,
+    "assignment": "fixed"
+  },
+  "csv_schema_notes": {
+    "diverse_slo_seed_mean": "macro_summary.csv mean_slo_percent",
+    "continuous_slo_seed_mean": "macro_summary.csv mean_admission_slo1p5_percent",
+    "both_U_seed_mean": "macro_summary.csv mean_U_percent",
+    "raw_U_fraction_not_percent": "summary.fleet_npu_compute_utilization is full-run fraction; do not use as warm percent",
+    "window_selection": "Both CSVs label [2,4) as warm_2_4s; safest raw selection is analysis start_ms=2000,end_ms=4000",
+    "aggregation": "For pooled CDF use sum(passed)/sum(count); arithmetic mean of seed percentages is distinct."
+  }
+}

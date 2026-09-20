@@ -1,0 +1,1013 @@
+{
+  "schema_version": 1,
+  "num_npu": 8,
+  "num_ssu": 2,
+  "definitions": {
+    "utilization": "Exact overlap of compute intervals / (NPU count * wall window)",
+    "group_utilization": "Group compute overlap / group admission-to-completion overlap",
+    "stall_count": "Number of positive stall intervals intersecting the window",
+    "count_windows": "admitted_count uses [start,end); completed_count uses (start,end]",
+    "slo": "completion - admission <= alpha * own_compute_ms; final completions retained",
+    "slo_alpha": 1.5,
+    "ordinary_demand": "Current request disk_GiB / own layer compute time over [admission,completion)",
+    "ordinary_pending_demand": "Only k>=1: disk_GiB / own C over [io_start,all-SSU io_ready); conservative per-SSU envelope",
+    "boundary_exemption": "No extra next-request L0 burst term; no entire time interval is removed",
+    "demand_caveat": "Nominal profile demand, not physical service or remaining-bytes/remaining-deadline demand"
+  },
+  "input_audit": {
+    "request_count": 784,
+    "max_layer_volume_sum_error_gib": 0.0
+  },
+  "slo_all_requests": {
+    "count": 784,
+    "passed": 783,
+    "rate": 0.9987244897959183,
+    "completion_after_window_end_count": 0,
+    "by_group": {
+      "A": {
+        "count": 36,
+        "passed": 36,
+        "rate": 1.0,
+        "completion_after_window_end_count": 0
+      },
+      "B": {
+        "count": 748,
+        "passed": 747,
+        "rate": 0.9986631016042781,
+        "completion_after_window_end_count": 0
+      }
+    }
+  },
+  "full": {
+    "start_ms": 0.0,
+    "end_ms": 5121.4778234433825,
+    "duration_ms": 5121.4778234433825,
+    "fleet_utilization": 0.9399396907544437,
+    "compute_card_ms": 38511.04225258491,
+    "active_card_ms": 40025.30222797886,
+    "all_npus_active_whole_window": false,
+    "per_npu": [
+      {
+        "npu_id": 0,
+        "utilization": 0.9945017629967844,
+        "compute_card_ms": 5093.318724563378,
+        "active_card_ms": 5121.257049043383,
+        "idle_ms": 0.22077439999975468,
+        "roles": [
+          "A"
+        ],
+        "role": "A",
+        "by_group": {
+          "A": {
+            "compute_card_ms": 5093.318724563378,
+            "active_card_ms": 5121.257049043383,
+            "compute_active_utilization": 0.9945446353868874
+          },
+          "B": {
+            "compute_card_ms": 0.0,
+            "active_card_ms": 0.0,
+            "compute_active_utilization": null
+          }
+        }
+      },
+      {
+        "npu_id": 1,
+        "utilization": 0.9945017629967844,
+        "compute_card_ms": 5093.318724563378,
+        "active_card_ms": 5121.4778234433825,
+        "idle_ms": 0.0,
+        "roles": [
+          "A"
+        ],
+        "role": "A",
+        "by_group": {
+          "A": {
+            "compute_card_ms": 5093.318724563378,
+            "active_card_ms": 5121.4778234433825,
+            "compute_active_utilization": 0.9945017629967844
+          },
+          "B": {
+            "compute_card_ms": 0.0,
+            "active_card_ms": 0.0,
+            "compute_active_utilization": null
+          }
+        }
+      },
+      {
+        "npu_id": 2,
+        "utilization": 0.9945017629967844,
+        "compute_card_ms": 5093.318724563378,
+        "active_card_ms": 5120.869567443382,
+        "idle_ms": 0.6082560000004378,
+        "roles": [
+          "A"
+        ],
+        "role": "A",
+        "by_group": {
+          "A": {
+            "compute_card_ms": 5093.318724563378,
+            "active_card_ms": 5120.869567443382,
+            "compute_active_utilization": 0.9946198897438899
+          },
+          "B": {
+            "compute_card_ms": 0.0,
+            "active_card_ms": 0.0,
+            "compute_active_utilization": null
+          }
+        }
+      },
+      {
+        "npu_id": 3,
+        "utilization": 0.9945017629967844,
+        "compute_card_ms": 5093.318724563378,
+        "active_card_ms": 5121.067813843382,
+        "idle_ms": 0.41000960000019404,
+        "roles": [
+          "A"
+        ],
+        "role": "A",
+        "by_group": {
+          "A": {
+            "compute_card_ms": 5093.318724563378,
+            "active_card_ms": 5121.067813843382,
+            "compute_active_utilization": 0.9945813860919802
+          },
+          "B": {
+            "compute_card_ms": 0.0,
+            "active_card_ms": 0.0,
+            "compute_active_utilization": null
+          }
+        }
+      },
+      {
+        "npu_id": 4,
+        "utilization": 0.8853776185121031,
+        "compute_card_ms": 4534.441838582851,
+        "active_card_ms": 4888.051831045989,
+        "idle_ms": 233.4259923973932,
+        "roles": [
+          "B"
+        ],
+        "role": "B",
+        "by_group": {
+          "A": {
+            "compute_card_ms": 0.0,
+            "active_card_ms": 0.0,
+            "compute_active_utilization": null
+          },
+          "B": {
+            "compute_card_ms": 4534.441838582851,
+            "active_card_ms": 4888.051831045989,
+            "compute_active_utilization": 0.9276582972755694
+          }
+        }
+      },
+      {
+        "npu_id": 5,
+        "utilization": 0.8853776185121026,
+        "compute_card_ms": 4534.4418385828485,
+        "active_card_ms": 4869.091928577703,
+        "idle_ms": 252.3858948656798,
+        "roles": [
+          "B"
+        ],
+        "role": "B",
+        "by_group": {
+          "A": {
+            "compute_card_ms": 0.0,
+            "active_card_ms": 0.0,
+            "compute_active_utilization": null
+          },
+          "B": {
+            "compute_card_ms": 4534.4418385828485,
+            "active_card_ms": 4869.091928577703,
+            "compute_active_utilization": 0.9312705336223529
+          }
+        }
+      },
+      {
+        "npu_id": 6,
+        "utilization": 0.8853776185121036,
+        "compute_card_ms": 4534.441838582854,
+        "active_card_ms": 4904.693899094698,
+        "idle_ms": 216.7839243486842,
+        "roles": [
+          "B"
+        ],
+        "role": "B",
+        "by_group": {
+          "A": {
+            "compute_card_ms": 0.0,
+            "active_card_ms": 0.0,
+            "compute_active_utilization": null
+          },
+          "B": {
+            "compute_card_ms": 4534.441838582854,
+            "active_card_ms": 4904.693899094698,
+            "compute_active_utilization": 0.924510669140803
+          }
+        }
+      },
+      {
+        "npu_id": 7,
+        "utilization": 0.885377618512103,
+        "compute_card_ms": 4534.44183858285,
+        "active_card_ms": 4878.792315486934,
+        "idle_ms": 242.68550795644842,
+        "roles": [
+          "B"
+        ],
+        "role": "B",
+        "by_group": {
+          "A": {
+            "compute_card_ms": 0.0,
+            "active_card_ms": 0.0,
+            "compute_active_utilization": null
+          },
+          "B": {
+            "compute_card_ms": 4534.44183858285,
+            "active_card_ms": 4878.792315486934,
+            "compute_active_utilization": 0.9294189105342732
+          }
+        }
+      }
+    ],
+    "by_group": {
+      "A": {
+        "compute_card_ms": 20373.274898253527,
+        "active_card_ms": 20484.672253773526,
+        "active_request_count": 36,
+        "admitted_count": 36,
+        "completed_count": 36,
+        "compute_active_utilization": 0.9945619166301536
+      },
+      "B": {
+        "compute_card_ms": 18137.767354330535,
+        "active_card_ms": 19540.62997420533,
+        "active_request_count": 748,
+        "admitted_count": 748,
+        "completed_count": 748,
+        "compute_active_utilization": 0.9282079123484428
+      }
+    },
+    "stall": {
+      "internal": {
+        "card_ms": 1226.268107602548,
+        "count": 696,
+        "by_group": {
+          "A": {
+            "card_ms": 0.0,
+            "count": 0
+          },
+          "B": {
+            "card_ms": 1226.268107602548,
+            "count": 696
+          }
+        }
+      },
+      "layer0": {
+        "card_ms": 287.9918677913887,
+        "count": 102,
+        "by_group": {
+          "A": {
+            "card_ms": 111.39735552001619,
+            "count": 4
+          },
+          "B": {
+            "card_ms": 176.59451227137257,
+            "count": 98
+          }
+        }
+      }
+    },
+    "total_stall_card_ms": 1514.2599753939367,
+    "internal_stall_fraction": 0.809813458407981,
+    "accounting_error_card_ms": 6.366462912410498e-12,
+    "slo_admitted": {
+      "count": 784,
+      "passed": 783,
+      "rate": 0.9987244897959183,
+      "completion_after_window_end_count": 0,
+      "by_group": {
+        "A": {
+          "count": 36,
+          "passed": 36,
+          "rate": 1.0,
+          "completion_after_window_end_count": 0
+        },
+        "B": {
+          "count": 748,
+          "passed": 747,
+          "rate": 0.9986631016042781,
+          "completion_after_window_end_count": 0
+        }
+      }
+    },
+    "ordinary_demand": {
+      "start_ms": 0.0,
+      "end_ms": 5121.4778234433825,
+      "duration_ms": 5121.4778234433825,
+      "bandwidth_unit": "decimal GB/s",
+      "per_ssu_capacity_gb_s": 40.0,
+      "near_capacity_threshold_gb_s": 36.0,
+      "peak_gb_s_by_ssu": [
+        33.11280688263663,
+        32.479135105164104
+      ],
+      "peak_at_ms_by_ssu": [
+        4780.8837167214415,
+        4136.321216489281
+      ],
+      "max_single_ssu_gb_s": 33.11280688263663,
+      "peak_total_gb_s": 60.855532141866775,
+      "peak_total_at_ms": 4555.332746314121,
+      "mean_gb_s_by_ssu": [
+        29.878812410469166,
+        28.9125306789459
+      ],
+      "overload_ms_by_ssu": [
+        0.0,
+        0.0
+      ],
+      "overload_fraction_by_ssu": [
+        0.0,
+        0.0
+      ],
+      "at_or_above_near_ms_by_ssu": [
+        0.0,
+        0.0
+      ],
+      "any_ssu_overload_ms": 0.0,
+      "any_ssu_overload_fraction": 0.0,
+      "any_ssu_at_or_above_near_ms": 0.0,
+      "any_ssu_at_or_above_near_fraction": 0.0,
+      "aggregate_overload_ms": 0.0,
+      "aggregate_at_or_above_near_ms": 0.0,
+      "no_ssu_overload": true,
+      "strictly_under_capacity": true,
+      "first_overload_interval": null
+    },
+    "ordinary_pending_demand": {
+      "start_ms": 0.0,
+      "end_ms": 5121.4778234433825,
+      "duration_ms": 5121.4778234433825,
+      "bandwidth_unit": "decimal GB/s",
+      "per_ssu_capacity_gb_s": 40.0,
+      "near_capacity_threshold_gb_s": 36.0,
+      "peak_gb_s_by_ssu": [
+        32.91910188853361,
+        32.47913510516411
+      ],
+      "peak_at_ms_by_ssu": [
+        1803.0912125129416,
+        4136.321216489281
+      ],
+      "max_single_ssu_gb_s": 32.91910188853361,
+      "peak_total_gb_s": 60.85553214186675,
+      "peak_total_at_ms": 2720.332735607256,
+      "mean_gb_s_by_ssu": [
+        10.398833584216478,
+        10.02333549801803
+      ],
+      "overload_ms_by_ssu": [
+        0.0,
+        0.0
+      ],
+      "overload_fraction_by_ssu": [
+        0.0,
+        0.0
+      ],
+      "at_or_above_near_ms_by_ssu": [
+        0.0,
+        0.0
+      ],
+      "any_ssu_overload_ms": 0.0,
+      "any_ssu_overload_fraction": 0.0,
+      "any_ssu_at_or_above_near_ms": 0.0,
+      "any_ssu_at_or_above_near_fraction": 0.0,
+      "aggregate_overload_ms": 0.0,
+      "aggregate_at_or_above_near_ms": 0.0,
+      "no_ssu_overload": true,
+      "strictly_under_capacity": true,
+      "first_overload_interval": null
+    },
+    "composition": {
+      "definition": "Admitted current requests, including compute and I/O stall",
+      "nA_duration_ms": [
+        0.0,
+        0.22077439999975468,
+        0.18923520000043936,
+        0.19824640000024374,
+        5120.869567443382,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "nA_time_fraction": [
+        0.0,
+        4.310755754699703e-05,
+        3.694933504041001e-05,
+        3.8708827185149156e-05,
+        0.9998812342802275,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "joint_nA_nB": [
+        {
+          "n_A": 1,
+          "n_B": 0,
+          "idle_npu": 7,
+          "duration_ms": 0.22077439999975468,
+          "time_fraction": 4.310755754699703e-05
+        },
+        {
+          "n_A": 2,
+          "n_B": 0,
+          "idle_npu": 6,
+          "duration_ms": 0.18923520000043936,
+          "time_fraction": 3.694933504041001e-05
+        },
+        {
+          "n_A": 3,
+          "n_B": 0,
+          "idle_npu": 5,
+          "duration_ms": 0.19824640000024374,
+          "time_fraction": 3.8708827185149156e-05
+        },
+        {
+          "n_A": 4,
+          "n_B": 0,
+          "idle_npu": 4,
+          "duration_ms": 216.17566834868376,
+          "time_fraction": 0.04220962694774296
+        },
+        {
+          "n_A": 4,
+          "n_B": 1,
+          "idle_npu": 3,
+          "duration_ms": 16.642068048709007,
+          "time_fraction": 0.0032494659983746356
+        },
+        {
+          "n_A": 4,
+          "n_B": 2,
+          "idle_npu": 2,
+          "duration_ms": 9.259515559055217,
+          "time_fraction": 0.0018079772827815663
+        },
+        {
+          "n_A": 4,
+          "n_B": 3,
+          "idle_npu": 1,
+          "duration_ms": 9.700386909231383,
+          "time_fraction": 0.001894060121636807
+        },
+        {
+          "n_A": 4,
+          "n_B": 4,
+          "idle_npu": 0,
+          "duration_ms": 4869.091928577703,
+          "time_fraction": 0.9507201039296915
+        }
+      ]
+    }
+  },
+  "warm": {
+    "start_ms": 2000.0,
+    "end_ms": 4000.0,
+    "duration_ms": 2000.0,
+    "fleet_utilization": 0.9640288910471766,
+    "compute_card_ms": 15424.462256754825,
+    "active_card_ms": 16000.0,
+    "all_npus_active_whole_window": true,
+    "per_npu": [
+      {
+        "npu_id": 0,
+        "utilization": 1.0,
+        "compute_card_ms": 2000.0,
+        "active_card_ms": 2000.0,
+        "idle_ms": 0.0,
+        "roles": [
+          "A"
+        ],
+        "role": "A",
+        "by_group": {
+          "A": {
+            "compute_card_ms": 2000.0,
+            "active_card_ms": 2000.0,
+            "compute_active_utilization": 1.0
+          },
+          "B": {
+            "compute_card_ms": 0.0,
+            "active_card_ms": 0.0,
+            "compute_active_utilization": null
+          }
+        }
+      },
+      {
+        "npu_id": 1,
+        "utilization": 1.0,
+        "compute_card_ms": 2000.0,
+        "active_card_ms": 2000.0,
+        "idle_ms": 0.0,
+        "roles": [
+          "A"
+        ],
+        "role": "A",
+        "by_group": {
+          "A": {
+            "compute_card_ms": 2000.0,
+            "active_card_ms": 2000.0,
+            "compute_active_utilization": 1.0
+          },
+          "B": {
+            "compute_card_ms": 0.0,
+            "active_card_ms": 0.0,
+            "compute_active_utilization": null
+          }
+        }
+      },
+      {
+        "npu_id": 2,
+        "utilization": 1.0,
+        "compute_card_ms": 2000.0,
+        "active_card_ms": 2000.0,
+        "idle_ms": 0.0,
+        "roles": [
+          "A"
+        ],
+        "role": "A",
+        "by_group": {
+          "A": {
+            "compute_card_ms": 2000.0,
+            "active_card_ms": 2000.0,
+            "compute_active_utilization": 1.0
+          },
+          "B": {
+            "compute_card_ms": 0.0,
+            "active_card_ms": 0.0,
+            "compute_active_utilization": null
+          }
+        }
+      },
+      {
+        "npu_id": 3,
+        "utilization": 1.0,
+        "compute_card_ms": 2000.0,
+        "active_card_ms": 2000.0,
+        "idle_ms": 0.0,
+        "roles": [
+          "A"
+        ],
+        "role": "A",
+        "by_group": {
+          "A": {
+            "compute_card_ms": 2000.0,
+            "active_card_ms": 2000.0,
+            "compute_active_utilization": 1.0
+          },
+          "B": {
+            "compute_card_ms": 0.0,
+            "active_card_ms": 0.0,
+            "compute_active_utilization": null
+          }
+        }
+      },
+      {
+        "npu_id": 4,
+        "utilization": 0.9336431191589444,
+        "compute_card_ms": 1867.2862383178888,
+        "active_card_ms": 2000.0,
+        "idle_ms": 0.0,
+        "roles": [
+          "B"
+        ],
+        "role": "B",
+        "by_group": {
+          "A": {
+            "compute_card_ms": 0.0,
+            "active_card_ms": 0.0,
+            "compute_active_utilization": null
+          },
+          "B": {
+            "compute_card_ms": 1867.2862383178888,
+            "active_card_ms": 2000.0,
+            "compute_active_utilization": 0.9336431191589444
+          }
+        }
+      },
+      {
+        "npu_id": 5,
+        "utilization": 0.9359973451588934,
+        "compute_card_ms": 1871.9946903177868,
+        "active_card_ms": 2000.0,
+        "idle_ms": 0.0,
+        "roles": [
+          "B"
+        ],
+        "role": "B",
+        "by_group": {
+          "A": {
+            "compute_card_ms": 0.0,
+            "active_card_ms": 0.0,
+            "compute_active_utilization": null
+          },
+          "B": {
+            "compute_card_ms": 1871.9946903177868,
+            "active_card_ms": 2000.0,
+            "compute_active_utilization": 0.9359973451588934
+          }
+        }
+      },
+      {
+        "npu_id": 6,
+        "utilization": 0.9172754770955113,
+        "compute_card_ms": 1834.5509541910226,
+        "active_card_ms": 2000.0,
+        "idle_ms": 0.0,
+        "roles": [
+          "B"
+        ],
+        "role": "B",
+        "by_group": {
+          "A": {
+            "compute_card_ms": 0.0,
+            "active_card_ms": 0.0,
+            "compute_active_utilization": null
+          },
+          "B": {
+            "compute_card_ms": 1834.5509541910226,
+            "active_card_ms": 2000.0,
+            "compute_active_utilization": 0.9172754770955113
+          }
+        }
+      },
+      {
+        "npu_id": 7,
+        "utilization": 0.9253151869640635,
+        "compute_card_ms": 1850.6303739281268,
+        "active_card_ms": 2000.0,
+        "idle_ms": 0.0,
+        "roles": [
+          "B"
+        ],
+        "role": "B",
+        "by_group": {
+          "A": {
+            "compute_card_ms": 0.0,
+            "active_card_ms": 0.0,
+            "compute_active_utilization": null
+          },
+          "B": {
+            "compute_card_ms": 1850.6303739281268,
+            "active_card_ms": 2000.0,
+            "compute_active_utilization": 0.9253151869640635
+          }
+        }
+      }
+    ],
+    "by_group": {
+      "A": {
+        "compute_card_ms": 8000.000000000025,
+        "active_card_ms": 7999.999999999999,
+        "active_request_count": 20,
+        "admitted_count": 16,
+        "completed_count": 16,
+        "compute_active_utilization": 1.000000000000003
+      },
+      "B": {
+        "compute_card_ms": 7424.4622567543265,
+        "active_card_ms": 8000.0,
+        "active_request_count": 310,
+        "admitted_count": 306,
+        "completed_count": 306,
+        "compute_active_utilization": 0.9280577820942908
+      }
+    },
+    "stall": {
+      "internal": {
+        "card_ms": 500.3287954735363,
+        "count": 271,
+        "by_group": {
+          "A": {
+            "card_ms": 0.0,
+            "count": 0
+          },
+          "B": {
+            "card_ms": 500.3287954735363,
+            "count": 271
+          }
+        }
+      },
+      "layer0": {
+        "card_ms": 75.2089477716388,
+        "count": 49,
+        "by_group": {
+          "A": {
+            "card_ms": 0.0,
+            "count": 0
+          },
+          "B": {
+            "card_ms": 75.2089477716388,
+            "count": 49
+          }
+        }
+      }
+    },
+    "total_stall_card_ms": 575.5377432451751,
+    "internal_stall_fraction": 0.8693240388587333,
+    "accounting_error_card_ms": 0.0,
+    "slo_admitted": {
+      "count": 322,
+      "passed": 322,
+      "rate": 1.0,
+      "completion_after_window_end_count": 8,
+      "by_group": {
+        "A": {
+          "count": 16,
+          "passed": 16,
+          "rate": 1.0,
+          "completion_after_window_end_count": 4
+        },
+        "B": {
+          "count": 306,
+          "passed": 306,
+          "rate": 1.0,
+          "completion_after_window_end_count": 4
+        }
+      }
+    },
+    "ordinary_demand": {
+      "start_ms": 2000.0,
+      "end_ms": 4000.0,
+      "duration_ms": 2000.0,
+      "bandwidth_unit": "decimal GB/s",
+      "per_ssu_capacity_gb_s": 40.0,
+      "near_capacity_threshold_gb_s": 36.0,
+      "peak_gb_s_by_ssu": [
+        32.65660963116547,
+        32.09858690939875
+      ],
+      "peak_at_ms_by_ssu": [
+        2857.3706029263285,
+        2130.724062450603
+      ],
+      "max_single_ssu_gb_s": 32.65660963116547,
+      "peak_total_gb_s": 60.85553214186676,
+      "peak_total_at_ms": 2857.3706029263285,
+      "mean_gb_s_by_ssu": [
+        30.941229027142693,
+        29.914303114724042
+      ],
+      "overload_ms_by_ssu": [
+        0.0,
+        0.0
+      ],
+      "overload_fraction_by_ssu": [
+        0.0,
+        0.0
+      ],
+      "at_or_above_near_ms_by_ssu": [
+        0.0,
+        0.0
+      ],
+      "any_ssu_overload_ms": 0.0,
+      "any_ssu_overload_fraction": 0.0,
+      "any_ssu_at_or_above_near_ms": 0.0,
+      "any_ssu_at_or_above_near_fraction": 0.0,
+      "aggregate_overload_ms": 0.0,
+      "aggregate_at_or_above_near_ms": 0.0,
+      "no_ssu_overload": true,
+      "strictly_under_capacity": true,
+      "first_overload_interval": null
+    },
+    "ordinary_pending_demand": {
+      "start_ms": 2000.0,
+      "end_ms": 4000.0,
+      "duration_ms": 2000.0,
+      "bandwidth_unit": "decimal GB/s",
+      "per_ssu_capacity_gb_s": 40.0,
+      "near_capacity_threshold_gb_s": 36.0,
+      "peak_gb_s_by_ssu": [
+        32.08408208770646,
+        31.037645937446122
+      ],
+      "peak_at_ms_by_ssu": [
+        3779.578716055648,
+        3003.9800322168044
+      ],
+      "max_single_ssu_gb_s": 32.08408208770646,
+      "peak_total_gb_s": 60.85553214186675,
+      "peak_total_at_ms": 2720.332735607256,
+      "mean_gb_s_by_ssu": [
+        10.838406159706556,
+        10.379552566425769
+      ],
+      "overload_ms_by_ssu": [
+        0.0,
+        0.0
+      ],
+      "overload_fraction_by_ssu": [
+        0.0,
+        0.0
+      ],
+      "at_or_above_near_ms_by_ssu": [
+        0.0,
+        0.0
+      ],
+      "any_ssu_overload_ms": 0.0,
+      "any_ssu_overload_fraction": 0.0,
+      "any_ssu_at_or_above_near_ms": 0.0,
+      "any_ssu_at_or_above_near_fraction": 0.0,
+      "aggregate_overload_ms": 0.0,
+      "aggregate_at_or_above_near_ms": 0.0,
+      "no_ssu_overload": true,
+      "strictly_under_capacity": true,
+      "first_overload_interval": null
+    },
+    "composition": {
+      "definition": "Admitted current requests, including compute and I/O stall",
+      "nA_duration_ms": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        2000.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "nA_time_fraction": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "joint_nA_nB": [
+        {
+          "n_A": 4,
+          "n_B": 4,
+          "idle_npu": 0,
+          "duration_ms": 2000.0,
+          "time_fraction": 1.0
+        }
+      ]
+    }
+  },
+  "name": "E3_fixed_s2_seed7",
+  "strategy": "once",
+  "wall_seconds": 90.52863097190857,
+  "input_fingerprint": "5e18058c6e589a6ccce6b1bf0f92302663d846b838a2f8788936ab2b3cf67003",
+  "invariants": {
+    "all_requests_completed": true,
+    "microbatch_capacity": true,
+    "one_compute_job_per_npu": true,
+    "one_link_io_per_npu": true,
+    "one_command_per_ssd": true,
+    "block_conservation": true,
+    "ssd_byte_conservation": true,
+    "npu_link_byte_conservation": true,
+    "cir_capacity": true,
+    "actual_cir_per_ssu_capacity": true,
+    "actual_cir_per_npu_capacity": true,
+    "cir_entry_write_counter_consistency": true,
+    "causal_control_drained": true,
+    "batch_latency_decomposition": true,
+    "request_latency_decomposition": true,
+    "compute_work_conservation": true,
+    "microbatch_membership": true,
+    "fixed_batch_layer_barrier": true,
+    "next_layer_prefetch_at_compute_start": true,
+    "all_microbatches_released": true
+  },
+  "n_requests": 784,
+  "units": {
+    "capacity": "decimal GB/s",
+    "native_volume": "GiB",
+    "time": "ms"
+  },
+  "source_sha256": {
+    "run_20k_sensitivity.py": "cd745965e1f47ff3535d55b3e07e63065a2a54c1bec41a2b2ad8bb83e6010e86",
+    "proxy_4npu_agent.py": "de6b13dbd5e00aed70716e0e5c5ad28eca1a599888495cd5001b3a9cc0b82ccd",
+    "plot_abcd_layer_demand_supply.py": "84e88fc62b286549140366ff79706fa39ba555aecfa64197e7892ba6fd843393",
+    "report_ratio8_4npu.py": "d9f640479cf3ebe821555fca2e006f7a13aef9409d19af3c95e690031e7b8427",
+    "coflow_capacity_analysis.py": "c343351f0d9d2bded9eda395840d1bd58c5689a5451659346476f63cf41f8dfc",
+    "test_coflow_experiment_inputs.py": "3edb77ef0842cae3a2e8c13255c20a6c3444608892506a003b7913f9653da758",
+    "correlated_fifo_probe.py": "a5ce8e932f5ee54502f074f8724ba78e0f19f6025f3108c6481ec3c3b8f4b24d",
+    "audit_once_mixed8.py": "b39539c4c5deaf9ccd7304efcaa0f8e458af250b8474a2eb4aa36be7170e3111",
+    "strategy_profiles.py": "d72d471d08fb0d28ab2412cc24fa69b52fd15677c859fd43bafbcf66bdddc2fb",
+    "coflow_sim_adapter.py": "5f65a1392e4387d35bdc637faf7e136bfe4e73de36e812c75a13bc822bd364c6",
+    "build_correlated_workload.py": "7b4483a0e0cc1a9449dd726a0ea7bfc5aa37ed3293eef58957f0d2dacc2e7475",
+    "audit_abcd_8npu.py": "1c93d10d1d78cc7f437a6a633652e414f362a1af73660a1bfd60e3ade1371e55",
+    "run_4npu_ratio8.py": "76a32dc3107a160a1a0ece0a6dfcf3fd81714f594dab1c1a8371950f85572dc9",
+    "audit_fixed128_32.py": "ad48d4fa6b6f853fe42154ca60ad194c3b5ad7aa95293be08a59eff0e5906418",
+    "report_boundary_underload.py": "08979deb6d3e506f7ed4d39210cf3b572b9818fa2a6c526a7a0bda80b6576ca6",
+    "report_ratio_sweep_r40_4npu.py": "71449378b11c04304d8f3d11cc7498c169995bfea02b34d99879a83546162b9f",
+    "report_ratio_sweep_4npu.py": "723263b01e2a43690806a44f7bc7410593a5c6a09a97df3173187046587c050d",
+    "plot_fifo_mixed8.py": "dcfe48442383aab9d2a686212f3dbd201845d59a2961adb9106648f9affd243b",
+    "coflow_disk_policy.py": "a91d80b9903fad4160f522db8e3c76aa472258af20c39b84b5abfbe5c701ff8a",
+    "extract_random_multitype_hol.py": "ffe36ee822d143c898baee225ba82ec80348f6242462aeb7d84723eeee557409",
+    "analyze_fifo_trace.py": "c4be2a77f109910552ed2c4a5acd1bb99b7ebbdf0a4aabb65c4f82dc64a21000",
+    "authenticated_workload_inputs.py": "d3b2f9917108916164006b70a6f7f2687911484f3231da1cd3328211b86ac95f",
+    "fast_strict_underload.py": "e18454b8a1c2ed1a30ea7830492ec3a138d8aacb060f4cf8765040e73337b638",
+    "run_baseline_4npu_ssu1_low_utilization.py": "f312c55f7a339bedd2b4d02fefd4fbebc371435f16a88df6f0e99a069956acf2",
+    "shared_ssu_state.py": "e8f1aff1e46ebb51772de113e4192a6f40d7f1daaca938288d201cb3a708a481",
+    "audit_boundary_underload.py": "690ff1393d51a0af923b7414fe5bb44df7066c3c617129d8690f5a13308e26d8",
+    "lower_fifo_search_agent.py": "d97f3deca1efd728dee18cb154cb26107b406566a68aaba6a3372bd31b6f1a0c",
+    "correlated_causal_followup.py": "d6caea683ba4d254e61c33e0eb5a100e63f0003a52d1a1f144cde16be08aa1ab",
+    "fifo_20k_sensitivity.py": "0e42d97fb8823798fdc67867f3f813040559a92dd8b00c9971e510a08aa50588",
+    "summarize_ring_results.py": "e9a36fe78c6c18b0a14ac85a43c8fa1c47aa87770d3eab37121beca2dc8f58c7",
+    "plot_abcd_8npu.py": "6db6d48b05e830c1adc6c0a2fe806383b828771d9b7b37a8c787a5e417a244f2",
+    "coflow_disk_adapter.py": "c1893e63c3274eb52b68dd0c970f206ce2dda2ded5bd19e0ac9e278682cb80f5",
+    "explore_fifo_underload.py": "4ec1a1621e673aaefef1c2086d21ee7e39d9853d394ae15e13492dc31f3a49c2",
+    "run_strict_random.py": "b1aecde03e34e431d6bb8730d8039ce6d66286cf0627dbcdf29acefaf5081221",
+    "shared_path_new_once.py": "083c418f7f2e30231fffb08aadc28f3d421ab2b9768991009a1f5104063d46f1",
+    "run_fifo_mixed_unique.py": "55451ba66aaccd3baa181e63e4a19a333d5fd5707c754fada83cc8fef685b110",
+    "plot_mixed8_fleet_total.py": "900aa156dfc4d8236e8eb6ae20db6517a9f72849dad0fed2e54ea3dd4c079d08",
+    "plot_abcd_total_demand.py": "70ab876b8166f87c02844d747ef5c3e5d31d3d2387fb6c369d22c61ae300e096",
+    "report_random_multitype.py": "35ac7e9ac2d0cfd49ee1dd4ef69ef3df0cf78ce04165a5ea1fbe286e815a3641",
+    "newexport_lower_fifo_sensitivity.py": "93a8a47f2a2952ac9c780408fa3a0d076c95262c45cb77fe46258f0574b41981",
+    "replay_fifo_figure_receipts.py": "84b24fec3e8bcdf308370b72abb01ca67ecaa68a3633a825755c86753c5cd263",
+    "export_mixed8_request_details.py": "6005d3aa9619f70fe06699a677d24b99f7e80fa541cc610faca2632aaddc3f63",
+    "coflow_joint_policy.py": "8c586646c2eed9b0e104f5c49d7b203178e68f14219447af6aa64b2d110579dc",
+    "run_baseline_npu32_stress.py": "94704edf908fbf90b9e39f5b26f94ad59c0c5dcfc4c1b981e1a2860921c2946d",
+    "fixed_total_compat.py": "34ffc565ee84dd329b63fe441fa455175d1bf790b4ffc037c3135b41cc0d6253",
+    "run_abcd_fixed_8npu.py": "9da86f306d0702074c43f09e9c53e8ac66d68c3c209e6405ece1d35eb7e48302",
+    "replay_mixed8_physical.py": "24fb5d40ca1d1d9d1e887fb958bc8da38879bd8f295979ec87616a550ab4b98c",
+    "multi_ssu_qos_controller.py": "6712548192b89b49565f55a7094b6995eddc419c251e02a948671a38f46ca038",
+    "run_abcd_bd_heavy_8npu.py": "58f876d67cf8adf312e726f13112ec2d7b0db4baf6fa8aac66b415c881899a07",
+    "continuous_prefill_client.py": "04a8c4dc2d6430ff803b43127007c6fcb58d1279b4c260468425c3899ed0c9da",
+    "continuous_batch_sim.py": "c652bfb22fb6c3d219d7b8f78e172ca5808c55c5e929547ece5da0680129f9b1",
+    "continuous_prefill_workload.py": "65c901ed1d63df88b4ccf35d309e586d563e470a3874ae0d1da2b221f2b5b5de",
+    "run_random_multitype.py": "0c91c6a09d03d55ff80be2132b1556fb6b017aa450a63791e79f380e1f5a48ac",
+    "shared_path_common.py": "0ea11b61594786f8b689d8aab5126d5647e18e9db713e2aea242b2b84c41a892",
+    "audit_boundary_20k_sensitivity.py": "33fc7f6969350a45d1574d8a4c0d9bfbe6fc858494d10c966e60646a1d0fc92d",
+    "shared_path_strategy1.py": "6a2d7ed0b386190a4a34c321ce780164c3d2147db5121e4b7c950afa4cabf233",
+    "sweep_coflow_development.py": "cd1657d06e4edcb03609e00409b09f7175e38db90270d6bd5f4baebfe0d5938e",
+    "export_fixed128_32_results.py": "83850cb1b2088c76e72724c95bedcc1c7ad12d7fc52a2ec19d8b3f13fd957c46",
+    "shared_path_once.py": "c229a16794bc1a19fba389aedd88963cb9092e5ea025373c3108c6cf3a97a8c7",
+    "coflow_client_policy.py": "7a79e24ad380c91dc97f9e2c3173aabf9dfa2b64111d5b9836c6a7de6154378f",
+    "shared_path_strategy2.py": "7e4627bf67db620f0922b10679f9a6e774662b70dd6bf68c81340fc06849c720",
+    "random_steady_state_workload.py": "70284f3ede4097453338e396ec0a0d252909be6999ec158d854d36b7df015607",
+    "fast_multitype_probe.py": "610c5cb676ddffe78e49fce206a7d5c36ec94d643b05404dc5ac83626bb0a332",
+    "run_mixed8_screen_batch.py": "cd695c4b8759f15e03d73579392f7a066c9bd343bf064876a4069180ae052504",
+    "extract_boundary_fifo_timebill.py": "dfe43c3ca73ea0a0c3e7c6dd73538ed2485a5ebbeb73c57132b92f0bb3f2e6c4",
+    "summarize_fifo_exploration.py": "e114e1f3434040ca56c23aa6a481fb33483aed95dd35fb6b29347b2d8d8f0b97",
+    "test_shared_path_policies.py": "86a21d0e3e485f4cf4df60237fb31c9874eb0cdb7c04870c48d1924fecc99bbf",
+    "audit_4npu_exact_data.py": "62dc0478555b159f56472ab04bfe72ecb4962d32527b53a6b4bd241255f143de",
+    "baseline_path0_layout.py": "34543f37306dba5775a069830c6aa87a54beeff2403b33132180fa4aebdf89ac",
+    "sim.py": "5f3a9bb82c5740a86c9c916e01495326a0bf4363fb6a5312cb99ac747e8600fd",
+    "run_coflow_experiments.py": "9c6a435a87903ddb8d0c02789088b1f58eb8ab6bc017964ae049bb0afd36edb3",
+    "export_boundary_underload.py": "3d805c38b7d6472a6bef53a1f5585f8c0ef3b14317dac992cd538d0fc28a9100",
+    "report_4npu_exact_data.py": "dd46bd77bc470717ff04496e8669f08d74c7e4ecef985ca25dcf0c356fb659e4",
+    "plot_mixed8_physical.py": "7f41bccba511b831179df2a7d39253fcf777edacc011dae15038e3782db1b32e",
+    "fast_boundary_underload.py": "2a955ea1cd4d1eaf11597773211ef5bda88a75e33459a300fd530cd50d812462",
+    "audit_strict_random.py": "137a7261b4c02c35c657799a79ded5707a1e240f9fc1f5adaa78bc9bb5c878d4",
+    "export_strict_random.py": "1d617159c073ddb4ac8fd8da454ee85fff2975e1f95ae6b541ecce044ec5e0ae",
+    "run_fixed128_32.py": "61d3b037553d3a7dab230fabe94e4632dbe522ca9df0b49ff13217a690881a5e",
+    "fifo_followup_theory.py": "b95a89a87a331e138ae21b81c51a8ee8222f3fa35e6083eb4169d6abfb09baf8",
+    "explore_fifo_tiny_jitter.py": "b3756a45e921742f7f708432783f4c6530a0cb18ed72b2e856dc1b9b0cd53690",
+    "continuous_batch_control.py": "fe7ee3933ba37362cf7b67e1c39c9f4720bd682a66bd008b57c06aa72076591f",
+    "shared_path_baseline.py": "2232bfe14f853f467721a37aa11b4fc5365b7a950feb8f0cb8de3c751c575047",
+    "policy_logic.py": "fb72249119635558a8db6efbc12e9dbc33e4a065327c558b15e49bb996f5d229",
+    "export_random_multitype.py": "dbaf620b2a6cefe9011b80ecdc24fd12dd4d03d2566166d156e3b61fb38c9657",
+    "run_fifo_proof.py": "2cefa9a9fdbc9782c9826235a5d52c14e9b960add677237083703af8d444d551",
+    "run_random_multitype_batch.py": "715579450974d140920c746b47eaed933021928dd30f96767eb5c1f7e45b8bdb",
+    "run_boundary_random.py": "7d7f63cd38ea910cf36f9278248fe3cb677eca977b938de1aae23a48e5fcc6bd",
+    "run_lower_fifo_followup.py": "ea81f1b1564a80faa0e65532d5fb8f97b411de92f7f5840978145209453a7b41",
+    "run_fixed128_32_screen.py": "dc4a2dee235d995a0f720ef2d02f030085590524ebb9b9561d5913a3d9280e03",
+    "run_abcd_8npu.py": "620e12663859ed12b8f4d4e3983c9d3c3979f0178d53e2c265eb0e15f14a4c29",
+    "audit_abcd_bd_heavy_8npu.py": "7ea1feb435226a058caadcfdb3a9ce7d71e7d43ec9fca2de04dbd1801543080e",
+    "six_request_workload.py": "f5d3654d5ce3aa86858d4b6d8695054354d98b1ed84863dc63e05d3ab3fb2e26",
+    "audit_4npu_ratio8.py": "42d4dd09b7b9beede14dd6f8788523f79011280ac31dfc3fd68b88a3d5d19a47",
+    "audit_abcd_fixed_8npu.py": "c69c3ab8f39d5c3d619284d0ff709a88cd7e63d5561df7efd6e070754ec76c48",
+    "test_shared_path_sim_adapter.py": "1d14c728c9bf9109319ad457dcd4f2bdb640e051d5c435e41e076e9601ec5574",
+    "sweep_coflow_experiments.py": "b7e246055af5d92a8e84c1fd9bc86402cd733858b6c35fe8601627fe40e34221",
+    "run_multi_ssu_stall_experiments.py": "e2d545ce20ef60c1ddfd9d7b29632b04e0c1d3ae7ca28cedf32edec171953944",
+    "explore_fifo_mixed20.py": "1ab5b5da28ecf699d7273c50d2c7ca4dacd48567d2a7ae65ac3cffa1c0717156",
+    "audit_fifo_mixed8.py": "61904e43628316649975aeb4eb9ed284a7461bb9e73d56256ec7b8808318f6fb",
+    "multi_ssu_npu_assignment.py": "c14ff5fa6fd3571daf19b79678e5db79b35c4afcdce9125b71d3c8ca322d7fba",
+    "audit_random_multitype.py": "645c1f2c2328ad2fd4328eebfd2f8db8ba5de421fb37fe55887bf2e8afe2c1d6",
+    "run_ring_baseline.py": "e978d7b0f67303160b52921d20440cdd6a327568600286195e7099b49a1ece96",
+    "run_4npu_exact_data.py": "2ef6321c624b391f665795852730e8ab25981db022bbf7387295310188c657df",
+    "explore_fifo_variants.py": "7c7758369a9e33018e6b096696ff7d1c27f530aea717d6fac22ebd59a289892d",
+    "test_shared_ssu_state.py": "6781408220c00aa28e81f9d4fc3d3c7aeb9cd28a42a5abb095a063d24364fa3e",
+    "summarize_random_multitype.py": "965eae98fab965aa0acf2c399464fe99c14a7b30c1a1c46da0794e78e56341ea",
+    "report_lower_fifo_followup.py": "874bf5edc9beab0dc1295358660f40b4b63ad4c52d5457d4f2b1341175fd7635",
+    "plot_mixed8_slo15.py": "50121819a36aa4e0238436290ed577d393ab3773955788c1613b08f8ae5d8173",
+    "build_strict_report.py": "5d216036da221d281764060f04143b123f4b85646549e18ce3604f8f0cbe4c04",
+    "plot_fixed128_32_hol.py": "87ec099d9b9b762ce54074860cec61f7f440ce9b3b37a0a628677acad8619ea9",
+    "shared_path_sim_adapter.py": "174103c5c17d5f75ccdfe41a2415cbe93a0b6cfe9858bdeed2b6c1628c0bebf2",
+    "run_shared_path_experiments.py": "e1147311dabbe3117300fbdfdf56c39748771cc3f37ea07d085bb76166464d22",
+    "plot_fifo_fleet_bandwidth.py": "7049d1b4379900fd06fc28eb0565721d7757b5413e8d8a38afc2070008516774"
+  }
+}

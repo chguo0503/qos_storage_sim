@@ -1,0 +1,4392 @@
+{
+  "status": "complete",
+  "sources": [
+    {
+      "seed": 7,
+      "asu_path": "template/qos_experiments_20260919/repository_source/results/diverse_data_ssu3_l3_20260916/runs/full_baseline_seed7_remote/result.json.gz",
+      "asu_sha256": "7692bd27340708ade97e80917052d080d24e763f1f6d70084906443ad323fa21",
+      "od_path": "results/template_od_baseline_20260919/diverse/runs/full_od_baseline_seed7/result.json.gz",
+      "od_sha256": "0eaf7a0189e3bc966c2e8314ec993901a588c358b0c758ea676b4e023b091e42",
+      "manifest_sha256": "2579438ed8ad9809db54da540f53bfe0c4020ac9c7b49b4a8c6f4a9808148706",
+      "exact_same_input_fingerprint": "84b28039867ef93b07f2e2c5e7af13edc12647ee968985f276239f1cf1fc0a98"
+    },
+    {
+      "seed": 19,
+      "asu_path": "template/qos_experiments_20260919/repository_source/results/diverse_data_ssu3_l3_20260916/runs/full_baseline_seed19_remote/result.json.gz",
+      "asu_sha256": "280c4148c14fcd4e5c53bde91720392b86e0fb93e84e4dd87ea6c6bba110916c",
+      "od_path": "results/template_od_baseline_20260919/diverse/runs/full_od_baseline_seed19/result.json.gz",
+      "od_sha256": "206afe442b5b06dd5222c796967d641b32719e6c67eb5f2cb22bf9239c5eff07",
+      "manifest_sha256": "82199c7849ad9a15d1e2ec67d55e538b1027068748eb7e3d7ad2a3c072613fc8",
+      "exact_same_input_fingerprint": "b8544571da20be4116d4120abe90d4020c3725c53a1949b1bb293f2a733abaa9"
+    },
+    {
+      "seed": 43,
+      "asu_path": "template/qos_experiments_20260919/repository_source/results/diverse_data_ssu3_l3_20260916/runs/full_baseline_seed43_local/result.json.gz",
+      "asu_sha256": "151a80aa16ead2e443daf089a8a724fca6f5401e82598f0acdb197c568eef740",
+      "od_path": "results/template_od_baseline_20260919/diverse/runs/full_od_baseline_seed43/result.json.gz",
+      "od_sha256": "2e2eb832791d13c2c24b4d4f4bda039c3995d7f08bf09d2508d940b33a1d4b6d",
+      "manifest_sha256": "a599c1ed8effea4d9b96cc0ca774cb22fb59c034e2c074658c2411354d5311ac",
+      "exact_same_input_fingerprint": "db33cd604b127687a75b9845df733ad18c187ecaf01d59c0ee1eb904a264e4b4"
+    }
+  ],
+  "cohorts": {
+    "asu_warm_requests": 589,
+    "od_warm_requests": 586,
+    "both_warm_same_request_ids": 529,
+    "ASU_only": 60,
+    "OD_only": 57
+  },
+  "definitions": {
+    "scope": "Policy-specific warm admission cohorts are descriptive only. Matched examples and intersection tables control the exact seed/request ID, frozen load and placement; execution admission times and competing traffic can still shift as a consequence of policy.",
+    "io_duration": "io_ready_time_ms-io_start_time_ms: includes SSD queue, own SSD service and NPU-link time",
+    "period": "max(compute C, next-layer IO duration) for internal next-layer prefetch; verified by actual layer metric identities",
+    "cycle_b": "layer bytes / full actual layer cycle; interval may extend beyond warm endpoint",
+    "queue_wait": "request metric averages over all blocks; not summable into critical-path TTFT"
+  },
+  "per_miss_policy_warm": {
+    "asu_baseline_miss256": {
+      "request_count": 247,
+      "ratio": {
+        "min": 2.545643723639973,
+        "p10": 3.7827746336140624,
+        "p50": 5.596684955771866,
+        "p90": 13.696950268153236,
+        "max": 16.562048125692833
+      },
+      "io_duration_ms": {
+        "min": 19.18487548828125,
+        "p10": 26.474456787109375,
+        "p50": 32.87696838378906,
+        "p90": 38.502685546875,
+        "max": 49.6490478515625
+      },
+      "mean_io_duration_ms": 32.74031675424417,
+      "mean_period_ms": 32.74031675424416,
+      "mean_layer_stall_ms": 27.146943036374697,
+      "requests_with_internal_stall": 247,
+      "aggregate_b_s_GiB_s": [
+        1.6062256150528924,
+        1.6062048595660592,
+        1.605872771776727
+      ],
+      "internal_stall_total_ms": 46937.06450989188,
+      "mean_request_average_ssd_queue_wait_ms": 30.345042669291587,
+      "mean_request_average_npu_link_queue_wait_ms": 0.7372853018790216
+    },
+    "asu_baseline_miss1024": {
+      "request_count": 178,
+      "ratio": {
+        "min": 1.000000000000003,
+        "p10": 1.0769910074212607,
+        "p50": 1.4602348151884996,
+        "p90": 3.311983752480169,
+        "max": 5.0727241360150845
+      },
+      "io_duration_ms": {
+        "min": 18.99867561632891,
+        "p10": 26.031341552734375,
+        "p50": 32.78129577636719,
+        "p90": 38.55939128655746,
+        "max": 48.79722595214844
+      },
+      "mean_io_duration_ms": 32.52741809300026,
+      "mean_period_ms": 32.983986515487324,
+      "mean_layer_stall_ms": 10.940184532653076,
+      "requests_with_internal_stall": 174,
+      "aggregate_b_s_GiB_s": [
+        1.6167017075158645,
+        1.616673119131795,
+        1.6165873539795863
+      ],
+      "internal_stall_total_ms": 13631.469927685743,
+      "mean_request_average_ssd_queue_wait_ms": 30.0984766967767,
+      "mean_request_average_npu_link_queue_wait_ms": 0.7562681994493695
+    },
+    "asu_baseline_miss2048": {
+      "request_count": 86,
+      "ratio": {
+        "min": 0.9999999999999958,
+        "p10": 0.9999999999999978,
+        "p50": 1.0743426872839763,
+        "p90": 2.105004912805179,
+        "max": 2.433358589541677
+      },
+      "io_duration_ms": {
+        "min": 20.00732421875,
+        "p10": 25.64649570467368,
+        "p50": 32.21236844622581,
+        "p90": 37.295270104101654,
+        "max": 47.9034423828125
+      },
+      "mean_io_duration_ms": 31.869039799898907,
+      "mean_period_ms": 43.0066298640883,
+      "mean_layer_stall_ms": 4.4783373682019905,
+      "requests_with_internal_stall": 45,
+      "aggregate_b_s_GiB_s": [
+        1.0614733962672993,
+        1.0615641592768135,
+        1.0616549222863274
+      ],
+      "internal_stall_total_ms": 2695.9590956575985,
+      "mean_request_average_ssd_queue_wait_ms": 29.75450102787056,
+      "mean_request_average_npu_link_queue_wait_ms": 0.6216639499828731
+    },
+    "asu_baseline_miss4096": {
+      "request_count": 78,
+      "ratio": {
+        "min": 0.999999999999998,
+        "p10": 1.000000000000001,
+        "p50": 1.0271606711340473,
+        "p90": 1.1179647495256384,
+        "max": 1.312247756344401
+      },
+      "io_duration_ms": {
+        "min": 16.60895718966367,
+        "p10": 24.137980953916667,
+        "p50": 32.13720362192271,
+        "p90": 38.41304545736034,
+        "max": 47.78566157949899
+      },
+      "mean_io_duration_ms": 31.686871413012682,
+      "mean_period_ms": 85.63608669687882,
+      "mean_layer_stall_ms": 0.5341350873393317,
+      "requests_with_internal_stall": 11,
+      "aggregate_b_s_GiB_s": [
+        0.5864418757534599,
+        0.5864418757534599,
+        0.5864921321486739
+      ],
+      "internal_stall_total_ms": 291.6377576872751,
+      "mean_request_average_ssd_queue_wait_ms": 29.54274222388603,
+      "mean_request_average_npu_link_queue_wait_ms": 0.6727153567023
+    },
+    "od_baseline_miss256": {
+      "request_count": 249,
+      "ratio": {
+        "min": 3.588658678248402,
+        "p10": 4.450918073654284,
+        "p50": 5.654163878935427,
+        "p90": 6.402013001645988,
+        "max": 6.851750288873248
+      },
+      "io_duration_ms": {
+        "min": 6.974029541015625,
+        "p10": 9.9700927734375,
+        "p50": 36.03668212890625,
+        "p90": 56.022830543366766,
+        "max": 64.97764587402344
+      },
+      "mean_io_duration_ms": 33.82300481739572,
+      "mean_period_ms": 33.823004817395706,
+      "mean_layer_stall_ms": 28.162836485343696,
+      "requests_with_internal_stall": 249,
+      "aggregate_b_s_GiB_s": [
+        1.5759227620045069,
+        1.5758829025624146,
+        1.5754843081414913
+      ],
+      "internal_stall_total_ms": 49087.82399395411,
+      "mean_request_average_ssd_queue_wait_ms": 16.676620100815782,
+      "mean_request_average_npu_link_queue_wait_ms": 0.00018424749827216242
+    },
+    "od_baseline_miss1024": {
+      "request_count": 181,
+      "ratio": {
+        "min": 1.0738604036294086,
+        "p10": 1.2305632274693423,
+        "p50": 1.544337998958751,
+        "p90": 1.7141043583701014,
+        "max": 1.8142302265732846
+      },
+      "io_duration_ms": {
+        "min": 5.3585052490234375,
+        "p10": 9.311294555664062,
+        "p50": 34.349822998046875,
+        "p90": 56.924637875976444,
+        "max": 63.96636962890625
+      },
+      "mean_io_duration_ms": 33.140051605616485,
+      "mean_period_ms": 33.158169167238874,
+      "mean_layer_stall_ms": 11.50034001316495,
+      "requests_with_internal_stall": 181,
+      "aggregate_b_s_GiB_s": [
+        1.5771348758944241,
+        1.5770789421836482,
+        1.5771069090390362
+      ],
+      "internal_stall_total_ms": 14570.93079668001,
+      "mean_request_average_ssd_queue_wait_ms": 16.340657711016362,
+      "mean_request_average_npu_link_queue_wait_ms": 0.0001919540065077258
+    },
+    "od_baseline_miss2048": {
+      "request_count": 83,
+      "ratio": {
+        "min": 0.9999999999999943,
+        "p10": 0.9999999999999952,
+        "p50": 1.036838787268559,
+        "p90": 1.0826033787959708,
+        "max": 1.097841665017008
+      },
+      "io_duration_ms": {
+        "min": 6.740901485052746,
+        "p10": 8.686132324282426,
+        "p50": 24.808999699525884,
+        "p90": 47.27488573298251,
+        "max": 62.87608511061535
+      },
+      "mean_io_duration_ms": 28.710332260496696,
+      "mean_period_ms": 38.17253480868277,
+      "mean_layer_stall_ms": 0.0,
+      "requests_with_internal_stall": 0,
+      "aggregate_b_s_GiB_s": [
+        1.1834961000454356,
+        1.183549076594229,
+        1.1836550296918158
+      ],
+      "internal_stall_total_ms": 0.0,
+      "mean_request_average_ssd_queue_wait_ms": 14.14801247674028,
+      "mean_request_average_npu_link_queue_wait_ms": 0.00019719529229626212
+    },
+    "od_baseline_miss4096": {
+      "request_count": 73,
+      "ratio": {
+        "min": 0.999999999999998,
+        "p10": 0.9999999999999998,
+        "p50": 1.022713143271216,
+        "p90": 1.0461697606637101,
+        "max": 1.0498396481841203
+      },
+      "io_duration_ms": {
+        "min": 5.949204128230122,
+        "p10": 8.631515502929688,
+        "p50": 35.234322746864564,
+        "p90": 57.880452544487525,
+        "max": 63.19981734483417
+      },
+      "mean_io_duration_ms": 33.59786217207506,
+      "mean_period_ms": 88.23699979548138,
+      "mean_layer_stall_ms": 0.0,
+      "requests_with_internal_stall": 0,
+      "aggregate_b_s_GiB_s": [
+        0.5928168815183916,
+        0.5928950551730974,
+        0.5928950551730974
+      ],
+      "internal_stall_total_ms": 0.0,
+      "mean_request_average_ssd_queue_wait_ms": 16.540442753989478,
+      "mean_request_average_npu_link_queue_wait_ms": 0.00017997127078646507
+    }
+  },
+  "per_profile_policy_warm": {
+    "32K_miss256": {
+      "asu_baseline": {
+        "request_count": 33,
+        "ratio": {
+          "min": 9.807787615457942,
+          "p10": 11.980982065659417,
+          "p50": 14.492391028101272,
+          "p90": 15.74123454915688,
+          "max": 16.562048125692833
+        },
+        "io_duration_ms": {
+          "min": 19.34171213378886,
+          "p10": 24.142227172851562,
+          "p50": 30.573272705078125,
+          "p90": 35.390472412109375,
+          "max": 40.224456787109375
+        },
+        "mean_io_duration_ms": 30.22043295583125,
+        "mean_period_ms": 30.22043295583125,
+        "mean_layer_stall_ms": 28.22295325985762,
+        "requests_with_internal_stall": 33,
+        "aggregate_b_s_GiB_s": [
+          0.47091859845593714,
+          0.4695721550007379,
+          0.47024537672833755
+        ],
+        "internal_stall_total_ms": 6519.502203027112,
+        "mean_request_average_ssd_queue_wait_ms": 29.768466768502876,
+        "mean_request_average_npu_link_queue_wait_ms": 0.09641586227216414
+      },
+      "od_baseline": {
+        "request_count": 29,
+        "ratio": {
+          "min": 3.588658678248402,
+          "p10": 3.9028346355085306,
+          "p50": 4.25516626849901,
+          "p90": 4.573401162852054,
+          "max": 4.810710689866842
+        },
+        "io_duration_ms": {
+          "min": 6.974029541015625,
+          "p10": 8.283233642578125,
+          "p50": 9.386825561523438,
+          "p90": 10.12115478515625,
+          "max": 10.86584798821741
+        },
+        "mean_io_duration_ms": 9.263871695377446,
+        "mean_period_ms": 9.263871695377446,
+        "mean_layer_stall_ms": 7.266391999403793,
+        "requests_with_internal_stall": 29,
+        "aggregate_b_s_GiB_s": [
+          1.537566254763782,
+          1.531318525162954,
+          1.5331928440432023
+        ],
+        "internal_stall_total_ms": 1475.07757587897,
+        "mean_request_average_ssd_queue_wait_ms": 4.561787284822958,
+        "mean_request_average_npu_link_queue_wait_ms": 0.0002799721789566234
+      }
+    },
+    "32K_miss1024": {
+      "asu_baseline": {
+        "request_count": 21,
+        "ratio": {
+          "min": 3.1093876444753685,
+          "p10": 3.3040624970321706,
+          "p50": 3.9539002563858063,
+          "p90": 4.690881020394737,
+          "max": 5.0727241360150845
+        },
+        "io_duration_ms": {
+          "min": 19.52056884765625,
+          "p10": 22.579238891601562,
+          "p50": 29.633331298828125,
+          "p90": 36.668121337890625,
+          "max": 42.07916259765625
+        },
+        "mean_io_duration_ms": 29.658711239641935,
+        "mean_period_ms": 29.65871123964194,
+        "mean_layer_stall_ms": 22.401479660562075,
+        "requests_with_internal_stall": 21,
+        "aggregate_b_s_GiB_s": [
+          0.4681025452417359,
+          0.46783305615408954,
+          0.46756356706644314
+        ],
+        "internal_stall_total_ms": 3293.0175101026252,
+        "mean_request_average_ssd_queue_wait_ms": 29.19002416993816,
+        "mean_request_average_npu_link_queue_wait_ms": 0.10568404199979067
+      },
+      "od_baseline": {
+        "request_count": 25,
+        "ratio": {
+          "min": 1.0738604036294086,
+          "p10": 1.1116186717330003,
+          "p50": 1.1992585952833754,
+          "p90": 1.3127838590161462,
+          "max": 1.368226457445938
+        },
+        "io_duration_ms": {
+          "min": 5.3585052490234375,
+          "p10": 7.726014053142353,
+          "p50": 8.820343017578125,
+          "p90": 9.6142578125,
+          "max": 10.444259643554688
+        },
+        "mean_io_duration_ms": 8.737247880739618,
+        "mean_period_ms": 8.770622970933251,
+        "mean_layer_stall_ms": 1.5133913918533823,
+        "requests_with_internal_stall": 25,
+        "aggregate_b_s_GiB_s": [
+          1.5830434610818327,
+          1.5822779661780215,
+          1.5807469763703987
+        ],
+        "internal_stall_total_ms": 264.8434935743419,
+        "mean_request_average_ssd_queue_wait_ms": 4.2878802614611935,
+        "mean_request_average_npu_link_queue_wait_ms": 0.0002694782636093358
+      }
+    },
+    "32K_miss2048": {
+      "asu_baseline": {
+        "request_count": 18,
+        "ratio": {
+          "min": 1.6221737324915637,
+          "p10": 1.6582540441726208,
+          "p50": 2.105004912805179,
+          "p90": 2.3385373572360675,
+          "max": 2.433358589541677
+        },
+        "io_duration_ms": {
+          "min": 20.00732421875,
+          "p10": 22.865753173828125,
+          "p50": 29.874610900878906,
+          "p90": 34.99225616455078,
+          "max": 45.05424499511719
+        },
+        "mean_io_duration_ms": 29.39889428962419,
+        "mean_period_ms": 29.39889428962419,
+        "mean_layer_stall_ms": 15.029791667499236,
+        "requests_with_internal_stall": 18,
+        "aggregate_b_s_GiB_s": [
+          0.45674283674468247,
+          0.45674283674468247,
+          0.45674283674468247
+        ],
+        "internal_stall_total_ms": 1893.7537501049037,
+        "mean_request_average_ssd_queue_wait_ms": 28.856188825138812,
+        "mean_request_average_npu_link_queue_wait_ms": 0.08111150155668205
+      },
+      "od_baseline": {
+        "request_count": 16,
+        "ratio": {
+          "min": 0.9999999999999969,
+          "p10": 0.9999999999999969,
+          "p50": 0.9999999999999969,
+          "p90": 1.0340814850636881,
+          "max": 1.0438448436489365
+        },
+        "io_duration_ms": {
+          "min": 6.740901485052746,
+          "p10": 7.473070453296351,
+          "p50": 8.650409083036493,
+          "p90": 9.408164916025816,
+          "max": 10.216239785101607
+        },
+        "mean_io_duration_ms": 8.567072273105627,
+        "mean_period_ms": 14.369102622124956,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          0.9344866362304717,
+          0.9344866362304717,
+          0.9344866362304717
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 4.228548203963051,
+        "mean_request_average_npu_link_queue_wait_ms": 0.0002853015844032451
+      }
+    },
+    "32K_miss4096": {
+      "asu_baseline": {
+        "request_count": 13,
+        "ratio": {
+          "min": 1.0008968933602327,
+          "p10": 1.0473440029748338,
+          "p50": 1.1696998776840082,
+          "p90": 1.301042063748166,
+          "max": 1.312247756344401
+        },
+        "io_duration_ms": {
+          "min": 19.967880249023665,
+          "p10": 23.621582243589728,
+          "p50": 31.164932250976562,
+          "p90": 36.34300231933594,
+          "max": 40.57273864746094
+        },
+        "mean_io_duration_ms": 30.67103547838275,
+        "mean_period_ms": 31.79765251991691,
+        "mean_layer_stall_ms": 3.20481052403599,
+        "requests_with_internal_stall": 11,
+        "aggregate_b_s_GiB_s": [
+          0.39426985487366795,
+          0.39305171937972255,
+          0.3950819452029649
+        ],
+        "internal_stall_total_ms": 291.6377576872751,
+        "mean_request_average_ssd_queue_wait_ms": 30.255291109230257,
+        "mean_request_average_npu_link_queue_wait_ms": 0.06112492721264525
+      },
+      "od_baseline": {
+        "request_count": 8,
+        "ratio": {
+          "min": 1.0000000000000047,
+          "p10": 1.0000000000000047,
+          "p50": 1.0009402404600767,
+          "p90": 1.0123868811589434,
+          "max": 1.0155045410127737
+        },
+        "io_duration_ms": {
+          "min": 5.949204128230122,
+          "p10": 7.24293235519508,
+          "p50": 7.932566280476067,
+          "p90": 8.508524232709306,
+          "max": 8.880840778682341
+        },
+        "mean_io_duration_ms": 7.888266172454523,
+        "mean_period_ms": 28.59284199588091,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          0.43880000835342226,
+          0.43733244979705627,
+          0.43880000835342226
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 3.906187824797746,
+        "mean_request_average_npu_link_queue_wait_ms": 0.0002594137787807403
+      }
+    },
+    "64K_miss256": {
+      "asu_baseline": {
+        "request_count": 34,
+        "ratio": {
+          "min": 6.527581480330005,
+          "p10": 7.7788545637994,
+          "p50": 9.285619844413468,
+          "p90": 9.968378160421338,
+          "max": 10.087164527713538
+        },
+        "io_duration_ms": {
+          "min": 19.18487548828125,
+          "p10": 25.52838897705078,
+          "p50": 32.08599090576172,
+          "p90": 36.664764404296875,
+          "max": 41.996917724609375
+        },
+        "mean_io_duration_ms": 31.637771850787146,
+        "mean_period_ms": 31.637771850787146,
+        "mean_layer_stall_ms": 28.29811483012982,
+        "requests_with_internal_stall": 34,
+        "aggregate_b_s_GiB_s": [
+          0.9018945986920086,
+          0.9018945986920086,
+          0.9018945986920086
+        ],
+        "internal_stall_total_ms": 6734.951329570893,
+        "mean_request_average_ssd_queue_wait_ms": 30.471191088942557,
+        "mean_request_average_npu_link_queue_wait_ms": 0.31519267778387866
+      },
+      "od_baseline": {
+        "request_count": 36,
+        "ratio": {
+          "min": 3.9716244688407336,
+          "p10": 4.705392537019736,
+          "p50": 5.111684517040314,
+          "p90": 5.7120731651722885,
+          "max": 5.859037790501031
+        },
+        "io_duration_ms": {
+          "min": 8.690261840820312,
+          "p10": 16.30836123743502,
+          "p50": 18.421173095703125,
+          "p90": 20.01110076904297,
+          "max": 21.287155151367188
+        },
+        "mean_io_duration_ms": 18.224600807646635,
+        "mean_period_ms": 18.224600807646635,
+        "mean_layer_stall_ms": 14.884943786989295,
+        "requests_with_internal_stall": 36,
+        "aggregate_b_s_GiB_s": [
+          1.565682334995387,
+          1.565682334995387,
+          1.565682334995387
+        ],
+        "internal_stall_total_ms": 3751.0058343213022,
+        "mean_request_average_ssd_queue_wait_ms": 8.968054721775225,
+        "mean_request_average_npu_link_queue_wait_ms": 0.00019551730153920951
+      }
+    },
+    "64K_miss1024": {
+      "asu_baseline": {
+        "request_count": 35,
+        "ratio": {
+          "min": 2.004541738769262,
+          "p10": 2.160549266060169,
+          "p50": 2.3431378183146863,
+          "p90": 2.7694834106525397,
+          "max": 2.882747623364034
+        },
+        "io_duration_ms": {
+          "min": 19.18487548828125,
+          "p10": 25.01266772472118,
+          "p50": 30.925750732421875,
+          "p90": 36.82495013671887,
+          "max": 44.81348500976583
+        },
+        "mean_io_duration_ms": 30.988415959073052,
+        "mean_period_ms": 30.988415959073052,
+        "mean_layer_stall_ms": 18.362475198648724,
+        "requests_with_internal_stall": 35,
+        "aggregate_b_s_GiB_s": [
+          0.9099607487114513,
+          0.9099607487114513,
+          0.9099607487114513
+        ],
+        "internal_stall_total_ms": 4498.806423668937,
+        "mean_request_average_ssd_queue_wait_ms": 29.648076551015855,
+        "mean_request_average_npu_link_queue_wait_ms": 0.3349343689617098
+      },
+      "od_baseline": {
+        "request_count": 37,
+        "ratio": {
+          "min": 1.2185581858693082,
+          "p10": 1.3143430411868446,
+          "p50": 1.4579912488840174,
+          "p90": 1.6060999164973746,
+          "max": 1.638590562448879
+        },
+        "io_duration_ms": {
+          "min": 11.325454711914062,
+          "p10": 16.504364013671875,
+          "p50": 18.463134765625,
+          "p90": 19.83612060546875,
+          "max": 20.838165283203125
+        },
+        "mean_io_duration_ms": 18.22928978095942,
+        "mean_period_ms": 18.234633733350485,
+        "mean_layer_stall_ms": 5.6086929729261605,
+        "requests_with_internal_stall": 37,
+        "aggregate_b_s_GiB_s": [
+          1.5464112194327455,
+          1.5464112194327455,
+          1.5464112194327455
+        ],
+        "internal_stall_total_ms": 1452.6514799878755,
+        "mean_request_average_ssd_queue_wait_ms": 9.002420221722632,
+        "mean_request_average_npu_link_queue_wait_ms": 0.00020992769055609343
+      }
+    },
+    "64K_miss2048": {
+      "asu_baseline": {
+        "request_count": 11,
+        "ratio": {
+          "min": 1.0729785428713465,
+          "p10": 1.1228147265317039,
+          "p50": 1.247053529930019,
+          "p90": 1.4332632888257346,
+          "max": 1.449945091890771
+        },
+        "io_duration_ms": {
+          "min": 21.03956972930837,
+          "p10": 25.909988403320312,
+          "p50": 31.394882202148438,
+          "p90": 36.43028259277344,
+          "max": 40.489654541015625
+        },
+        "mean_io_duration_ms": 31.04213677943787,
+        "mean_period_ms": 31.25402904174054,
+        "mean_layer_stall_ms": 6.147511124564534,
+        "requests_with_internal_stall": 11,
+        "aggregate_b_s_GiB_s": [
+          0.8870926589827753,
+          0.8880690955914521,
+          0.8885573138957904
+        ],
+        "internal_stall_total_ms": 473.35835659146915,
+        "mean_request_average_ssd_queue_wait_ms": 29.838263812779665,
+        "mean_request_average_npu_link_queue_wait_ms": 0.33936593182078484
+      },
+      "od_baseline": {
+        "request_count": 13,
+        "ratio": {
+          "min": 0.9999999999999952,
+          "p10": 0.9999999999999952,
+          "p50": 0.9999999999999952,
+          "p90": 1.0637601149494667,
+          "max": 1.0763829460499614
+        },
+        "io_duration_ms": {
+          "min": 10.303233724057918,
+          "p10": 14.147868255476169,
+          "p50": 17.6138662701087,
+          "p90": 19.62881838653493,
+          "max": 20.421836100459586
+        },
+        "mean_io_duration_ms": 17.18751065933231,
+        "mean_period_ms": 25.10651791717601,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          1.1046309205078175,
+          1.1056594409179739,
+          1.1056594409179739
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 8.55112146146692,
+        "mean_request_average_npu_link_queue_wait_ms": 0.00021039132432978347
+      }
+    },
+    "64K_miss4096": {
+      "asu_baseline": {
+        "request_count": 13,
+        "ratio": {
+          "min": 1.000000000000001,
+          "p10": 1.0014348006468632,
+          "p50": 1.052208791978407,
+          "p90": 1.0674458644659717,
+          "max": 1.0972256603104593
+        },
+        "io_duration_ms": {
+          "min": 19.609309781268166,
+          "p10": 25.104144004154932,
+          "p50": 30.42519446363667,
+          "p90": 35.26741581592705,
+          "max": 40.41931429224087
+        },
+        "mean_io_duration_ms": 30.459148250889278,
+        "mean_period_ms": 50.06766996068878,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          0.536383434082031,
+          0.536383434082031,
+          0.536383434082031
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 29.683438158928734,
+        "mean_request_average_npu_link_queue_wait_ms": 0.3055065876437583
+      },
+      "od_baseline": {
+        "request_count": 14,
+        "ratio": {
+          "min": 1.000000000000001,
+          "p10": 1.000000000000001,
+          "p50": 1.0153275507764268,
+          "p90": 1.0340641924134673,
+          "max": 1.0371275306607377
+        },
+        "io_duration_ms": {
+          "min": 9.57764225635674,
+          "p10": 15.694295421859215,
+          "p50": 17.504242984386337,
+          "p90": 18.866750806867277,
+          "max": 19.86672628077531
+        },
+        "mean_io_duration_ms": 17.23170690437813,
+        "mean_period_ms": 50.06766996068872,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          0.5363834340820318,
+          0.5363834340820318,
+          0.5363834340820318
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 8.538530065860732,
+        "mean_request_average_npu_link_queue_wait_ms": 0.0002104377265193371
+      }
+    },
+    "80K_miss256": {
+      "asu_baseline": {
+        "request_count": 40,
+        "ratio": {
+          "min": 5.596684955771866,
+          "p10": 6.0813568427521085,
+          "p50": 7.626262755473746,
+          "p90": 8.54776772775003,
+          "max": 8.776164727125824
+        },
+        "io_duration_ms": {
+          "min": 20.445404052734375,
+          "p10": 25.344345092773438,
+          "p50": 31.52118682861328,
+          "p90": 36.415679931640625,
+          "max": 42.44758605957031
+        },
+        "mean_io_duration_ms": 31.335362764110542,
+        "mean_period_ms": 31.335362764110545,
+        "mean_layer_stall_ms": 27.32461714235491,
+        "requests_with_internal_stall": 40,
+        "aggregate_b_s_GiB_s": [
+          1.1385159966438572,
+          1.1399890236919732,
+          1.1389177312933434
+        ],
+        "internal_stall_total_ms": 7650.8927998593745,
+        "mean_request_average_ssd_queue_wait_ms": 29.709786635076593,
+        "mean_request_average_npu_link_queue_wait_ms": 0.45943871375797357
+      },
+      "od_baseline": {
+        "request_count": 41,
+        "ratio": {
+          "min": 4.234373670914471,
+          "p10": 4.647337086351307,
+          "p50": 5.334191915751291,
+          "p90": 5.86168277013323,
+          "max": 6.0664281191604195
+        },
+        "io_duration_ms": {
+          "min": 14.514541625976562,
+          "p10": 19.672470092773438,
+          "p50": 22.625732421875,
+          "p90": 24.836273193359375,
+          "max": 26.70440673828125
+        },
+        "mean_io_duration_ms": 22.359864576747015,
+        "mean_period_ms": 22.35986457674701,
+        "mean_layer_stall_ms": 18.349118954991383,
+        "requests_with_internal_stall": 41,
+        "aggregate_b_s_GiB_s": [
+          1.595611362706372,
+          1.597808417939014,
+          1.5957944506424253
+        ],
+        "internal_stall_total_ms": 5266.197140082526,
+        "mean_request_average_ssd_queue_wait_ms": 11.046820921981501,
+        "mean_request_average_npu_link_queue_wait_ms": 0.0001883965366328807
+      }
+    },
+    "80K_miss1024": {
+      "asu_baseline": {
+        "request_count": 22,
+        "ratio": {
+          "min": 1.765751193167102,
+          "p10": 1.7969318748982415,
+          "p50": 2.0056665168474224,
+          "p90": 2.2456767788860925,
+          "max": 2.403758305906189
+        },
+        "io_duration_ms": {
+          "min": 20.079498291015625,
+          "p10": 25.1273193359375,
+          "p50": 30.678176879882812,
+          "p90": 35.34527176218794,
+          "max": 41.39434814453125
+        },
+        "mean_io_duration_ms": 30.604055288070676,
+        "mean_period_ms": 30.60405528807068,
+        "mean_layer_stall_ms": 15.29375914300253,
+        "requests_with_internal_stall": 22,
+        "aggregate_b_s_GiB_s": [
+          1.1549771600713106,
+          1.1557250408138564,
+          1.1554757472330077
+        ],
+        "internal_stall_total_ms": 2355.2389080223898,
+        "mean_request_average_ssd_queue_wait_ms": 28.99436150790056,
+        "mean_request_average_npu_link_queue_wait_ms": 0.4504797534679305
+      },
+      "od_baseline": {
+        "request_count": 20,
+        "ratio": {
+          "min": 1.2522738400012903,
+          "p10": 1.3697293737308418,
+          "p50": 1.5361785306868125,
+          "p90": 1.5946303232218153,
+          "max": 1.628714278246443
+        },
+        "io_duration_ms": {
+          "min": 13.671112060546875,
+          "p10": 20.08538292480471,
+          "p50": 22.982406616210938,
+          "p90": 24.708709716796875,
+          "max": 26.385498046875
+        },
+        "mean_io_duration_ms": 22.601151692806486,
+        "mean_period_ms": 22.613018311860955,
+        "mean_layer_stall_ms": 7.3027221667928055,
+        "requests_with_internal_stall": 20,
+        "aggregate_b_s_GiB_s": [
+          1.5628218188664609,
+          1.563935204156558,
+          1.5643063325865905
+        ],
+        "internal_stall_total_ms": 1022.3811033509928,
+        "mean_request_average_ssd_queue_wait_ms": 11.141698804158958,
+        "mean_request_average_npu_link_queue_wait_ms": 0.00020808481240673591
+      }
+    },
+    "80K_miss2048": {
+      "asu_baseline": {
+        "request_count": 16,
+        "ratio": {
+          "min": 1.0378329747012955,
+          "p10": 1.0407173519617816,
+          "p50": 1.1341272300888465,
+          "p90": 1.2447816844152797,
+          "max": 1.2739230568039623
+        },
+        "io_duration_ms": {
+          "min": 22.727818603701962,
+          "p10": 26.55987573243119,
+          "p50": 32.681427001953125,
+          "p90": 37.597469909835674,
+          "max": 43.57635498046875
+        },
+        "mean_io_duration_ms": 32.44846239682836,
+        "mean_period_ms": 33.39956205512659,
+        "mean_layer_stall_ms": 2.9243295112744443,
+        "requests_with_internal_stall": 15,
+        "aggregate_b_s_GiB_s": [
+          1.0452864417017482,
+          1.0452864417017482,
+          1.0452864417017482
+        ],
+        "internal_stall_total_ms": 327.5249052627378,
+        "mean_request_average_ssd_queue_wait_ms": 30.816119225813466,
+        "mean_request_average_npu_link_queue_wait_ms": 0.4442284685997
+      },
+      "od_baseline": {
+        "request_count": 14,
+        "ratio": {
+          "min": 0.9999999999999943,
+          "p10": 0.9999999999999943,
+          "p50": 1.0452970969369648,
+          "p90": 1.067933960460822,
+          "max": 1.0716025902556885
+        },
+        "io_duration_ms": {
+          "min": 17.8051141363012,
+          "p10": 19.929451181752576,
+          "p50": 22.635279986363457,
+          "p90": 24.827160990515086,
+          "max": 26.35270139902923
+        },
+        "mean_io_duration_ms": 22.48276720131318,
+        "mean_period_ms": 30.475232543852144,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          1.1455895972168035,
+          1.1455895972168035,
+          1.1455895972168035
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 11.104486196577895,
+        "mean_request_average_npu_link_queue_wait_ms": 0.00018971475314615772
+      }
+    },
+    "80K_miss4096": {
+      "asu_baseline": {
+        "request_count": 10,
+        "ratio": {
+          "min": 0.9999999999999994,
+          "p10": 0.9999999999999994,
+          "p50": 1.046401435517407,
+          "p90": 1.0607048276867874,
+          "max": 1.0639051008576652
+        },
+        "io_duration_ms": {
+          "min": 18.878664876200673,
+          "p10": 24.43902460092145,
+          "p50": 31.009464033916174,
+          "p90": 37.17324002657379,
+          "max": 45.973552192080206
+        },
+        "mean_io_duration_ms": 30.89553506584573,
+        "mean_period_ms": 60.805103348001985,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          0.5589819071960447,
+          0.5595339880920407,
+          0.5598100285400388
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 29.543185774825147,
+        "mean_request_average_npu_link_queue_wait_ms": 0.37710270372887417
+      },
+      "od_baseline": {
+        "request_count": 11,
+        "ratio": {
+          "min": 0.9999999999999994,
+          "p10": 0.9999999999999994,
+          "p50": 1.0307973865679212,
+          "p90": 1.0371974616009605,
+          "max": 1.0390440949518591
+        },
+        "io_duration_ms": {
+          "min": 13.201167184546193,
+          "p10": 18.54556421481957,
+          "p50": 22.008266218974313,
+          "p90": 23.705860127569576,
+          "max": 25.319671630859375
+        },
+        "mean_io_duration_ms": 21.425345509514056,
+        "mean_period_ms": 60.805103348002,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          0.5586054884033199,
+          0.5598602177124019,
+          0.5598602177124019
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 10.517051908789657,
+        "mean_request_average_npu_link_queue_wait_ms": 0.00016851706527592808
+      }
+    },
+    "128K_miss256": {
+      "asu_baseline": {
+        "request_count": 46,
+        "ratio": {
+          "min": 3.681653424734142,
+          "p10": 4.5975495583154515,
+          "p50": 5.304641132736179,
+          "p90": 6.0915759674948635,
+          "max": 6.399230567959365
+        },
+        "io_duration_ms": {
+          "min": 21.20574951171875,
+          "p10": 27.53852081298828,
+          "p50": 33.947410583496094,
+          "p90": 39.362222316894346,
+          "max": 48.79722595214844
+        },
+        "mean_io_duration_ms": 33.69593027261284,
+        "mean_period_ms": 33.69593027261284,
+        "mean_layer_stall_ms": 27.671918724023836,
+        "requests_with_internal_stall": 46,
+        "aggregate_b_s_GiB_s": [
+          1.6972949320698327,
+          1.6971866447831114,
+          1.696320346489341
+        ],
+        "internal_stall_total_ms": 8910.357829135668,
+        "mean_request_average_ssd_queue_wait_ms": 30.97630738521999,
+        "mean_request_average_npu_link_queue_wait_ms": 0.8078370277375467
+      },
+      "od_baseline": {
+        "request_count": 45,
+        "ratio": {
+          "min": 4.109652770445076,
+          "p10": 5.2623100055693115,
+          "p50": 5.737408236511607,
+          "p90": 6.3248072530726756,
+          "max": 6.624999035366144
+        },
+        "io_duration_ms": {
+          "min": 22.89838327636744,
+          "p10": 32.909698486328125,
+          "p50": 36.67030334472656,
+          "p90": 40.26893615722656,
+          "max": 42.364501953125
+        },
+        "mean_io_duration_ms": 36.412627561532005,
+        "mean_period_ms": 36.412627561532005,
+        "mean_layer_stall_ms": 30.388616012943015,
+        "requests_with_internal_stall": 45,
+        "aggregate_b_s_GiB_s": [
+          1.5706353122199113,
+          1.5704304422907103,
+          1.5699182674677077
+        ],
+        "internal_stall_total_ms": 9572.414044077039,
+        "mean_request_average_ssd_queue_wait_ms": 17.927689803836692,
+        "mean_request_average_npu_link_queue_wait_ms": 0.00016875666894422824
+      }
+    },
+    "128K_miss1024": {
+      "asu_baseline": {
+        "request_count": 24,
+        "ratio": {
+          "min": 1.0523126331348798,
+          "p10": 1.2870489276022485,
+          "p50": 1.411413359075011,
+          "p90": 1.6098291410584138,
+          "max": 1.7588603424075098
+        },
+        "io_duration_ms": {
+          "min": 18.99867561632891,
+          "p10": 26.1424560546875,
+          "p50": 33.22273254394531,
+          "p90": 38.81983184814453,
+          "max": 47.9034423828125
+        },
+        "mean_io_duration_ms": 33.101311977789095,
+        "mean_period_ms": 33.145469934762076,
+        "mean_layer_stall_ms": 9.78211019840248,
+        "requests_with_internal_stall": 24,
+        "aggregate_b_s_GiB_s": [
+          1.7151987660571109,
+          1.7149877685462167,
+          1.7147767710353228
+        ],
+        "internal_stall_total_ms": 1643.3945133316165,
+        "mean_request_average_ssd_queue_wait_ms": 30.444946365052406,
+        "mean_request_average_npu_link_queue_wait_ms": 0.8017230466631172
+      },
+      "od_baseline": {
+        "request_count": 25,
+        "ratio": {
+          "min": 1.2619244038818742,
+          "p10": 1.334333891569602,
+          "p50": 1.5389384589224673,
+          "p90": 1.6661313623295844,
+          "max": 1.7368848416987588
+        },
+        "io_duration_ms": {
+          "min": 19.18666389757891,
+          "p10": 30.058822631835938,
+          "p50": 35.83946228027344,
+          "p90": 39.271047646484476,
+          "max": 41.63856506347656
+        },
+        "mean_io_duration_ms": 35.23466854608157,
+        "mean_period_ms": 35.26104794777768,
+        "mean_layer_stall_ms": 11.897688211418089,
+        "requests_with_internal_stall": 25,
+        "aggregate_b_s_GiB_s": [
+          1.6123465028024824,
+          1.6117752888784853,
+          1.61215609816115
+        ],
+        "internal_stall_total_ms": 2082.0954369981655,
+        "mean_request_average_ssd_queue_wait_ms": 17.32231435199651,
+        "mean_request_average_npu_link_queue_wait_ms": 0.00017603527207339244
+      }
+    },
+    "128K_miss2048": {
+      "asu_baseline": {
+        "request_count": 13,
+        "ratio": {
+          "min": 0.9999999999999963,
+          "p10": 1.008067396386742,
+          "p50": 1.0498596637780837,
+          "p90": 1.0759269099696618,
+          "max": 1.081769281990766
+        },
+        "io_duration_ms": {
+          "min": 22.73651123046875,
+          "p10": 27.17525072925264,
+          "p50": 32.93352217188112,
+          "p90": 39.04204503760684,
+          "max": 47.9034423828125
+        },
+        "mean_io_duration_ms": 33.108672468959476,
+        "mean_period_ms": 46.595887076615725,
+        "mean_layer_stall_ms": 0.014528392291075371,
+        "requests_with_internal_stall": 1,
+        "aggregate_b_s_GiB_s": [
+          1.2103318106653822,
+          1.2103318106653822,
+          1.2103318106653822
+        ],
+        "internal_stall_total_ms": 1.3220836984878588,
+        "mean_request_average_ssd_queue_wait_ms": 30.50738858903109,
+        "mean_request_average_npu_link_queue_wait_ms": 0.7769906241963005
+      },
+      "od_baseline": {
+        "request_count": 15,
+        "ratio": {
+          "min": 0.9999999999999963,
+          "p10": 1.0091423985948347,
+          "p50": 1.0553629405080447,
+          "p90": 1.0885925056633232,
+          "max": 1.0973918034103127
+        },
+        "io_duration_ms": {
+          "min": 28.848648071289062,
+          "p10": 32.96012059913055,
+          "p50": 36.399007969978356,
+          "p90": 39.54861864067671,
+          "max": 41.65144466040192
+        },
+        "mean_io_duration_ms": 36.14807398152279,
+        "mean_period_ms": 46.581358684324734,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          1.2107093044921893,
+          1.2107093044921893,
+          1.2107093044921893
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 17.711320328169297,
+        "mean_request_average_npu_link_queue_wait_ms": 0.0001608256280489244
+      }
+    },
+    "128K_miss4096": {
+      "asu_baseline": {
+        "request_count": 12,
+        "ratio": {
+          "min": 1.000000000000001,
+          "p10": 1.0003071889646988,
+          "p50": 1.0154940985617955,
+          "p90": 1.036118904570858,
+          "max": 1.037029923094633
+        },
+        "io_duration_ms": {
+          "min": 18.941184283921757,
+          "p10": 24.351406893219973,
+          "p50": 32.04972098365488,
+          "p90": 37.69166218389055,
+          "max": 40.34347117028119
+        },
+        "mean_io_duration_ms": 31.60781418538767,
+        "mean_period_ms": 93.01732520235419,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          0.5968274102256768,
+          0.5966770379882805,
+          0.5965266657508843
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 28.988954959535075,
+        "mean_request_average_npu_link_queue_wait_ms": 0.7851054853849316
+      },
+      "od_baseline": {
+        "request_count": 9,
+        "ratio": {
+          "min": 1.000000000000001,
+          "p10": 1.0043709318332414,
+          "p50": 1.0142846897664328,
+          "p90": 1.044187670184868,
+          "max": 1.0464824648882334
+        },
+        "io_duration_ms": {
+          "min": 26.800918579101562,
+          "p10": 32.24876070087339,
+          "p50": 36.83733510327147,
+          "p90": 39.960215117580084,
+          "max": 41.258235574578066
+        },
+        "mean_io_duration_ms": 36.1899077211887,
+        "mean_period_ms": 93.01732520235419,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          0.5966770379882805,
+          0.5968775343048088,
+          0.5964765416717522
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 17.843483692591047,
+        "mean_request_average_npu_link_queue_wait_ms": 0.00015687277530755916
+      }
+    },
+    "160K_miss256": {
+      "asu_baseline": {
+        "request_count": 51,
+        "ratio": {
+          "min": 3.3959906634423276,
+          "p10": 3.8592395025989004,
+          "p50": 4.409872187823824,
+          "p90": 4.950465129881977,
+          "max": 5.1356320733587895
+        },
+        "io_duration_ms": {
+          "min": 20.952301025390625,
+          "p10": 28.094009399414062,
+          "p50": 33.90754699707031,
+          "p90": 39.14369201660156,
+          "max": 43.84071350097656
+        },
+        "mean_io_duration_ms": 33.6884514550314,
+        "mean_period_ms": 33.6884514550314,
+        "mean_layer_stall_ms": 26.322262621248527,
+        "requests_with_internal_stall": 51,
+        "aggregate_b_s_GiB_s": [
+          2.122468752899475,
+          2.122468752899475,
+          2.122468752899475
+        ],
+        "internal_stall_total_ms": 9397.047755785723,
+        "mean_request_average_ssd_queue_wait_ms": 30.457864946260344,
+        "mean_request_average_npu_link_queue_wait_ms": 1.0653872437046155
+      },
+      "od_baseline": {
+        "request_count": 54,
+        "ratio": {
+          "min": 5.039145763958706,
+          "p10": 5.464768621801035,
+          "p50": 6.071146455228798,
+          "p90": 6.454168318717572,
+          "max": 6.750055397625071
+        },
+        "io_duration_ms": {
+          "min": 27.30865478515625,
+          "p10": 41.12831115722656,
+          "p50": 46.38652801513672,
+          "p90": 50.11482238769531,
+          "max": 52.14576721191406
+        },
+        "mean_io_duration_ms": 45.85381346448752,
+        "mean_period_ms": 45.853813464487516,
+        "mean_layer_stall_ms": 38.48762463070465,
+        "requests_with_internal_stall": 54,
+        "aggregate_b_s_GiB_s": [
+          1.5593618097271629,
+          1.5593618097271629,
+          1.5593618097271629
+        ],
+        "internal_stall_total_ms": 14548.322110406356,
+        "mean_request_average_ssd_queue_wait_ms": 22.672033471660754,
+        "mean_request_average_npu_link_queue_wait_ms": 0.00015859245601466878
+      }
+    },
+    "160K_miss1024": {
+      "asu_baseline": {
+        "request_count": 39,
+        "ratio": {
+          "min": 1.072683888210662,
+          "p10": 1.090773668155257,
+          "p50": 1.2268410728851509,
+          "p90": 1.3619193809749826,
+          "max": 1.5254518983450984
+        },
+        "io_duration_ms": {
+          "min": 20.755847613037076,
+          "p10": 27.871444702148438,
+          "p50": 33.59703063964844,
+          "p90": 38.915924072265625,
+          "max": 48.79722595214844
+        },
+        "mean_io_duration_ms": 33.770494347471725,
+        "mean_period_ms": 34.06401907421064,
+        "mean_layer_stall_ms": 5.331951648185208,
+        "requests_with_internal_stall": 39,
+        "aggregate_b_s_GiB_s": [
+          2.0892130207083954,
+          2.0892130207083954,
+          2.0892130207083954
+        ],
+        "internal_stall_total_ms": 1455.6227999545617,
+        "mean_request_average_ssd_queue_wait_ms": 30.53461760369908,
+        "mean_request_average_npu_link_queue_wait_ms": 1.0680512382257838
+      },
+      "od_baseline": {
+        "request_count": 36,
+        "ratio": {
+          "min": 1.2775174601277455,
+          "p10": 1.498691309420355,
+          "p50": 1.6269214628220334,
+          "p90": 1.7658909070635644,
+          "max": 1.8142302265732846
+        },
+        "io_duration_ms": {
+          "min": 20.112228393554688,
+          "p10": 41.478271484375,
+          "p50": 46.290016174316406,
+          "p90": 49.52232360839844,
+          "max": 51.71356201171875
+        },
+        "mean_io_duration_ms": 45.590206769331814,
+        "mean_period_ms": 45.627716706466565,
+        "mean_layer_stall_ms": 16.895649280441145,
+        "requests_with_internal_stall": 36,
+        "aggregate_b_s_GiB_s": [
+          1.5597316132501955,
+          1.5597316132501955,
+          1.5597316132501955
+        ],
+        "internal_stall_total_ms": 4257.703618671169,
+        "mean_request_average_ssd_queue_wait_ms": 22.519342014413787,
+        "mean_request_average_npu_link_queue_wait_ms": 0.00016230325692244456
+      }
+    },
+    "160K_miss2048": {
+      "asu_baseline": {
+        "request_count": 22,
+        "ratio": {
+          "min": 0.9999999999999978,
+          "p10": 0.9999999999999978,
+          "p50": 1.01958581679417,
+          "p90": 1.0635108569405116,
+          "max": 1.075706831696606
+        },
+        "io_duration_ms": {
+          "min": 21.657257080078125,
+          "p10": 28.27433301462147,
+          "p50": 33.68177540914803,
+          "p90": 38.418414239189225,
+          "max": 43.4052096983869
+        },
+        "mean_io_duration_ms": 33.49630953506879,
+        "mean_period_ms": 57.318772714283114,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          1.2337468958496123,
+          1.2337468958496123,
+          1.2338800004882842
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 30.143682269440518,
+        "mean_request_average_npu_link_queue_wait_ms": 1.0448080624211795
+      },
+      "od_baseline": {
+        "request_count": 21,
+        "ratio": {
+          "min": 0.9999999999999978,
+          "p10": 0.9999999999999978,
+          "p50": 1.0573129325067083,
+          "p90": 1.0937984658827296,
+          "max": 1.097841665017008
+        },
+        "io_duration_ms": {
+          "min": 34.51101414174627,
+          "p10": 39.71198358559086,
+          "p50": 45.19286433385787,
+          "p90": 48.962757777039954,
+          "max": 51.016495545997714
+        },
+        "mean_io_duration_ms": 44.53212856668961,
+        "mean_period_ms": 57.318772714283114,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          1.233791264062503,
+          1.2336518211077039,
+          1.233930707017302
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 21.921065052794795,
+        "mean_request_average_npu_link_queue_wait_ms": 0.00016165763356030332
+      }
+    },
+    "160K_miss4096": {
+      "asu_baseline": {
+        "request_count": 13,
+        "ratio": {
+          "min": 0.999999999999998,
+          "p10": 0.999999999999998,
+          "p50": 1.006561943705188,
+          "p90": 1.0354167702739188,
+          "max": 1.0416831345168691
+        },
+        "io_duration_ms": {
+          "min": 16.60895718966367,
+          "p10": 24.29091056296602,
+          "p50": 33.26686183665879,
+          "p90": 39.26881452428643,
+          "max": 41.45272337695769
+        },
+        "mean_io_duration_ms": 32.425497837322744,
+        "mean_period_ms": 114.49217180383857,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          0.6098601996093763,
+          0.6098601996093763,
+          0.6098601996093763
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 29.47460806965104,
+        "mean_request_average_npu_link_queue_wait_ms": 0.9606470258135158
+      },
+      "od_baseline": {
+        "request_count": 14,
+        "ratio": {
+          "min": 0.999999999999998,
+          "p10": 0.9999999999999982,
+          "p50": 1.0242831298141137,
+          "p90": 1.048036946648492,
+          "max": 1.0498396481841203
+        },
+        "io_duration_ms": {
+          "min": 24.359972279635258,
+          "p10": 40.57108251245673,
+          "p50": 45.10847291130813,
+          "p90": 48.68826085483888,
+          "max": 50.92048645019531
+        },
+        "mean_io_duration_ms": 44.55298746110219,
+        "mean_period_ms": 114.49217180383859,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          0.6098601996093762,
+          0.6098601996093762,
+          0.6098601996093762
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 21.984281601383188,
+        "mean_request_average_npu_link_queue_wait_ms": 0.00016557083618862984
+      }
+    },
+    "200K_miss256": {
+      "asu_baseline": {
+        "request_count": 43,
+        "ratio": {
+          "min": 2.545643723639973,
+          "p10": 3.286921343538909,
+          "p50": 3.8159122257506812,
+          "p90": 4.208743642666938,
+          "max": 4.589270566184517
+        },
+        "io_duration_ms": {
+          "min": 22.365991276674322,
+          "p10": 29.066009521484375,
+          "p50": 34.772796630859375,
+          "p90": 40.37803649902344,
+          "max": 49.6490478515625
+        },
+        "mean_io_duration_ms": 34.706078616695386,
+        "mean_period_ms": 34.70607861669538,
+        "mean_layer_stall_ms": 25.662168081438768,
+        "requests_with_internal_stall": 43,
+        "aggregate_b_s_GiB_s": [
+          2.5764749667717144,
+          2.5761375551731325,
+          2.57568767304169
+        ],
+        "internal_stall_total_ms": 7724.312592513063,
+        "mean_request_average_ssd_queue_wait_ms": 30.46960282669579,
+        "mean_request_average_npu_link_queue_wait_ms": 1.3567068327745018
+      },
+      "od_baseline": {
+        "request_count": 44,
+        "ratio": {
+          "min": 4.659581191591477,
+          "p10": 5.56289656531418,
+          "p50": 6.116143663869466,
+          "p90": 6.636366689251909,
+          "max": 6.851750288873248
+        },
+        "io_duration_ms": {
+          "min": 28.791162175112277,
+          "p10": 49.499664306640625,
+          "p50": 56.646156311035156,
+          "p90": 62.45826721191406,
+          "max": 64.97764587402344
+        },
+        "mean_io_duration_ms": 56.040038097554884,
+        "mean_period_ms": 56.040038097554884,
+        "mean_layer_stall_ms": 46.99612756229824,
+        "requests_with_internal_stall": 44,
+        "aggregate_b_s_GiB_s": [
+          1.5956505676861268,
+          1.5955144258348675,
+          1.5950379293554595
+        ],
+        "internal_stall_total_ms": 14474.807289187855,
+        "mean_request_average_ssd_queue_wait_ms": 27.576843123085975,
+        "mean_request_average_npu_link_queue_wait_ms": 0.0001553979612587348
+      }
+    },
+    "200K_miss1024": {
+      "asu_baseline": {
+        "request_count": 37,
+        "ratio": {
+          "min": 1.000000000000003,
+          "p10": 1.0248485857306868,
+          "p50": 1.100795275689796,
+          "p90": 1.1542073544777756,
+          "max": 1.1801816593692862
+        },
+        "io_duration_ms": {
+          "min": 25.86800012102549,
+          "p10": 29.834447955940142,
+          "p50": 34.682159423828125,
+          "p90": 40.89533996582031,
+          "max": 48.69316101074219
+        },
+        "mean_io_duration_ms": 35.07251196211131,
+        "mean_period_ms": 36.93094233758535,
+        "mean_layer_stall_ms": 1.4879914000216348,
+        "requests_with_internal_stall": 33,
+        "aggregate_b_s_GiB_s": [
+          2.4119797901602955,
+          2.4117341210026093,
+          2.4117341210026093
+        ],
+        "internal_stall_total_ms": 385.3897726056034,
+        "mean_request_average_ssd_queue_wait_ms": 31.01218682953142,
+        "mean_request_average_npu_link_queue_wait_ms": 1.3477774518734449
+      },
+      "od_baseline": {
+        "request_count": 38,
+        "ratio": {
+          "min": 1.388344565406613,
+          "p10": 1.4960167058611862,
+          "p50": 1.6322445509205634,
+          "p90": 1.7433887094630485,
+          "max": 1.795731024733352
+        },
+        "io_duration_ms": {
+          "min": 39.4439697265625,
+          "p10": 49.422454833984375,
+          "p50": 56.774139404296875,
+          "p90": 61.67799075552466,
+          "max": 63.96636962890625
+        },
+        "mean_io_duration_ms": 56.08676922364422,
+        "mean_period_ms": 56.08676922364421,
+        "mean_layer_stall_ms": 20.64381828608063,
+        "requests_with_internal_stall": 38,
+        "aggregate_b_s_GiB_s": [
+          1.5881389484968595,
+          1.5880601952017839,
+          1.5880601952017839
+        ],
+        "internal_stall_total_ms": 5491.255664097451,
+        "mean_request_average_ssd_queue_wait_ms": 27.652219567150166,
+        "mean_request_average_npu_link_queue_wait_ms": 0.00015352365099768374
+      }
+    },
+    "200K_miss2048": {
+      "asu_baseline": {
+        "request_count": 6,
+        "ratio": {
+          "min": 0.9999999999999958,
+          "p10": 0.9999999999999982,
+          "p50": 1.0330112883080398,
+          "p90": 1.0488793778137122,
+          "max": 1.0542617480922054
+        },
+        "io_duration_ms": {
+          "min": 23.389021298107764,
+          "p10": 26.65918839379601,
+          "p50": 30.21890945276482,
+          "p90": 35.702553808780024,
+          "max": 37.495269775390625
+        },
+        "mean_io_duration_ms": 30.59781179783559,
+        "mean_period_ms": 70.74053784115807,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          1.252790119775391,
+          1.252790119775391,
+          1.252790119775391
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 26.406636400947033,
+        "mean_request_average_npu_link_queue_wait_ms": 1.345959405844186
+      },
+      "od_baseline": {
+        "request_count": 4,
+        "ratio": {
+          "min": 0.9999999999999973,
+          "p10": 1.0211736059698158,
+          "p50": 1.0744580059149236,
+          "p90": 1.0844079197752485,
+          "max": 1.0870096031373029
+        },
+        "io_duration_ms": {
+          "min": 47.25158181216193,
+          "p10": 51.597275222809415,
+          "p50": 57.79958434029504,
+          "p90": 62.40630176614436,
+          "max": 62.87608511061535
+        },
+        "mean_io_duration_ms": 57.573058059626874,
+        "mean_period_ms": 70.74053784115809,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          1.2527901197753908,
+          1.2527901197753908,
+          1.2527901197753908
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 28.497176880910985,
+        "mean_request_average_npu_link_queue_wait_ms": 0.00015102385607605165
+      }
+    },
+    "200K_miss4096": {
+      "asu_baseline": {
+        "request_count": 17,
+        "ratio": {
+          "min": 1.0000000000000016,
+          "p10": 1.0000000000000016,
+          "p50": 1.019663305296561,
+          "p90": 1.0276337673681497,
+          "max": 1.0316487497056768
+        },
+        "io_duration_ms": {
+          "min": 18.393090266022227,
+          "p10": 24.292778466897836,
+          "p50": 34.27400386465524,
+          "p90": 40.29901135742129,
+          "max": 47.78566157949899
+        },
+        "mean_io_duration_ms": 33.35899935094987,
+        "mean_period_ms": 141.3357882794412,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          0.6206819556453939,
+          0.6208216702105364,
+          0.6206120983628227
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 29.333011224053386,
+        "mean_request_average_npu_link_queue_wait_ms": 1.2955814077742662
+      },
+      "od_baseline": {
+        "request_count": 17,
+        "ratio": {
+          "min": 1.000000000000001,
+          "p10": 1.0131765120910585,
+          "p50": 1.0408397110072654,
+          "p90": 1.0484224874494663,
+          "max": 1.0487109720760996
+        },
+        "io_duration_ms": {
+          "min": 35.224363656502646,
+          "p10": 50.23730472981752,
+          "p50": 57.62917417353856,
+          "p90": 61.63972652090524,
+          "max": 63.19981734483417
+        },
+        "mean_io_duration_ms": 56.656712821750936,
+        "mean_period_ms": 141.33578827944118,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          0.6207518129279653,
+          0.6206819556453941,
+          0.6206819556453941
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 27.80026652184878,
+        "mean_request_average_npu_link_queue_wait_ms": 0.0001489958802030147
+      }
+    }
+  },
+  "per_profile_same_id_warm_intersection": {
+    "32K_miss256": {
+      "asu_baseline": {
+        "request_count": 29,
+        "ratio": {
+          "min": 9.807787615457942,
+          "p10": 11.917719592534436,
+          "p50": 14.368365141324105,
+          "p90": 15.785256235743118,
+          "max": 16.562048125692833
+        },
+        "io_duration_ms": {
+          "min": 19.34171213378886,
+          "p10": 23.45494168449077,
+          "p50": 30.413818359375,
+          "p90": 35.427398681640625,
+          "max": 40.224456787109375
+        },
+        "mean_io_duration_ms": 30.08724559671122,
+        "mean_period_ms": 30.08724559671122,
+        "mean_layer_stall_ms": 28.089765900737582,
+        "requests_with_internal_stall": 29,
+        "aggregate_b_s_GiB_s": [
+          0.47341709833454054,
+          0.47149342056804505,
+          0.4720705238979937
+        ],
+        "internal_stall_total_ms": 5702.222477849731,
+        "mean_request_average_ssd_queue_wait_ms": 29.633471559985637,
+        "mean_request_average_npu_link_queue_wait_ms": 0.10198948347312817
+      },
+      "od_baseline": {
+        "request_count": 29,
+        "ratio": {
+          "min": 3.588658678248402,
+          "p10": 3.9028346355085306,
+          "p50": 4.25516626849901,
+          "p90": 4.573401162852054,
+          "max": 4.810710689866842
+        },
+        "io_duration_ms": {
+          "min": 6.974029541015625,
+          "p10": 8.283233642578125,
+          "p50": 9.386825561523438,
+          "p90": 10.12115478515625,
+          "max": 10.86584798821741
+        },
+        "mean_io_duration_ms": 9.263871695377446,
+        "mean_period_ms": 9.263871695377446,
+        "mean_layer_stall_ms": 7.266391999403793,
+        "requests_with_internal_stall": 29,
+        "aggregate_b_s_GiB_s": [
+          1.537566254763782,
+          1.531318525162954,
+          1.5331928440432023
+        ],
+        "internal_stall_total_ms": 1475.07757587897,
+        "mean_request_average_ssd_queue_wait_ms": 4.561787284822958,
+        "mean_request_average_npu_link_queue_wait_ms": 0.0002799721789566234
+      }
+    },
+    "32K_miss1024": {
+      "asu_baseline": {
+        "request_count": 20,
+        "ratio": {
+          "min": 3.1093876444753685,
+          "p10": 3.3278262633761653,
+          "p50": 4.029327371807591,
+          "p90": 4.7102974085191125,
+          "max": 5.0727241360150845
+        },
+        "io_duration_ms": {
+          "min": 19.52056884765625,
+          "p10": 22.94573211669922,
+          "p50": 29.951400756835938,
+          "p90": 36.737525939941406,
+          "max": 42.07916259765625
+        },
+        "mean_io_duration_ms": 29.9684052194184,
+        "mean_period_ms": 29.9684052194184,
+        "mean_layer_stall_ms": 22.711173640338536,
+        "requests_with_internal_stall": 20,
+        "aggregate_b_s_GiB_s": [
+          0.4631851547830091,
+          0.4629051153907582,
+          0.4629051153907582
+        ],
+        "internal_stall_total_ms": 3179.564309647395,
+        "mean_request_average_ssd_queue_wait_ms": 29.493823770443583,
+        "mean_request_average_npu_link_queue_wait_ms": 0.10769091176618317
+      },
+      "od_baseline": {
+        "request_count": 20,
+        "ratio": {
+          "min": 1.080880687979939,
+          "p10": 1.1307487763118613,
+          "p50": 1.201768789791482,
+          "p90": 1.3218472749137726,
+          "max": 1.368226457445938
+        },
+        "io_duration_ms": {
+          "min": 5.3585052490234375,
+          "p10": 7.692028055407036,
+          "p50": 8.906364440917969,
+          "p90": 9.71160888671875,
+          "max": 10.444259643554688
+        },
+        "mean_io_duration_ms": 8.803607184028877,
+        "mean_period_ms": 8.841276588312995,
+        "mean_layer_stall_ms": 1.5840450092331235,
+        "requests_with_internal_stall": 20,
+        "aggregate_b_s_GiB_s": [
+          1.570013139109911,
+          1.5690639171394698,
+          1.5690639171394698
+        ],
+        "internal_stall_total_ms": 221.7663012926373,
+        "mean_request_average_ssd_queue_wait_ms": 4.3266402930763075,
+        "mean_request_average_npu_link_queue_wait_ms": 0.0002747780135367193
+      }
+    },
+    "32K_miss2048": {
+      "asu_baseline": {
+        "request_count": 15,
+        "ratio": {
+          "min": 1.6221737324915637,
+          "p10": 1.6504899232768127,
+          "p50": 2.0991898535146163,
+          "p90": 2.346326168774168,
+          "max": 2.433358589541677
+        },
+        "io_duration_ms": {
+          "min": 20.00732421875,
+          "p10": 22.543351850346607,
+          "p50": 28.784027099609375,
+          "p90": 35.02842712402344,
+          "max": 45.05424499511719
+        },
+        "mean_io_duration_ms": 29.053791943836526,
+        "mean_period_ms": 29.053791943836526,
+        "mean_layer_stall_ms": 14.68468932171157,
+        "requests_with_internal_stall": 15,
+        "aggregate_b_s_GiB_s": [
+          0.4621680502482073,
+          0.4621680502482073,
+          0.4621680502482073
+        ],
+        "internal_stall_total_ms": 1541.8923787797148,
+        "mean_request_average_ssd_queue_wait_ms": 28.531290151388337,
+        "mean_request_average_npu_link_queue_wait_ms": 0.08073587322234808
+      },
+      "od_baseline": {
+        "request_count": 15,
+        "ratio": {
+          "min": 0.9999999999999969,
+          "p10": 0.9999999999999969,
+          "p50": 0.9999999999999969,
+          "p90": 1.0346329455046623,
+          "max": 1.0438448436489365
+        },
+        "io_duration_ms": {
+          "min": 6.740901485052746,
+          "p10": 7.423788019470976,
+          "p50": 8.663664010908633,
+          "p90": 9.391308960821243,
+          "max": 10.216239785101607
+        },
+        "mean_io_duration_ms": 8.551453793150756,
+        "mean_period_ms": 14.369102622124956,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          0.9344866362304717,
+          0.9344866362304717,
+          0.9344866362304717
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 4.223717559418627,
+        "mean_request_average_npu_link_queue_wait_ms": 0.00028583095126745347
+      }
+    },
+    "32K_miss4096": {
+      "asu_baseline": {
+        "request_count": 8,
+        "ratio": {
+          "min": 1.0008968933602327,
+          "p10": 1.0625975359918343,
+          "p50": 1.1726607022910813,
+          "p90": 1.2938274700025738,
+          "max": 1.3039279012464027
+        },
+        "io_duration_ms": {
+          "min": 20.24266847036506,
+          "p10": 24.944097625409995,
+          "p50": 31.641197204589844,
+          "p90": 36.65865407714864,
+          "max": 40.57273864746094
+        },
+        "mean_io_duration_ms": 31.183818324907804,
+        "mean_period_ms": 32.10549874192416,
+        "mean_layer_stall_ms": 3.512656746043238,
+        "requests_with_internal_stall": 7,
+        "aggregate_b_s_GiB_s": [
+          0.39079097968526627,
+          0.38948398644217175,
+          0.39079097968526627
+        ],
+        "internal_stall_total_ms": 196.70877777842134,
+        "mean_request_average_ssd_queue_wait_ms": 30.590617049440148,
+        "mean_request_average_npu_link_queue_wait_ms": 0.0665721764683887
+      },
+      "od_baseline": {
+        "request_count": 8,
+        "ratio": {
+          "min": 1.0000000000000047,
+          "p10": 1.0000000000000047,
+          "p50": 1.0009402404600767,
+          "p90": 1.0123868811589434,
+          "max": 1.0155045410127737
+        },
+        "io_duration_ms": {
+          "min": 5.949204128230122,
+          "p10": 7.24293235519508,
+          "p50": 7.932566280476067,
+          "p90": 8.508524232709306,
+          "max": 8.880840778682341
+        },
+        "mean_io_duration_ms": 7.888266172454523,
+        "mean_period_ms": 28.59284199588091,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          0.43880000835342226,
+          0.43733244979705627,
+          0.43880000835342226
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 3.906187824797746,
+        "mean_request_average_npu_link_queue_wait_ms": 0.0002594137787807403
+      }
+    },
+    "64K_miss256": {
+      "asu_baseline": {
+        "request_count": 32,
+        "ratio": {
+          "min": 6.527581480330005,
+          "p10": 7.745825377817624,
+          "p50": 9.256828269430677,
+          "p90": 9.908198876560533,
+          "max": 10.08385297206309
+        },
+        "io_duration_ms": {
+          "min": 19.18487548828125,
+          "p10": 25.296340942382812,
+          "p50": 31.99493408203125,
+          "p90": 36.65721130371094,
+          "max": 41.996917724609375
+        },
+        "mean_io_duration_ms": 31.49311595720144,
+        "mean_period_ms": 31.49311595720144,
+        "mean_layer_stall_ms": 28.153458936544112,
+        "requests_with_internal_stall": 32,
+        "aggregate_b_s_GiB_s": [
+          0.9060372300299561,
+          0.9060372300299561,
+          0.9060372300299561
+        ],
+        "internal_stall_total_ms": 6306.374801785878,
+        "mean_request_average_ssd_queue_wait_ms": 30.324093433278293,
+        "mean_request_average_npu_link_queue_wait_ms": 0.31585268284272117
+      },
+      "od_baseline": {
+        "request_count": 32,
+        "ratio": {
+          "min": 4.291162236960939,
+          "p10": 4.821328254429738,
+          "p50": 5.136764019059607,
+          "p90": 5.735535528527087,
+          "max": 5.859037790501031
+        },
+        "io_duration_ms": {
+          "min": 12.441535131835735,
+          "p10": 16.430511474609375,
+          "p50": 18.55499442419432,
+          "p90": 20.033340454101562,
+          "max": 21.287155151367188
+        },
+        "mean_io_duration_ms": 18.38053802561581,
+        "mean_period_ms": 18.380538025615806,
+        "mean_layer_stall_ms": 15.040881004958466,
+        "requests_with_internal_stall": 32,
+        "aggregate_b_s_GiB_s": [
+          1.5523993643226894,
+          1.5523993643226894,
+          1.5523993643226894
+        ],
+        "internal_stall_total_ms": 3369.1573451106965,
+        "mean_request_average_ssd_queue_wait_ms": 9.058938264392882,
+        "mean_request_average_npu_link_queue_wait_ms": 0.00019374515196923575
+      }
+    },
+    "64K_miss1024": {
+      "asu_baseline": {
+        "request_count": 34,
+        "ratio": {
+          "min": 2.004541738769262,
+          "p10": 2.1556609242867446,
+          "p50": 2.3539566705278,
+          "p90": 2.7707215271574857,
+          "max": 2.882747623364034
+        },
+        "io_duration_ms": {
+          "min": 19.18487548828125,
+          "p10": 25.073209167676122,
+          "p50": 31.053733825683594,
+          "p90": 36.89702178534567,
+          "max": 44.81348500976583
+        },
+        "mean_io_duration_ms": 31.082250318253706,
+        "mean_period_ms": 31.082250318253706,
+        "mean_layer_stall_ms": 18.45630955782938,
+        "requests_with_internal_stall": 34,
+        "aggregate_b_s_GiB_s": [
+          0.9072136637076109,
+          0.9072136637076109,
+          0.9072136637076109
+        ],
+        "internal_stall_total_ms": 4392.601674763391,
+        "mean_request_average_ssd_queue_wait_ms": 29.73792471213741,
+        "mean_request_average_npu_link_queue_wait_ms": 0.33330306874924387
+      },
+      "od_baseline": {
+        "request_count": 34,
+        "ratio": {
+          "min": 1.2185581858693082,
+          "p10": 1.3112325176545765,
+          "p50": 1.4677783834315128,
+          "p90": 1.6085113831004365,
+          "max": 1.638590562448879
+        },
+        "io_duration_ms": {
+          "min": 11.325454711914062,
+          "p10": 16.4422607421875,
+          "p50": 18.34988825683581,
+          "p90": 19.838638305664062,
+          "max": 20.838165283203125
+        },
+        "mean_io_duration_ms": 18.169717024570733,
+        "mean_period_ms": 18.17553250217278,
+        "mean_layer_stall_ms": 5.549591741748451,
+        "requests_with_internal_stall": 34,
+        "aggregate_b_s_GiB_s": [
+          1.5514396722147792,
+          1.5514396722147792,
+          1.5514396722147792
+        ],
+        "internal_stall_total_ms": 1320.8028345361313,
+        "mean_request_average_ssd_queue_wait_ms": 8.970401223305124,
+        "mean_request_average_npu_link_queue_wait_ms": 0.00021320068704900046
+      }
+    },
+    "64K_miss2048": {
+      "asu_baseline": {
+        "request_count": 11,
+        "ratio": {
+          "min": 1.0729785428713465,
+          "p10": 1.1228147265317039,
+          "p50": 1.247053529930019,
+          "p90": 1.4332632888257346,
+          "max": 1.449945091890771
+        },
+        "io_duration_ms": {
+          "min": 21.03956972930837,
+          "p10": 25.909988403320312,
+          "p50": 31.394882202148438,
+          "p90": 36.43028259277344,
+          "max": 40.489654541015625
+        },
+        "mean_io_duration_ms": 31.04213677943787,
+        "mean_period_ms": 31.25402904174054,
+        "mean_layer_stall_ms": 6.147511124564534,
+        "requests_with_internal_stall": 11,
+        "aggregate_b_s_GiB_s": [
+          0.8870926589827753,
+          0.8880690955914521,
+          0.8885573138957904
+        ],
+        "internal_stall_total_ms": 473.35835659146915,
+        "mean_request_average_ssd_queue_wait_ms": 29.838263812779665,
+        "mean_request_average_npu_link_queue_wait_ms": 0.33936593182078484
+      },
+      "od_baseline": {
+        "request_count": 11,
+        "ratio": {
+          "min": 0.9999999999999952,
+          "p10": 0.9999999999999952,
+          "p50": 0.9999999999999952,
+          "p90": 1.062706995562404,
+          "max": 1.0763829460499614
+        },
+        "io_duration_ms": {
+          "min": 11.300324983183145,
+          "p10": 14.593822451259985,
+          "p50": 17.593991379745148,
+          "p90": 19.738857981219283,
+          "max": 20.421836100459586
+        },
+        "mean_io_duration_ms": 17.319856205751957,
+        "mean_period_ms": 25.106517917176006,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          1.1043036640136772,
+          1.105519188134771,
+          1.106126950195318
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 8.590257900383955,
+        "mean_request_average_npu_link_queue_wait_ms": 0.00020843134010315007
+      }
+    },
+    "64K_miss4096": {
+      "asu_baseline": {
+        "request_count": 12,
+        "ratio": {
+          "min": 1.000000000000001,
+          "p10": 1.0077131048354915,
+          "p50": 1.0522493045036692,
+          "p90": 1.0678838594130557,
+          "max": 1.0972256603104593
+        },
+        "io_duration_ms": {
+          "min": 19.609309781268166,
+          "p10": 24.99909680901651,
+          "p50": 30.41111407752146,
+          "p90": 35.45610031024176,
+          "max": 40.41931429224087
+        },
+        "mean_io_duration_ms": 30.464648050825957,
+        "mean_period_ms": 50.06766996068882,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          0.5363834340820307,
+          0.5363834340820307,
+          0.5363834340820307
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 29.750725737517286,
+        "mean_request_average_npu_link_queue_wait_ms": 0.29837117594720186
+      },
+      "od_baseline": {
+        "request_count": 12,
+        "ratio": {
+          "min": 1.000000000000001,
+          "p10": 1.000000000000001,
+          "p50": 1.0153275507764268,
+          "p90": 1.033706729348491,
+          "max": 1.0341335588765606
+        },
+        "io_duration_ms": {
+          "min": 9.57764225635674,
+          "p10": 15.492316769201262,
+          "p50": 17.504242984386337,
+          "p90": 18.811063025542673,
+          "max": 19.86672628077531
+        },
+        "mean_io_duration_ms": 17.185179777744256,
+        "mean_period_ms": 50.06766996068882,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          0.5363834340820307,
+          0.5363834340820307,
+          0.5363834340820307
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 8.52146211067105,
+        "mean_request_average_npu_link_queue_wait_ms": 0.00021241648991879734
+      }
+    },
+    "80K_miss256": {
+      "asu_baseline": {
+        "request_count": 36,
+        "ratio": {
+          "min": 5.596684955771866,
+          "p10": 6.151039279537561,
+          "p50": 7.655906542635893,
+          "p90": 8.51042340849822,
+          "max": 8.776164727125824
+        },
+        "io_duration_ms": {
+          "min": 21.136093139648438,
+          "p10": 26.363929748535156,
+          "p50": 31.795616149902344,
+          "p90": 36.694305419921875,
+          "max": 42.44758605957031
+        },
+        "mean_io_duration_ms": 31.644023655990477,
+        "mean_period_ms": 31.644023655990477,
+        "mean_layer_stall_ms": 27.633278034234845,
+        "requests_with_internal_stall": 36,
+        "aggregate_b_s_GiB_s": [
+          1.127292857228345,
+          1.129060928629043,
+          1.1277348750785194
+        ],
+        "internal_stall_total_ms": 6963.586064627181,
+        "mean_request_average_ssd_queue_wait_ms": 30.006811826498378,
+        "mean_request_average_npu_link_queue_wait_ms": 0.4618226320146408
+      },
+      "od_baseline": {
+        "request_count": 36,
+        "ratio": {
+          "min": 4.614400598853436,
+          "p10": 4.85502044618738,
+          "p50": 5.3419121568409285,
+          "p90": 5.867663669234984,
+          "max": 6.0664281191604195
+        },
+        "io_duration_ms": {
+          "min": 14.514541625976562,
+          "p10": 20.08411407470703,
+          "p50": 22.778892517089844,
+          "p90": 24.89124298095703,
+          "max": 26.70440673828125
+        },
+        "mean_io_duration_ms": 22.54778677814176,
+        "mean_period_ms": 22.54778677814176,
+        "mean_layer_stall_ms": 18.537041156386127,
+        "requests_with_internal_stall": 36,
+        "aggregate_b_s_GiB_s": [
+          1.582065778444562,
+          1.584547125894743,
+          1.5826861153071072
+        ],
+        "internal_stall_total_ms": 4671.334371409304,
+        "mean_request_average_ssd_queue_wait_ms": 11.146395296454202,
+        "mean_request_average_npu_link_queue_wait_ms": 0.00018663570400144727
+      }
+    },
+    "80K_miss1024": {
+      "asu_baseline": {
+        "request_count": 16,
+        "ratio": {
+          "min": 1.765751193167102,
+          "p10": 1.7894691491567734,
+          "p50": 1.9991331002071921,
+          "p90": 2.2612231084508467,
+          "max": 2.403758305906189
+        },
+        "io_duration_ms": {
+          "min": 20.079498291015625,
+          "p10": 24.221786499023438,
+          "p50": 30.678176879882812,
+          "p90": 35.357322692871094,
+          "max": 41.39434814453125
+        },
+        "mean_io_duration_ms": 30.4896693619007,
+        "mean_period_ms": 30.4896693619007,
+        "mean_layer_stall_ms": 15.179373216832548,
+        "requests_with_internal_stall": 16,
+        "aggregate_b_s_GiB_s": [
+          1.1591538127947747,
+          1.159497877446836,
+          1.1605300714030202
+        ],
+        "internal_stall_total_ms": 1700.0898002852455,
+        "mean_request_average_ssd_queue_wait_ms": 28.953343011217964,
+        "mean_request_average_npu_link_queue_wait_ms": 0.44422381896400137
+      },
+      "od_baseline": {
+        "request_count": 16,
+        "ratio": {
+          "min": 1.293217085637786,
+          "p10": 1.3901375088552927,
+          "p50": 1.5361785306868125,
+          "p90": 1.5987086254154392,
+          "max": 1.628714278246443
+        },
+        "io_duration_ms": {
+          "min": 18.198776245117188,
+          "p10": 20.86711883544922,
+          "p50": 23.192214965820312,
+          "p90": 24.814453125,
+          "max": 26.385498046875
+        },
+        "mean_io_duration_ms": 23.0050662629341,
+        "mean_period_ms": 23.0050662629341,
+        "mean_layer_stall_ms": 7.694770117865951,
+        "requests_with_internal_stall": 16,
+        "aggregate_b_s_GiB_s": [
+          1.5362797084676434,
+          1.5367357131302932,
+          1.5381037271182432
+        ],
+        "internal_stall_total_ms": 861.8142532009865,
+        "mean_request_average_ssd_queue_wait_ms": 11.351180495309947,
+        "mean_request_average_npu_link_queue_wait_ms": 0.0002109653729434339
+      }
+    },
+    "80K_miss2048": {
+      "asu_baseline": {
+        "request_count": 13,
+        "ratio": {
+          "min": 1.0378329747012955,
+          "p10": 1.039335520992415,
+          "p50": 1.1260583791252001,
+          "p90": 1.24974908237197,
+          "max": 1.2739230568039623
+        },
+        "io_duration_ms": {
+          "min": 22.8920080570133,
+          "p10": 27.2314453125,
+          "p50": 32.631072998046875,
+          "p90": 37.60994445819415,
+          "max": 43.57635498046875
+        },
+        "mean_io_duration_ms": 32.59162657634736,
+        "mean_period_ms": 33.39786184864383,
+        "mean_layer_stall_ms": 2.9226293047916814,
+        "requests_with_internal_stall": 13,
+        "aggregate_b_s_GiB_s": [
+          1.0453396547724705,
+          1.0453396547724705,
+          1.0453396547724705
+        ],
+        "internal_stall_total_ms": 265.959266736043,
+        "mean_request_average_ssd_queue_wait_ms": 30.93968987279866,
+        "mean_request_average_npu_link_queue_wait_ms": 0.45010681699117466
+      },
+      "od_baseline": {
+        "request_count": 13,
+        "ratio": {
+          "min": 0.9999999999999943,
+          "p10": 0.9999999999999943,
+          "p50": 1.0393809784034311,
+          "p90": 1.0651662668948378,
+          "max": 1.0688032480479557
+        },
+        "io_duration_ms": {
+          "min": 17.8051141363012,
+          "p10": 20.144658203311337,
+          "p50": 22.63740889233395,
+          "p90": 24.869537336156554,
+          "max": 26.35270139902923
+        },
+        "mean_io_duration_ms": 22.552804382288556,
+        "mean_period_ms": 30.475232543852144,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          1.1455895972168035,
+          1.1455895972168035,
+          1.1455895972168035
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 11.141662837774325,
+        "mean_request_average_npu_link_queue_wait_ms": 0.00018850805933352726
+      }
+    },
+    "80K_miss4096": {
+      "asu_baseline": {
+        "request_count": 9,
+        "ratio": {
+          "min": 0.9999999999999994,
+          "p10": 0.9999999999999994,
+          "p50": 1.0452739828126145,
+          "p90": 1.0610604135946629,
+          "max": 1.0639051008576652
+        },
+        "io_duration_ms": {
+          "min": 18.878664876200673,
+          "p10": 24.214631669166284,
+          "p50": 30.26430888344339,
+          "p90": 37.6022723780091,
+          "max": 45.973552192080206
+        },
+        "mean_io_duration_ms": 30.57502948544853,
+        "mean_period_ms": 60.805103348001964,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          0.5588285513916015,
+          0.5597486862182617,
+          0.5597486862182617
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 29.230247141031043,
+        "mean_request_average_npu_link_queue_wait_ms": 0.3679817425203115
+      },
+      "od_baseline": {
+        "request_count": 9,
+        "ratio": {
+          "min": 0.9999999999999994,
+          "p10": 0.9999999999999994,
+          "p50": 1.0307973865679212,
+          "p90": 1.0374085552974706,
+          "max": 1.0390440949518591
+        },
+        "io_duration_ms": {
+          "min": 13.201167184546193,
+          "p10": 18.73532325094029,
+          "p50": 21.828460693359375,
+          "p90": 23.729475500355328,
+          "max": 25.319671630859375
+        },
+        "mean_io_duration_ms": 21.362270964940755,
+        "mean_period_ms": 60.80510334800194,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          0.5588285513916017,
+          0.5597486862182618,
+          0.5597486862182618
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 10.483977038363818,
+        "mean_request_average_npu_link_queue_wait_ms": 0.00016336814869279427
+      }
+    },
+    "128K_miss256": {
+      "asu_baseline": {
+        "request_count": 41,
+        "ratio": {
+          "min": 3.681653424734142,
+          "p10": 4.658996088904789,
+          "p50": 5.314246980312592,
+          "p90": 6.085139418096723,
+          "max": 6.399230567959365
+        },
+        "io_duration_ms": {
+          "min": 21.20574951171875,
+          "p10": 27.63092041015625,
+          "p50": 33.95538330078125,
+          "p90": 39.47972106933594,
+          "max": 48.79722595214844
+        },
+        "mean_io_duration_ms": 33.78949373311792,
+        "mean_period_ms": 33.789493733117915,
+        "mean_layer_stall_ms": 27.765482184528917,
+        "requests_with_internal_stall": 41,
+        "aggregate_b_s_GiB_s": [
+          1.6925582309441287,
+          1.6924370743062658,
+          1.6917101344790888
+        ],
+        "internal_stall_total_ms": 7968.693386959791,
+        "mean_request_average_ssd_queue_wait_ms": 31.086147309804566,
+        "mean_request_average_npu_link_queue_wait_ms": 0.80899982484634
+      },
+      "od_baseline": {
+        "request_count": 41,
+        "ratio": {
+          "min": 4.7275411664451115,
+          "p10": 5.388225658204631,
+          "p50": 5.839879780827108,
+          "p90": 6.365231756349981,
+          "max": 6.624999035366144
+        },
+        "io_duration_ms": {
+          "min": 23.708343505859375,
+          "p10": 33.099365234375,
+          "p50": 36.76261901855469,
+          "p90": 40.268096923828125,
+          "max": 42.364501953125
+        },
+        "mean_io_duration_ms": 36.63873516742327,
+        "mean_period_ms": 36.63873516742326,
+        "mean_layer_stall_ms": 30.614723618834276,
+        "requests_with_internal_stall": 41,
+        "aggregate_b_s_GiB_s": [
+          1.5609350452761794,
+          1.5608233104841052,
+          1.5601529017316602
+        ],
+        "internal_stall_total_ms": 8786.425678605428,
+        "mean_request_average_ssd_queue_wait_ms": 18.0522722479722,
+        "mean_request_average_npu_link_queue_wait_ms": 0.00016710274762745238
+      }
+    },
+    "128K_miss1024": {
+      "asu_baseline": {
+        "request_count": 23,
+        "ratio": {
+          "min": 1.0523126331348798,
+          "p10": 1.2827825416968635,
+          "p50": 1.40473942712315,
+          "p90": 1.6102185223782726,
+          "max": 1.7588603424075098
+        },
+        "io_duration_ms": {
+          "min": 18.99867561632891,
+          "p10": 26.064910888671875,
+          "p50": 33.20930480957031,
+          "p90": 38.779296875,
+          "max": 47.9034423828125
+        },
+        "mean_io_duration_ms": 33.04182147277765,
+        "mean_period_ms": 33.087899340923364,
+        "mean_layer_stall_ms": 9.724539604563768,
+        "requests_with_internal_stall": 23,
+        "aggregate_b_s_GiB_s": [
+          1.7181187616728661,
+          1.7178982072747053,
+          1.7178982072747053
+        ],
+        "internal_stall_total_ms": 1565.6508763347665,
+        "mean_request_average_ssd_queue_wait_ms": 30.368160748404353,
+        "mean_request_average_npu_link_queue_wait_ms": 0.8017889470997316
+      },
+      "od_baseline": {
+        "request_count": 23,
+        "ratio": {
+          "min": 1.2619244038818742,
+          "p10": 1.3242692752204692,
+          "p50": 1.537540435981581,
+          "p90": 1.6567768457691345,
+          "max": 1.7368848416987588
+        },
+        "io_duration_ms": {
+          "min": 19.18666389757891,
+          "p10": 29.616546630859375,
+          "p50": 35.83106994628906,
+          "p90": 39.276123046875,
+          "max": 41.63856506347656
+        },
+        "mean_io_duration_ms": 35.133183319025484,
+        "mean_period_ms": 35.161856581738654,
+        "mean_layer_stall_ms": 11.798496845379056,
+        "requests_with_internal_stall": 23,
+        "aggregate_b_s_GiB_s": [
+          1.6167786962508757,
+          1.6165711508469924,
+          1.6165711508469924
+        ],
+        "internal_stall_total_ms": 1899.557992106028,
+        "mean_request_average_ssd_queue_wait_ms": 17.283235465456062,
+        "mean_request_average_npu_link_queue_wait_ms": 0.00017859985785221468
+      }
+    },
+    "128K_miss2048": {
+      "asu_baseline": {
+        "request_count": 13,
+        "ratio": {
+          "min": 0.9999999999999963,
+          "p10": 1.008067396386742,
+          "p50": 1.0498596637780837,
+          "p90": 1.0759269099696618,
+          "max": 1.081769281990766
+        },
+        "io_duration_ms": {
+          "min": 22.73651123046875,
+          "p10": 27.17525072925264,
+          "p50": 32.93352217188112,
+          "p90": 39.04204503760684,
+          "max": 47.9034423828125
+        },
+        "mean_io_duration_ms": 33.108672468959476,
+        "mean_period_ms": 46.595887076615725,
+        "mean_layer_stall_ms": 0.014528392291075371,
+        "requests_with_internal_stall": 1,
+        "aggregate_b_s_GiB_s": [
+          1.2103318106653822,
+          1.2103318106653822,
+          1.2103318106653822
+        ],
+        "internal_stall_total_ms": 1.3220836984878588,
+        "mean_request_average_ssd_queue_wait_ms": 30.50738858903109,
+        "mean_request_average_npu_link_queue_wait_ms": 0.7769906241963005
+      },
+      "od_baseline": {
+        "request_count": 13,
+        "ratio": {
+          "min": 0.9999999999999963,
+          "p10": 1.004571199297416,
+          "p50": 1.0616871673735504,
+          "p90": 1.090233376824759,
+          "max": 1.0973918034103127
+        },
+        "io_duration_ms": {
+          "min": 28.848648071289062,
+          "p10": 32.95844213233386,
+          "p50": 36.48832583441208,
+          "p90": 39.776922398689294,
+          "max": 41.65144466040192
+        },
+        "mean_io_duration_ms": 36.22105866982278,
+        "mean_period_ms": 46.581358684324655,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          1.2107093044921913,
+          1.2107093044921913,
+          1.2107093044921913
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 17.695680715452156,
+        "mean_request_average_npu_link_queue_wait_ms": 0.00015769885276346388
+      }
+    },
+    "128K_miss4096": {
+      "asu_baseline": {
+        "request_count": 9,
+        "ratio": {
+          "min": 1.000000000000001,
+          "p10": 1.000000000000001,
+          "p50": 1.0151023388072749,
+          "p90": 1.0337310963662738,
+          "max": 1.037029923094633
+        },
+        "io_duration_ms": {
+          "min": 22.74306833824994,
+          "p10": 26.61831247887494,
+          "p50": 33.30739061091663,
+          "p90": 38.00097641913235,
+          "max": 40.34347117028119
+        },
+        "mean_io_duration_ms": 32.50820618140158,
+        "mean_period_ms": 93.01732520235419,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          0.5966770379882805,
+          0.5968775343048088,
+          0.5964765416717522
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 29.763209590031035,
+        "mean_request_average_npu_link_queue_wait_ms": 0.7936256599385286
+      },
+      "od_baseline": {
+        "request_count": 9,
+        "ratio": {
+          "min": 1.000000000000001,
+          "p10": 1.0043709318332414,
+          "p50": 1.0142846897664328,
+          "p90": 1.044187670184868,
+          "max": 1.0464824648882334
+        },
+        "io_duration_ms": {
+          "min": 26.800918579101562,
+          "p10": 32.24876070087339,
+          "p50": 36.83733510327147,
+          "p90": 39.960215117580084,
+          "max": 41.258235574578066
+        },
+        "mean_io_duration_ms": 36.1899077211887,
+        "mean_period_ms": 93.01732520235419,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          0.5966770379882805,
+          0.5968775343048088,
+          0.5964765416717522
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 17.843483692591047,
+        "mean_request_average_npu_link_queue_wait_ms": 0.00015687277530755916
+      }
+    },
+    "160K_miss256": {
+      "asu_baseline": {
+        "request_count": 48,
+        "ratio": {
+          "min": 3.3959906634423276,
+          "p10": 3.8383436795478425,
+          "p50": 4.38654538297445,
+          "p90": 4.954920480324517,
+          "max": 5.1356320733587895
+        },
+        "io_duration_ms": {
+          "min": 20.952301025390625,
+          "p10": 28.011407004139983,
+          "p50": 33.876914978027344,
+          "p90": 39.176673889160156,
+          "max": 43.84071350097656
+        },
+        "mean_io_duration_ms": 33.6419763231853,
+        "mean_period_ms": 33.6419763231853,
+        "mean_layer_stall_ms": 26.275787489402425,
+        "requests_with_internal_stall": 48,
+        "aggregate_b_s_GiB_s": [
+          2.125400864086482,
+          2.125400864086482,
+          2.125400864086482
+        ],
+        "internal_stall_total_ms": 8828.664596439216,
+        "mean_request_average_ssd_queue_wait_ms": 30.39129198244642,
+        "mean_request_average_npu_link_queue_wait_ms": 1.0671223187904504
+      },
+      "od_baseline": {
+        "request_count": 48,
+        "ratio": {
+          "min": 5.039145763958706,
+          "p10": 5.406717594957454,
+          "p50": 6.029021547276404,
+          "p90": 6.46249695913319,
+          "max": 6.750055397625071
+        },
+        "io_duration_ms": {
+          "min": 27.30865478515625,
+          "p10": 41.07413060302724,
+          "p50": 46.48723602294922,
+          "p90": 50.1190185546875,
+          "max": 52.01988220214844
+        },
+        "mean_io_duration_ms": 45.8712436429234,
+        "mean_period_ms": 45.8712436429234,
+        "mean_layer_stall_ms": 38.50505480914053,
+        "requests_with_internal_stall": 48,
+        "aggregate_b_s_GiB_s": [
+          1.5587692826354356,
+          1.5587692826354356,
+          1.5587692826354356
+        ],
+        "internal_stall_total_ms": 12937.69841587122,
+        "mean_request_average_ssd_queue_wait_ms": 22.657020215022442,
+        "mean_request_average_npu_link_queue_wait_ms": 0.00015856882989859347
+      }
+    },
+    "160K_miss1024": {
+      "asu_baseline": {
+        "request_count": 35,
+        "ratio": {
+          "min": 1.072683888210662,
+          "p10": 1.0874298508283184,
+          "p50": 1.2268410728851509,
+          "p90": 1.3646395846525181,
+          "max": 1.5254518983450984
+        },
+        "io_duration_ms": {
+          "min": 20.755847613037076,
+          "p10": 27.813873291015625,
+          "p50": 33.70613098144531,
+          "p90": 38.96174621582031,
+          "max": 48.79722595214844
+        },
+        "mean_io_duration_ms": 33.84330602026765,
+        "mean_period_ms": 34.155830812926744,
+        "mean_layer_stall_ms": 5.423763386901325,
+        "requests_with_internal_stall": 35,
+        "aggregate_b_s_GiB_s": [
+          2.0835971631691614,
+          2.0835971631691614,
+          2.0835971631691614
+        ],
+        "internal_stall_total_ms": 1328.8220297908247,
+        "mean_request_average_ssd_queue_wait_ms": 30.645814537304553,
+        "mean_request_average_npu_link_queue_wait_ms": 1.0679612321427197
+      },
+      "od_baseline": {
+        "request_count": 35,
+        "ratio": {
+          "min": 1.2775174601277455,
+          "p10": 1.5170177706270906,
+          "p50": 1.6311476321587528,
+          "p90": 1.7667043182830116,
+          "max": 1.8142302265732846
+        },
+        "io_duration_ms": {
+          "min": 31.651687622070312,
+          "p10": 41.58149719238281,
+          "p50": 46.47254943847656,
+          "p90": 49.53071594238281,
+          "max": 51.71356201171875
+        },
+        "mean_io_duration_ms": 45.831867239996356,
+        "mean_period_ms": 45.831867239996356,
+        "mean_layer_stall_ms": 17.099799813970932,
+        "requests_with_internal_stall": 35,
+        "aggregate_b_s_GiB_s": [
+          1.552784044665636,
+          1.552784044665636,
+          1.552784044665636
+        ],
+        "internal_stall_total_ms": 4189.450954422879,
+        "mean_request_average_ssd_queue_wait_ms": 22.66341089241772,
+        "mean_request_average_npu_link_queue_wait_ms": 0.00016164863182044858
+      }
+    },
+    "160K_miss2048": {
+      "asu_baseline": {
+        "request_count": 20,
+        "ratio": {
+          "min": 0.9999999999999978,
+          "p10": 0.9999999999999978,
+          "p50": 1.0339265479800002,
+          "p90": 1.0643587906188778,
+          "max": 1.075706831696606
+        },
+        "io_duration_ms": {
+          "min": 21.657257080078125,
+          "p10": 28.294714112300834,
+          "p50": 33.74497033717512,
+          "p90": 38.45277082492312,
+          "max": 43.4052096983869
+        },
+        "mean_io_duration_ms": 33.630860338849494,
+        "mean_period_ms": 57.318772714283114,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          1.2338400690966826,
+          1.2336936539941437,
+          1.2338400690966826
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 30.248562294057614,
+        "mean_request_average_npu_link_queue_wait_ms": 1.0396188190649915
+      },
+      "od_baseline": {
+        "request_count": 20,
+        "ratio": {
+          "min": 0.9999999999999978,
+          "p10": 0.9999999999999978,
+          "p50": 1.054353296005075,
+          "p90": 1.0938019744529568,
+          "max": 1.097841665017008
+        },
+        "io_duration_ms": {
+          "min": 34.51101414174627,
+          "p10": 40.1613419162255,
+          "p50": 45.24511503241661,
+          "p90": 49.02348684982644,
+          "max": 51.016495545997714
+        },
+        "mean_io_duration_ms": 44.71279349075473,
+        "mean_period_ms": 57.31877271428312,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          1.2338400690966824,
+          1.2336936539941434,
+          1.2338400690966824
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 22.052443937768412,
+        "mean_request_average_npu_link_queue_wait_ms": 0.00016105078467856053
+      }
+    },
+    "160K_miss4096": {
+      "asu_baseline": {
+        "request_count": 11,
+        "ratio": {
+          "min": 0.999999999999998,
+          "p10": 0.999999999999998,
+          "p50": 1.0063706506417447,
+          "p90": 1.0319167585138094,
+          "max": 1.036291773213946
+        },
+        "io_duration_ms": {
+          "min": 16.60895718966367,
+          "p10": 24.202738840886923,
+          "p50": 32.67567041869461,
+          "p90": 38.478859134077545,
+          "max": 41.45272337695769
+        },
+        "mean_io_duration_ms": 31.75425692202176,
+        "mean_period_ms": 114.49217180383857,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          0.6098601996093763,
+          0.6098601996093763,
+          0.6098601996093763
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 28.878055999418887,
+        "mean_request_average_npu_link_queue_wait_ms": 0.9516784006171949
+      },
+      "od_baseline": {
+        "request_count": 11,
+        "ratio": {
+          "min": 0.999999999999998,
+          "p10": 0.999999999999998,
+          "p50": 1.0139889143409553,
+          "p90": 1.047026850491697,
+          "max": 1.0498396481841203
+        },
+        "io_duration_ms": {
+          "min": 24.359972279635258,
+          "p10": 40.50726185857602,
+          "p50": 45.36969125352334,
+          "p90": 49.43124922500592,
+          "max": 50.92048645019531
+        },
+        "mean_io_duration_ms": 44.83782797700337,
+        "mean_period_ms": 114.4921718038386,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          0.6098601996093762,
+          0.6098601996093762,
+          0.6098601996093762
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 22.084037793348692,
+        "mean_request_average_npu_link_queue_wait_ms": 0.00016956965995503436
+      }
+    },
+    "200K_miss256": {
+      "asu_baseline": {
+        "request_count": 40,
+        "ratio": {
+          "min": 2.545643723639973,
+          "p10": 3.279877846064839,
+          "p50": 3.8398958020824323,
+          "p90": 4.215939287061142,
+          "max": 4.589270566184517
+        },
+        "io_duration_ms": {
+          "min": 22.365991276674322,
+          "p10": 29.18610382080078,
+          "p50": 34.830284118652344,
+          "p90": 40.4698486328125,
+          "max": 49.6490478515625
+        },
+        "mean_io_duration_ms": 34.863147784986374,
+        "mean_period_ms": 34.863147784986374,
+        "mean_layer_stall_ms": 25.81923724972976,
+        "requests_with_internal_stall": 40,
+        "aggregate_b_s_GiB_s": [
+          2.564774787061254,
+          2.5646544259562245,
+          2.56405262043108
+        ],
+        "internal_stall_total_ms": 7229.386429924327,
+        "mean_request_average_ssd_queue_wait_ms": 30.62260502778593,
+        "mean_request_average_npu_link_queue_wait_ms": 1.356174091229837
+      },
+      "od_baseline": {
+        "request_count": 40,
+        "ratio": {
+          "min": 4.659581191591477,
+          "p10": 5.515598206375815,
+          "p50": 6.116143663869466,
+          "p90": 6.638531998184233,
+          "max": 6.851750288873248
+        },
+        "io_duration_ms": {
+          "min": 28.791162175112277,
+          "p10": 49.45182800292969,
+          "p50": 57.025909423828125,
+          "p90": 62.52330780029297,
+          "max": 64.97764587402344
+        },
+        "mean_io_duration_ms": 56.181142375188436,
+        "mean_period_ms": 56.18114237518844,
+        "mean_layer_stall_ms": 47.137231839931815,
+        "requests_with_internal_stall": 40,
+        "aggregate_b_s_GiB_s": [
+          1.591568249705309,
+          1.591493559750374,
+          1.5911201099757002
+        ],
+        "internal_stall_total_ms": 13198.424915180902,
+        "mean_request_average_ssd_queue_wait_ms": 27.624217813421254,
+        "mean_request_average_npu_link_queue_wait_ms": 0.00015516292891938852
+      }
+    },
+    "200K_miss1024": {
+      "asu_baseline": {
+        "request_count": 36,
+        "ratio": {
+          "min": 1.000000000000003,
+          "p10": 1.0246046202766839,
+          "p50": 1.0917360762570403,
+          "p90": 1.1467783425611087,
+          "max": 1.1801816593692862
+        },
+        "io_duration_ms": {
+          "min": 25.86800012102549,
+          "p10": 29.830647950613592,
+          "p50": 34.682159423828125,
+          "p90": 40.88694763183594,
+          "max": 48.69316101074219
+        },
+        "mean_io_duration_ms": 35.039638984234344,
+        "mean_period_ms": 36.91997893756213,
+        "mean_layer_stall_ms": 1.4770279999984268,
+        "requests_with_internal_stall": 32,
+        "aggregate_b_s_GiB_s": [
+          2.412784768567194,
+          2.412405916148807,
+          2.412405916148807
+        ],
+        "internal_stall_total_ms": 372.21105599960356,
+        "mean_request_average_ssd_queue_wait_ms": 30.96229744766883,
+        "mean_request_average_npu_link_queue_wait_ms": 1.347377301306343
+      },
+      "od_baseline": {
+        "request_count": 36,
+        "ratio": {
+          "min": 1.388344565406613,
+          "p10": 1.4939806303255991,
+          "p50": 1.649468299603687,
+          "p90": 1.745818708242393,
+          "max": 1.795731024733352
+        },
+        "io_duration_ms": {
+          "min": 39.4439697265625,
+          "p10": 49.95159149169922,
+          "p50": 56.864356994628906,
+          "p90": 61.694984436035156,
+          "max": 63.96636962890625
+        },
+        "mean_io_duration_ms": 56.315288367234416,
+        "mean_period_ms": 56.31528836723441,
+        "mean_layer_stall_ms": 20.872337429670818,
+        "requests_with_internal_stall": 36,
+        "aggregate_b_s_GiB_s": [
+          1.581807807774636,
+          1.581559434309582,
+          1.581559434309582
+        ],
+        "internal_stall_total_ms": 5259.82903227705,
+        "mean_request_average_ssd_queue_wait_ms": 27.743503454816256,
+        "mean_request_average_npu_link_queue_wait_ms": 0.00015395566561180314
+      }
+    },
+    "200K_miss2048": {
+      "asu_baseline": {
+        "request_count": 3,
+        "ratio": {
+          "min": 1.0384224635962036,
+          "p10": 1.0394373723840067,
+          "p50": 1.0434970075352188,
+          "p90": 1.052108799980808,
+          "max": 1.0542617480922054
+        },
+        "io_duration_ms": {
+          "min": 25.108308594388745,
+          "p10": 29.218653446215285,
+          "p50": 32.46372143810186,
+          "p90": 37.11845397949219,
+          "max": 37.495269775390625
+        },
+        "mean_io_duration_ms": 32.41710106567178,
+        "mean_period_ms": 70.74053784115813,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          1.25279011977539,
+          1.25279011977539,
+          1.25279011977539
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 28.26981463775459,
+        "mean_request_average_npu_link_queue_wait_ms": 1.3804281636633673
+      },
+      "od_baseline": {
+        "request_count": 3,
+        "ratio": {
+          "min": 1.0705786865660587,
+          "p10": 1.0721304143056047,
+          "p50": 1.0783373252637887,
+          "p90": 1.0852751475626001,
+          "max": 1.0870096031373029
+        },
+        "io_duration_ms": {
+          "min": 47.25158181216193,
+          "p10": 52.93474660644506,
+          "p50": 57.32228259341218,
+          "p90": 62.44953076427373,
+          "max": 62.87608511061535
+        },
+        "mean_io_duration_ms": 57.819485739453306,
+        "mean_period_ms": 70.74053784115813,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          1.25279011977539,
+          1.25279011977539,
+          1.25279011977539
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 28.61739669310733,
+        "mean_request_average_npu_link_queue_wait_ms": 0.000157403892620871
+      }
+    },
+    "200K_miss4096": {
+      "asu_baseline": {
+        "request_count": 15,
+        "ratio": {
+          "min": 1.0000000000000016,
+          "p10": 1.003248254198994,
+          "p50": 1.0203585162950155,
+          "p90": 1.0278232634160358,
+          "max": 1.0316487497056768
+        },
+        "io_duration_ms": {
+          "min": 18.393090266022227,
+          "p10": 25.23475119089944,
+          "p50": 34.68453306025731,
+          "p90": 40.58192292084368,
+          "max": 47.78566157949899
+        },
+        "mean_io_duration_ms": 33.91254364610081,
+        "mean_period_ms": 141.33578827944126,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          0.6207052414062507,
+          0.6207844129931648,
+          0.6206260698193367
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 29.825203094001413,
+        "mean_request_average_npu_link_queue_wait_ms": 1.2955813288645945
+      },
+      "od_baseline": {
+        "request_count": 15,
+        "ratio": {
+          "min": 1.000000000000001,
+          "p10": 1.009146766417896,
+          "p50": 1.0408397110072654,
+          "p90": 1.0478808677868285,
+          "max": 1.0487109720760996
+        },
+        "io_duration_ms": {
+          "min": 35.224363656502646,
+          "p10": 50.63047180725535,
+          "p50": 57.62127348813647,
+          "p90": 61.291142809787196,
+          "max": 63.19981734483417
+        },
+        "mean_io_duration_ms": 56.56141220684059,
+        "mean_period_ms": 141.33578827944123,
+        "mean_layer_stall_ms": 0.0,
+        "requests_with_internal_stall": 0,
+        "aggregate_b_s_GiB_s": [
+          0.6207052414062508,
+          0.6207844129931649,
+          0.6206260698193368
+        ],
+        "internal_stall_total_ms": 0.0,
+        "mean_request_average_ssd_queue_wait_ms": 27.698644972404278,
+        "mean_request_average_npu_link_queue_wait_ms": 0.00014736570916092166
+      }
+    }
+  },
+  "matched_request_examples": [
+    {
+      "seed": 7,
+      "request_id": 18000011,
+      "selection": "previous OD median128K miss256 sample",
+      "same_load_and_placement": true,
+      "ASU": {
+        "seed": 7,
+        "policy": "asu_baseline",
+        "request_id": 18000011,
+        "npu_id": 18,
+        "total_input_K": 128,
+        "miss_tokens": 256,
+        "C_ms": 6.024011548589168,
+        "V_MiB": 175.65625,
+        "V_s_GiB": [
+          0.0572357177734375,
+          0.0572357177734375,
+          0.05706787109375
+        ],
+        "TTFT_ms": 247.00778541803675,
+        "ratio": 5.125483729274356,
+        "admission_ms": 2829.282797175474,
+        "in_warm": true,
+        "own_compute_ms": 48.19209238871334,
+        "stall_ms": 198.81569302932485,
+        "internal_stall_ms": 198.81569302932485,
+        "L0_stall_ms": 0.0,
+        "avg_ssd_queue_wait_ms": 32.32034079949619,
+        "avg_npu_link_queue_wait_ms": 0.888312511845727,
+        "cycles": [
+          {
+            "layer": 1,
+            "start_ms": 2829.282797175474,
+            "end_ms": 2864.0962982177734,
+            "period_ms": 34.81350104229932,
+            "io_read_latency_ms": 34.81350104229932,
+            "stall_ms": 28.789489493710335,
+            "b_s_GiB_s": [
+              1.6440666999821303,
+              1.6440666999821303,
+              1.6392453900115083
+            ]
+          },
+          {
+            "layer": 2,
+            "start_ms": 2864.0962982177734,
+            "end_ms": 2906.101608276367,
+            "period_ms": 42.00531005859375,
+            "io_read_latency_ms": 42.00531005859375,
+            "stall_ms": 35.98129851000476,
+            "b_s_GiB_s": [
+              1.3625829137696794,
+              1.3625829137696794,
+              1.3585870694477744
+            ]
+          },
+          {
+            "layer": 3,
+            "start_ms": 2906.101608276367,
+            "end_ms": 2936.405487060547,
+            "period_ms": 30.303878784179688,
+            "io_read_latency_ms": 30.303878784179688,
+            "stall_ms": 24.2798672355907,
+            "b_s_GiB_s": [
+              1.8887258024315268,
+              1.8887258024315268,
+              1.8831870170871527
+            ]
+          },
+          {
+            "layer": 4,
+            "start_ms": 2936.405487060547,
+            "end_ms": 2965.148391723633,
+            "period_ms": 28.742904663085938,
+            "io_read_latency_ms": 28.742904663085938,
+            "stall_ms": 22.71889311449695,
+            "b_s_GiB_s": [
+              1.991299016029665,
+              1.991299016029665,
+              1.9854594294723933
+            ]
+          },
+          {
+            "layer": 5,
+            "start_ms": 2965.148391723633,
+            "end_ms": 3002.266845703125,
+            "period_ms": 37.11845397949219,
+            "io_read_latency_ms": 37.11845397949219,
+            "stall_ms": 31.0944424309032,
+            "b_s_GiB_s": [
+              1.5419747224671596,
+              1.5419747224671596,
+              1.5374528024599246
+            ]
+          },
+          {
+            "layer": 6,
+            "start_ms": 3002.266845703125,
+            "end_ms": 3038.0509185791016,
+            "period_ms": 35.78407287597656,
+            "io_read_latency_ms": 35.78407287597656,
+            "stall_ms": 29.760061327387575,
+            "b_s_GiB_s": [
+              1.5994746593494218,
+              1.5994746593494218,
+              1.594784117826403
+            ]
+          },
+          {
+            "layer": 7,
+            "start_ms": 3038.0509185791016,
+            "end_ms": 3070.266571044922,
+            "period_ms": 32.21565246582031,
+            "io_read_latency_ms": 32.21565246582031,
+            "stall_ms": 26.191640917231325,
+            "b_s_GiB_s": [
+              1.7766431343944564,
+              1.7766431343944564,
+              1.7714330372261442
+            ]
+          }
+        ]
+      },
+      "OD": {
+        "seed": 7,
+        "policy": "od_baseline",
+        "request_id": 18000011,
+        "npu_id": 18,
+        "total_input_K": 128,
+        "miss_tokens": 256,
+        "C_ms": 6.024011548589168,
+        "V_MiB": 175.65625,
+        "V_s_GiB": [
+          0.0572357177734375,
+          0.0572357177734375,
+          0.05706787109375
+        ],
+        "TTFT_ms": 276.49770780573226,
+        "ratio": 5.737408236511607,
+        "admission_ms": 2550.3443748366067,
+        "in_warm": true,
+        "own_compute_ms": 48.19209238871334,
+        "stall_ms": 228.30561541702036,
+        "internal_stall_ms": 228.30561541702036,
+        "L0_stall_ms": 0.0,
+        "avg_ssd_queue_wait_ms": 19.31339080136532,
+        "avg_npu_link_queue_wait_ms": 0.00014666369414115726,
+        "cycles": [
+          {
+            "layer": 1,
+            "start_ms": 2550.3443748366067,
+            "end_ms": 2588.5685204101565,
+            "period_ms": 38.22414557354978,
+            "io_read_latency_ms": 38.22414557354978,
+            "stall_ms": 32.20013402496079,
+            "b_s_GiB_s": [
+              1.4973707564844376,
+              1.4973707564844376,
+              1.4929796398965067
+            ]
+          },
+          {
+            "layer": 2,
+            "start_ms": 2588.5685204101565,
+            "end_ms": 2629.3007134033205,
+            "period_ms": 40.73219299316406,
+            "io_read_latency_ms": 40.73219299316406,
+            "stall_ms": 34.708181444575075,
+            "b_s_GiB_s": [
+              1.4051715257031008,
+              1.4051715257031008,
+              1.4010507880910683
+            ]
+          },
+          {
+            "layer": 3,
+            "start_ms": 2629.3007134033205,
+            "end_ms": 2666.8731926513674,
+            "period_ms": 37.572479248046875,
+            "io_read_latency_ms": 37.572479248046875,
+            "stall_ms": 31.548467699457888,
+            "b_s_GiB_s": [
+              1.5233415233415233,
+              1.5233415233415233,
+              1.5188742461469735
+            ]
+          },
+          {
+            "layer": 4,
+            "start_ms": 2666.8731926513674,
+            "end_ms": 2705.51149831543,
+            "period_ms": 38.6383056640625,
+            "io_read_latency_ms": 38.6383056640625,
+            "stall_ms": 32.61429411547351,
+            "b_s_GiB_s": [
+              1.4813205907906168,
+              1.4813205907906168,
+              1.476976542137272
+            ]
+          },
+          {
+            "layer": 5,
+            "start_ms": 2705.51149831543,
+            "end_ms": 2746.9234703613283,
+            "period_ms": 41.41197204589844,
+            "io_read_latency_ms": 41.41197204589844,
+            "stall_ms": 35.38796049730945,
+            "b_s_GiB_s": [
+              1.3821055831391225,
+              1.3821055831391225,
+              1.378052487587395
+            ]
+          },
+          {
+            "layer": 6,
+            "start_ms": 2746.9234703613283,
+            "end_ms": 2784.7896812988283,
+            "period_ms": 37.8662109375,
+            "io_read_latency_ms": 37.8662109375,
+            "stall_ms": 31.842199388911013,
+            "b_s_GiB_s": [
+              1.5115248226950355,
+              1.5115248226950355,
+              1.5070921985815602
+            ]
+          },
+          {
+            "layer": 7,
+            "start_ms": 2784.7896812988283,
+            "end_ms": 2820.81807109375,
+            "period_ms": 36.02838979492162,
+            "io_read_latency_ms": 36.02838979492162,
+            "stall_ms": 30.004378246332635,
+            "b_s_GiB_s": [
+              1.5886282484238348,
+              1.5886282484238348,
+              1.5839695145574892
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "seed": 19,
+      "request_id": 20000009,
+      "selection": "previous OD median128K miss1024 sample",
+      "same_load_and_placement": true,
+      "ASU": {
+        "seed": 19,
+        "policy": "asu_baseline",
+        "request_id": 20000009,
+        "npu_id": 20,
+        "total_input_K": 128,
+        "miss_tokens": 1024,
+        "C_ms": 23.363359736359623,
+        "V_MiB": 174.625,
+        "V_s_GiB": [
+          0.0569000244140625,
+          0.056732177734375,
+          0.0569000244140625
+        ],
+        "TTFT_ms": 255.51074966441183,
+        "ratio": 1.367048406926942,
+        "admission_ms": 2179.4921669567134,
+        "in_warm": true,
+        "own_compute_ms": 186.90687789087698,
+        "stall_ms": 68.60387177353505,
+        "internal_stall_ms": 48.77236084938886,
+        "L0_stall_ms": 19.831510924146187,
+        "avg_ssd_queue_wait_ms": 27.94324079070448,
+        "avg_npu_link_queue_wait_ms": 0.8909753209753345,
+        "cycles": [
+          {
+            "layer": 1,
+            "start_ms": 2199.3236778808596,
+            "end_ms": 2224.4050072265627,
+            "period_ms": 25.081329345703125,
+            "io_read_latency_ms": 25.081329345703125,
+            "stall_ms": 1.7179696093435268,
+            "b_s_GiB_s": [
+              2.2686207588837584,
+              2.261928662249883,
+              2.2686207588837584
+            ]
+          },
+          {
+            "layer": 2,
+            "start_ms": 2224.4050072265627,
+            "end_ms": 2253.7555168701174,
+            "period_ms": 29.350509643554688,
+            "io_read_latency_ms": 29.350509643554688,
+            "stall_ms": 5.987149907195089,
+            "b_s_GiB_s": [
+              1.9386383781774512,
+              1.9329196808966917,
+              1.9386383781774512
+            ]
+          },
+          {
+            "layer": 3,
+            "start_ms": 2253.7555168701174,
+            "end_ms": 2282.449745996094,
+            "period_ms": 28.694229125976562,
+            "io_read_latency_ms": 28.694229125976562,
+            "stall_ms": 5.330869389616964,
+            "b_s_GiB_s": [
+              1.9829779766605247,
+              1.977128484104004,
+              1.9829779766605247
+            ]
+          },
+          {
+            "layer": 4,
+            "start_ms": 2282.449745996094,
+            "end_ms": 2313.2041931152344,
+            "period_ms": 30.754447119140423,
+            "io_read_latency_ms": 30.754447119140423,
+            "stall_ms": 7.3910873827808246,
+            "b_s_GiB_s": [
+              1.8501397275534193,
+              1.8446820882391024,
+              1.8501397275534193
+            ]
+          },
+          {
+            "layer": 5,
+            "start_ms": 2313.2041931152344,
+            "end_ms": 2348.6576080322266,
+            "period_ms": 35.45341491699219,
+            "io_read_latency_ms": 35.45341491699219,
+            "stall_ms": 12.09005518063259,
+            "b_s_GiB_s": [
+              1.604923659604687,
+              1.6001893715232571,
+              1.604923659604687
+            ]
+          },
+          {
+            "layer": 6,
+            "start_ms": 2348.6576080322266,
+            "end_ms": 2382.084274291992,
+            "period_ms": 33.426666259765625,
+            "io_read_latency_ms": 33.426666259765625,
+            "stall_ms": 10.063306523406027,
+            "b_s_GiB_s": [
+              1.7022344966105951,
+              1.6972131559126287,
+              1.7022344966105951
+            ]
+          },
+          {
+            "layer": 7,
+            "start_ms": 2382.084274291992,
+            "end_ms": 2411.6395568847656,
+            "period_ms": 29.555282592773438,
+            "io_read_latency_ms": 29.555282592773438,
+            "stall_ms": 6.191922856413839,
+            "b_s_GiB_s": [
+              1.925206576369367,
+              1.9195275009228498,
+              1.925206576369367
+            ]
+          }
+        ]
+      },
+      "OD": {
+        "seed": 19,
+        "policy": "od_baseline",
+        "request_id": 20000009,
+        "npu_id": 20,
+        "total_input_K": 128,
+        "miss_tokens": 1024,
+        "C_ms": 23.363359736359623,
+        "V_MiB": 174.625,
+        "V_s_GiB": [
+          0.0569000244140625,
+          0.056732177734375,
+          0.0569000244140625
+        ],
+        "TTFT_ms": 287.638182623396,
+        "ratio": 1.5389384589224673,
+        "admission_ms": 2172.451098743823,
+        "in_warm": true,
+        "own_compute_ms": 186.90687789087698,
+        "stall_ms": 100.73130473251922,
+        "internal_stall_ms": 77.2535246921625,
+        "L0_stall_ms": 23.47778004035672,
+        "avg_ssd_queue_wait_ms": 17.18848091653488,
+        "avg_npu_link_queue_wait_ms": 0.00027574542488326375,
+        "cycles": [
+          {
+            "layer": 1,
+            "start_ms": 2195.9288787841797,
+            "end_ms": 2232.821578979492,
+            "period_ms": 36.8927001953125,
+            "io_read_latency_ms": 36.8927001953125,
+            "stall_ms": 13.529340458952902,
+            "b_s_GiB_s": [
+              1.5423111919927206,
+              1.537761601455869,
+              1.5423111919927206
+            ]
+          },
+          {
+            "layer": 2,
+            "start_ms": 2232.821578979492,
+            "end_ms": 2267.6917266845703,
+            "period_ms": 34.870147705078125,
+            "io_read_latency_ms": 34.870147705078125,
+            "stall_ms": 11.506787968718527,
+            "b_s_GiB_s": [
+              1.6317689530685922,
+              1.6269554753309265,
+              1.6317689530685922
+            ]
+          },
+          {
+            "layer": 3,
+            "start_ms": 2267.6917266845703,
+            "end_ms": 2302.5366973876953,
+            "period_ms": 34.844970703125,
+            "io_read_latency_ms": 34.844970703125,
+            "stall_ms": 11.481610966765402,
+            "b_s_GiB_s": [
+              1.6329479768786128,
+              1.628131021194605,
+              1.6329479768786128
+            ]
+          },
+          {
+            "layer": 4,
+            "start_ms": 2302.5366973876953,
+            "end_ms": 2335.543746948242,
+            "period_ms": 33.007049560546875,
+            "io_read_latency_ms": 33.007049560546875,
+            "stall_ms": 9.643689824187277,
+            "b_s_GiB_s": [
+              1.7238749046529367,
+              1.718789727943046,
+              1.7238749046529367
+            ]
+          },
+          {
+            "layer": 5,
+            "start_ms": 2335.543746948242,
+            "end_ms": 2367.6192474365234,
+            "period_ms": 32.07550048828125,
+            "io_read_latency_ms": 32.07550048828125,
+            "stall_ms": 8.712140751921652,
+            "b_s_GiB_s": [
+              1.7739403453689169,
+              1.7687074829931972,
+              1.7739403453689169
+            ]
+          },
+          {
+            "layer": 6,
+            "start_ms": 2367.6192474365234,
+            "end_ms": 2400.194091796875,
+            "period_ms": 32.57484436035156,
+            "io_read_latency_ms": 32.57484436035156,
+            "stall_ms": 9.211484623991964,
+            "b_s_GiB_s": [
+              1.746747391472369,
+              1.741594744299884,
+              1.746747391472369
+            ]
+          },
+          {
+            "layer": 7,
+            "start_ms": 2400.194091796875,
+            "end_ms": 2436.7259216308594,
+            "period_ms": 36.531829833984375,
+            "io_read_latency_ms": 36.531829833984375,
+            "stall_ms": 13.168470097624777,
+            "b_s_GiB_s": [
+              1.5575465196416265,
+              1.552951987135309,
+              1.5575465196416265
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "seed": 19,
+      "request_id": 19000008,
+      "selection": "middle ASU ratio among64K/miss1024 shared-warm request IDs",
+      "same_load_and_placement": true,
+      "ASU": {
+        "seed": 19,
+        "policy": "asu_baseline",
+        "request_id": 19000008,
+        "npu_id": 19,
+        "total_input_K": 64,
+        "miss_tokens": 1024,
+        "C_ms": 12.625940760424301,
+        "V_MiB": 86.625,
+        "V_s_GiB": [
+          0.0281982421875,
+          0.0281982421875,
+          0.0281982421875
+        ],
+        "TTFT_ms": 238.8601252946255,
+        "ratio": 2.364775522740914,
+        "admission_ms": 2207.5477063349394,
+        "in_warm": true,
+        "own_compute_ms": 101.00752608339441,
+        "stall_ms": 137.85259921123088,
+        "internal_stall_ms": 120.9566935832795,
+        "L0_stall_ms": 16.89590562795138,
+        "avg_ssd_queue_wait_ms": 27.92507379806519,
+        "avg_npu_link_queue_wait_ms": 0.38321771271114596,
+        "cycles": [
+          {
+            "layer": 1,
+            "start_ms": 2224.443611962891,
+            "end_ms": 2252.63671875,
+            "period_ms": 28.193106787109173,
+            "io_read_latency_ms": 28.193106787109173,
+            "stall_ms": 15.567166026684845,
+            "b_s_GiB_s": [
+              1.0001821509218407,
+              1.0001821509218407,
+              1.0001821509218407
+            ]
+          },
+          {
+            "layer": 2,
+            "start_ms": 2252.63671875,
+            "end_ms": 2280.0260399414065,
+            "period_ms": 27.389321191406452,
+            "io_read_latency_ms": 27.389321191406452,
+            "stall_ms": 14.763380430982124,
+            "b_s_GiB_s": [
+              1.0295341746675837,
+              1.0295341746675837,
+              1.0295341746675837
+            ]
+          },
+          {
+            "layer": 3,
+            "start_ms": 2280.0260399414065,
+            "end_ms": 2309.7616577148438,
+            "period_ms": 29.735617773437298,
+            "io_read_latency_ms": 29.735617773437298,
+            "stall_ms": 17.10967701301297,
+            "b_s_GiB_s": [
+              0.9482985153477917,
+              0.9482985153477917,
+              0.9482985153477917
+            ]
+          },
+          {
+            "layer": 4,
+            "start_ms": 2309.7616577148438,
+            "end_ms": 2343.749771118164,
+            "period_ms": 33.98811340332031,
+            "io_read_latency_ms": 33.98811340332031,
+            "stall_ms": 21.362172642895985,
+            "b_s_GiB_s": [
+              0.8296501148176498,
+              0.8296501148176498,
+              0.8296501148176498
+            ]
+          },
+          {
+            "layer": 5,
+            "start_ms": 2343.749771118164,
+            "end_ms": 2375.216827392578,
+            "period_ms": 31.467056274414062,
+            "io_read_latency_ms": 31.467056274414062,
+            "stall_ms": 18.841115513989735,
+            "b_s_GiB_s": [
+              0.8961194825976797,
+              0.8961194825976797,
+              0.8961194825976797
+            ]
+          },
+          {
+            "layer": 6,
+            "start_ms": 2375.216827392578,
+            "end_ms": 2404.763717651367,
+            "period_ms": 29.546890258789062,
+            "io_read_latency_ms": 29.546890258789062,
+            "stall_ms": 16.920949498364735,
+            "b_s_GiB_s": [
+              0.9543556679069504,
+              0.9543556679069504,
+              0.9543556679069504
+            ]
+          },
+          {
+            "layer": 7,
+            "start_ms": 2404.763717651367,
+            "end_ms": 2433.7818908691406,
+            "period_ms": 29.018173217773438,
+            "io_read_latency_ms": 29.018173217773438,
+            "stall_ms": 16.39223245734911,
+            "b_s_GiB_s": [
+              0.971744223038436,
+              0.971744223038436,
+              0.971744223038436
+            ]
+          }
+        ]
+      },
+      "OD": {
+        "seed": 19,
+        "policy": "od_baseline",
+        "request_id": 19000008,
+        "npu_id": 19,
+        "total_input_K": 64,
+        "miss_tokens": 1024,
+        "C_ms": 12.625940760424301,
+        "V_MiB": 86.625,
+        "V_s_GiB": [
+          0.0281982421875,
+          0.0281982421875,
+          0.0281982421875
+        ],
+        "TTFT_ms": 155.01147722333644,
+        "ratio": 1.5346527455325951,
+        "admission_ms": 2127.28174564158,
+        "in_warm": true,
+        "own_compute_ms": 101.00752608339441,
+        "stall_ms": 54.00395113994182,
+        "internal_stall_ms": 42.02689246023283,
+        "L0_stall_ms": 11.977058679708989,
+        "avg_ssd_queue_wait_ms": 9.313001341668976,
+        "avg_npu_link_queue_wait_ms": 0.00025695882524058247,
+        "cycles": [
+          {
+            "layer": 1,
+            "start_ms": 2139.258804321289,
+            "end_ms": 2158.5411308837893,
+            "period_ms": 19.282326562500202,
+            "io_read_latency_ms": 19.282326562500202,
+            "stall_ms": 6.656385802075874,
+            "b_s_GiB_s": [
+              1.4623879590515416,
+              1.4623879590515416,
+              1.4623879590515416
+            ]
+          },
+          {
+            "layer": 2,
+            "start_ms": 2158.5411308837893,
+            "end_ms": 2177.0167541503906,
+            "period_ms": 18.47562326660136,
+            "io_read_latency_ms": 18.47562326660136,
+            "stall_ms": 5.849682506177032,
+            "b_s_GiB_s": [
+              1.5262403752556675,
+              1.5262403752556675,
+              1.5262403752556675
+            ]
+          },
+          {
+            "layer": 3,
+            "start_ms": 2177.0167541503906,
+            "end_ms": 2195.747604370117,
+            "period_ms": 18.730850219726562,
+            "io_read_latency_ms": 18.730850219726562,
+            "stall_ms": 6.104909459302235,
+            "b_s_GiB_s": [
+              1.5054437922846005,
+              1.5054437922846005,
+              1.5054437922846005
+            ]
+          },
+          {
+            "layer": 4,
+            "start_ms": 2195.747604370117,
+            "end_ms": 2214.1822052001953,
+            "period_ms": 18.434600830078125,
+            "io_read_latency_ms": 18.434600830078125,
+            "stall_ms": 5.808660069653797,
+            "b_s_GiB_s": [
+              1.5296367112810707,
+              1.5296367112810707,
+              1.5296367112810707
+            ]
+          },
+          {
+            "layer": 5,
+            "start_ms": 2214.1822052001953,
+            "end_ms": 2233.043975830078,
+            "period_ms": 18.861770629882812,
+            "io_read_latency_ms": 18.861770629882812,
+            "stall_ms": 6.235829869458485,
+            "b_s_GiB_s": [
+              1.4949944382647387,
+              1.4949944382647387,
+              1.4949944382647387
+            ]
+          },
+          {
+            "layer": 6,
+            "start_ms": 2233.043975830078,
+            "end_ms": 2251.9015502929688,
+            "period_ms": 18.857574462890625,
+            "io_read_latency_ms": 18.857574462890625,
+            "stall_ms": 6.231633702466297,
+            "b_s_GiB_s": [
+              1.4953271028037383,
+              1.4953271028037383,
+              1.4953271028037383
+            ]
+          },
+          {
+            "layer": 7,
+            "start_ms": 2251.9015502929688,
+            "end_ms": 2269.667282104492,
+            "period_ms": 17.765731811523438,
+            "io_read_latency_ms": 17.765731811523438,
+            "stall_ms": 5.13979105109911,
+            "b_s_GiB_s": [
+              1.5872266049411876,
+              1.5872266049411876,
+              1.5872266049411876
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "seed": 43,
+      "request_id": 16000007,
+      "selection": "middle ASU ratio among32K/miss2048 shared-warm request IDs",
+      "same_load_and_placement": true,
+      "ASU": {
+        "seed": 43,
+        "policy": "asu_baseline",
+        "request_id": 16000007,
+        "npu_id": 16,
+        "total_input_K": 32,
+        "miss_tokens": 2048,
+        "C_ms": 14.369102622125,
+        "V_MiB": 41.25,
+        "V_s_GiB": [
+          0.013427734375,
+          0.013427734375,
+          0.013427734375
+        ],
+        "TTFT_ms": 241.30779542780056,
+        "ratio": 2.0991898535146163,
+        "admission_ms": 2241.5816861249887,
+        "in_warm": true,
+        "own_compute_ms": 114.952820977,
+        "stall_ms": 126.35497445080091,
+        "internal_stall_ms": 126.35497445080091,
+        "L0_stall_ms": 0.0,
+        "avg_ssd_queue_wait_ms": 31.499666896595173,
+        "avg_npu_link_queue_wait_ms": 0.04782896736146493,
+        "cycles": [
+          {
+            "layer": 1,
+            "start_ms": 2241.5816861249887,
+            "end_ms": 2273.1510399414065,
+            "period_ms": 31.569353816417788,
+            "io_read_latency_ms": 31.569353816417788,
+            "stall_ms": 17.200251194292832,
+            "b_s_GiB_s": [
+              0.4253408052975999,
+              0.4253408052975999,
+              0.4253408052975999
+            ]
+          },
+          {
+            "layer": 2,
+            "start_ms": 2273.1510399414065,
+            "end_ms": 2304.5467613769533,
+            "period_ms": 31.395721435546875,
+            "io_read_latency_ms": 31.395721435546875,
+            "stall_ms": 17.02661881342192,
+            "b_s_GiB_s": [
+              0.4276931301790965,
+              0.4276931301790965,
+              0.4276931301790965
+            ]
+          },
+          {
+            "layer": 3,
+            "start_ms": 2304.5467613769533,
+            "end_ms": 2335.917305810547,
+            "period_ms": 31.37054443359375,
+            "io_read_latency_ms": 31.37054443359375,
+            "stall_ms": 17.001441811468794,
+            "b_s_GiB_s": [
+              0.42803638309256287,
+              0.42803638309256287,
+              0.42803638309256287
+            ]
+          },
+          {
+            "layer": 4,
+            "start_ms": 2335.917305810547,
+            "end_ms": 2367.111611230469,
+            "period_ms": 31.194305419921875,
+            "io_read_latency_ms": 31.194305419921875,
+            "stall_ms": 16.82520279779692,
+            "b_s_GiB_s": [
+              0.43045466774280333,
+              0.43045466774280333,
+              0.43045466774280333
+            ]
+          },
+          {
+            "layer": 5,
+            "start_ms": 2367.111611230469,
+            "end_ms": 2399.5060204101565,
+            "period_ms": 32.3944091796875,
+            "io_read_latency_ms": 32.3944091796875,
+            "stall_ms": 18.025306557562544,
+            "b_s_GiB_s": [
+              0.41450777202072536,
+              0.41450777202072536,
+              0.41450777202072536
+            ]
+          },
+          {
+            "layer": 6,
+            "start_ms": 2399.5060204101565,
+            "end_ms": 2433.8852165771486,
+            "period_ms": 34.37919616699219,
+            "io_read_latency_ms": 34.37919616699219,
+            "stall_ms": 20.01009354486723,
+            "b_s_GiB_s": [
+              0.39057732210423535,
+              0.39057732210423535,
+              0.39057732210423535
+            ]
+          },
+          {
+            "layer": 7,
+            "start_ms": 2433.8852165771486,
+            "end_ms": 2468.5203789306643,
+            "period_ms": 34.635162353515625,
+            "io_read_latency_ms": 34.635162353515625,
+            "stall_ms": 20.26605973139067,
+            "b_s_GiB_s": [
+              0.3876908165737824,
+              0.3876908165737824,
+              0.3876908165737824
+            ]
+          }
+        ]
+      },
+      "OD": {
+        "seed": 43,
+        "policy": "od_baseline",
+        "request_id": 16000007,
+        "npu_id": 16,
+        "total_input_K": 32,
+        "miss_tokens": 2048,
+        "C_ms": 14.369102622125,
+        "V_MiB": 41.25,
+        "V_s_GiB": [
+          0.013427734375,
+          0.013427734375,
+          0.013427734375
+        ],
+        "TTFT_ms": 114.95282097699965,
+        "ratio": 0.9999999999999969,
+        "admission_ms": 2267.253096549793,
+        "in_warm": true,
+        "own_compute_ms": 114.952820977,
+        "stall_ms": 0.0,
+        "internal_stall_ms": 0.0,
+        "L0_stall_ms": 0.0,
+        "avg_ssd_queue_wait_ms": 4.471558552189099,
+        "avg_npu_link_queue_wait_ms": 9.136127471975897e-05,
+        "cycles": [
+          {
+            "layer": 1,
+            "start_ms": 2267.253096549793,
+            "end_ms": 2281.622199171918,
+            "period_ms": 14.369102622124956,
+            "io_read_latency_ms": 8.72196377735554,
+            "stall_ms": 0.0,
+            "b_s_GiB_s": [
+              0.9344866362304717,
+              0.9344866362304717,
+              0.9344866362304717
+            ]
+          },
+          {
+            "layer": 2,
+            "start_ms": 2281.622199171918,
+            "end_ms": 2295.991301794043,
+            "period_ms": 14.369102622124956,
+            "io_read_latency_ms": 8.603044260699335,
+            "stall_ms": 0.0,
+            "b_s_GiB_s": [
+              0.9344866362304717,
+              0.9344866362304717,
+              0.9344866362304717
+            ]
+          },
+          {
+            "layer": 3,
+            "start_ms": 2295.991301794043,
+            "end_ms": 2310.360404416168,
+            "period_ms": 14.369102622124956,
+            "io_read_latency_ms": 8.878564441308754,
+            "stall_ms": 0.0,
+            "b_s_GiB_s": [
+              0.9344866362304717,
+              0.9344866362304717,
+              0.9344866362304717
+            ]
+          },
+          {
+            "layer": 4,
+            "start_ms": 2310.360404416168,
+            "end_ms": 2324.729507038293,
+            "period_ms": 14.369102622124956,
+            "io_read_latency_ms": 9.212830959808798,
+            "stall_ms": 0.0,
+            "b_s_GiB_s": [
+              0.9344866362304717,
+              0.9344866362304717,
+              0.9344866362304717
+            ]
+          },
+          {
+            "layer": 5,
+            "start_ms": 2324.729507038293,
+            "end_ms": 2339.098609660418,
+            "period_ms": 14.369102622124956,
+            "io_read_latency_ms": 9.53450897733228,
+            "stall_ms": 0.0,
+            "b_s_GiB_s": [
+              0.9344866362304717,
+              0.9344866362304717,
+              0.9344866362304717
+            ]
+          },
+          {
+            "layer": 6,
+            "start_ms": 2339.098609660418,
+            "end_ms": 2353.467712282543,
+            "period_ms": 14.369102622124956,
+            "io_read_latency_ms": 9.482728132551074,
+            "stall_ms": 0.0,
+            "b_s_GiB_s": [
+              0.9344866362304717,
+              0.9344866362304717,
+              0.9344866362304717
+            ]
+          },
+          {
+            "layer": 7,
+            "start_ms": 2353.467712282543,
+            "end_ms": 2367.836814904668,
+            "period_ms": 14.369102622124956,
+            "io_read_latency_ms": 9.34282778093393,
+            "stall_ms": 0.0,
+            "b_s_GiB_s": [
+              0.9344866362304717,
+              0.9344866362304717,
+              0.9344866362304717
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "seed": 43,
+      "request_id": 12000008,
+      "selection": "middle ASU ratio among200K/miss256 shared-warm request IDs",
+      "same_load_and_placement": true,
+      "ASU": {
+        "seed": 43,
+        "policy": "asu_baseline",
+        "request_id": 12000008,
+        "npu_id": 12,
+        "total_input_K": 200,
+        "miss_tokens": 256,
+        "C_ms": 9.043910535256627,
+        "V_MiB": 274.65625,
+        "V_s_GiB": [
+          0.0894622802734375,
+          0.0894622802734375,
+          0.08929443359375
+        ],
+        "TTFT_ms": 278.2146011351051,
+        "ratio": 3.8453305134227893,
+        "admission_ms": 2650.581888135503,
+        "in_warm": true,
+        "own_compute_ms": 72.35128428205302,
+        "stall_ms": 205.8633168530523,
+        "internal_stall_ms": 174.70005728347724,
+        "L0_stall_ms": 31.163259569575075,
+        "avg_ssd_queue_wait_ms": 30.26883674064407,
+        "avg_npu_link_queue_wait_ms": 1.3625541173196851,
+        "cycles": [
+          {
+            "layer": 1,
+            "start_ms": 2681.745147705078,
+            "end_ms": 2716.8880462646484,
+            "period_ms": 35.14289855957031,
+            "io_read_latency_ms": 35.14289855957031,
+            "stall_ms": 26.098988024313712,
+            "b_s_GiB_s": [
+              2.5456716417910448,
+              2.5456716417910448,
+              2.54089552238806
+            ]
+          },
+          {
+            "layer": 2,
+            "start_ms": 2716.8880462646484,
+            "end_ms": 2753.115234375,
+            "period_ms": 36.22718811035156,
+            "io_read_latency_ms": 36.22718811035156,
+            "stall_ms": 27.183277575094962,
+            "b_s_GiB_s": [
+              2.4694790001621607,
+              2.4694790001621607,
+              2.464845831306322
+            ]
+          },
+          {
+            "layer": 3,
+            "start_ms": 2753.115234375,
+            "end_ms": 2790.260543823242,
+            "period_ms": 37.14530944824219,
+            "io_read_latency_ms": 37.14530944824219,
+            "stall_ms": 28.101398912985587,
+            "b_s_GiB_s": [
+              2.408440839565306,
+              2.408440839565306,
+              2.403922188834414
+            ]
+          },
+          {
+            "layer": 4,
+            "start_ms": 2790.260543823242,
+            "end_ms": 2823.904571533203,
+            "period_ms": 33.64402770996094,
+            "io_read_latency_ms": 33.64402770996094,
+            "stall_ms": 24.600117174704337,
+            "b_s_GiB_s": [
+              2.659083539125446,
+              2.659083539125446,
+              2.6540946394272744
+            ]
+          },
+          {
+            "layer": 5,
+            "start_ms": 2823.904571533203,
+            "end_ms": 2853.104019165039,
+            "period_ms": 29.199447631835938,
+            "io_read_latency_ms": 29.199447631835938,
+            "stall_ms": 20.155537096579337,
+            "b_s_GiB_s": [
+              3.0638346793895326,
+              3.0638346793895326,
+              3.058086396688989
+            ]
+          },
+          {
+            "layer": 6,
+            "start_ms": 2853.104019165039,
+            "end_ms": 2886.2889862060547,
+            "period_ms": 33.184967041015625,
+            "io_read_latency_ms": 33.184967041015625,
+            "stall_ms": 24.141056505759025,
+            "b_s_GiB_s": [
+              2.6958676849931718,
+              2.6958676849931718,
+              2.690809771888119
+            ]
+          },
+          {
+            "layer": 7,
+            "start_ms": 2886.2889862060547,
+            "end_ms": 2919.7525787353516,
+            "period_ms": 33.463592529296875,
+            "io_read_latency_ms": 33.463592529296875,
+            "stall_ms": 24.419681994040275,
+            "b_s_GiB_s": [
+              2.673421277022621,
+              2.673421277022621,
+              2.668405477253348
+            ]
+          }
+        ]
+      },
+      "OD": {
+        "seed": 43,
+        "policy": "od_baseline",
+        "request_id": 12000008,
+        "npu_id": 12,
+        "total_input_K": 200,
+        "miss_tokens": 256,
+        "C_ms": 9.043910535256627,
+        "V_MiB": 274.65625,
+        "V_s_GiB": [
+          0.0894622802734375,
+          0.0894622802734375,
+          0.08929443359375
+        ],
+        "TTFT_ms": 454.5232711790504,
+        "ratio": 6.282172814060144,
+        "admission_ms": 2765.3051937019095,
+        "in_warm": true,
+        "own_compute_ms": 72.35128428205302,
+        "stall_ms": 382.1719868969976,
+        "internal_stall_ms": 325.3961632405085,
+        "L0_stall_ms": 56.77582365648914,
+        "avg_ssd_queue_wait_ms": 27.56278331211049,
+        "avg_npu_link_queue_wait_ms": 0.00015683597951519272,
+        "cycles": [
+          {
+            "layer": 1,
+            "start_ms": 2822.0810173583986,
+            "end_ms": 2882.6610802246096,
+            "period_ms": 60.58006286621094,
+            "io_read_latency_ms": 60.58006286621094,
+            "stall_ms": 51.53615233095434,
+            "b_s_GiB_s": [
+              1.4767610999515135,
+              1.4767610999515135,
+              1.4739904412274019
+            ]
+          },
+          {
+            "layer": 2,
+            "start_ms": 2882.6610802246096,
+            "end_ms": 2944.013237817383,
+            "period_ms": 61.35215759277344,
+            "io_read_latency_ms": 61.35215759277344,
+            "stall_ms": 52.30824705751684,
+            "b_s_GiB_s": [
+              1.4581765953081185,
+              1.4581765953081185,
+              1.4554408043225497
+            ]
+          },
+          {
+            "layer": 3,
+            "start_ms": 2944.013237817383,
+            "end_ms": 3003.1036614013674,
+            "period_ms": 59.090423583984375,
+            "io_read_latency_ms": 59.090423583984375,
+            "stall_ms": 50.046513048727775,
+            "b_s_GiB_s": [
+              1.513989490129243,
+              1.513989490129243,
+              1.5111489845192445
+            ]
+          },
+          {
+            "layer": 4,
+            "start_ms": 3003.1036614013674,
+            "end_ms": 3056.541848046875,
+            "period_ms": 53.43818664550781,
+            "io_read_latency_ms": 53.43818664550781,
+            "stall_ms": 44.39427611025121,
+            "b_s_GiB_s": [
+              1.674126423243031,
+              1.674126423243031,
+              1.6709854731056144
+            ]
+          },
+          {
+            "layer": 5,
+            "start_ms": 3056.541848046875,
+            "end_ms": 3105.880379541016,
+            "period_ms": 49.338531494140625,
+            "io_read_latency_ms": 49.338531494140625,
+            "stall_ms": 40.294620958884025,
+            "b_s_GiB_s": [
+              1.813233543119578,
+              1.813233543119578,
+              1.809831604014288
+            ]
+          },
+          {
+            "layer": 6,
+            "start_ms": 3105.880379541016,
+            "end_ms": 3157.2624443603518,
+            "period_ms": 51.38206481933594,
+            "io_read_latency_ms": 51.38206481933594,
+            "stall_ms": 42.33815428407934,
+            "b_s_GiB_s": [
+              1.7411188240098,
+              1.7411188240098,
+              1.7378521845651287
+            ]
+          },
+          {
+            "layer": 7,
+            "start_ms": 3157.2624443603518,
+            "end_ms": 3210.7845543457033,
+            "period_ms": 53.52210998535156,
+            "io_read_latency_ms": 53.52210998535156,
+            "stall_ms": 44.47819945009496,
+            "b_s_GiB_s": [
+              1.6715013720109761,
+              1.6715013720109761,
+              1.6683653469227753
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "facts": [
+    "ASU supplies only one FIFO Path0 per SSD; OD has32 independent per-NPU paths with equal1.25GiB/s CIR and unlimited PIR/borrowing.",
+    "Every I/O command here is176KiB; a large layer is many equal-size commands, not one large nonpreemptive command.",
+    "ASU small-read internal I/O duration is approximately the same30-35ms as large-read I/O duration, whereas OD duration changes strongly with own volume.",
+    "Some same-ID small-volume requests have large internal stalls underASU and zero internal stalls underOD; some large-volume requests improve underASU instead."
+  ],
+  "interpretation": [
+    "ASU common FIFO exposes requests to a shared backlog, so a small request cannot bypass already queued commands from other cards. The per-layer enqueue burst is far shorter than the observed queue wait. This makes layer completion time much less sensitive to its own volume and yields unequal achieved bandwidth by profile.",
+    "Mixing six total lengths then fills the gap: smaller-read miss1024/2048 profiles move right, while large-read miss256 profiles move left. This is more specific than sayingASU simply adds random noise.",
+    "OD isolation prevents otherNPUs from filling this request dedicated queue, but all paths still compete for the same disks. Equal-CIR service makes layer duration more dependent on ownV, preserving the miss-group separation in this input."
+  ],
+  "limitations": [
+    "No block-order trace was saved. Layer timings and per-request block queue averages cannot identify the exact predecessor request causing each stall. FIFO source semantics plus queue statistics support the mechanism, but the historical data cannot assign stall milliseconds to a named competing request.",
+    "ASU NPU-link queue times are also nonzero, especially for large reads; the analysis must not attribute every io_start-to-ready millisecond toSSD FIFO.",
+    "Even with same input IDs, policy changes phase and competing traffic. No counterfactual was simulated with an identical instantaneous backlog held fixed."
+  ]
+}

@@ -1,0 +1,649 @@
+{
+  "audit_kind": "Read-only validation of historical native simulation outputs; no simulation or rerun.",
+  "scope": "Four exact 200K/NQL2048 +20K/NQL1024 baseline mechanism-screening cases, 32NPUs/4SSUs, independent repeated-profile shuffle. This is not the 8NPU mixed8 run.",
+  "all_checks_passed": true,
+  "original_archive_recovery": {
+    "source": "source_exactab_followup/fifo_underload_exploration.zip",
+    "source_bytes": 56990403,
+    "source_sha256": "d0db43b3d221daf4d861f8f24c176d8e98b62a575ea553001a67266dfbfae849",
+    "archive_complete": false,
+    "recovered_entries": 108,
+    "crc_all_passed": true,
+    "stop_reason": "Truncated entry fifo_underload_exploration/source/results/fifo_underload_exploration_20260914/mixed20_screen/mixed24_s4_L1_S4_seed7_baseline/manifest.json.gz.tmp: expected end 57020632, archive bytes 56990403",
+    "last_good_end": 56924432
+  },
+  "once_status": "No exact-target Once manifest/result was recovered. Source archive is truncated; this is an evidence gap, not proof that no historical Once execution existed.",
+  "metric_definitions": {
+    "TTFT": "completion_time_ms - admission_time_ms; client admission queue excluded",
+    "SLO": "TTFT <= 1.5 * 8 * own per-layer compute time",
+    "window": "Half-open admission cohort [200,800)ms; admitted requests followed to completion after window end",
+    "NPU_utilization": "Total compute intersected with [200,800)ms divided by32*600ms",
+    "per_role_utilization": "Role compute / role active time in window",
+    "nominal_demand": "sum current admitted requests per-layer bytes on SSU / own layer compute; not actual physical receipt supply and does not double-count layer0 prefetch",
+    "full_run_mean_ssd_utilization": "Original simulator full-run SSD mean; not the [200,800)ms bandwidth utilization",
+    "static_any_combination_upper": "Upper bound across any frozen request combination, different from realized window peak"
+  },
+  "caveats": [
+    "Short20K compute uses linear extrapolation below32K from32K/48K data, not measured20K hardware compute.",
+    "Only S16 exhibits nominal per-SSU overload in [200,800)ms; S4/S8/S24 do not. None has a static all-combinations underload guarantee.",
+    "Repeated profiles perNPU are intentional mechanism screening, not unique length/NQL requests."
+  ],
+  "cases": [
+    {
+      "case": "mixed20_s4_L1_S4_seed7_baseline",
+      "checks": {
+        "native_result_not_proxy": true,
+        "all_frozen_profiles_exact": true,
+        "manifest_metadata_result_input_fingerprints_match": true,
+        "full_population_completed": true,
+        "window_cohort_count_matches": true,
+        "window_cohort_ids_match": true,
+        "window_slo_passed_recomputed": true,
+        "full_slo_passed_recomputed": true,
+        "window_utilization_recomputed": true,
+        "original_native_invariants": true,
+        "all_requests_arrive_at_zero": true,
+        "batch_size_one": true,
+        "hardware_32npu_4ssu": true,
+        "every_card_has_expected_role_counts": true,
+        "own_compute_matches_frozen_profile": true
+      },
+      "input_fingerprint": "cc31708cfc9d8415d453b071548938306209757155daaf79eb308f8a396c98aa",
+      "original_native_invariants": {
+        "actual_cir_per_npu_capacity": true,
+        "actual_cir_per_ssu_capacity": true,
+        "all_microbatches_released": true,
+        "all_requests_completed": true,
+        "batch_latency_decomposition": true,
+        "block_conservation": true,
+        "causal_control_drained": true,
+        "cir_capacity": true,
+        "cir_entry_write_counter_consistency": true,
+        "compute_work_conservation": true,
+        "fixed_batch_layer_barrier": true,
+        "microbatch_capacity": true,
+        "microbatch_membership": true,
+        "next_layer_prefetch_at_compute_start": true,
+        "npu_link_byte_conservation": true,
+        "one_command_per_ssd": true,
+        "one_compute_job_per_npu": true,
+        "one_link_io_per_npu": true,
+        "request_latency_decomposition": true,
+        "ssd_byte_conservation": true
+      },
+      "profiles": {
+        "L": {
+          "B_gib_s": 3.7583703593261717,
+          "compute_us": 70740.53784115809,
+          "constructed_profile": false,
+          "nql": 2048,
+          "profile_construction": {
+            "anchors": [
+              [
+                200.0,
+                2048
+              ]
+            ],
+            "compute_scale": 1.0,
+            "kv_formula": "(total_tokens - nql) * 1408 / 2**30",
+            "method": "direct_data_row",
+            "source": "data",
+            "units": {
+              "compute": "microseconds",
+              "kv": "GiB"
+            }
+          },
+          "read_gib": 0.265869140625,
+          "total_length_k": 200.0,
+          "total_tokens": 204800
+        },
+        "S": {
+          "B_gib_s": 4.865153232996448,
+          "compute_us": 5243.965419109056,
+          "constructed_profile": true,
+          "nql": 1024,
+          "profile_construction": {
+            "anchors": [
+              [
+                32,
+                1024
+              ],
+              [
+                48,
+                1024
+              ]
+            ],
+            "compute_scale": 1.0,
+            "kv_formula": "(total_tokens - nql) * 1408 / 2**30",
+            "method": "linear_extrapolation_below_32K",
+            "source": "data",
+            "units": {
+              "compute": "microseconds",
+              "kv": "GiB"
+            }
+          },
+          "read_gib": 0.0255126953125,
+          "total_length_k": 20.0,
+          "total_tokens": 20480
+        }
+      },
+      "per_npu_role_counts": {
+        "L": 3,
+        "S": 12
+      },
+      "window_ms": [
+        200.0,
+        800.0
+      ],
+      "short_profile_measured": false,
+      "source_files": {
+        "original_results/mixed20_s4_L1_S4_seed7_baseline/manifest.json.gz": {
+          "bytes": 120611,
+          "sha256": "7100966f2fefef3e2d4cd41a8aee8c51bbe2bdc6c17951206a12da043e1a0df0"
+        },
+        "original_results/mixed20_s4_L1_S4_seed7_baseline/metadata.json": {
+          "bytes": 8340,
+          "sha256": "db07b0ec77f4a5268840cec871906c5a0ac829b1185b137dedb5cbb5ae7577b0"
+        },
+        "original_results/mixed20_s4_L1_S4_seed7_baseline/metrics.json": {
+          "bytes": 1171,
+          "sha256": "6fa8e6ff42830729c181bfa25c6a82532241d90f24397e7a3b2e67e4df6d54e6"
+        },
+        "original_results/mixed20_s4_L1_S4_seed7_baseline/result.json.gz": {
+          "bytes": 213798,
+          "sha256": "8c28bd2a6807172641b97340d3dbfc31801e7362b928ae3a75a06ffc288b3ad8"
+        }
+      },
+      "demand_audit": {
+        "any_ssu_overload_fraction": 0.0,
+        "any_ssu_overload_ms": 0.0,
+        "definition": "sum current admitted requests per-layer bytes on SSU / own layer compute time; layer0 prefetch not counted twice",
+        "mean_nominal_gib_s_by_ssu": [
+          33.46008689142267,
+          33.200943658922384,
+          31.315302160347606,
+          30.518436990152846
+        ],
+        "peak_nominal_gib_s_by_ssu": [
+          36.85544177197677,
+          36.614396046589164,
+          34.70542070978679,
+          33.88460741898383
+        ],
+        "underloaded_every_admission_interval": true
+      },
+      "all_requests_slo": {
+        "count": 480,
+        "passed": 413,
+        "rate": 0.8604166666666667
+      },
+      "window_admissions_slo": {
+        "count": 118,
+        "passed": 102,
+        "rate": 0.864406779661017
+      }
+    },
+    {
+      "case": "mixed20_s4_L1_S8_seed7_baseline",
+      "checks": {
+        "native_result_not_proxy": true,
+        "all_frozen_profiles_exact": true,
+        "manifest_metadata_result_input_fingerprints_match": true,
+        "full_population_completed": true,
+        "window_cohort_count_matches": true,
+        "window_cohort_ids_match": true,
+        "window_slo_passed_recomputed": true,
+        "full_slo_passed_recomputed": true,
+        "window_utilization_recomputed": true,
+        "original_native_invariants": true,
+        "all_requests_arrive_at_zero": true,
+        "batch_size_one": true,
+        "hardware_32npu_4ssu": true,
+        "every_card_has_expected_role_counts": true,
+        "own_compute_matches_frozen_profile": true
+      },
+      "input_fingerprint": "d441fa3cfd95cd08e1e332847d2398deac93c4d7409733ae885c55e0a35230b0",
+      "original_native_invariants": {
+        "actual_cir_per_npu_capacity": true,
+        "actual_cir_per_ssu_capacity": true,
+        "all_microbatches_released": true,
+        "all_requests_completed": true,
+        "batch_latency_decomposition": true,
+        "block_conservation": true,
+        "causal_control_drained": true,
+        "cir_capacity": true,
+        "cir_entry_write_counter_consistency": true,
+        "compute_work_conservation": true,
+        "fixed_batch_layer_barrier": true,
+        "microbatch_capacity": true,
+        "microbatch_membership": true,
+        "next_layer_prefetch_at_compute_start": true,
+        "npu_link_byte_conservation": true,
+        "one_command_per_ssd": true,
+        "one_compute_job_per_npu": true,
+        "one_link_io_per_npu": true,
+        "request_latency_decomposition": true,
+        "ssd_byte_conservation": true
+      },
+      "profiles": {
+        "L": {
+          "B_gib_s": 3.7583703593261717,
+          "compute_us": 70740.53784115809,
+          "constructed_profile": false,
+          "nql": 2048,
+          "profile_construction": {
+            "anchors": [
+              [
+                200.0,
+                2048
+              ]
+            ],
+            "compute_scale": 1.0,
+            "kv_formula": "(total_tokens - nql) * 1408 / 2**30",
+            "method": "direct_data_row",
+            "source": "data",
+            "units": {
+              "compute": "microseconds",
+              "kv": "GiB"
+            }
+          },
+          "read_gib": 0.265869140625,
+          "total_length_k": 200.0,
+          "total_tokens": 204800
+        },
+        "S": {
+          "B_gib_s": 4.865153232996448,
+          "compute_us": 5243.965419109056,
+          "constructed_profile": true,
+          "nql": 1024,
+          "profile_construction": {
+            "anchors": [
+              [
+                32,
+                1024
+              ],
+              [
+                48,
+                1024
+              ]
+            ],
+            "compute_scale": 1.0,
+            "kv_formula": "(total_tokens - nql) * 1408 / 2**30",
+            "method": "linear_extrapolation_below_32K",
+            "source": "data",
+            "units": {
+              "compute": "microseconds",
+              "kv": "GiB"
+            }
+          },
+          "read_gib": 0.0255126953125,
+          "total_length_k": 20.0,
+          "total_tokens": 20480
+        }
+      },
+      "per_npu_role_counts": {
+        "L": 3,
+        "S": 24
+      },
+      "window_ms": [
+        200.0,
+        800.0
+      ],
+      "short_profile_measured": false,
+      "source_files": {
+        "original_results/mixed20_s4_L1_S8_seed7_baseline/manifest.json.gz": {
+          "bytes": 157195,
+          "sha256": "fb7de29c208862a211a13efd854205c2d509ed650a6bcf042ef76eca840173ab"
+        },
+        "original_results/mixed20_s4_L1_S8_seed7_baseline/metadata.json": {
+          "bytes": 9892,
+          "sha256": "df5a198447e2a160664ff5332a5cfd92a5d9b8b6d7378c3063055cebb181e0f2"
+        },
+        "original_results/mixed20_s4_L1_S8_seed7_baseline/metrics.json": {
+          "bytes": 1158,
+          "sha256": "d560b5838eab26dc3a47510e46356bea1cad69b1a9512d925c08eb5fe3b2e15c"
+        },
+        "original_results/mixed20_s4_L1_S8_seed7_baseline/result.json.gz": {
+          "bytes": 358856,
+          "sha256": "989c7cb794dbe80a09aa979327f07d1c05ffc7041a9dcb9c72cc467c234c4f38"
+        }
+      },
+      "demand_audit": {
+        "any_ssu_overload_fraction": 0.0,
+        "any_ssu_overload_ms": 0.0,
+        "definition": "sum current admitted requests per-layer bytes on SSU / own layer compute time; layer0 prefetch not counted twice",
+        "mean_nominal_gib_s_by_ssu": [
+          33.80079563467546,
+          33.178446555819,
+          31.424120074933725,
+          30.268316160940334
+        ],
+        "peak_nominal_gib_s_by_ssu": [
+          36.237964388775254,
+          35.29759307921891,
+          33.486353221684006,
+          32.47828778265274
+        ],
+        "underloaded_every_admission_interval": true
+      },
+      "all_requests_slo": {
+        "count": 864,
+        "passed": 850,
+        "rate": 0.9837962962962963
+      },
+      "window_admissions_slo": {
+        "count": 125,
+        "passed": 125,
+        "rate": 1.0
+      }
+    },
+    {
+      "case": "mixed20_s4_L1_S16_seed7_baseline",
+      "checks": {
+        "native_result_not_proxy": true,
+        "all_frozen_profiles_exact": true,
+        "manifest_metadata_result_input_fingerprints_match": true,
+        "full_population_completed": true,
+        "window_cohort_count_matches": true,
+        "window_cohort_ids_match": true,
+        "window_slo_passed_recomputed": true,
+        "full_slo_passed_recomputed": true,
+        "window_utilization_recomputed": true,
+        "original_native_invariants": true,
+        "all_requests_arrive_at_zero": true,
+        "batch_size_one": true,
+        "hardware_32npu_4ssu": true,
+        "every_card_has_expected_role_counts": true,
+        "own_compute_matches_frozen_profile": true
+      },
+      "input_fingerprint": "0980efb07b8514192266b55b4ecbdb412a9e97a38b08da56886074e7e9228350",
+      "original_native_invariants": {
+        "actual_cir_per_npu_capacity": true,
+        "actual_cir_per_ssu_capacity": true,
+        "all_microbatches_released": true,
+        "all_requests_completed": true,
+        "batch_latency_decomposition": true,
+        "block_conservation": true,
+        "causal_control_drained": true,
+        "cir_capacity": true,
+        "cir_entry_write_counter_consistency": true,
+        "compute_work_conservation": true,
+        "fixed_batch_layer_barrier": true,
+        "microbatch_capacity": true,
+        "microbatch_membership": true,
+        "next_layer_prefetch_at_compute_start": true,
+        "npu_link_byte_conservation": true,
+        "one_command_per_ssd": true,
+        "one_compute_job_per_npu": true,
+        "one_link_io_per_npu": true,
+        "request_latency_decomposition": true,
+        "ssd_byte_conservation": true
+      },
+      "profiles": {
+        "L": {
+          "B_gib_s": 3.7583703593261717,
+          "compute_us": 70740.53784115809,
+          "constructed_profile": false,
+          "nql": 2048,
+          "profile_construction": {
+            "anchors": [
+              [
+                200.0,
+                2048
+              ]
+            ],
+            "compute_scale": 1.0,
+            "kv_formula": "(total_tokens - nql) * 1408 / 2**30",
+            "method": "direct_data_row",
+            "source": "data",
+            "units": {
+              "compute": "microseconds",
+              "kv": "GiB"
+            }
+          },
+          "read_gib": 0.265869140625,
+          "total_length_k": 200.0,
+          "total_tokens": 204800
+        },
+        "S": {
+          "B_gib_s": 4.865153232996448,
+          "compute_us": 5243.965419109056,
+          "constructed_profile": true,
+          "nql": 1024,
+          "profile_construction": {
+            "anchors": [
+              [
+                32,
+                1024
+              ],
+              [
+                48,
+                1024
+              ]
+            ],
+            "compute_scale": 1.0,
+            "kv_formula": "(total_tokens - nql) * 1408 / 2**30",
+            "method": "linear_extrapolation_below_32K",
+            "source": "data",
+            "units": {
+              "compute": "microseconds",
+              "kv": "GiB"
+            }
+          },
+          "read_gib": 0.0255126953125,
+          "total_length_k": 20.0,
+          "total_tokens": 20480
+        }
+      },
+      "per_npu_role_counts": {
+        "L": 2,
+        "S": 32
+      },
+      "window_ms": [
+        200.0,
+        800.0
+      ],
+      "short_profile_measured": false,
+      "source_files": {
+        "original_results/mixed20_s4_L1_S16_seed7_baseline/manifest.json.gz": {
+          "bytes": 155091,
+          "sha256": "b0166e88666753a878ef19339ed8ea9441892bc8ad4e1ee7d80f1b2187cac0ee"
+        },
+        "original_results/mixed20_s4_L1_S16_seed7_baseline/metadata.json": {
+          "bytes": 10774,
+          "sha256": "5870bacdafb75aa9436754bdeec2ac131d46cfa8f4c958b293a895d6fef2abc7"
+        },
+        "original_results/mixed20_s4_L1_S16_seed7_baseline/metrics.json": {
+          "bytes": 1192,
+          "sha256": "4fa0542f71d59c53dd4ee2b79b2fbcb9074e2d2cbd28c812333ec42164771853"
+        },
+        "original_results/mixed20_s4_L1_S16_seed7_baseline/result.json.gz": {
+          "bytes": 454934,
+          "sha256": "11ca1457cc6f45ed55c6589d04cb9b72f8f37ab870a6cba42361636dfd4397a7"
+        }
+      },
+      "demand_audit": {
+        "any_ssu_overload_fraction": 0.10977247232803942,
+        "any_ssu_overload_ms": 65.86348339682365,
+        "definition": "sum current admitted requests per-layer bytes on SSU / own layer compute time; layer0 prefetch not counted twice",
+        "mean_nominal_gib_s_by_ssu": [
+          36.65186852064357,
+          35.47351617597445,
+          34.189461161143456,
+          33.679335065032575
+        ],
+        "peak_nominal_gib_s_by_ssu": [
+          40.51266705152673,
+          40.219805393867205,
+          37.27259080484225,
+          36.101383959236614
+        ],
+        "underloaded_every_admission_interval": false
+      },
+      "all_requests_slo": {
+        "count": 1088,
+        "passed": 1088,
+        "rate": 1.0
+      },
+      "window_admissions_slo": {
+        "count": 246,
+        "passed": 246,
+        "rate": 1.0
+      }
+    },
+    {
+      "case": "mixed20_s4_L1_S24_seed7_baseline",
+      "checks": {
+        "native_result_not_proxy": true,
+        "all_frozen_profiles_exact": true,
+        "manifest_metadata_result_input_fingerprints_match": true,
+        "full_population_completed": true,
+        "window_cohort_count_matches": true,
+        "window_cohort_ids_match": true,
+        "window_slo_passed_recomputed": true,
+        "full_slo_passed_recomputed": true,
+        "window_utilization_recomputed": true,
+        "original_native_invariants": true,
+        "all_requests_arrive_at_zero": true,
+        "batch_size_one": true,
+        "hardware_32npu_4ssu": true,
+        "every_card_has_expected_role_counts": true,
+        "own_compute_matches_frozen_profile": true
+      },
+      "input_fingerprint": "2f346c70d4ab9944d97b89bc7c1c0fde9c3cf9bfcfef3506ce6f02dfeb7572c0",
+      "original_native_invariants": {
+        "actual_cir_per_npu_capacity": true,
+        "actual_cir_per_ssu_capacity": true,
+        "all_microbatches_released": true,
+        "all_requests_completed": true,
+        "batch_latency_decomposition": true,
+        "block_conservation": true,
+        "causal_control_drained": true,
+        "cir_capacity": true,
+        "cir_entry_write_counter_consistency": true,
+        "compute_work_conservation": true,
+        "fixed_batch_layer_barrier": true,
+        "microbatch_capacity": true,
+        "microbatch_membership": true,
+        "next_layer_prefetch_at_compute_start": true,
+        "npu_link_byte_conservation": true,
+        "one_command_per_ssd": true,
+        "one_compute_job_per_npu": true,
+        "one_link_io_per_npu": true,
+        "request_latency_decomposition": true,
+        "ssd_byte_conservation": true
+      },
+      "profiles": {
+        "L": {
+          "B_gib_s": 3.7583703593261717,
+          "compute_us": 70740.53784115809,
+          "constructed_profile": false,
+          "nql": 2048,
+          "profile_construction": {
+            "anchors": [
+              [
+                200.0,
+                2048
+              ]
+            ],
+            "compute_scale": 1.0,
+            "kv_formula": "(total_tokens - nql) * 1408 / 2**30",
+            "method": "direct_data_row",
+            "source": "data",
+            "units": {
+              "compute": "microseconds",
+              "kv": "GiB"
+            }
+          },
+          "read_gib": 0.265869140625,
+          "total_length_k": 200.0,
+          "total_tokens": 204800
+        },
+        "S": {
+          "B_gib_s": 4.865153232996448,
+          "compute_us": 5243.965419109056,
+          "constructed_profile": true,
+          "nql": 1024,
+          "profile_construction": {
+            "anchors": [
+              [
+                32,
+                1024
+              ],
+              [
+                48,
+                1024
+              ]
+            ],
+            "compute_scale": 1.0,
+            "kv_formula": "(total_tokens - nql) * 1408 / 2**30",
+            "method": "linear_extrapolation_below_32K",
+            "source": "data",
+            "units": {
+              "compute": "microseconds",
+              "kv": "GiB"
+            }
+          },
+          "read_gib": 0.0255126953125,
+          "total_length_k": 20.0,
+          "total_tokens": 20480
+        }
+      },
+      "per_npu_role_counts": {
+        "L": 2,
+        "S": 48
+      },
+      "window_ms": [
+        200.0,
+        800.0
+      ],
+      "short_profile_measured": false,
+      "source_files": {
+        "original_results/mixed20_s4_L1_S24_seed7_baseline/manifest.json.gz": {
+          "bytes": 204489,
+          "sha256": "b92dbcbc4ad38f1d896a383d45ce9e5e46c4433321886de5faaa7c5d39930c0d"
+        },
+        "original_results/mixed20_s4_L1_S24_seed7_baseline/metadata.json": {
+          "bytes": 12835,
+          "sha256": "0dd29a50b52d4509c7ee850462a035f9a760db6af3d7ef350bb18017e3198443"
+        },
+        "original_results/mixed20_s4_L1_S24_seed7_baseline/metrics.json": {
+          "bytes": 1152,
+          "sha256": "bc2574a82ab5f3295e1819968d07f01365ab576d5419aebc4d428818c6109888"
+        },
+        "original_results/mixed20_s4_L1_S24_seed7_baseline/result.json.gz": {
+          "bytes": 644313,
+          "sha256": "476f8d8c13d81b06b9de0b592213de7867a3faece7b5917dc471aacf7396a9b3"
+        }
+      },
+      "demand_audit": {
+        "any_ssu_overload_fraction": 0.0,
+        "any_ssu_overload_ms": 0.0,
+        "definition": "sum current admitted requests per-layer bytes on SSU / own layer compute time; layer0 prefetch not counted twice",
+        "mean_nominal_gib_s_by_ssu": [
+          37.339440839132,
+          36.61139554544453,
+          34.852531828453415,
+          34.24411452864082
+        ],
+        "peak_nominal_gib_s_by_ssu": [
+          39.45778461652077,
+          38.6814065320351,
+          36.37642865071501,
+          36.18401087992869
+        ],
+        "underloaded_every_admission_interval": true
+      },
+      "all_requests_slo": {
+        "count": 1600,
+        "passed": 1600,
+        "rate": 1.0
+      },
+      "window_admissions_slo": {
+        "count": 299,
+        "passed": 299,
+        "rate": 1.0
+      }
+    }
+  ]
+}

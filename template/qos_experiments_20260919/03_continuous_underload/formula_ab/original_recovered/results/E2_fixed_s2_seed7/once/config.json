@@ -1,0 +1,157 @@
+{
+  "name": "E2_fixed_s2_seed7",
+  "id": "E2",
+  "ssu": 2,
+  "seed": 7,
+  "horizon_ms": 4500,
+  "window_ms": [
+    2000,
+    4000
+  ],
+  "mode": "fixed",
+  "n_A": 4,
+  "n_B": 4,
+  "profile_A": {
+    "total_tokens": 204800,
+    "total_length_k": 200.0,
+    "nql": 1024,
+    "ssd_prefix_tokens": 203776,
+    "compute_us": 35442.950937563524,
+    "read_gib": 0.2672119140625,
+    "B_gib_s": 7.539211803588866,
+    "constructed_profile": false,
+    "profile_construction": {
+      "method": "direct_data_row",
+      "source": "data",
+      "anchors": [
+        {
+          "seq_len_k": 200,
+          "nql": 1024,
+          "weight": 1.0,
+          "compute_us": 35442.950937563524
+        }
+      ],
+      "extrapolated": false,
+      "compute_scale": 1.0,
+      "kv_formula": "exact hit prefix tokens * 1408 / 2**30; partial final block"
+    }
+  },
+  "profile_B": {
+    "total_tokens": 20480,
+    "total_length_k": 20.0,
+    "nql": 512,
+    "ssd_prefix_tokens": 19968,
+    "compute_us": 2695.499681279187,
+    "read_gib": 0.02618408203125,
+    "B_gib_s": 9.713999305250884,
+    "constructed_profile": true,
+    "profile_construction": {
+      "method": "bilinear_length_extrapolation_nql_interpolation",
+      "source": "data",
+      "anchors": [
+        {
+          "seq_len_k": 32,
+          "nql": 512,
+          "weight": 1.75,
+          "compute_us": 3702.132666685269
+        },
+        {
+          "seq_len_k": 48,
+          "nql": 512,
+          "weight": -0.75,
+          "compute_us": 5044.309980560046
+        }
+      ],
+      "extrapolated": true,
+      "compute_scale": 1.0,
+      "kv_formula": "exact hit prefix tokens * 1408 / 2**30; partial final block"
+    }
+  },
+  "screen": {
+    "id": "E2",
+    "n_A": 4,
+    "n_B": 4,
+    "S": 2,
+    "A": {
+      "total_length_k": 200.0,
+      "nql": 1024,
+      "V_MB": 286.916608,
+      "C_ms": 35.44295093756352,
+      "B_GBs": 8.095167033507838
+    },
+    "B": {
+      "total_length_k": 20.0,
+      "nql": 512,
+      "V_MB": 28.114944,
+      "C_ms": 2.6954996812791867,
+      "B_GBs": 10.430327332354816
+    },
+    "x": 10.205128205128204,
+    "y": 13.14893531011051,
+    "demand_GBs": 74.10197746345062,
+    "rho": 0.9262747182931328,
+    "A_read_ms": 3.5864576,
+    "single_A_block_ratio": 1.3305353456016722,
+    "ratio_condition_lhs": 0.6961669386349663,
+    "meets_ratio_condition": true,
+    "meets_single_A_block": true,
+    "strict_any_composition_underload": false,
+    "note": "20K计算外推；x>8,y>8；4:4双盘",
+    "profile_A": {
+      "total_tokens": 204800,
+      "total_length_k": 200.0,
+      "nql": 1024,
+      "ssd_prefix_tokens": 203776,
+      "compute_us": 35442.950937563524,
+      "read_gib": 0.2672119140625,
+      "B_gib_s": 7.539211803588866,
+      "constructed_profile": false,
+      "profile_construction": {
+        "method": "direct_data_row",
+        "source": "data",
+        "anchors": [
+          {
+            "seq_len_k": 200,
+            "nql": 1024,
+            "weight": 1.0,
+            "compute_us": 35442.950937563524
+          }
+        ],
+        "extrapolated": false,
+        "compute_scale": 1.0,
+        "kv_formula": "exact hit prefix tokens * 1408 / 2**30; partial final block"
+      }
+    },
+    "profile_B": {
+      "total_tokens": 20480,
+      "total_length_k": 20.0,
+      "nql": 512,
+      "ssd_prefix_tokens": 19968,
+      "compute_us": 2695.499681279187,
+      "read_gib": 0.02618408203125,
+      "B_gib_s": 9.713999305250884,
+      "constructed_profile": true,
+      "profile_construction": {
+        "method": "bilinear_length_extrapolation_nql_interpolation",
+        "source": "data",
+        "anchors": [
+          {
+            "seq_len_k": 32,
+            "nql": 512,
+            "weight": 1.75,
+            "compute_us": 3702.132666685269
+          },
+          {
+            "seq_len_k": 48,
+            "nql": 512,
+            "weight": -0.75,
+            "compute_us": 5044.309980560046
+          }
+        ],
+        "extrapolated": true,
+        "compute_scale": 1.0,
+        "kv_formula": "exact hit prefix tokens * 1408 / 2**30; partial final block"
+      }
+    }
+  }
+}

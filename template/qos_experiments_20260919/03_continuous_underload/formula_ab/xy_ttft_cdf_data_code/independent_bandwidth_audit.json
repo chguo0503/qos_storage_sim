@@ -1,0 +1,1599 @@
+{
+  "units": "decimal GB/s; profile read volumes converted from GiB",
+  "input_ideal_definition": "(nA*VA+nB*VB)/(nA*CA+nB*CB), all inputs have equal layer count; ideal computation only, excludes stall/cold-start/transition costs",
+  "actual_definition": "For each policy+seed, integrate current request V/C over admission-to-completion including stall, summed over NPUs; divide by full makespan. Then simple arithmetic average over seeds 7,19,43. This is nominal profile-demand mean, not measured SSD service bandwidth.",
+  "CDF_matching": "Within every seed, both policies have exactly identical entire request manifests. Across seeds the request A/B counts and profiles are equal, but shuffled order differs. Pooling three seeds is matched between policies; use (seed,request_id) as unique key.",
+  "caveat": "Neither ideal nor runtime time-averaged nominal demand certifies instantaneous per-SSU underload. Use peak and overload-duration audits; boundary exemption adds no cross-request L0 burst term but removes no wall-time intervals.",
+  "groups": [
+    {
+      "id": "XY12_32",
+      "S": 1,
+      "input_count_ratio": [
+        1,
+        12
+      ],
+      "A_total_length_k": 200.0,
+      "A_nql": 3564,
+      "B_total_length_k": 32.0,
+      "B_nql": 1455,
+      "V_A_GB": 0.283340288,
+      "V_B_GB": 0.044088704,
+      "C_A_s": 0.12299756892730923,
+      "C_B_s": 0.010250606988798995,
+      "B_A_GBs": 2.3036251079682093,
+      "B_B_GBs": 4.30108227231582,
+      "x": 6.426595982499282,
+      "y": 11.999052257267367,
+      "input_ideal_mean_per_NPU_GBs": 3.3023931307726477,
+      "input_ideal_mean_fleet_GBs": 26.419145046181182,
+      "full_ordinary_demand_mean_by_policy": {
+        "baseline": 26.377727378334818,
+        "once": 26.333006856468458
+      },
+      "full_ordinary_demand_mean_range_by_policy": {
+        "baseline": [
+          26.362107524050383,
+          26.390442982049088
+        ],
+        "once": [
+          26.3122196484103,
+          26.347785294717543
+        ]
+      },
+      "request_counts_same_across_all_6_runs": true,
+      "profiles_identical_across_all_6_runs": true,
+      "requests_exact_equal_between_policies_by_seed": {
+        "7": true,
+        "19": true,
+        "43": true
+      },
+      "pooled_CDF_request_count_per_policy": 1248,
+      "pooled_CDF_A_count_per_policy": 96,
+      "pooled_CDF_B_count_per_policy": 1152,
+      "runs": [
+        {
+          "seed": 7,
+          "policy": "baseline",
+          "request_count": 416,
+          "A_count": 32,
+          "B_count": 384,
+          "per_npu_counts": {
+            "0": {
+              "B": 48,
+              "A": 4
+            },
+            "1": {
+              "A": 4,
+              "B": 48
+            },
+            "2": {
+              "B": 48,
+              "A": 4
+            },
+            "3": {
+              "B": 48,
+              "A": 4
+            },
+            "4": {
+              "B": 48,
+              "A": 4
+            },
+            "5": {
+              "B": 48,
+              "A": 4
+            },
+            "6": {
+              "B": 48,
+              "A": 4
+            },
+            "7": {
+              "B": 48,
+              "A": 4
+            }
+          },
+          "full_duration_ms": 7940.763791440608,
+          "full_ordinary_demand_mean_GBs": 26.390442982049088,
+          "input_fingerprint": "be2553fba4fbbcd7b049cde6451a66b9a87305d3beb45f09bb1c6802cf87d471",
+          "manifest_sha256": "057ac1ecca83ca310bb65eea9d9761ea8e8edf1c10df6522c0a4f5b08d0e55a4"
+        },
+        {
+          "seed": 7,
+          "policy": "once",
+          "request_count": 416,
+          "A_count": 32,
+          "B_count": 384,
+          "per_npu_counts": {
+            "0": {
+              "B": 48,
+              "A": 4
+            },
+            "1": {
+              "A": 4,
+              "B": 48
+            },
+            "2": {
+              "B": 48,
+              "A": 4
+            },
+            "3": {
+              "B": 48,
+              "A": 4
+            },
+            "4": {
+              "B": 48,
+              "A": 4
+            },
+            "5": {
+              "B": 48,
+              "A": 4
+            },
+            "6": {
+              "B": 48,
+              "A": 4
+            },
+            "7": {
+              "B": 48,
+              "A": 4
+            }
+          },
+          "full_duration_ms": 7925.567568230835,
+          "full_ordinary_demand_mean_GBs": 26.339015626277533,
+          "input_fingerprint": "be2553fba4fbbcd7b049cde6451a66b9a87305d3beb45f09bb1c6802cf87d471",
+          "manifest_sha256": "057ac1ecca83ca310bb65eea9d9761ea8e8edf1c10df6522c0a4f5b08d0e55a4"
+        },
+        {
+          "seed": 19,
+          "policy": "baseline",
+          "request_count": 416,
+          "A_count": 32,
+          "B_count": 384,
+          "per_npu_counts": {
+            "0": {
+              "B": 48,
+              "A": 4
+            },
+            "1": {
+              "A": 4,
+              "B": 48
+            },
+            "2": {
+              "B": 48,
+              "A": 4
+            },
+            "3": {
+              "B": 48,
+              "A": 4
+            },
+            "4": {
+              "B": 48,
+              "A": 4
+            },
+            "5": {
+              "B": 48,
+              "A": 4
+            },
+            "6": {
+              "B": 48,
+              "A": 4
+            },
+            "7": {
+              "B": 48,
+              "A": 4
+            }
+          },
+          "full_duration_ms": 7933.9874946957625,
+          "full_ordinary_demand_mean_GBs": 26.38063162890498,
+          "input_fingerprint": "15b3ab1eaa18bf6e1e27044873c5329b6fba5263b3791014abb4993580cb3c78",
+          "manifest_sha256": "3d9f73de7926e5e660cf6dfd4c94b73d006100142773d7f06342dc77f8f4098d"
+        },
+        {
+          "seed": 19,
+          "policy": "once",
+          "request_count": 416,
+          "A_count": 32,
+          "B_count": 384,
+          "per_npu_counts": {
+            "0": {
+              "B": 48,
+              "A": 4
+            },
+            "1": {
+              "A": 4,
+              "B": 48
+            },
+            "2": {
+              "B": 48,
+              "A": 4
+            },
+            "3": {
+              "B": 48,
+              "A": 4
+            },
+            "4": {
+              "B": 48,
+              "A": 4
+            },
+            "5": {
+              "B": 48,
+              "A": 4
+            },
+            "6": {
+              "B": 48,
+              "A": 4
+            },
+            "7": {
+              "B": 48,
+              "A": 4
+            }
+          },
+          "full_duration_ms": 7942.124101400552,
+          "full_ordinary_demand_mean_GBs": 26.3122196484103,
+          "input_fingerprint": "15b3ab1eaa18bf6e1e27044873c5329b6fba5263b3791014abb4993580cb3c78",
+          "manifest_sha256": "3d9f73de7926e5e660cf6dfd4c94b73d006100142773d7f06342dc77f8f4098d"
+        },
+        {
+          "seed": 43,
+          "policy": "baseline",
+          "request_count": 416,
+          "A_count": 32,
+          "B_count": 384,
+          "per_npu_counts": {
+            "0": {
+              "B": 48,
+              "A": 4
+            },
+            "1": {
+              "B": 48,
+              "A": 4
+            },
+            "2": {
+              "A": 4,
+              "B": 48
+            },
+            "3": {
+              "B": 48,
+              "A": 4
+            },
+            "4": {
+              "B": 48,
+              "A": 4
+            },
+            "5": {
+              "B": 48,
+              "A": 4
+            },
+            "6": {
+              "B": 48,
+              "A": 4
+            },
+            "7": {
+              "B": 48,
+              "A": 4
+            }
+          },
+          "full_duration_ms": 7951.7533063674855,
+          "full_ordinary_demand_mean_GBs": 26.362107524050383,
+          "input_fingerprint": "25e7e496c33a1cf2dd634b173420327978cafd650b317459118c87be23ee49ff",
+          "manifest_sha256": "44a187a5511552766cd5126003b944cd50b37ce78d69bf0da32acb9523c9cc00"
+        },
+        {
+          "seed": 43,
+          "policy": "once",
+          "request_count": 416,
+          "A_count": 32,
+          "B_count": 384,
+          "per_npu_counts": {
+            "0": {
+              "B": 48,
+              "A": 4
+            },
+            "1": {
+              "B": 48,
+              "A": 4
+            },
+            "2": {
+              "A": 4,
+              "B": 48
+            },
+            "3": {
+              "B": 48,
+              "A": 4
+            },
+            "4": {
+              "B": 48,
+              "A": 4
+            },
+            "5": {
+              "B": 48,
+              "A": 4
+            },
+            "6": {
+              "B": 48,
+              "A": 4
+            },
+            "7": {
+              "B": 48,
+              "A": 4
+            }
+          },
+          "full_duration_ms": 7926.676814893399,
+          "full_ordinary_demand_mean_GBs": 26.347785294717543,
+          "input_fingerprint": "25e7e496c33a1cf2dd634b173420327978cafd650b317459118c87be23ee49ff",
+          "manifest_sha256": "44a187a5511552766cd5126003b944cd50b37ce78d69bf0da32acb9523c9cc00"
+        }
+      ]
+    },
+    {
+      "id": "XY12_24",
+      "S": 1,
+      "input_count_ratio": [
+        1,
+        12
+      ],
+      "A_total_length_k": 200.0,
+      "A_nql": 2645,
+      "B_total_length_k": 24.0,
+      "B_nql": 1325,
+      "V_A_GB": 0.28463424000000004,
+      "V_B_GB": 0.032737408,
+      "C_A_s": 0.0913193291066147,
+      "C_B_s": 0.007611028895830674,
+      "B_A_GBs": 3.1169112036258118,
+      "B_B_GBs": 4.301311747473929,
+      "x": 8.694464754204121,
+      "y": 11.99828963422271,
+      "input_ideal_mean_per_NPU_GBs": 3.709153681852646,
+      "input_ideal_mean_fleet_GBs": 29.67322945482117,
+      "full_ordinary_demand_mean_by_policy": {
+        "baseline": 29.49548976114138,
+        "once": 29.56309144684124
+      },
+      "full_ordinary_demand_mean_range_by_policy": {
+        "baseline": [
+          29.287945943450236,
+          29.61473116734114
+        ],
+        "once": [
+          29.494149756623536,
+          29.616519476201
+        ]
+      },
+      "request_counts_same_across_all_6_runs": true,
+      "profiles_identical_across_all_6_runs": true,
+      "requests_exact_equal_between_policies_by_seed": {
+        "7": true,
+        "19": true,
+        "43": true
+      },
+      "pooled_CDF_request_count_per_policy": 1560,
+      "pooled_CDF_A_count_per_policy": 120,
+      "pooled_CDF_B_count_per_policy": 1440,
+      "runs": [
+        {
+          "seed": 7,
+          "policy": "baseline",
+          "request_count": 520,
+          "A_count": 40,
+          "B_count": 480,
+          "per_npu_counts": {
+            "0": {
+              "B": 60,
+              "A": 5
+            },
+            "1": {
+              "B": 60,
+              "A": 5
+            },
+            "2": {
+              "B": 60,
+              "A": 5
+            },
+            "3": {
+              "A": 5,
+              "B": 60
+            },
+            "4": {
+              "B": 60,
+              "A": 5
+            },
+            "5": {
+              "B": 60,
+              "A": 5
+            },
+            "6": {
+              "B": 60,
+              "A": 5
+            },
+            "7": {
+              "B": 60,
+              "A": 5
+            }
+          },
+          "full_duration_ms": 7588.0148895050215,
+          "full_ordinary_demand_mean_GBs": 29.287945943450236,
+          "input_fingerprint": "98a386a9dbc744a0ae8d751098303bc65b3fb2dbb0b64f2ba77c403925fe6571",
+          "manifest_sha256": "3bb62a876c52326eeda8475e13e0e5291c1fe4e48208cfe87d9722359141f5d6"
+        },
+        {
+          "seed": 7,
+          "policy": "once",
+          "request_count": 520,
+          "A_count": 40,
+          "B_count": 480,
+          "per_npu_counts": {
+            "0": {
+              "B": 60,
+              "A": 5
+            },
+            "1": {
+              "B": 60,
+              "A": 5
+            },
+            "2": {
+              "B": 60,
+              "A": 5
+            },
+            "3": {
+              "A": 5,
+              "B": 60
+            },
+            "4": {
+              "B": 60,
+              "A": 5
+            },
+            "5": {
+              "B": 60,
+              "A": 5
+            },
+            "6": {
+              "B": 60,
+              "A": 5
+            },
+            "7": {
+              "B": 60,
+              "A": 5
+            }
+          },
+          "full_duration_ms": 7399.297626171987,
+          "full_ordinary_demand_mean_GBs": 29.616519476201,
+          "input_fingerprint": "98a386a9dbc744a0ae8d751098303bc65b3fb2dbb0b64f2ba77c403925fe6571",
+          "manifest_sha256": "3bb62a876c52326eeda8475e13e0e5291c1fe4e48208cfe87d9722359141f5d6"
+        },
+        {
+          "seed": 19,
+          "policy": "baseline",
+          "request_count": 520,
+          "A_count": 40,
+          "B_count": 480,
+          "per_npu_counts": {
+            "0": {
+              "B": 60,
+              "A": 5
+            },
+            "1": {
+              "B": 60,
+              "A": 5
+            },
+            "2": {
+              "B": 60,
+              "A": 5
+            },
+            "3": {
+              "B": 60,
+              "A": 5
+            },
+            "4": {
+              "B": 60,
+              "A": 5
+            },
+            "5": {
+              "B": 60,
+              "A": 5
+            },
+            "6": {
+              "B": 60,
+              "A": 5
+            },
+            "7": {
+              "A": 5,
+              "B": 60
+            }
+          },
+          "full_duration_ms": 7472.761311074569,
+          "full_ordinary_demand_mean_GBs": 29.583792172632762,
+          "input_fingerprint": "c05d6fdba85e56f8491d90ad2bbf86ff2e41becab923c394a1c39451b748963f",
+          "manifest_sha256": "412ed9961200a2bea4aa47904174f340c848d5d8765c647d9627aacd7c432433"
+        },
+        {
+          "seed": 19,
+          "policy": "once",
+          "request_count": 520,
+          "A_count": 40,
+          "B_count": 480,
+          "per_npu_counts": {
+            "0": {
+              "B": 60,
+              "A": 5
+            },
+            "1": {
+              "B": 60,
+              "A": 5
+            },
+            "2": {
+              "B": 60,
+              "A": 5
+            },
+            "3": {
+              "B": 60,
+              "A": 5
+            },
+            "4": {
+              "B": 60,
+              "A": 5
+            },
+            "5": {
+              "B": 60,
+              "A": 5
+            },
+            "6": {
+              "B": 60,
+              "A": 5
+            },
+            "7": {
+              "A": 5,
+              "B": 60
+            }
+          },
+          "full_duration_ms": 7422.935385481149,
+          "full_ordinary_demand_mean_GBs": 29.494149756623536,
+          "input_fingerprint": "c05d6fdba85e56f8491d90ad2bbf86ff2e41becab923c394a1c39451b748963f",
+          "manifest_sha256": "412ed9961200a2bea4aa47904174f340c848d5d8765c647d9627aacd7c432433"
+        },
+        {
+          "seed": 43,
+          "policy": "baseline",
+          "request_count": 520,
+          "A_count": 40,
+          "B_count": 480,
+          "per_npu_counts": {
+            "0": {
+              "B": 60,
+              "A": 5
+            },
+            "1": {
+              "B": 60,
+              "A": 5
+            },
+            "2": {
+              "B": 60,
+              "A": 5
+            },
+            "3": {
+              "B": 60,
+              "A": 5
+            },
+            "4": {
+              "B": 60,
+              "A": 5
+            },
+            "5": {
+              "B": 60,
+              "A": 5
+            },
+            "6": {
+              "B": 60,
+              "A": 5
+            },
+            "7": {
+              "B": 60,
+              "A": 5
+            }
+          },
+          "full_duration_ms": 7554.269127897609,
+          "full_ordinary_demand_mean_GBs": 29.61473116734114,
+          "input_fingerprint": "2b6a8cf662e384d5eaa490629ec0886d5a6f4ab99f2ac6afaf14c34df6cd55ff",
+          "manifest_sha256": "0d30867f2329f99e72856788a6c79488cacd2f7731b6561e7f725cb0481feefe"
+        },
+        {
+          "seed": 43,
+          "policy": "once",
+          "request_count": 520,
+          "A_count": 40,
+          "B_count": 480,
+          "per_npu_counts": {
+            "0": {
+              "B": 60,
+              "A": 5
+            },
+            "1": {
+              "B": 60,
+              "A": 5
+            },
+            "2": {
+              "B": 60,
+              "A": 5
+            },
+            "3": {
+              "B": 60,
+              "A": 5
+            },
+            "4": {
+              "B": 60,
+              "A": 5
+            },
+            "5": {
+              "B": 60,
+              "A": 5
+            },
+            "6": {
+              "B": 60,
+              "A": 5
+            },
+            "7": {
+              "B": 60,
+              "A": 5
+            }
+          },
+          "full_duration_ms": 7400.243917160178,
+          "full_ordinary_demand_mean_GBs": 29.578605107699186,
+          "input_fingerprint": "2b6a8cf662e384d5eaa490629ec0886d5a6f4ab99f2ac6afaf14c34df6cd55ff",
+          "manifest_sha256": "0d30867f2329f99e72856788a6c79488cacd2f7731b6561e7f725cb0481feefe"
+        }
+      ]
+    },
+    {
+      "id": "XY12_20",
+      "S": 1,
+      "input_count_ratio": [
+        1,
+        12
+      ],
+      "A_total_length_k": 200.0,
+      "A_nql": 2189,
+      "B_total_length_k": 20.0,
+      "B_nql": 1236,
+      "V_A_GB": 0.28527628800000004,
+      "V_B_GB": 0.027095552000000002,
+      "C_A_s": 0.07560085537621568,
+      "C_B_s": 0.0062995363496159374,
+      "B_A_GBs": 3.773453178279105,
+      "B_B_GBs": 4.3011978177809755,
+      "x": 10.528528372479736,
+      "y": 12.001018992584243,
+      "input_ideal_mean_per_NPU_GBs": 4.037314295008323,
+      "input_ideal_mean_fleet_GBs": 32.298514360066584,
+      "full_ordinary_demand_mean_by_policy": {
+        "baseline": 32.05117686579671,
+        "once": 32.09452666613279
+      },
+      "full_ordinary_demand_mean_range_by_policy": {
+        "baseline": [
+          31.906261537970913,
+          32.16267876071762
+        ],
+        "once": [
+          32.02657203299253,
+          32.18630545325321
+        ]
+      },
+      "request_counts_same_across_all_6_runs": true,
+      "profiles_identical_across_all_6_runs": true,
+      "requests_exact_equal_between_policies_by_seed": {
+        "7": true,
+        "19": true,
+        "43": true
+      },
+      "pooled_CDF_request_count_per_policy": 1560,
+      "pooled_CDF_A_count_per_policy": 120,
+      "pooled_CDF_B_count_per_policy": 1440,
+      "runs": [
+        {
+          "seed": 7,
+          "policy": "baseline",
+          "request_count": 520,
+          "A_count": 40,
+          "B_count": 480,
+          "per_npu_counts": {
+            "0": {
+              "B": 60,
+              "A": 5
+            },
+            "1": {
+              "B": 60,
+              "A": 5
+            },
+            "2": {
+              "B": 60,
+              "A": 5
+            },
+            "3": {
+              "A": 5,
+              "B": 60
+            },
+            "4": {
+              "B": 60,
+              "A": 5
+            },
+            "5": {
+              "B": 60,
+              "A": 5
+            },
+            "6": {
+              "B": 60,
+              "A": 5
+            },
+            "7": {
+              "B": 60,
+              "A": 5
+            }
+          },
+          "full_duration_ms": 6433.1636811871085,
+          "full_ordinary_demand_mean_GBs": 31.906261537970913,
+          "input_fingerprint": "052d6ceddf2835a45552552961d098089ee49299d3a5eb2b8374daeb97cf34f2",
+          "manifest_sha256": "1ef458b138f1a8db53e4aeb5787ff90c777f1c1ed30067edcc2f8cc759d7673a"
+        },
+        {
+          "seed": 7,
+          "policy": "once",
+          "request_count": 520,
+          "A_count": 40,
+          "B_count": 480,
+          "per_npu_counts": {
+            "0": {
+              "B": 60,
+              "A": 5
+            },
+            "1": {
+              "B": 60,
+              "A": 5
+            },
+            "2": {
+              "B": 60,
+              "A": 5
+            },
+            "3": {
+              "A": 5,
+              "B": 60
+            },
+            "4": {
+              "B": 60,
+              "A": 5
+            },
+            "5": {
+              "B": 60,
+              "A": 5
+            },
+            "6": {
+              "B": 60,
+              "A": 5
+            },
+            "7": {
+              "B": 60,
+              "A": 5
+            }
+          },
+          "full_duration_ms": 6166.244272506857,
+          "full_ordinary_demand_mean_GBs": 32.18630545325321,
+          "input_fingerprint": "052d6ceddf2835a45552552961d098089ee49299d3a5eb2b8374daeb97cf34f2",
+          "manifest_sha256": "1ef458b138f1a8db53e4aeb5787ff90c777f1c1ed30067edcc2f8cc759d7673a"
+        },
+        {
+          "seed": 19,
+          "policy": "baseline",
+          "request_count": 520,
+          "A_count": 40,
+          "B_count": 480,
+          "per_npu_counts": {
+            "0": {
+              "B": 60,
+              "A": 5
+            },
+            "1": {
+              "B": 60,
+              "A": 5
+            },
+            "2": {
+              "B": 60,
+              "A": 5
+            },
+            "3": {
+              "B": 60,
+              "A": 5
+            },
+            "4": {
+              "B": 60,
+              "A": 5
+            },
+            "5": {
+              "B": 60,
+              "A": 5
+            },
+            "6": {
+              "B": 60,
+              "A": 5
+            },
+            "7": {
+              "A": 5,
+              "B": 60
+            }
+          },
+          "full_duration_ms": 6345.195084070941,
+          "full_ordinary_demand_mean_GBs": 32.16267876071762,
+          "input_fingerprint": "4d8efd8e9b934b1b3bd9c398532c0133d47b5d56133683f6c8bfa8dbe6a0e755",
+          "manifest_sha256": "7bdc266735885a7f5de3c1ff977c1b475cd69ba474acf34c041904b0ec057d5e"
+        },
+        {
+          "seed": 19,
+          "policy": "once",
+          "request_count": 520,
+          "A_count": 40,
+          "B_count": 480,
+          "per_npu_counts": {
+            "0": {
+              "B": 60,
+              "A": 5
+            },
+            "1": {
+              "B": 60,
+              "A": 5
+            },
+            "2": {
+              "B": 60,
+              "A": 5
+            },
+            "3": {
+              "B": 60,
+              "A": 5
+            },
+            "4": {
+              "B": 60,
+              "A": 5
+            },
+            "5": {
+              "B": 60,
+              "A": 5
+            },
+            "6": {
+              "B": 60,
+              "A": 5
+            },
+            "7": {
+              "A": 5,
+              "B": 60
+            }
+          },
+          "full_duration_ms": 6196.9988840025,
+          "full_ordinary_demand_mean_GBs": 32.07070251215263,
+          "input_fingerprint": "4d8efd8e9b934b1b3bd9c398532c0133d47b5d56133683f6c8bfa8dbe6a0e755",
+          "manifest_sha256": "7bdc266735885a7f5de3c1ff977c1b475cd69ba474acf34c041904b0ec057d5e"
+        },
+        {
+          "seed": 43,
+          "policy": "baseline",
+          "request_count": 520,
+          "A_count": 40,
+          "B_count": 480,
+          "per_npu_counts": {
+            "0": {
+              "B": 60,
+              "A": 5
+            },
+            "1": {
+              "B": 60,
+              "A": 5
+            },
+            "2": {
+              "B": 60,
+              "A": 5
+            },
+            "3": {
+              "B": 60,
+              "A": 5
+            },
+            "4": {
+              "B": 60,
+              "A": 5
+            },
+            "5": {
+              "B": 60,
+              "A": 5
+            },
+            "6": {
+              "B": 60,
+              "A": 5
+            },
+            "7": {
+              "B": 60,
+              "A": 5
+            }
+          },
+          "full_duration_ms": 6433.469446253043,
+          "full_ordinary_demand_mean_GBs": 32.084590298701606,
+          "input_fingerprint": "39dfc30dcde49008d37d1c37b83451caa00095e0a69cd205cd6b0e8a5da623e1",
+          "manifest_sha256": "c6a8055eddd4f2ed0543a08ed56d3ece9aa8e07a187bee9f9c98d640b2442ded"
+        },
+        {
+          "seed": 43,
+          "policy": "once",
+          "request_count": 520,
+          "A_count": 40,
+          "B_count": 480,
+          "per_npu_counts": {
+            "0": {
+              "B": 60,
+              "A": 5
+            },
+            "1": {
+              "B": 60,
+              "A": 5
+            },
+            "2": {
+              "B": 60,
+              "A": 5
+            },
+            "3": {
+              "B": 60,
+              "A": 5
+            },
+            "4": {
+              "B": 60,
+              "A": 5
+            },
+            "5": {
+              "B": 60,
+              "A": 5
+            },
+            "6": {
+              "B": 60,
+              "A": 5
+            },
+            "7": {
+              "B": 60,
+              "A": 5
+            }
+          },
+          "full_duration_ms": 6191.7764427044485,
+          "full_ordinary_demand_mean_GBs": 32.02657203299253,
+          "input_fingerprint": "39dfc30dcde49008d37d1c37b83451caa00095e0a69cd205cd6b0e8a5da623e1",
+          "manifest_sha256": "c6a8055eddd4f2ed0543a08ed56d3ece9aa8e07a187bee9f9c98d640b2442ded"
+        }
+      ]
+    },
+    {
+      "id": "XY12_16",
+      "S": 1,
+      "input_count_ratio": [
+        1,
+        12
+      ],
+      "A_total_length_k": 200.0,
+      "A_nql": 1735,
+      "B_total_length_k": 16,
+      "B_nql": 1122,
+      "V_A_GB": 0.28591552000000003,
+      "V_B_GB": 0.021488896,
+      "C_A_s": 0.05995133403175858,
+      "C_B_s": 0.0049966040712483995,
+      "B_A_GBs": 4.7691269029733245,
+      "B_B_GBs": 4.300700174274767,
+      "x": 13.305267985847204,
+      "y": 11.99841595949782,
+      "input_ideal_mean_per_NPU_GBs": 4.53489807912639,
+      "input_ideal_mean_fleet_GBs": 36.27918463301112,
+      "full_ordinary_demand_mean_by_policy": {
+        "baseline": 35.77910320808252,
+        "once": 36.07559574347714
+      },
+      "full_ordinary_demand_mean_range_by_policy": {
+        "baseline": [
+          35.65586859757908,
+          35.854592892787004
+        ],
+        "once": [
+          36.008004811341564,
+          36.126430541684925
+        ]
+      },
+      "request_counts_same_across_all_6_runs": true,
+      "profiles_identical_across_all_6_runs": true,
+      "requests_exact_equal_between_policies_by_seed": {
+        "7": true,
+        "19": true,
+        "43": true
+      },
+      "pooled_CDF_request_count_per_policy": 1872,
+      "pooled_CDF_A_count_per_policy": 144,
+      "pooled_CDF_B_count_per_policy": 1728,
+      "runs": [
+        {
+          "seed": 7,
+          "policy": "baseline",
+          "request_count": 624,
+          "A_count": 48,
+          "B_count": 576,
+          "per_npu_counts": {
+            "0": {
+              "B": 72,
+              "A": 6
+            },
+            "1": {
+              "B": 72,
+              "A": 6
+            },
+            "2": {
+              "B": 72,
+              "A": 6
+            },
+            "3": {
+              "B": 72,
+              "A": 6
+            },
+            "4": {
+              "B": 72,
+              "A": 6
+            },
+            "5": {
+              "B": 72,
+              "A": 6
+            },
+            "6": {
+              "B": 72,
+              "A": 6
+            },
+            "7": {
+              "A": 6,
+              "B": 72
+            }
+          },
+          "full_duration_ms": 6459.227337262881,
+          "full_ordinary_demand_mean_GBs": 35.65586859757908,
+          "input_fingerprint": "1cb9369e6a25335464400bc0b7800416d004d4399d339f0f0a1c06d3d9308985",
+          "manifest_sha256": "cc6ffc476fd9483892e9a2b59b5fd31720cc6fac4e34617697855ecb668368a4"
+        },
+        {
+          "seed": 7,
+          "policy": "once",
+          "request_count": 624,
+          "A_count": 48,
+          "B_count": 576,
+          "per_npu_counts": {
+            "0": {
+              "B": 72,
+              "A": 6
+            },
+            "1": {
+              "B": 72,
+              "A": 6
+            },
+            "2": {
+              "B": 72,
+              "A": 6
+            },
+            "3": {
+              "B": 72,
+              "A": 6
+            },
+            "4": {
+              "B": 72,
+              "A": 6
+            },
+            "5": {
+              "B": 72,
+              "A": 6
+            },
+            "6": {
+              "B": 72,
+              "A": 6
+            },
+            "7": {
+              "A": 6,
+              "B": 72
+            }
+          },
+          "full_duration_ms": 5931.820879089263,
+          "full_ordinary_demand_mean_GBs": 36.09235187740492,
+          "input_fingerprint": "1cb9369e6a25335464400bc0b7800416d004d4399d339f0f0a1c06d3d9308985",
+          "manifest_sha256": "cc6ffc476fd9483892e9a2b59b5fd31720cc6fac4e34617697855ecb668368a4"
+        },
+        {
+          "seed": 19,
+          "policy": "baseline",
+          "request_count": 624,
+          "A_count": 48,
+          "B_count": 576,
+          "per_npu_counts": {
+            "0": {
+              "B": 72,
+              "A": 6
+            },
+            "1": {
+              "B": 72,
+              "A": 6
+            },
+            "2": {
+              "B": 72,
+              "A": 6
+            },
+            "3": {
+              "B": 72,
+              "A": 6
+            },
+            "4": {
+              "B": 72,
+              "A": 6
+            },
+            "5": {
+              "B": 72,
+              "A": 6
+            },
+            "6": {
+              "B": 72,
+              "A": 6
+            },
+            "7": {
+              "A": 6,
+              "B": 72
+            }
+          },
+          "full_duration_ms": 6419.576477201522,
+          "full_ordinary_demand_mean_GBs": 35.854592892787004,
+          "input_fingerprint": "0d0a8908c435afdd56778e68c69c70529570d92517a6a883fe337805591a0c6d",
+          "manifest_sha256": "4cd1f6bdbe7054a866d073ad426e3ef1cdb7d2939d89ab2d2657e9fa05274bb5"
+        },
+        {
+          "seed": 19,
+          "policy": "once",
+          "request_count": 624,
+          "A_count": 48,
+          "B_count": 576,
+          "per_npu_counts": {
+            "0": {
+              "B": 72,
+              "A": 6
+            },
+            "1": {
+              "B": 72,
+              "A": 6
+            },
+            "2": {
+              "B": 72,
+              "A": 6
+            },
+            "3": {
+              "B": 72,
+              "A": 6
+            },
+            "4": {
+              "B": 72,
+              "A": 6
+            },
+            "5": {
+              "B": 72,
+              "A": 6
+            },
+            "6": {
+              "B": 72,
+              "A": 6
+            },
+            "7": {
+              "A": 6,
+              "B": 72
+            }
+          },
+          "full_duration_ms": 5958.691558043672,
+          "full_ordinary_demand_mean_GBs": 36.126430541684925,
+          "input_fingerprint": "0d0a8908c435afdd56778e68c69c70529570d92517a6a883fe337805591a0c6d",
+          "manifest_sha256": "4cd1f6bdbe7054a866d073ad426e3ef1cdb7d2939d89ab2d2657e9fa05274bb5"
+        },
+        {
+          "seed": 43,
+          "policy": "baseline",
+          "request_count": 624,
+          "A_count": 48,
+          "B_count": 576,
+          "per_npu_counts": {
+            "0": {
+              "B": 72,
+              "A": 6
+            },
+            "1": {
+              "A": 6,
+              "B": 72
+            },
+            "2": {
+              "B": 72,
+              "A": 6
+            },
+            "3": {
+              "B": 72,
+              "A": 6
+            },
+            "4": {
+              "B": 72,
+              "A": 6
+            },
+            "5": {
+              "B": 72,
+              "A": 6
+            },
+            "6": {
+              "B": 72,
+              "A": 6
+            },
+            "7": {
+              "B": 72,
+              "A": 6
+            }
+          },
+          "full_duration_ms": 6414.995506816408,
+          "full_ordinary_demand_mean_GBs": 35.82684813388147,
+          "input_fingerprint": "5975e2cff919a91d48cc460b3b16b94d4ad5487d07894c201d3f7d042e18e83c",
+          "manifest_sha256": "438757ff5f97bb1044230f20f499abf8cde1ffb15f57c400f44152c842164e56"
+        },
+        {
+          "seed": 43,
+          "policy": "once",
+          "request_count": 624,
+          "A_count": 48,
+          "B_count": 576,
+          "per_npu_counts": {
+            "0": {
+              "B": 72,
+              "A": 6
+            },
+            "1": {
+              "A": 6,
+              "B": 72
+            },
+            "2": {
+              "B": 72,
+              "A": 6
+            },
+            "3": {
+              "B": 72,
+              "A": 6
+            },
+            "4": {
+              "B": 72,
+              "A": 6
+            },
+            "5": {
+              "B": 72,
+              "A": 6
+            },
+            "6": {
+              "B": 72,
+              "A": 6
+            },
+            "7": {
+              "B": 72,
+              "A": 6
+            }
+          },
+          "full_duration_ms": 5943.415723422339,
+          "full_ordinary_demand_mean_GBs": 36.008004811341564,
+          "input_fingerprint": "5975e2cff919a91d48cc460b3b16b94d4ad5487d07894c201d3f7d042e18e83c",
+          "manifest_sha256": "438757ff5f97bb1044230f20f499abf8cde1ffb15f57c400f44152c842164e56"
+        }
+      ]
+    },
+    {
+      "id": "X16",
+      "S": 1,
+      "input_count_ratio": [
+        1,
+        12
+      ],
+      "A_total_length_k": 200.0,
+      "A_nql": 2048,
+      "B_total_length_k": 16,
+      "B_nql": 1122,
+      "V_A_GB": 0.285474816,
+      "V_B_GB": 0.021488896,
+      "C_A_s": 0.0707405378411581,
+      "C_B_s": 0.0049966040712483995,
+      "B_A_GBs": 4.0355194448904195,
+      "B_B_GBs": 4.300700174274767,
+      "x": 13.284759533481852,
+      "y": 14.15772329214862,
+      "input_ideal_mean_per_NPU_GBs": 4.157172568790821,
+      "input_ideal_mean_fleet_GBs": 33.257380550326566,
+      "full_ordinary_demand_mean_by_policy": {
+        "baseline": 33.003217837334375,
+        "once": 32.99637070648144
+      },
+      "full_ordinary_demand_mean_range_by_policy": {
+        "baseline": [
+          32.93628680084479,
+          33.13089219428377
+        ],
+        "once": [
+          32.91861916254265,
+          33.126800366384394
+        ]
+      },
+      "request_counts_same_across_all_6_runs": true,
+      "profiles_identical_across_all_6_runs": true,
+      "requests_exact_equal_between_policies_by_seed": {
+        "7": true,
+        "19": true,
+        "43": true
+      },
+      "pooled_CDF_request_count_per_policy": 1872,
+      "pooled_CDF_A_count_per_policy": 144,
+      "pooled_CDF_B_count_per_policy": 1728,
+      "runs": [
+        {
+          "seed": 7,
+          "policy": "baseline",
+          "request_count": 624,
+          "A_count": 48,
+          "B_count": 576,
+          "per_npu_counts": {
+            "0": {
+              "B": 72,
+              "A": 6
+            },
+            "1": {
+              "B": 72,
+              "A": 6
+            },
+            "2": {
+              "B": 72,
+              "A": 6
+            },
+            "3": {
+              "B": 72,
+              "A": 6
+            },
+            "4": {
+              "B": 72,
+              "A": 6
+            },
+            "5": {
+              "B": 72,
+              "A": 6
+            },
+            "6": {
+              "B": 72,
+              "A": 6
+            },
+            "7": {
+              "A": 6,
+              "B": 72
+            }
+          },
+          "full_duration_ms": 6786.917978281406,
+          "full_ordinary_demand_mean_GBs": 33.13089219428377,
+          "input_fingerprint": "da985bf712227edc738c064f07f77b4aad4b4146c8a2393b8e6db3e1ee1ec6aa",
+          "manifest_sha256": "9af8d354b0b8ff6678e980ea78e1154af16ceeea8cb1153d6e75ee9021276645"
+        },
+        {
+          "seed": 7,
+          "policy": "once",
+          "request_count": 624,
+          "A_count": 48,
+          "B_count": 576,
+          "per_npu_counts": {
+            "0": {
+              "B": 72,
+              "A": 6
+            },
+            "1": {
+              "B": 72,
+              "A": 6
+            },
+            "2": {
+              "B": 72,
+              "A": 6
+            },
+            "3": {
+              "B": 72,
+              "A": 6
+            },
+            "4": {
+              "B": 72,
+              "A": 6
+            },
+            "5": {
+              "B": 72,
+              "A": 6
+            },
+            "6": {
+              "B": 72,
+              "A": 6
+            },
+            "7": {
+              "A": 6,
+              "B": 72
+            }
+          },
+          "full_duration_ms": 6403.032272043782,
+          "full_ordinary_demand_mean_GBs": 33.126800366384394,
+          "input_fingerprint": "da985bf712227edc738c064f07f77b4aad4b4146c8a2393b8e6db3e1ee1ec6aa",
+          "manifest_sha256": "9af8d354b0b8ff6678e980ea78e1154af16ceeea8cb1153d6e75ee9021276645"
+        },
+        {
+          "seed": 19,
+          "policy": "baseline",
+          "request_count": 624,
+          "A_count": 48,
+          "B_count": 576,
+          "per_npu_counts": {
+            "0": {
+              "B": 72,
+              "A": 6
+            },
+            "1": {
+              "B": 72,
+              "A": 6
+            },
+            "2": {
+              "B": 72,
+              "A": 6
+            },
+            "3": {
+              "B": 72,
+              "A": 6
+            },
+            "4": {
+              "B": 72,
+              "A": 6
+            },
+            "5": {
+              "B": 72,
+              "A": 6
+            },
+            "6": {
+              "B": 72,
+              "A": 6
+            },
+            "7": {
+              "A": 6,
+              "B": 72
+            }
+          },
+          "full_duration_ms": 6874.117173192005,
+          "full_ordinary_demand_mean_GBs": 32.94247451687456,
+          "input_fingerprint": "a5827b7b4720f2b02a4a74804fae7d3556872aae0959f6cd796ecab369cdcf0d",
+          "manifest_sha256": "40bada005cb7b87e32840228c238f5d4cca3f458ffd6014cbd2d262acd453e88"
+        },
+        {
+          "seed": 19,
+          "policy": "once",
+          "request_count": 624,
+          "A_count": 48,
+          "B_count": 576,
+          "per_npu_counts": {
+            "0": {
+              "B": 72,
+              "A": 6
+            },
+            "1": {
+              "B": 72,
+              "A": 6
+            },
+            "2": {
+              "B": 72,
+              "A": 6
+            },
+            "3": {
+              "B": 72,
+              "A": 6
+            },
+            "4": {
+              "B": 72,
+              "A": 6
+            },
+            "5": {
+              "B": 72,
+              "A": 6
+            },
+            "6": {
+              "B": 72,
+              "A": 6
+            },
+            "7": {
+              "A": 6,
+              "B": 72
+            }
+          },
+          "full_duration_ms": 6501.57295811539,
+          "full_ordinary_demand_mean_GBs": 32.91861916254265,
+          "input_fingerprint": "a5827b7b4720f2b02a4a74804fae7d3556872aae0959f6cd796ecab369cdcf0d",
+          "manifest_sha256": "40bada005cb7b87e32840228c238f5d4cca3f458ffd6014cbd2d262acd453e88"
+        },
+        {
+          "seed": 43,
+          "policy": "baseline",
+          "request_count": 624,
+          "A_count": 48,
+          "B_count": 576,
+          "per_npu_counts": {
+            "0": {
+              "B": 72,
+              "A": 6
+            },
+            "1": {
+              "A": 6,
+              "B": 72
+            },
+            "2": {
+              "B": 72,
+              "A": 6
+            },
+            "3": {
+              "B": 72,
+              "A": 6
+            },
+            "4": {
+              "B": 72,
+              "A": 6
+            },
+            "5": {
+              "B": 72,
+              "A": 6
+            },
+            "6": {
+              "B": 72,
+              "A": 6
+            },
+            "7": {
+              "B": 72,
+              "A": 6
+            }
+          },
+          "full_duration_ms": 6881.107499840129,
+          "full_ordinary_demand_mean_GBs": 32.93628680084479,
+          "input_fingerprint": "51dbf299d9ca8b3643ad6c2d86770176ea8837c40af2819b4f1e178d8c1b3a76",
+          "manifest_sha256": "2c5023806ec3697fdf05a4c2c041b24a15adcf8d74c16121ef791cf9735eb4aa"
+        },
+        {
+          "seed": 43,
+          "policy": "once",
+          "request_count": 624,
+          "A_count": 48,
+          "B_count": 576,
+          "per_npu_counts": {
+            "0": {
+              "B": 72,
+              "A": 6
+            },
+            "1": {
+              "A": 6,
+              "B": 72
+            },
+            "2": {
+              "B": 72,
+              "A": 6
+            },
+            "3": {
+              "B": 72,
+              "A": 6
+            },
+            "4": {
+              "B": 72,
+              "A": 6
+            },
+            "5": {
+              "B": 72,
+              "A": 6
+            },
+            "6": {
+              "B": 72,
+              "A": 6
+            },
+            "7": {
+              "B": 72,
+              "A": 6
+            }
+          },
+          "full_duration_ms": 6456.719328405064,
+          "full_ordinary_demand_mean_GBs": 32.94369259051729,
+          "input_fingerprint": "51dbf299d9ca8b3643ad6c2d86770176ea8837c40af2819b4f1e178d8c1b3a76",
+          "manifest_sha256": "2c5023806ec3697fdf05a4c2c041b24a15adcf8d74c16121ef791cf9735eb4aa"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "repository": "https://github.com/chguo0503/qos_storage_sim",
+  "commit": "75e10b8a84d4054921cd3149af40507444efb3fb",
+  "date": "2026-09-14",
+  "original_source_files_unmodified": true,
+  "original_git_blob_shas": "SOURCE_PROVENANCE.json:github_source_files",
+  "new_scripts": [
+    "explore_fifo_underload.py",
+    "run_fifo_proof.py",
+    "explore_fifo_variants.py",
+    "explore_fifo_mixed20.py",
+    "explore_fifo_tiny_jitter.py",
+    "analyze_fifo_trace.py",
+    "summarize_fifo_exploration.py"
+  ],
+  "placement": "native block_ring_hash_disk_id(original_request_id, block_index, num_ssu), 256 virtual nodes per SSU, same mapping reused by all 8 layers",
+  "baseline": "native Path0 per-IO FIFO, batch=1, 32 NPUs, 40 GiB/s per SSU, 50 GiB/s per NPU",
+  "diagnostic_control": "Only pending Path0 IO ordering changes; ascending request per-layer read bytes, FIFO ties, current IO nonpreemptive. This is not once.",
+  "input_scope": "Constructed underload exploration. Separated repeated profiles, separated unique profiles and all-NPU mixed decks are separately identified. 20/24K compute times extrapolate original 32/48K data. Other interpolated profiles are labeled in each manifest.",
+  "statistics": "Warm window [2,4) seconds for formal validations; [0.2,0.8) for screening. Nominal bandwidth demand is current admitted request layer bytes on each SSU divided by its own layer compute time. TTFT is admission-relative."
+}

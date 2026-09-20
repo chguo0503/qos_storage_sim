@@ -1,0 +1,179 @@
+{
+  "name": "X16_random_s1_seed43",
+  "id": "X16",
+  "ssu": 1,
+  "seed": 43,
+  "horizon_ms": 4500,
+  "window_ms": [
+    2000,
+    4000
+  ],
+  "mode": "random",
+  "input_counts": [
+    1,
+    12
+  ],
+  "profile_A": {
+    "total_tokens": 204800,
+    "total_length_k": 200.0,
+    "nql": 2048,
+    "ssd_prefix_tokens": 202752,
+    "compute_us": 70740.53784115809,
+    "read_gib": 0.265869140625,
+    "B_gib_s": 3.7583703593261717,
+    "constructed_profile": false,
+    "profile_construction": {
+      "method": "direct_data_row",
+      "source": "data",
+      "anchors": [
+        {
+          "seq_len_k": 200,
+          "nql": 2048,
+          "weight": 1.0,
+          "compute_us": 70740.53784115809
+        }
+      ],
+      "extrapolated": false,
+      "compute_scale": 1.0,
+      "kv_formula": "exact hit prefix tokens * 1408 / 2**30; partial final block"
+    }
+  },
+  "profile_B": {
+    "total_tokens": 16384,
+    "total_length_k": 16,
+    "nql": 1122,
+    "ssd_prefix_tokens": 15262,
+    "compute_us": 4996.604071248399,
+    "read_gib": 0.020013093948364258,
+    "B_gib_s": 4.005339158954813,
+    "constructed_profile": true,
+    "profile_construction": {
+      "method": "bilinear_length_extrapolation_nql_interpolation",
+      "source": "data",
+      "anchors": [
+        {
+          "seq_len_k": 32,
+          "nql": 1024,
+          "weight": 1.80859375,
+          "compute_us": 7257.231579079756
+        },
+        {
+          "seq_len_k": 32,
+          "nql": 2048,
+          "weight": 0.19140625,
+          "compute_us": 14369.102622125
+        },
+        {
+          "seq_len_k": 48,
+          "nql": 1024,
+          "weight": -0.904296875,
+          "compute_us": 9941.586459040689
+        },
+        {
+          "seq_len_k": 48,
+          "nql": 2048,
+          "weight": -0.095703125,
+          "compute_us": 19737.809881246598
+        }
+      ],
+      "extrapolated": true,
+      "compute_scale": 1,
+      "kv_formula": "exact hit prefix tokens * 1408 / 2**30; partial final block"
+    }
+  },
+  "screen": {
+    "id": "X16",
+    "group": "B_bandwidth_matched",
+    "A": {
+      "total_length_k": 200.0,
+      "nql": 2048,
+      "V_MB": 285.474816,
+      "C_ms": 70.74053784115809,
+      "B_GBs": 4.035519444890419
+    },
+    "B": {
+      "total_length_k": 16,
+      "nql": 1122,
+      "V_MB": 21.488896,
+      "C_ms": 4.996604071248399,
+      "B_GBs": 4.300700174274767
+    },
+    "S": 1,
+    "x": 13.284759533481848,
+    "y": 14.157723292148622,
+    "single_A_block_ratio": 1.4283441910210941,
+    "strict_peak_GBs": 34.405601394198136,
+    "strict_peak_rho": 0.8601400348549534,
+    "strict_any_composition_underload": true,
+    "meets_single_A_block": true,
+    "profile_A": {
+      "total_tokens": 204800,
+      "total_length_k": 200.0,
+      "nql": 2048,
+      "ssd_prefix_tokens": 202752,
+      "compute_us": 70740.53784115809,
+      "read_gib": 0.265869140625,
+      "B_gib_s": 3.7583703593261717,
+      "constructed_profile": false,
+      "profile_construction": {
+        "method": "direct_data_row",
+        "source": "data",
+        "anchors": [
+          {
+            "seq_len_k": 200,
+            "nql": 2048,
+            "weight": 1.0,
+            "compute_us": 70740.53784115809
+          }
+        ],
+        "extrapolated": false,
+        "compute_scale": 1.0,
+        "kv_formula": "exact hit prefix tokens * 1408 / 2**30; partial final block"
+      }
+    },
+    "profile_B": {
+      "total_tokens": 16384,
+      "total_length_k": 16,
+      "nql": 1122,
+      "ssd_prefix_tokens": 15262,
+      "compute_us": 4996.604071248399,
+      "read_gib": 0.020013093948364258,
+      "B_gib_s": 4.005339158954813,
+      "constructed_profile": true,
+      "profile_construction": {
+        "method": "bilinear_length_extrapolation_nql_interpolation",
+        "source": "data",
+        "anchors": [
+          {
+            "seq_len_k": 32,
+            "nql": 1024,
+            "weight": 1.80859375,
+            "compute_us": 7257.231579079756
+          },
+          {
+            "seq_len_k": 32,
+            "nql": 2048,
+            "weight": 0.19140625,
+            "compute_us": 14369.102622125
+          },
+          {
+            "seq_len_k": 48,
+            "nql": 1024,
+            "weight": -0.904296875,
+            "compute_us": 9941.586459040689
+          },
+          {
+            "seq_len_k": 48,
+            "nql": 2048,
+            "weight": -0.095703125,
+            "compute_us": 19737.809881246598
+          }
+        ],
+        "extrapolated": true,
+        "compute_scale": 1,
+        "kv_formula": "exact hit prefix tokens * 1408 / 2**30; partial final block"
+      }
+    },
+    "note": "固定A=200K/2048，B带宽匹配4.3GB/s；NQL整点筛选，非原始NQL均插值；改变x同时C_B改变，y随之改变。"
+  }
+}

@@ -11,7 +11,7 @@ import sys
 HERE=Path(__file__).resolve().parent
 ROOT=HERE.parents[1]
 sys.path[:0]=[str(HERE),str(ROOT)]
-from run_baseline_npu32_stress import load_manifest
+from inputs.runners.run_baseline_npu32_stress import load_manifest
 from metrics import summarize
 
 

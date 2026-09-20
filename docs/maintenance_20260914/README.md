@@ -17,4 +17,4 @@
 
 运行 `PYTHONDONTWRITEBYTECODE=1 python -m pytest -q -p no:cacheprovider test_*.py`，10个测试全部通过。没有新增测试输入或断言。35项生产运行文件（含data）逐字节保持不变；原956张图表中，仅本轮指定4张PDF变化，其余952张不变。[测试结果及SHA](root_test_cleanup.json)
 
-此前“51文件、159项测试、956张图片不变”的记录对应[43ab395版本](https://github.com/chguo0503/qos_storage_sim/tree/43ab395ba92be984ccd7318f7809ddf2775a3274)及其清理过程，作为历史证据保留。本轮单独记录已授权修改，不覆盖旧审计。当前文件以根目录 `CURRENT_PROJECT_MANIFEST.md` 和 `CURRENT_PROJECT_SHA256SUMS` 为准。
+此前“51文件、159项测试、956张图片不变”的记录对应[43ab395版本](https://github.com/chguo0503/qos_storage_sim/tree/43ab395ba92be984ccd7318f7809ddf2775a3274)及其清理过程，作为历史证据保留。本轮单独记录已授权修改，不覆盖旧审计。该次文件清单现已归档为 `project_manifest_20260914.md` 和 `project_sha256sums_20260914.txt`；当前结构见[项目说明](../../README.md)。

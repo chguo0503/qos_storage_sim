@@ -1,0 +1,66 @@
+{
+  "scope": "8 NPU, 1 SSU. Three policies share the identical 576 requests, order and ring-hash placement. All input requests run to completion.",
+  "units": {
+    "K": "1024 tokens",
+    "GiB": "2**30 bytes",
+    "MiB": "2**20 bytes",
+    "time": "milliseconds"
+  },
+  "population": {
+    "input_requests": 576,
+    "execution_records": 1728,
+    "per_npu": "72 unique (total_tokens,nql_tokens) pairs: 6 L + 66 S"
+  },
+  "window_ms": [
+    2000.0,
+    4000.0
+  ],
+  "formulas": {
+    "bandwidth_demand_gib_s": "per_layer_read_gib / (per_layer_compute_ms / 1000)",
+    "ttft_admission_ms": "completion_time_ms - admission_time_ms",
+    "ideal_compute_8layers_ms": "8 * per_layer_compute_ms",
+    "slo_1p5_threshold_ms": "1.5 * ideal_compute_8layers_ms",
+    "ttft_over_ideal": "ttft_admission_ms / ideal_compute_8layers_ms; pass if <= 1.5",
+    "window_stall_ms": "window_active_ms - window_compute_ms; exact interval clipping",
+    "window_active_utilization": "window_compute_ms/window_active_ms; null when no active overlap"
+  },
+  "field_notes": {
+    "generation": "zero-based serial position on its NPU after shuffling",
+    "input_order_1based": "one-based serial position on its NPU after shuffling",
+    "role": "experiment class L=about200K long read+compute, S=about20K short read+compute",
+    "qos_category": "original simulator category, independently retained; not the experiment L/S class",
+    "nql_tokens": "new-query / uncached tokens requiring computation",
+    "hit_prefix_tokens": "128-token-aligned SSD hit prefix; total_tokens = hit_prefix_tokens + nql_tokens",
+    "window_admitted": "2000 <= admission_time_ms < 4000; primary SLO cohort",
+    "window_active": "admission-to-completion interval has positive overlap with [2000,4000)",
+    "window_computed": "at least one actual compute interval overlaps [2000,4000)",
+    "window_completed": "2000 <= completion_time_ms < 4000",
+    "all_run_stall_ms": "sum exposed IO barrier waits over all eight layers of this request",
+    "ttft_arrival_ms": "also includes the per-NPU admission queue; not the primary TTFT SLO metric",
+    "construction_anchors_json": "source data compute_us, seq_len_k, nql and interpolation weights; negative weights indicate extrapolation"
+  },
+  "caveats": [
+    "All requests arrive at t=0. Input is an independently shuffled frozen deck per NPU, not a Poisson arrival trace.",
+    "Window admission cohorts differ by policy. The all_requests cohort is the identical 576-request population.",
+    "All 528 short-request compute profiles extrapolate the length dimension below32K; long profiles interpolate. No new physical measurements.",
+    "No compute scaling or extra KV padding. Fixed aligned hit prefix means equal per-layer bytes within each L/S class.",
+    "One SSU makes native ring hash placement trivial: every block maps to the same physical disk.",
+    "short_first is a diagnostic nonpreemptive request-read-size priority, not the Once strategy."
+  ],
+  "request_and_placement_equality": true,
+  "all_per_npu_profiles_unique": true,
+  "source_sha256": {
+    "fifo": {
+      "manifest.json.gz": "9eeed6a06ecabb17e7e595c069fea2a019ccdab3bcb3508891d5bd3ff0ac8477",
+      "result.json.gz": "a6d81e478533c6bfe3926b17e2a7a6e27c705f6d4b77c8f11de1d5544e727194"
+    },
+    "once": {
+      "manifest.json.gz": "af04384a1812c2a6a456f34269fa9f4230f881a4d89117c852446c639f5f0731",
+      "result.json.gz": "7791733dd3430caa2aabbc34ae172c98e9d965c86048d26a20680eb1ed753a38"
+    },
+    "short_first": {
+      "manifest.json.gz": "ebf3b777c2e598afc519399598fdffbba6281698247b077533366bba17b5cf4c",
+      "result.json.gz": "77da3f912fa1766c64f65415885586fd22471f31c636d348855450a67213749a"
+    }
+  }
+}

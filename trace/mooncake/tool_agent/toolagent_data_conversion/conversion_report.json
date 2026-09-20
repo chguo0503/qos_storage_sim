@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "source": {
+    "path": "/workspace/scratch/170c64cb98d8/toolagent_data_conversion/source/toolagent_trace.jsonl",
+    "sha256": "48a2db1a13d3bc05e6330140c64f604ba366df20d3c9e128b5c35a01c1fa5f71",
+    "rows": 23608
+  },
+  "output": {
+    "requests": 23608,
+    "unique_profiles": 11672,
+    "profiles_file": "data_toolagent",
+    "profiles_sha256": "d886f07571e7502038c5395022085fe41e4f3e661680299de6481322df7adfb3",
+    "requests_file": "toolagent_requests.jsonl",
+    "requests_sha256": "f834e87b863ca3f4c9369dfd23bf8a87cf2d8f6f6634020fb8785129503e1ebe"
+  },
+  "statistics": {
+    "zero_hit_requests": 16,
+    "u_equals_one_requests": 256,
+    "full_hit_adjusted_requests": 256,
+    "zero_hit_profiles": 16,
+    "u_equals_one_profiles": 156,
+    "input_tokens": 202940084,
+    "hit_tokens": 115772661,
+    "uncached_tokens": 87167423,
+    "token_hit_ratio": 0.5704770527245865,
+    "distinct_timestamps": 1180
+  },
+  "profile_model": {
+    "name": "synthetic-v1-singleton",
+    "measured_timings": false,
+    "layers": 32,
+    "block_tokens": 512,
+    "bytes_per_token_per_layer": 4096,
+    "compute_seconds_formula": "50e-6 + 2e-7*u/eta + 1e-10*(u*h + u*(u+1)/2)",
+    "eta_formula": "min(1, max(1/16, u/512))",
+    "source_T0_seconds_formula": "r + 32*c + 31*max(0, r-c)",
+    "read_seconds_formula": "r = 4096*h/(80e9)",
+    "reference_bandwidth_bytes_per_second": 80000000000.0,
+    "source_slo_multiplier": 4,
+    "third_field_definition": "32*c*1000 ms of pure compute; excludes IO and queueing",
+    "third_field_difference_from_original_data": "original GLM data uses 78*c*1000 ms; this source model uses 32 layers"
+  },
+  "units": {
+    "timestamp": "milliseconds, original source timestamp retained",
+    "arrival_time": "milliseconds, equal to timestamp; no arrival scaling",
+    "arrival_time_ms": "milliseconds, same value as arrival_time",
+    "source_line": "1-based original physical JSONL line number",
+    "seq_len_k": "input tokens / 1024, exact fractional Ki-tokens",
+    "nql": "uncached tokens, integer >= 1; not rounded to multiples of 512",
+    "profile_key": "[seq_len_k, nql] in JSON; tuple in data_toolagent",
+    "required_bw_input_gbps": "GiB/s despite legacy field spelling; not decimal GB/s or bits/s",
+    "per_layer_us": "microseconds",
+    "per_layer_kv_gb": "GiB despite legacy field spelling; not decimal GB",
+    "source_compute_ttft_ms": "milliseconds, pure compute for 32 layers",
+    "source_T0_ms": "milliseconds, isolated reference read/compute overlap time",
+    "source_slo4_ms": "milliseconds, 4 * source_T0_ms"
+  },
+  "hit_derivation": {
+    "algorithm": "first_seen, contiguous prefix; same-timestamp arrivals mutually invisible; tail block participates",
+    "hit_formula": "min(512 * matching_prefix_blocks, input_length - 1)",
+    "u_formula": "input_length - hit_tokens",
+    "full_hit_adjusted_formula": "hit_tokens >= input_length - 1",
+    "cache_capacity_or_eviction_modeled": false,
+    "wait_for_previous_request_completion_before_visibility": false
+  },
+  "scope": {
+    "simulator_run": false,
+    "npu_assignment": false,
+    "batching_modeled": false,
+    "request_order": "stable sort by (timestamp, original source_line)",
+    "compatibility": "dictionary syntax matches data; use the supplied exact-key loader; not all existing loaders preserve fractional K or zero profiles"
+  },
+  "derived_validation": {
+    "performed": true,
+    "passed": true,
+    "rows_compared": 23608,
+    "fields_compared": [
+      "timestamp",
+      "input_length",
+      "output_length",
+      "hash_ids",
+      "hit_tokens",
+      "u_tokens",
+      "full_hit_adjusted"
+    ],
+    "source_path": "/workspace/scratch/170c64cb98d8/status_aware_network/mooncake_trace/derived/toolagent_trace.jsonl.hit.jsonl",
+    "source_sha256": "1a06a13ccf2f26c9fc226e429c3a7259dd737dbb3878d2f932e49b08e48a3aa9"
+  },
+  "checks": {
+    "input_equals_hit_plus_uncached": true,
+    "uncached_at_least_one": true,
+    "fractional_k_round_trip_exact": true,
+    "kv_bytes_round_trip_exact": true,
+    "bandwidth_times_compute_equals_kv_within_float_tolerance": true,
+    "profile_key_maps_to_unique_hit_uncached": true,
+    "every_request_has_profile": true,
+    "stable_timestamp_source_line_order": true,
+    "request_count_preserved": true,
+    "serialized_profile_round_trip_exact": true,
+    "serialized_request_round_trip_exact": true
+  },
+  "max_bandwidth_times_compute_volume_error_gib": 1.1102230246251565e-16,
+  "all_checks_passed": true
+}

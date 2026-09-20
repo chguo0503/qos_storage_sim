@@ -1,0 +1,4951 @@
+{
+  "status": "passed",
+  "plan_sha256": "6b253179274029fa85f52299f23989a98d19ef7303d1b7f2bb395162b5aa1f1a",
+  "auditor_sha256": "f6602292fb62cb84cdb626b2403c3e76cddf202c8d1b1c1081891afbba090419",
+  "started_utc": "2026-09-18T13:04:29.734475+00:00",
+  "independence": "No simulator/metrics imports. U from raw layer intervals; SLO from request times + manifest C; demand from midpoint active-request scans.",
+  "tolerances": {
+    "comparison_abs": 1e-07,
+    "comparison_rel": 1e-11,
+    "slo_ms": 1e-09,
+    "demand_threshold": "literal >40 or >=40, no tolerance"
+  },
+  "limitation": "Path audit checks recorded runtime observed IDs/block counts against independent manifest budgets; it is not a second replay of every I/O event.",
+  "cases": [
+    {
+      "label": "random_asu_baseline_seed7_remote",
+      "order": "random",
+      "policy": "asu_baseline",
+      "seed": 7,
+      "files_sha256": {
+        "results/continuous_underload_asu_od_20260918/runs/random_asu_baseline_seed7_remote/command.json": "23dbedf739ea61352eebcdcaa9fcd7a2fba8e3da68f0343abf0ac8c6d02d2dcf",
+        "results/continuous_underload_asu_od_20260918/runs/random_asu_baseline_seed7_remote/manifest.json.gz": "771fedfd3b85a6ec1c9b62adbfea3a683e458f7f249be826c842c8e8afd4f8bb",
+        "results/continuous_underload_asu_od_20260918/runs/random_asu_baseline_seed7_remote/result.json.gz": "c19b906a1ca11f44bc87416573db1cf79e514dde6359a905b03104b8329e103e"
+      },
+      "physical_inventory_sha256": "09aea0b8bd1518c9132195e0af2a43005a1e5b2bfe267be38498ce543e41e2de",
+      "original_ids_count": 640,
+      "request_count": 640,
+      "block_count": 3678208,
+      "path_ownership_observed_and_configured": true,
+      "npu_path_ids": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "independent_layer_compute_total_ms": 266662.9615577804,
+      "makespan_ms": 8371.814495926397,
+      "windows": [
+        {
+          "start_ms": 2000.0,
+          "end_ms": 4000.0,
+          "full_population": false,
+          "U_percent": 100.0,
+          "per_npu_U_percent": [
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0
+          ],
+          "all_npus_active": true,
+          "cohort_count": 148,
+          "completed_after_window": 32,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 148,
+                  "passed": 148,
+                  "percent": 100.0
+                },
+                "1.5": {
+                  "count": 148,
+                  "passed": 148,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 416.6186140725031,
+              "mean_ratio": 0.9999999999999982
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 148,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 148,
+                  "passed": 0,
+                  "percent": 0.0
+                }
+              },
+              "mean_ms": 3388.011067750353,
+              "mean_ratio": 10.699912056018103
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              21.628150840997314,
+              23.564593433624268,
+              23.209402380889895
+            ],
+            "per_disk_max_GiB_s": [
+              27.532070188879395,
+              29.786927320907594,
+              29.620013995349122
+            ],
+            "per_disk_mean_GiB_s": [
+              24.249632690617723,
+              26.48870912133175,
+              26.16149581427409
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              12.467929811120605,
+              10.213072679092406,
+              10.379986004650878
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 0.0,
+            "any_disk_at_or_above_capacity_percent": 0.0,
+            "strict_underload_all_disks": true,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 149,
+          "active_npu_count_min": 32,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        },
+        {
+          "start_ms": 2000.0,
+          "end_ms": 6000.0,
+          "full_population": false,
+          "U_percent": 100.0,
+          "per_npu_U_percent": [
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0
+          ],
+          "all_npus_active": true,
+          "cohort_count": 307,
+          "completed_after_window": 32,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 307,
+                  "passed": 307,
+                  "percent": 100.0
+                },
+                "1.5": {
+                  "count": 307,
+                  "passed": 307,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 413.27907288553007,
+              "mean_ratio": 1.0
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 307,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 307,
+                  "passed": 0,
+                  "percent": 0.0
+                }
+              },
+              "mean_ms": 4413.839129189258,
+              "mean_ratio": 14.668030483131451
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              21.115250232998658,
+              22.784447280862427,
+              22.175646578237917
+            ],
+            "per_disk_max_GiB_s": [
+              27.532070188879395,
+              29.786927320907594,
+              29.620013995349122
+            ],
+            "per_disk_mean_GiB_s": [
+              23.640162758247268,
+              25.801505866545202,
+              25.46365039150653
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              12.467929811120605,
+              10.213072679092406,
+              10.379986004650878
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 0.0,
+            "any_disk_at_or_above_capacity_percent": 0.0,
+            "strict_underload_all_disks": true,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 308,
+          "active_npu_count_min": 32,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        },
+        {
+          "start_ms": 0.0,
+          "end_ms": 8371.814495926397,
+          "full_population": true,
+          "U_percent": 99.53896556995186,
+          "per_npu_U_percent": [
+            99.53896556995197,
+            99.53896556995186,
+            99.53896556995196,
+            99.53896556995186,
+            99.53896556995176,
+            99.53896556995177,
+            99.53896556995204,
+            99.53896556995177,
+            99.53896556995191,
+            99.53896556995184,
+            99.53896556995186,
+            99.53896556995184,
+            99.53896556995193,
+            99.53896556995193,
+            99.53896556995186,
+            99.53896556995197,
+            99.53896556995188,
+            99.53896556995186,
+            99.53896556995184,
+            99.53896556995186,
+            99.53896556995188,
+            99.5389655699518,
+            99.53896556995191,
+            99.5389655699518,
+            99.538965569952,
+            99.53896556995177,
+            99.53896556995186,
+            99.53896556995186,
+            99.53896556995176,
+            99.53896556995181,
+            99.53896556995186,
+            99.53896556995186
+          ],
+          "all_npus_active": false,
+          "cohort_count": 640,
+          "completed_after_window": 0,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 640,
+                  "passed": 608,
+                  "percent": 95.0
+                },
+                "1.5": {
+                  "count": 640,
+                  "passed": 640,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 417.8988262408734,
+              "mean_ratio": 1.0035598092236495
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 640,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 640,
+                  "passed": 38,
+                  "percent": 5.9375
+                }
+              },
+              "mean_ms": 4497.319008681947,
+              "mean_ratio": 15.39334610550704
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              0.5217164467163086,
+              0.5934869631958009,
+              0.5631225139160156
+            ],
+            "per_disk_max_GiB_s": [
+              27.532070188879395,
+              29.786927320907594,
+              29.620013995349122
+            ],
+            "per_disk_mean_GiB_s": [
+              23.324628814649294,
+              25.56888772093948,
+              25.08475516192866
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              12.467929811120605,
+              10.213072679092406,
+              10.379986004650878
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 0.0,
+            "any_disk_at_or_above_capacity_percent": 0.0,
+            "strict_underload_all_disks": true,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 640,
+          "active_npu_count_min": 1,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "label": "random_od_baseline_seed7_remote",
+      "order": "random",
+      "policy": "od_baseline",
+      "seed": 7,
+      "files_sha256": {
+        "results/continuous_underload_asu_od_20260918/runs/random_od_baseline_seed7_remote/command.json": "8f134ce5904c9314604fcc3d4189e6a492bd5e9e9a7fd2bbe54f8accf10dab58",
+        "results/continuous_underload_asu_od_20260918/runs/random_od_baseline_seed7_remote/manifest.json.gz": "771fedfd3b85a6ec1c9b62adbfea3a683e458f7f249be826c842c8e8afd4f8bb",
+        "results/continuous_underload_asu_od_20260918/runs/random_od_baseline_seed7_remote/result.json.gz": "31504eb7d2a68914429068c7495ed8a4bc7c9e7c1511815232d76a3da15a672b"
+      },
+      "physical_inventory_sha256": "09aea0b8bd1518c9132195e0af2a43005a1e5b2bfe267be38498ce543e41e2de",
+      "original_ids_count": 640,
+      "request_count": 640,
+      "block_count": 3678208,
+      "path_ownership_observed_and_configured": true,
+      "npu_path_ids": [
+        0,
+        32,
+        64,
+        96,
+        128,
+        160,
+        192,
+        224,
+        1,
+        33,
+        65,
+        97,
+        129,
+        161,
+        193,
+        225,
+        2,
+        34,
+        66,
+        98,
+        130,
+        162,
+        194,
+        226,
+        3,
+        35,
+        67,
+        99,
+        131,
+        163,
+        195,
+        227
+      ],
+      "independent_layer_compute_total_ms": 266662.96155778057,
+      "makespan_ms": 8386.134671385502,
+      "windows": [
+        {
+          "start_ms": 2000.0,
+          "end_ms": 4000.0,
+          "full_population": false,
+          "U_percent": 100.0,
+          "per_npu_U_percent": [
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0
+          ],
+          "all_npus_active": true,
+          "cohort_count": 147,
+          "completed_after_window": 32,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 147,
+                  "passed": 147,
+                  "percent": 100.0
+                },
+                "1.5": {
+                  "count": 147,
+                  "passed": 147,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 417.79423824748056,
+              "mean_ratio": 0.9999999999999982
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 147,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 147,
+                  "passed": 0,
+                  "percent": 0.0
+                }
+              },
+              "mean_ms": 3387.839556509112,
+              "mean_ratio": 10.671035074888913
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              21.628150840997314,
+              23.564593433624268,
+              23.209402380889895
+            ],
+            "per_disk_max_GiB_s": [
+              27.532070188879395,
+              29.786927320907594,
+              29.575417214465332
+            ],
+            "per_disk_mean_GiB_s": [
+              24.231281696942524,
+              26.466388558004265,
+              26.14384761749267
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              12.467929811120605,
+              10.213072679092406,
+              10.424582785534668
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 0.0,
+            "any_disk_at_or_above_capacity_percent": 0.0,
+            "strict_underload_all_disks": true,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 148,
+          "active_npu_count_min": 32,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        },
+        {
+          "start_ms": 2000.0,
+          "end_ms": 6000.0,
+          "full_population": false,
+          "U_percent": 100.0,
+          "per_npu_U_percent": [
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0
+          ],
+          "all_npus_active": true,
+          "cohort_count": 306,
+          "completed_after_window": 32,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 306,
+                  "passed": 306,
+                  "percent": 100.0
+                },
+                "1.5": {
+                  "count": 306,
+                  "passed": 306,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 413.03998218651543,
+              "mean_ratio": 0.9999999999999998
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 306,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 306,
+                  "passed": 0,
+                  "percent": 0.0
+                }
+              },
+              "mean_ms": 4413.150922112939,
+              "mean_ratio": 14.692435045494879
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              21.215206666113282,
+              22.76859513124695,
+              22.159005332034305
+            ],
+            "per_disk_max_GiB_s": [
+              27.532070188879395,
+              29.786927320907594,
+              29.575417214465332
+            ],
+            "per_disk_mean_GiB_s": [
+              23.638233073090877,
+              25.79903504592052,
+              25.46493614921168
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              12.467929811120605,
+              10.213072679092406,
+              10.424582785534668
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 0.0,
+            "any_disk_at_or_above_capacity_percent": 0.0,
+            "strict_underload_all_disks": true,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 307,
+          "active_npu_count_min": 32,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        },
+        {
+          "start_ms": 0.0,
+          "end_ms": 8386.134671385502,
+          "full_population": true,
+          "U_percent": 99.36899269116621,
+          "per_npu_U_percent": [
+            99.36899269116633,
+            99.36899269116621,
+            99.36899269116631,
+            99.3689926911662,
+            99.36899269116611,
+            99.36899269116616,
+            99.36899269116641,
+            99.36899269116616,
+            99.36899269116627,
+            99.3689926911662,
+            99.36899269116621,
+            99.36899269116617,
+            99.36899269116628,
+            99.36899269116628,
+            99.36899269116621,
+            99.36899269116633,
+            99.36899269116624,
+            99.36899269116621,
+            99.3689926911662,
+            99.36899269116621,
+            99.36899269116624,
+            99.36899269116616,
+            99.36899269116627,
+            99.36899269116616,
+            99.36899269116635,
+            99.36899269116613,
+            99.3689926911662,
+            99.36899269116621,
+            99.36899269116613,
+            99.36899269116617,
+            99.36899269116621,
+            99.36899269116621
+          ],
+          "all_npus_active": false,
+          "cohort_count": 640,
+          "completed_after_window": 0,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 640,
+                  "passed": 608,
+                  "percent": 95.0
+                },
+                "1.5": {
+                  "count": 640,
+                  "passed": 640,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 418.2168008938368,
+              "mean_ratio": 1.0039146850993954
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 640,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 640,
+                  "passed": 38,
+                  "percent": 5.9375
+                }
+              },
+              "mean_ms": 4503.678501741213,
+              "mean_ratio": 15.414970715238349
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              0.52999766015625,
+              0.5548413004760743,
+              0.5934869631958009
+            ],
+            "per_disk_max_GiB_s": [
+              27.532070188879395,
+              29.786927320907594,
+              29.575417214465332
+            ],
+            "per_disk_mean_GiB_s": [
+              23.303711213879083,
+              25.546688984132935,
+              25.06164100961618
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              12.467929811120605,
+              10.213072679092406,
+              10.424582785534668
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 0.0,
+            "any_disk_at_or_above_capacity_percent": 0.0,
+            "strict_underload_all_disks": true,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 640,
+          "active_npu_count_min": 1,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "label": "ordered_asu_baseline_seed7_remote",
+      "order": "ordered",
+      "policy": "asu_baseline",
+      "seed": 7,
+      "files_sha256": {
+        "results/continuous_underload_asu_od_20260918/runs/ordered_asu_baseline_seed7_remote/command.json": "dd9bda0f757bfc52680165cafff7c1f0c4bbf525d3365b0511a3846ec04f654f",
+        "results/continuous_underload_asu_od_20260918/runs/ordered_asu_baseline_seed7_remote/manifest.json.gz": "5a64d49d52ef121d380bc53eee01c0a3df6af4d9580c988a4ed380cb71412d71",
+        "results/continuous_underload_asu_od_20260918/runs/ordered_asu_baseline_seed7_remote/result.json.gz": "fecfbe3fe9515351727463e2c0b631715da730a11d2be84f97926c42cb68e437"
+      },
+      "physical_inventory_sha256": "09aea0b8bd1518c9132195e0af2a43005a1e5b2bfe267be38498ce543e41e2de",
+      "original_ids_count": 640,
+      "request_count": 640,
+      "block_count": 3678208,
+      "path_ownership_observed_and_configured": true,
+      "npu_path_ids": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "independent_layer_compute_total_ms": 266662.9615577777,
+      "makespan_ms": 8363.849495139573,
+      "windows": [
+        {
+          "start_ms": 2000.0,
+          "end_ms": 4000.0,
+          "full_population": false,
+          "U_percent": 99.9901259850055,
+          "per_npu_U_percent": [
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            99.96719997554877,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            99.99349879323712,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            99.8962847533808,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            99.8270479980097
+          ],
+          "all_npus_active": true,
+          "cohort_count": 160,
+          "completed_after_window": 32,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 160,
+                  "passed": 156,
+                  "percent": 97.5
+                },
+                "1.5": {
+                  "count": 160,
+                  "passed": 160,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 392.4365466335864,
+              "mean_ratio": 1.0001059867645892
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 160,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 160,
+                  "passed": 0,
+                  "percent": 0.0
+                }
+              },
+              "mean_ms": 3293.5239078226077,
+              "mean_ratio": 8.732644035906878
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              16.90747743988037,
+              18.08340974835205,
+              17.995076804992678
+            ],
+            "per_disk_max_GiB_s": [
+              37.13562527409667,
+              40.555158398986805,
+              39.74801886265868
+            ],
+            "per_disk_mean_GiB_s": [
+              26.755798360980453,
+              29.175303533370702,
+              28.668495153001295
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              18.630025773534545,
+              0.0
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              18.630025773534545,
+              0.0
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              2.864374725903332,
+              -0.555158398986805,
+              0.25198113734131766
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 18.630025773534545,
+            "any_disk_at_or_above_capacity_percent": 18.630025773534545,
+            "strict_underload_all_disks": false,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 161,
+          "active_npu_count_min": 32,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        },
+        {
+          "start_ms": 2000.0,
+          "end_ms": 6000.0,
+          "full_population": false,
+          "U_percent": 99.98992994874578,
+          "per_npu_U_percent": [
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            99.93167629738724,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            99.97521152993117,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            99.90830437638076,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            99.86256615616591
+          ],
+          "all_npus_active": true,
+          "cohort_count": 256,
+          "completed_after_window": 32,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 256,
+                  "passed": 248,
+                  "percent": 96.875
+                },
+                "1.5": {
+                  "count": 256,
+                  "passed": 256,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 488.6599029289092,
+              "mean_ratio": 1.0001395993782796
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 256,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 256,
+                  "passed": 0,
+                  "percent": 0.0
+                }
+              },
+              "mean_ms": 4121.0982702806305,
+              "mean_ratio": 8.863154945041547
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              16.90747743988037,
+              18.08340974835205,
+              17.995076804992678
+            ],
+            "per_disk_max_GiB_s": [
+              37.67260588330078,
+              40.712183412011726,
+              40.05917205468751
+            ],
+            "per_disk_mean_GiB_s": [
+              24.8303640066824,
+              27.216941814296238,
+              26.658216195547187
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              19.375025508481325,
+              10.025289339853702
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              19.375025508481325,
+              10.025289339853702
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              2.3273941166992174,
+              -0.7121834120117256,
+              -0.05917205468750808
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 19.375025508481325,
+            "any_disk_at_or_above_capacity_percent": 19.375025508481325,
+            "strict_underload_all_disks": false,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 257,
+          "active_npu_count_min": 32,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        },
+        {
+          "start_ms": 0.0,
+          "end_ms": 8363.849495139573,
+          "full_population": true,
+          "U_percent": 99.63375779924105,
+          "per_npu_U_percent": [
+            99.63375779924105,
+            99.63375779924105,
+            99.63375779924105,
+            99.63375779924105,
+            99.63375779924105,
+            99.63375779924105,
+            99.63375779924105,
+            99.63375779924105,
+            99.63375779924104,
+            99.63375779924105,
+            99.63375779924105,
+            99.63375779924105,
+            99.63375779924105,
+            99.63375779924105,
+            99.63375779924105,
+            99.63375779924105,
+            99.63375779924105,
+            99.63375779924105,
+            99.63375779924105,
+            99.63375779924104,
+            99.63375779924104,
+            99.63375779924105,
+            99.63375779924105,
+            99.63375779924104,
+            99.63375779924105,
+            99.63375779924105,
+            99.63375779924104,
+            99.63375779924104,
+            99.63375779924105,
+            99.63375779924105,
+            99.63375779924104,
+            99.63375779924105
+          ],
+          "all_npus_active": false,
+          "cohort_count": 640,
+          "completed_after_window": 0,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 640,
+                  "passed": 575,
+                  "percent": 89.84375
+                },
+                "1.5": {
+                  "count": 640,
+                  "passed": 640,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 417.3936717198303,
+              "mean_ratio": 1.0051998155696233
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 640,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 640,
+                  "passed": 32,
+                  "percent": 5.0
+                }
+              },
+              "mean_ms": 3217.300333188404,
+              "mean_ratio": 6.8944315043425615
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              0.5834720178955078,
+              0.6567725226562501,
+              0.5893360582763673
+            ],
+            "per_disk_max_GiB_s": [
+              37.7487417366211,
+              41.10164758476563,
+              40.13530790800782
+            ],
+            "per_disk_mean_GiB_s": [
+              23.325594129111817,
+              25.57130416633993,
+              25.086469740972074
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              15.388620670491553,
+              10.858107744108597
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              15.388620670491553,
+              10.858107744108597
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              2.251258263378901,
+              -1.1016475847656295,
+              -0.13530790800781745
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 15.388620670491553,
+            "any_disk_at_or_above_capacity_percent": 15.388620670491553,
+            "strict_underload_all_disks": false,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 640,
+          "active_npu_count_min": 1,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "label": "ordered_od_baseline_seed7_remote",
+      "order": "ordered",
+      "policy": "od_baseline",
+      "seed": 7,
+      "files_sha256": {
+        "results/continuous_underload_asu_od_20260918/runs/ordered_od_baseline_seed7_remote/command.json": "f2c9fb278d870acb022c3cc788293e7ce0c7925cd124bce02faab4cac58c0103",
+        "results/continuous_underload_asu_od_20260918/runs/ordered_od_baseline_seed7_remote/manifest.json.gz": "5a64d49d52ef121d380bc53eee01c0a3df6af4d9580c988a4ed380cb71412d71",
+        "results/continuous_underload_asu_od_20260918/runs/ordered_od_baseline_seed7_remote/result.json.gz": "f581ca66580c57433d7ced2892de03e8f0155c9263d336f0ef3fa02556bf8e39"
+      },
+      "physical_inventory_sha256": "09aea0b8bd1518c9132195e0af2a43005a1e5b2bfe267be38498ce543e41e2de",
+      "original_ids_count": 640,
+      "request_count": 640,
+      "block_count": 3678208,
+      "path_ownership_observed_and_configured": true,
+      "npu_path_ids": [
+        0,
+        32,
+        64,
+        96,
+        128,
+        160,
+        192,
+        224,
+        1,
+        33,
+        65,
+        97,
+        129,
+        161,
+        193,
+        225,
+        2,
+        34,
+        66,
+        98,
+        130,
+        162,
+        194,
+        226,
+        3,
+        35,
+        67,
+        99,
+        131,
+        163,
+        195,
+        227
+      ],
+      "independent_layer_compute_total_ms": 266662.9615577777,
+      "makespan_ms": 8399.63353884995,
+      "windows": [
+        {
+          "start_ms": 2000.0,
+          "end_ms": 4000.0,
+          "full_population": false,
+          "U_percent": 99.82696427204286,
+          "per_npu_U_percent": [
+            100.0,
+            100.0,
+            99.57087200313666,
+            99.9533380696771,
+            99.93678276485541,
+            99.78319805294134,
+            100.0,
+            100.0,
+            99.6860567870722,
+            100.0,
+            99.90109579062437,
+            99.40447942709898,
+            100.0,
+            100.0,
+            99.86838024288275,
+            99.18944042354681,
+            99.98419445186713,
+            99.49994222617124,
+            99.9644579122064,
+            99.6837538952265,
+            100.0,
+            99.87172262167906,
+            99.93382589316343,
+            99.85789482540228,
+            100.0,
+            99.83544033199408,
+            99.04845421260931,
+            99.81843630087828,
+            99.73934810787298,
+            99.93174236446478,
+            100.0,
+            100.0
+          ],
+          "all_npus_active": true,
+          "cohort_count": 160,
+          "completed_after_window": 32,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 160,
+                  "passed": 133,
+                  "percent": 83.125
+                },
+                "1.5": {
+                  "count": 160,
+                  "passed": 160,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 393.0891934854371,
+              "mean_ratio": 1.001857349515388
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 160,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 160,
+                  "passed": 0,
+                  "percent": 0.0
+                }
+              },
+              "mean_ms": 3295.0456948328306,
+              "mean_ratio": 8.736735869115462
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              16.882633799560548,
+              18.066847321472167,
+              17.995076804992678
+            ],
+            "per_disk_max_GiB_s": [
+              37.13562527409667,
+              40.77495979057616,
+              39.7768452746704
+            ],
+            "per_disk_mean_GiB_s": [
+              26.75163198838843,
+              29.178959634741027,
+              28.668222544133847
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              18.762904380749458,
+              0.0
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              18.762904380749458,
+              0.0
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              2.864374725903332,
+              -0.7749597905761618,
+              0.2231547253296
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 18.762904380749458,
+            "any_disk_at_or_above_capacity_percent": 18.762904380749458,
+            "strict_underload_all_disks": false,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 161,
+          "active_npu_count_min": 32,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        },
+        {
+          "start_ms": 2000.0,
+          "end_ms": 6000.0,
+          "full_population": false,
+          "U_percent": 99.8570283033351,
+          "per_npu_U_percent": [
+            100.0,
+            100.0,
+            99.73741547562392,
+            99.9669241001216,
+            99.95622637429153,
+            99.89159902647066,
+            99.88260285355359,
+            99.93241062661086,
+            99.65024010636122,
+            100.0,
+            99.95054789531218,
+            99.70223971354949,
+            99.94468691506302,
+            100.0,
+            99.90358368851454,
+            99.59472021177339,
+            99.94583836098587,
+            99.50704590775281,
+            99.9822289561032,
+            99.84187694761326,
+            100.0,
+            99.93586131083953,
+            99.88574997879773,
+            99.43214682694227,
+            99.73489777542859,
+            99.8757840821913,
+            99.52422710630466,
+            99.90921815043914,
+            99.80392472245009,
+            99.96587118223238,
+            99.98874666848099,
+            99.97829074291533
+          ],
+          "all_npus_active": true,
+          "cohort_count": 256,
+          "completed_after_window": 32,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 256,
+                  "passed": 212,
+                  "percent": 82.8125
+                },
+                "1.5": {
+                  "count": 256,
+                  "passed": 256,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 489.4244472563061,
+              "mean_ratio": 1.002011956857339
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 256,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 256,
+                  "passed": 0,
+                  "percent": 0.0
+                }
+              },
+              "mean_ms": 4123.7236632451095,
+              "mean_ratio": 8.868628381683845
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              16.882633799560548,
+              18.066847321472167,
+              17.995076804992678
+            ],
+            "per_disk_max_GiB_s": [
+              37.67260588330078,
+              40.77495979057616,
+              40.05917205468751
+            ],
+            "per_disk_mean_GiB_s": [
+              24.828151192856136,
+              27.218465026037887,
+              26.6565678857946
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              19.07954540901261,
+              9.649207873178897
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              19.07954540901261,
+              9.649207873178897
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              2.3273941166992174,
+              -0.7749597905761618,
+              -0.05917205468750808
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 19.07954540901261,
+            "any_disk_at_or_above_capacity_percent": 19.07954540901261,
+            "strict_underload_all_disks": false,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 257,
+          "active_npu_count_min": 32,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        },
+        {
+          "start_ms": 0.0,
+          "end_ms": 8399.63353884995,
+          "full_population": true,
+          "U_percent": 99.20929895497994,
+          "per_npu_U_percent": [
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994
+          ],
+          "all_npus_active": false,
+          "cohort_count": 640,
+          "completed_after_window": 0,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 640,
+                  "passed": 527,
+                  "percent": 82.34375
+                },
+                "1.5": {
+                  "count": 640,
+                  "passed": 640,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 418.2076762278708,
+              "mean_ratio": 1.0071127261772677
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 640,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 640,
+                  "passed": 32,
+                  "percent": 5.0
+                }
+              },
+              "mean_ms": 3220.881419306172,
+              "mean_ratio": 6.900687560299097
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              0.5776079775146485,
+              0.6435784317993165,
+              0.6083941895141602
+            ],
+            "per_disk_max_GiB_s": [
+              37.67260588330078,
+              41.318341936523446,
+              40.10309658544922
+            ],
+            "per_disk_mean_GiB_s": [
+              23.294885826614824,
+              25.544281342334425,
+              25.05347366427902
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              15.19176320378543,
+              10.373995786996169
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              15.19176320378543,
+              10.373995786996169
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              2.3273941166992174,
+              -1.3183419365234457,
+              -0.10309658544922229
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 15.19176320378543,
+            "any_disk_at_or_above_capacity_percent": 15.19176320378543,
+            "strict_underload_all_disks": false,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 640,
+          "active_npu_count_min": 1,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "label": "random_asu_baseline_seed19_remote",
+      "order": "random",
+      "policy": "asu_baseline",
+      "seed": 19,
+      "files_sha256": {
+        "results/continuous_underload_asu_od_20260918/runs/random_asu_baseline_seed19_remote/command.json": "3d03f4946b18d704086155bdf147b47656905312a1eb826884274ce8033b7a0a",
+        "results/continuous_underload_asu_od_20260918/runs/random_asu_baseline_seed19_remote/manifest.json.gz": "aa9a626f7f953439778297e6fe89d9cd62fda9557cffc44a1a798a591c854273",
+        "results/continuous_underload_asu_od_20260918/runs/random_asu_baseline_seed19_remote/result.json.gz": "f66503fd38b94f6b022ee425bc19dd93b336c3820728d608fce337ee8ede0397"
+      },
+      "physical_inventory_sha256": "09aea0b8bd1518c9132195e0af2a43005a1e5b2bfe267be38498ce543e41e2de",
+      "original_ids_count": 640,
+      "request_count": 640,
+      "block_count": 3678208,
+      "path_ownership_observed_and_configured": true,
+      "npu_path_ids": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "independent_layer_compute_total_ms": 266662.96155778156,
+      "makespan_ms": 8374.29443061879,
+      "windows": [
+        {
+          "start_ms": 2000.0,
+          "end_ms": 4000.0,
+          "full_population": false,
+          "U_percent": 100.0,
+          "per_npu_U_percent": [
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0
+          ],
+          "all_npus_active": true,
+          "cohort_count": 142,
+          "completed_after_window": 32,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 142,
+                  "passed": 142,
+                  "percent": 100.0
+                },
+                "1.5": {
+                  "count": 142,
+                  "passed": 142,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 441.23576102503984,
+              "mean_ratio": 0.9999999999999986
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 142,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 142,
+                  "passed": 0,
+                  "percent": 0.0
+                }
+              },
+              "mean_ms": 3443.0507044671995,
+              "mean_ratio": 10.43036116640265
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              20.46299401150818,
+              23.424864516293336,
+              22.469107299938965
+            ],
+            "per_disk_max_GiB_s": [
+              26.518868700787355,
+              29.45295859888916,
+              29.12488372128296
+            ],
+            "per_disk_mean_GiB_s": [
+              23.71404391993691,
+              26.278693060970824,
+              25.55976828975496
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              13.481131299212645,
+              10.547041401110839,
+              10.87511627871704
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 0.0,
+            "any_disk_at_or_above_capacity_percent": 0.0,
+            "strict_underload_all_disks": true,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 143,
+          "active_npu_count_min": 32,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        },
+        {
+          "start_ms": 2000.0,
+          "end_ms": 6000.0,
+          "full_population": false,
+          "U_percent": 100.0,
+          "per_npu_U_percent": [
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0
+          ],
+          "all_npus_active": true,
+          "cohort_count": 299,
+          "completed_after_window": 32,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 299,
+                  "passed": 299,
+                  "percent": 100.0
+                },
+                "1.5": {
+                  "count": 299,
+                  "passed": 299,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 426.6336991511006,
+              "mean_ratio": 1.0000000000000002
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 299,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 299,
+                  "passed": 0,
+                  "percent": 0.0
+                }
+              },
+              "mean_ms": 4457.158592885874,
+              "mean_ratio": 14.535565293389025
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              20.438470661425782,
+              23.214963127120974,
+              22.469107299938965
+            ],
+            "per_disk_max_GiB_s": [
+              27.53802972522583,
+              30.835595544799805,
+              29.57664623505249
+            ],
+            "per_disk_mean_GiB_s": [
+              23.62005670077919,
+              26.16640019615528,
+              25.493102886073327
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              12.46197027477417,
+              9.164404455200195,
+              10.42335376494751
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 0.0,
+            "any_disk_at_or_above_capacity_percent": 0.0,
+            "strict_underload_all_disks": true,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 300,
+          "active_npu_count_min": 32,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        },
+        {
+          "start_ms": 0.0,
+          "end_ms": 8374.29443061879,
+          "full_population": true,
+          "U_percent": 99.50948844372864,
+          "per_npu_U_percent": [
+            99.50948844372871,
+            99.5094884437287,
+            99.50948844372867,
+            99.50948844372874,
+            99.50948844372867,
+            99.50948844372864,
+            99.5094884437286,
+            99.50948844372864,
+            99.50948844372867,
+            99.50948844372856,
+            99.5094884437287,
+            99.50948844372856,
+            99.50948844372877,
+            99.50948844372856,
+            99.50948844372863,
+            99.50948844372864,
+            99.50948844372854,
+            99.5094884437286,
+            99.50948844372864,
+            99.50948844372863,
+            99.5094884437286,
+            99.50948844372867,
+            99.5094884437287,
+            99.50948844372856,
+            99.50948844372883,
+            99.5094884437286,
+            99.50948844372874,
+            99.5094884437286,
+            99.50948844372873,
+            99.50948844372874,
+            99.50948844372864,
+            99.50948844372863
+          ],
+          "all_npus_active": false,
+          "cohort_count": 640,
+          "completed_after_window": 0,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 640,
+                  "passed": 607,
+                  "percent": 94.84375
+                },
+                "1.5": {
+                  "count": 640,
+                  "passed": 640,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 418.0022343961741,
+              "mean_ratio": 1.0038672837114668
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 640,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 640,
+                  "passed": 37,
+                  "percent": 5.78125
+                }
+              },
+              "mean_ms": 4498.2930793580645,
+              "mean_ratio": 15.379441767080724
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              0.4692687615966797,
+              0.6155701990356446,
+              0.5934869631958009
+            ],
+            "per_disk_max_GiB_s": [
+              28.67456288474121,
+              30.835595544799805,
+              30.524214285488892
+            ],
+            "per_disk_mean_GiB_s": [
+              23.32808932915579,
+              25.57237828774819,
+              25.09018457177366
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              11.32543711525879,
+              9.164404455200195,
+              9.475785714511108
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 0.0,
+            "any_disk_at_or_above_capacity_percent": 0.0,
+            "strict_underload_all_disks": true,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 640,
+          "active_npu_count_min": 1,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "label": "random_od_baseline_seed19_remote",
+      "order": "random",
+      "policy": "od_baseline",
+      "seed": 19,
+      "files_sha256": {
+        "results/continuous_underload_asu_od_20260918/runs/random_od_baseline_seed19_remote/command.json": "be4fee7068c1a2e2ed3876cd7ea7bf28443b7964d2928cf5bb13813e1481a9de",
+        "results/continuous_underload_asu_od_20260918/runs/random_od_baseline_seed19_remote/manifest.json.gz": "aa9a626f7f953439778297e6fe89d9cd62fda9557cffc44a1a798a591c854273",
+        "results/continuous_underload_asu_od_20260918/runs/random_od_baseline_seed19_remote/result.json.gz": "8602e55a8b29793767ad39966247e32f2b61c76797aa8ebc51de329801f5b09f"
+      },
+      "physical_inventory_sha256": "09aea0b8bd1518c9132195e0af2a43005a1e5b2bfe267be38498ce543e41e2de",
+      "original_ids_count": 640,
+      "request_count": 640,
+      "block_count": 3678208,
+      "path_ownership_observed_and_configured": true,
+      "npu_path_ids": [
+        0,
+        32,
+        64,
+        96,
+        128,
+        160,
+        192,
+        224,
+        1,
+        33,
+        65,
+        97,
+        129,
+        161,
+        193,
+        225,
+        2,
+        34,
+        66,
+        98,
+        130,
+        162,
+        194,
+        226,
+        3,
+        35,
+        67,
+        99,
+        131,
+        163,
+        195,
+        227
+      ],
+      "independent_layer_compute_total_ms": 266662.9615577811,
+      "makespan_ms": 8386.378049071041,
+      "windows": [
+        {
+          "start_ms": 2000.0,
+          "end_ms": 4000.0,
+          "full_population": false,
+          "U_percent": 100.0,
+          "per_npu_U_percent": [
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0
+          ],
+          "all_npus_active": true,
+          "cohort_count": 141,
+          "completed_after_window": 32,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 141,
+                  "passed": 141,
+                  "percent": 100.0
+                },
+                "1.5": {
+                  "count": 141,
+                  "passed": 141,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 442.6360014553535,
+              "mean_ratio": 0.9999999999999988
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 141,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 141,
+                  "passed": 0,
+                  "percent": 0.0
+                }
+              },
+              "mean_ms": 3443.924265361944,
+              "mean_ratio": 10.401234573243006
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              20.46299401150818,
+              23.446356340127565,
+              22.469107299938965
+            ],
+            "per_disk_max_GiB_s": [
+              26.458049655670166,
+              29.45295859888916,
+              29.053443422735597
+            ],
+            "per_disk_mean_GiB_s": [
+              23.698809442581982,
+              26.261377106861808,
+              25.54297703209947
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              13.541950344329834,
+              10.547041401110839,
+              10.946556577264403
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 0.0,
+            "any_disk_at_or_above_capacity_percent": 0.0,
+            "strict_underload_all_disks": true,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 142,
+          "active_npu_count_min": 32,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        },
+        {
+          "start_ms": 2000.0,
+          "end_ms": 6000.0,
+          "full_population": false,
+          "U_percent": 100.0,
+          "per_npu_U_percent": [
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0
+          ],
+          "all_npus_active": true,
+          "cohort_count": 299,
+          "completed_after_window": 32,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 299,
+                  "passed": 299,
+                  "percent": 100.0
+                },
+                "1.5": {
+                  "count": 299,
+                  "passed": 299,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 426.6336991511006,
+              "mean_ratio": 1.0000000000000002
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 299,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 299,
+                  "passed": 0,
+                  "percent": 0.0
+                }
+              },
+              "mean_ms": 4463.255770477094,
+              "mean_ratio": 14.555044270907445
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              20.438470661425782,
+              23.214963127120974,
+              22.469107299938965
+            ],
+            "per_disk_max_GiB_s": [
+              27.649058991613767,
+              30.89145484822998,
+              29.605116787060545
+            ],
+            "per_disk_mean_GiB_s": [
+              23.62076106172043,
+              26.165558626498257,
+              25.494578998044894
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              12.350941008386233,
+              9.10854515177002,
+              10.394883212939455
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 0.0,
+            "any_disk_at_or_above_capacity_percent": 0.0,
+            "strict_underload_all_disks": true,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 300,
+          "active_npu_count_min": 32,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        },
+        {
+          "start_ms": 0.0,
+          "end_ms": 8386.378049071041,
+          "full_population": true,
+          "U_percent": 99.36610894381855,
+          "per_npu_U_percent": [
+            99.3661089438186,
+            99.3661089438186,
+            99.36610894381855,
+            99.36610894381865,
+            99.36610894381857,
+            99.36610894381855,
+            99.3661089438185,
+            99.36610894381855,
+            99.36610894381857,
+            99.36610894381846,
+            99.3661089438186,
+            99.36610894381846,
+            99.36610894381867,
+            99.36610894381846,
+            99.36610894381853,
+            99.36610894381855,
+            99.36610894381846,
+            99.3661089438185,
+            99.36610894381855,
+            99.36610894381853,
+            99.36610894381853,
+            99.36610894381857,
+            99.3661089438186,
+            99.36610894381845,
+            99.36610894381873,
+            99.3661089438185,
+            99.36610894381867,
+            99.3661089438185,
+            99.36610894381863,
+            99.36610894381865,
+            99.36610894381855,
+            99.36610894381853
+          ],
+          "all_npus_active": false,
+          "cohort_count": 640,
+          "completed_after_window": 0,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 640,
+                  "passed": 608,
+                  "percent": 95.0
+                },
+                "1.5": {
+                  "count": 640,
+                  "passed": 640,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 418.30979220079024,
+              "mean_ratio": 1.0041709011247015
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 640,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 640,
+                  "passed": 37,
+                  "percent": 5.78125
+                }
+              },
+              "mean_ms": 4504.44453134952,
+              "mean_ratio": 15.400359427903243
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              0.5611891899627685,
+              0.6532169992492675,
+              0.5756249247528076
+            ],
+            "per_disk_max_GiB_s": [
+              28.67456288474121,
+              30.89145484822998,
+              30.524214285488892
+            ],
+            "per_disk_mean_GiB_s": [
+              23.314759622955854,
+              25.558434970655107,
+              25.076525459415326
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              11.32543711525879,
+              9.10854515177002,
+              9.475785714511108
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 0.0,
+            "any_disk_at_or_above_capacity_percent": 0.0,
+            "strict_underload_all_disks": true,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 640,
+          "active_npu_count_min": 1,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "label": "ordered_asu_baseline_seed19_remote",
+      "order": "ordered",
+      "policy": "asu_baseline",
+      "seed": 19,
+      "files_sha256": {
+        "results/continuous_underload_asu_od_20260918/runs/ordered_asu_baseline_seed19_remote/command.json": "96b83bda6411b5fae8fb48b64c7855faf239ca3328b5db17b153567026a90f4b",
+        "results/continuous_underload_asu_od_20260918/runs/ordered_asu_baseline_seed19_remote/manifest.json.gz": "e89306939e5650fa477a677259e889f3dafc529be68b69844ab2f0e77e57b523",
+        "results/continuous_underload_asu_od_20260918/runs/ordered_asu_baseline_seed19_remote/result.json.gz": "b436184dba9de7438de22e35a7a41dc51d33c3ab29fc767a39480dc2f01283ef"
+      },
+      "physical_inventory_sha256": "09aea0b8bd1518c9132195e0af2a43005a1e5b2bfe267be38498ce543e41e2de",
+      "original_ids_count": 640,
+      "request_count": 640,
+      "block_count": 3678208,
+      "path_ownership_observed_and_configured": true,
+      "npu_path_ids": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "independent_layer_compute_total_ms": 266662.9615577777,
+      "makespan_ms": 8363.878768308517,
+      "windows": [
+        {
+          "start_ms": 2000.0,
+          "end_ms": 4000.0,
+          "full_population": false,
+          "U_percent": 99.99029707928958,
+          "per_npu_U_percent": [
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            99.97098152584174,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            99.99811957692856,
+            100.0,
+            100.0,
+            99.89482109493353,
+            100.0,
+            100.0,
+            99.82558433956244
+          ],
+          "all_npus_active": true,
+          "cohort_count": 160,
+          "completed_after_window": 32,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 160,
+                  "passed": 156,
+                  "percent": 97.5
+                },
+                "1.5": {
+                  "count": 160,
+                  "passed": 160,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 392.43586225645015,
+              "mean_ratio": 1.000104150254353
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 160,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 160,
+                  "passed": 0,
+                  "percent": 0.0
+                }
+              },
+              "mean_ms": 3293.52122776615,
+              "mean_ratio": 8.73263680135237
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              16.96820633843994,
+              18.13861783795166,
+              17.961951951232912
+            ],
+            "per_disk_max_GiB_s": [
+              37.13562527409667,
+              40.51191878096923,
+              39.697572641638175
+            ],
+            "per_disk_mean_GiB_s": [
+              26.755686048472803,
+              29.17550760698874,
+              28.668407490688402
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              18.630025773534545,
+              0.0
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              18.630025773534545,
+              0.0
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              2.864374725903332,
+              -0.511918780969232,
+              0.3024273583618253
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 18.630025773534545,
+            "any_disk_at_or_above_capacity_percent": 18.630025773534545,
+            "strict_underload_all_disks": false,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 161,
+          "active_npu_count_min": 32,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        },
+        {
+          "start_ms": 2000.0,
+          "end_ms": 6000.0,
+          "full_population": false,
+          "U_percent": 99.98936133649981,
+          "per_npu_U_percent": [
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            99.9285316721431,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            99.9911594645015,
+            100.0,
+            99.99598505654251,
+            99.97447970070755,
+            100.0,
+            100.0,
+            99.90757254715712,
+            100.0,
+            100.0,
+            99.86183432694227
+          ],
+          "all_npus_active": true,
+          "cohort_count": 256,
+          "completed_after_window": 32,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 256,
+                  "passed": 246,
+                  "percent": 96.09375
+                },
+                "1.5": {
+                  "count": 256,
+                  "passed": 256,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 488.6627459901391,
+              "mean_ratio": 1.000145584468866
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 256,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 256,
+                  "passed": 0,
+                  "percent": 0.0
+                }
+              },
+              "mean_ms": 4121.098091096835,
+              "mean_ratio": 8.86315467593882
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              16.96820633843994,
+              18.13861783795166,
+              17.961951951232912
+            ],
+            "per_disk_max_GiB_s": [
+              37.67260588330078,
+              40.712183412011726,
+              40.05917205468751
+            ],
+            "per_disk_mean_GiB_s": [
+              24.83035760641896,
+              27.217012543599388,
+              26.658156537936247
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              19.374293679257697,
+              10.024557510630075
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              19.374293679257697,
+              10.024557510630075
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              2.3273941166992174,
+              -0.7121834120117256,
+              -0.05917205468750808
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 19.374293679257697,
+            "any_disk_at_or_above_capacity_percent": 19.374293679257697,
+            "strict_underload_all_disks": false,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 257,
+          "active_npu_count_min": 32,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        },
+        {
+          "start_ms": 0.0,
+          "end_ms": 8363.878768308517,
+          "full_population": true,
+          "U_percent": 99.63340908593405,
+          "per_npu_U_percent": [
+            99.63340908593405,
+            99.63340908593405,
+            99.63340908593406,
+            99.63340908593406,
+            99.63340908593406,
+            99.63340908593406,
+            99.63340908593406,
+            99.63340908593405,
+            99.63340908593405,
+            99.63340908593406,
+            99.63340908593406,
+            99.63340908593406,
+            99.63340908593406,
+            99.63340908593405,
+            99.63340908593405,
+            99.63340908593406,
+            99.63340908593405,
+            99.63340908593406,
+            99.63340908593406,
+            99.63340908593405,
+            99.63340908593405,
+            99.63340908593405,
+            99.63340908593405,
+            99.63340908593405,
+            99.63340908593405,
+            99.63340908593405,
+            99.63340908593405,
+            99.63340908593405,
+            99.63340908593405,
+            99.63340908593405,
+            99.63340908593405,
+            99.63340908593405
+          ],
+          "all_npus_active": false,
+          "cohort_count": 640,
+          "completed_after_window": 0,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 640,
+                  "passed": 574,
+                  "percent": 89.6875
+                },
+                "1.5": {
+                  "count": 640,
+                  "passed": 640,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 417.394614141387,
+              "mean_ratio": 1.0051990326839149
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 640,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 640,
+                  "passed": 32,
+                  "percent": 5.0
+                }
+              },
+              "mean_ms": 3217.3003639847575,
+              "mean_ratio": 6.894427891231781
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              0.5834720178955078,
+              0.6567725226562501,
+              0.5893360582763673
+            ],
+            "per_disk_max_GiB_s": [
+              37.82194928789063,
+              41.13093060527344,
+              40.15873432441407
+            ],
+            "per_disk_mean_GiB_s": [
+              23.325507230330796,
+              25.571467014526817,
+              25.086101432741792
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              15.387666140362677,
+              10.913207885321215
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              15.387666140362677,
+              10.913207885321215
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              2.1780507121093677,
+              -1.1309306052734414,
+              -0.15873432441406976
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 15.387666140362677,
+            "any_disk_at_or_above_capacity_percent": 15.387666140362677,
+            "strict_underload_all_disks": false,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 640,
+          "active_npu_count_min": 1,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "label": "ordered_od_baseline_seed19_remote",
+      "order": "ordered",
+      "policy": "od_baseline",
+      "seed": 19,
+      "files_sha256": {
+        "results/continuous_underload_asu_od_20260918/runs/ordered_od_baseline_seed19_remote/command.json": "7d29f8d991fe22ee8b38ca8a1a9a008fed0ce4453c48ee83506129cd0d4b296b",
+        "results/continuous_underload_asu_od_20260918/runs/ordered_od_baseline_seed19_remote/manifest.json.gz": "e89306939e5650fa477a677259e889f3dafc529be68b69844ab2f0e77e57b523",
+        "results/continuous_underload_asu_od_20260918/runs/ordered_od_baseline_seed19_remote/result.json.gz": "484e672084d351996f65662e2c09b0576b55b8134d4c1b108385ee3448cbb8f0"
+      },
+      "physical_inventory_sha256": "09aea0b8bd1518c9132195e0af2a43005a1e5b2bfe267be38498ce543e41e2de",
+      "original_ids_count": 640,
+      "request_count": 640,
+      "block_count": 3678208,
+      "path_ownership_observed_and_configured": true,
+      "npu_path_ids": [
+        0,
+        32,
+        64,
+        96,
+        128,
+        160,
+        192,
+        224,
+        1,
+        33,
+        65,
+        97,
+        129,
+        161,
+        193,
+        225,
+        2,
+        34,
+        66,
+        98,
+        130,
+        162,
+        194,
+        226,
+        3,
+        35,
+        67,
+        99,
+        131,
+        163,
+        195,
+        227
+      ],
+      "independent_layer_compute_total_ms": 266662.9615577777,
+      "makespan_ms": 8399.63353884995,
+      "windows": [
+        {
+          "start_ms": 2000.0,
+          "end_ms": 4000.0,
+          "full_population": false,
+          "U_percent": 99.82696427204286,
+          "per_npu_U_percent": [
+            100.0,
+            100.0,
+            99.57087200313666,
+            99.9533380696771,
+            99.93678276485541,
+            99.78319805294134,
+            100.0,
+            100.0,
+            99.6860567870722,
+            100.0,
+            99.90109579062437,
+            99.40447942709898,
+            100.0,
+            100.0,
+            99.86838024288275,
+            99.18944042354681,
+            99.98419445186713,
+            99.49994222617124,
+            99.9644579122064,
+            99.6837538952265,
+            100.0,
+            99.87172262167906,
+            99.93382589316343,
+            99.85789482540228,
+            100.0,
+            99.83544033199408,
+            99.04845421260931,
+            99.81843630087828,
+            99.73934810787298,
+            99.93174236446478,
+            100.0,
+            100.0
+          ],
+          "all_npus_active": true,
+          "cohort_count": 160,
+          "completed_after_window": 32,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 160,
+                  "passed": 133,
+                  "percent": 83.125
+                },
+                "1.5": {
+                  "count": 160,
+                  "passed": 160,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 393.0891934854371,
+              "mean_ratio": 1.001857349515388
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 160,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 160,
+                  "passed": 0,
+                  "percent": 0.0
+                }
+              },
+              "mean_ms": 3295.0456948328306,
+              "mean_ratio": 8.736735869115462
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              16.882633799560548,
+              18.066847321472167,
+              17.995076804992678
+            ],
+            "per_disk_max_GiB_s": [
+              37.13562527409667,
+              40.77495979057616,
+              39.7768452746704
+            ],
+            "per_disk_mean_GiB_s": [
+              26.75163198838843,
+              29.178959634741027,
+              28.668222544133847
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              18.762904380749458,
+              0.0
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              18.762904380749458,
+              0.0
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              2.864374725903332,
+              -0.7749597905761618,
+              0.2231547253296
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 18.762904380749458,
+            "any_disk_at_or_above_capacity_percent": 18.762904380749458,
+            "strict_underload_all_disks": false,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 161,
+          "active_npu_count_min": 32,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        },
+        {
+          "start_ms": 2000.0,
+          "end_ms": 6000.0,
+          "full_population": false,
+          "U_percent": 99.8570283033351,
+          "per_npu_U_percent": [
+            100.0,
+            100.0,
+            99.73741547562392,
+            99.9669241001216,
+            99.95622637429153,
+            99.89159902647066,
+            99.88260285355359,
+            99.93241062661086,
+            99.65024010636122,
+            100.0,
+            99.95054789531218,
+            99.70223971354949,
+            99.94468691506302,
+            100.0,
+            99.90358368851454,
+            99.59472021177339,
+            99.94583836098587,
+            99.50704590775281,
+            99.9822289561032,
+            99.84187694761326,
+            100.0,
+            99.93586131083953,
+            99.88574997879773,
+            99.43214682694227,
+            99.73489777542859,
+            99.8757840821913,
+            99.52422710630466,
+            99.90921815043914,
+            99.80392472245009,
+            99.96587118223238,
+            99.98874666848099,
+            99.97829074291533
+          ],
+          "all_npus_active": true,
+          "cohort_count": 256,
+          "completed_after_window": 32,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 256,
+                  "passed": 212,
+                  "percent": 82.8125
+                },
+                "1.5": {
+                  "count": 256,
+                  "passed": 256,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 489.4244472563061,
+              "mean_ratio": 1.002011956857339
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 256,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 256,
+                  "passed": 0,
+                  "percent": 0.0
+                }
+              },
+              "mean_ms": 4123.7236632451095,
+              "mean_ratio": 8.868628381683845
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              16.882633799560548,
+              18.066847321472167,
+              17.995076804992678
+            ],
+            "per_disk_max_GiB_s": [
+              37.67260588330078,
+              40.77495979057616,
+              40.05917205468751
+            ],
+            "per_disk_mean_GiB_s": [
+              24.828151192856136,
+              27.218465026037887,
+              26.6565678857946
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              19.07954540901261,
+              9.649207873178897
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              19.07954540901261,
+              9.649207873178897
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              2.3273941166992174,
+              -0.7749597905761618,
+              -0.05917205468750808
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 19.07954540901261,
+            "any_disk_at_or_above_capacity_percent": 19.07954540901261,
+            "strict_underload_all_disks": false,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 257,
+          "active_npu_count_min": 32,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        },
+        {
+          "start_ms": 0.0,
+          "end_ms": 8399.63353884995,
+          "full_population": true,
+          "U_percent": 99.20929895497994,
+          "per_npu_U_percent": [
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994
+          ],
+          "all_npus_active": false,
+          "cohort_count": 640,
+          "completed_after_window": 0,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 640,
+                  "passed": 527,
+                  "percent": 82.34375
+                },
+                "1.5": {
+                  "count": 640,
+                  "passed": 640,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 418.2076762278708,
+              "mean_ratio": 1.0071127261772677
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 640,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 640,
+                  "passed": 32,
+                  "percent": 5.0
+                }
+              },
+              "mean_ms": 3220.881419306172,
+              "mean_ratio": 6.900687560299097
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              0.5776079775146485,
+              0.6435784317993165,
+              0.6083941895141602
+            ],
+            "per_disk_max_GiB_s": [
+              37.67260588330078,
+              41.318341936523446,
+              40.10309658544922
+            ],
+            "per_disk_mean_GiB_s": [
+              23.294885826614824,
+              25.544281342334425,
+              25.05347366427902
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              15.19176320378543,
+              10.373995786996169
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              15.19176320378543,
+              10.373995786996169
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              2.3273941166992174,
+              -1.3183419365234457,
+              -0.10309658544922229
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 15.19176320378543,
+            "any_disk_at_or_above_capacity_percent": 15.19176320378543,
+            "strict_underload_all_disks": false,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 640,
+          "active_npu_count_min": 1,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "label": "random_asu_baseline_seed43_local",
+      "order": "random",
+      "policy": "asu_baseline",
+      "seed": 43,
+      "files_sha256": {
+        "results/continuous_underload_asu_od_20260918/runs/random_asu_baseline_seed43_local/command.json": "fbb0655b9ca1002a24a07827e5b53e19ca8318b683b58b6a62471f8b90f39fee",
+        "results/continuous_underload_asu_od_20260918/runs/random_asu_baseline_seed43_local/manifest.json.gz": "bf7ccc9e454fcbc76ba8f3d47f42da3187d075c1c2f57fc32ad916ca99b8109c",
+        "results/continuous_underload_asu_od_20260918/runs/random_asu_baseline_seed43_local/result.json.gz": "4e4a8da764969a443e10d406a822445d0e2c8a7559a6c62d68140d73ff4538be"
+      },
+      "physical_inventory_sha256": "09aea0b8bd1518c9132195e0af2a43005a1e5b2bfe267be38498ce543e41e2de",
+      "original_ids_count": 640,
+      "request_count": 640,
+      "block_count": 3678208,
+      "path_ownership_observed_and_configured": true,
+      "npu_path_ids": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "independent_layer_compute_total_ms": 266662.9615577811,
+      "makespan_ms": 8379.560620193986,
+      "windows": [
+        {
+          "start_ms": 2000.0,
+          "end_ms": 4000.0,
+          "full_population": false,
+          "U_percent": 100.0,
+          "per_npu_U_percent": [
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0
+          ],
+          "all_npus_active": true,
+          "cohort_count": 145,
+          "completed_after_window": 32,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 145,
+                  "passed": 145,
+                  "percent": 100.0
+                },
+                "1.5": {
+                  "count": 145,
+                  "passed": 145,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 446.61410957897766,
+              "mean_ratio": 0.9999999999999984
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 145,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 145,
+                  "passed": 0,
+                  "percent": 0.0
+                }
+              },
+              "mean_ms": 3426.2526862079485,
+              "mean_ratio": 10.854789837264134
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              18.814835355111697,
+              21.620840154959108,
+              21.179887553549197
+            ],
+            "per_disk_max_GiB_s": [
+              25.813909860717775,
+              28.488244302951053,
+              27.701917092581176
+            ],
+            "per_disk_mean_GiB_s": [
+              23.0477783509918,
+              25.473541313008063,
+              25.15331563231066
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              14.186090139282225,
+              11.511755697048947,
+              12.298082907418824
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 0.0,
+            "any_disk_at_or_above_capacity_percent": 0.0,
+            "strict_underload_all_disks": true,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 146,
+          "active_npu_count_min": 32,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        },
+        {
+          "start_ms": 2000.0,
+          "end_ms": 6000.0,
+          "full_population": false,
+          "U_percent": 100.0,
+          "per_npu_U_percent": [
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0
+          ],
+          "all_npus_active": true,
+          "cohort_count": 297,
+          "completed_after_window": 32,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 297,
+                  "passed": 297,
+                  "percent": 100.0
+                },
+                "1.5": {
+                  "count": 297,
+                  "passed": 297,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 433.8728748941511,
+              "mean_ratio": 1.0
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 297,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 297,
+                  "passed": 0,
+                  "percent": 0.0
+                }
+              },
+              "mean_ms": 4459.061014904348,
+              "mean_ratio": 14.595301145472005
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              18.814835355111697,
+              21.612969903305054,
+              21.179887553549197
+            ],
+            "per_disk_max_GiB_s": [
+              25.813909860717775,
+              28.488244302951053,
+              27.701917092581176
+            ],
+            "per_disk_mean_GiB_s": [
+              22.92703965954079,
+              25.231735167560462,
+              24.7828343959216
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              14.186090139282225,
+              11.511755697048947,
+              12.298082907418824
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 0.0,
+            "any_disk_at_or_above_capacity_percent": 0.0,
+            "strict_underload_all_disks": true,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 298,
+          "active_npu_count_min": 32,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        },
+        {
+          "start_ms": 0.0,
+          "end_ms": 8379.560620193986,
+          "full_population": true,
+          "U_percent": 99.44695105609847,
+          "per_npu_U_percent": [
+            99.44695105609867,
+            99.44695105609846,
+            99.44695105609861,
+            99.44695105609843,
+            99.44695105609857,
+            99.44695105609858,
+            99.44695105609847,
+            99.44695105609846,
+            99.44695105609846,
+            99.44695105609847,
+            99.44695105609838,
+            99.44695105609831,
+            99.44695105609837,
+            99.44695105609847,
+            99.44695105609858,
+            99.44695105609837,
+            99.44695105609857,
+            99.44695105609857,
+            99.44695105609853,
+            99.44695105609843,
+            99.44695105609843,
+            99.44695105609853,
+            99.44695105609837,
+            99.44695105609837,
+            99.44695105609834,
+            99.4469510560985,
+            99.44695105609857,
+            99.44695105609853,
+            99.44695105609857,
+            99.44695105609847,
+            99.44695105609846,
+            99.44695105609858
+          ],
+          "all_npus_active": false,
+          "cohort_count": 640,
+          "completed_after_window": 0,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 640,
+                  "passed": 607,
+                  "percent": 94.84375
+                },
+                "1.5": {
+                  "count": 640,
+                  "passed": 640,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 418.2919315041766,
+              "mean_ratio": 1.0061423019559879
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 640,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 640,
+                  "passed": 38,
+                  "percent": 5.9375
+                }
+              },
+              "mean_ms": 4403.564113554789,
+              "mean_ratio": 14.553659877465389
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              0.5834720178955078,
+              0.6567725226562501,
+              0.5893360582763673
+            ],
+            "per_disk_max_GiB_s": [
+              28.345296340759276,
+              32.28709205340271,
+              31.495807929226686
+            ],
+            "per_disk_mean_GiB_s": [
+              23.33887053120182,
+              25.59058078768339,
+              25.105361766307567
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              11.654703659240724,
+              7.712907946597291,
+              8.504192070773314
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 0.0,
+            "any_disk_at_or_above_capacity_percent": 0.0,
+            "strict_underload_all_disks": true,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 640,
+          "active_npu_count_min": 1,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "label": "random_od_baseline_seed43_local",
+      "order": "random",
+      "policy": "od_baseline",
+      "seed": 43,
+      "files_sha256": {
+        "results/continuous_underload_asu_od_20260918/runs/random_od_baseline_seed43_local/command.json": "b8fd39bc8b3a58581d74b572f6be642d1a089490d4fb1e1bde9b3685ba87e40b",
+        "results/continuous_underload_asu_od_20260918/runs/random_od_baseline_seed43_local/manifest.json.gz": "bf7ccc9e454fcbc76ba8f3d47f42da3187d075c1c2f57fc32ad916ca99b8109c",
+        "results/continuous_underload_asu_od_20260918/runs/random_od_baseline_seed43_local/result.json.gz": "a6332fffa1b0315691e5a79fb8182bdec954e35f1856e0b154b99179354458e6"
+      },
+      "physical_inventory_sha256": "09aea0b8bd1518c9132195e0af2a43005a1e5b2bfe267be38498ce543e41e2de",
+      "original_ids_count": 640,
+      "request_count": 640,
+      "block_count": 3678208,
+      "path_ownership_observed_and_configured": true,
+      "npu_path_ids": [
+        0,
+        32,
+        64,
+        96,
+        128,
+        160,
+        192,
+        224,
+        1,
+        33,
+        65,
+        97,
+        129,
+        161,
+        193,
+        225,
+        2,
+        34,
+        66,
+        98,
+        130,
+        162,
+        194,
+        226,
+        3,
+        35,
+        67,
+        99,
+        131,
+        163,
+        195,
+        227
+      ],
+      "independent_layer_compute_total_ms": 266662.96155778103,
+      "makespan_ms": 8390.729474241933,
+      "windows": [
+        {
+          "start_ms": 2000.0,
+          "end_ms": 4000.0,
+          "full_population": false,
+          "U_percent": 100.0,
+          "per_npu_U_percent": [
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0
+          ],
+          "all_npus_active": true,
+          "cohort_count": 143,
+          "completed_after_window": 32,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 143,
+                  "passed": 143,
+                  "percent": 100.0
+                },
+                "1.5": {
+                  "count": 143,
+                  "passed": 143,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 448.65491077755763,
+              "mean_ratio": 0.9999999999999984
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 143,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 143,
+                  "passed": 0,
+                  "percent": 0.0
+                }
+              },
+              "mean_ms": 3418.726611273071,
+              "mean_ratio": 10.71003534389221
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              19.478030772866823,
+              21.707030687924195,
+              21.87248083650513
+            ],
+            "per_disk_max_GiB_s": [
+              25.813909860717775,
+              28.488244302951053,
+              27.701917092581176
+            ],
+            "per_disk_mean_GiB_s": [
+              23.0323720149982,
+              25.45569978895168,
+              25.1385107472931
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              14.186090139282225,
+              11.511755697048947,
+              12.298082907418824
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 0.0,
+            "any_disk_at_or_above_capacity_percent": 0.0,
+            "strict_underload_all_disks": true,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 144,
+          "active_npu_count_min": 32,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        },
+        {
+          "start_ms": 2000.0,
+          "end_ms": 6000.0,
+          "full_population": false,
+          "U_percent": 100.0,
+          "per_npu_U_percent": [
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0
+          ],
+          "all_npus_active": true,
+          "cohort_count": 296,
+          "completed_after_window": 32,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 296,
+                  "passed": 296,
+                  "percent": 100.0
+                },
+                "1.5": {
+                  "count": 296,
+                  "passed": 296,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 434.07970599354144,
+              "mean_ratio": 1.0
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 296,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 296,
+                  "passed": 0,
+                  "percent": 0.0
+                }
+              },
+              "mean_ms": 4456.205918198693,
+              "mean_ratio": 14.599472002470344
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              19.478030772866823,
+              21.707030687924195,
+              21.42603085041504
+            ],
+            "per_disk_max_GiB_s": [
+              25.813909860717775,
+              28.488244302951053,
+              27.701917092581176
+            ],
+            "per_disk_mean_GiB_s": [
+              22.92600305346709,
+              25.229394739756664,
+              24.783442091418923
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              14.186090139282225,
+              11.511755697048947,
+              12.298082907418824
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 0.0,
+            "any_disk_at_or_above_capacity_percent": 0.0,
+            "strict_underload_all_disks": true,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 297,
+          "active_npu_count_min": 32,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        },
+        {
+          "start_ms": 0.0,
+          "end_ms": 8390.729474241933,
+          "full_population": true,
+          "U_percent": 99.31457776420906,
+          "per_npu_U_percent": [
+            99.31457776420925,
+            99.31457776420905,
+            99.3145777642092,
+            99.31457776420903,
+            99.31457776420916,
+            99.31457776420916,
+            99.31457776420906,
+            99.31457776420905,
+            99.31457776420903,
+            99.31457776420906,
+            99.31457776420899,
+            99.31457776420892,
+            99.31457776420898,
+            99.31457776420906,
+            99.31457776420918,
+            99.31457776420895,
+            99.31457776420916,
+            99.31457776420916,
+            99.31457776420912,
+            99.31457776420903,
+            99.31457776420902,
+            99.31457776420912,
+            99.31457776420898,
+            99.31457776420898,
+            99.31457776420895,
+            99.31457776420909,
+            99.31457776420916,
+            99.31457776420912,
+            99.31457776420916,
+            99.31457776420906,
+            99.31457776420905,
+            99.31457776420916
+          ],
+          "all_npus_active": false,
+          "cohort_count": 640,
+          "completed_after_window": 0,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 640,
+                  "passed": 607,
+                  "percent": 94.84375
+                },
+                "1.5": {
+                  "count": 640,
+                  "passed": 640,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 418.4765666284558,
+              "mean_ratio": 1.0050299145418988
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 640,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 640,
+                  "passed": 38,
+                  "percent": 5.9375
+                }
+              },
+              "mean_ms": 4407.258249444137,
+              "mean_ratio": 14.566189492293853
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              0.5142730518951415,
+              0.5882561926940917,
+              0.6875018693756103
+            ],
+            "per_disk_max_GiB_s": [
+              28.345296340759276,
+              32.28709205340271,
+              31.495807929226686
+            ],
+            "per_disk_mean_GiB_s": [
+              23.321618923201836,
+              25.570101500876657,
+              25.084592960220238
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              11.654703659240724,
+              7.712907946597291,
+              8.504192070773314
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 0.0,
+            "any_disk_at_or_above_capacity_percent": 0.0,
+            "strict_underload_all_disks": true,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 640,
+          "active_npu_count_min": 1,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "label": "ordered_asu_baseline_seed43_local",
+      "order": "ordered",
+      "policy": "asu_baseline",
+      "seed": 43,
+      "files_sha256": {
+        "results/continuous_underload_asu_od_20260918/runs/ordered_asu_baseline_seed43_local/command.json": "2cfd5e83ecf52965d621e412f0e9106fe5520f4fb42593402eeb509c97bfdc2b",
+        "results/continuous_underload_asu_od_20260918/runs/ordered_asu_baseline_seed43_local/manifest.json.gz": "4138afed01bbf623bd275ee13f1b6a72dd7195cd320426ba69335f21d2408677",
+        "results/continuous_underload_asu_od_20260918/runs/ordered_asu_baseline_seed43_local/result.json.gz": "b9ce71a72f9b65b66410927e576b209231f32552dad1f1ac44101b9378d0f8c2"
+      },
+      "physical_inventory_sha256": "09aea0b8bd1518c9132195e0af2a43005a1e5b2bfe267be38498ce543e41e2de",
+      "original_ids_count": 640,
+      "request_count": 640,
+      "block_count": 3678208,
+      "path_ownership_observed_and_configured": true,
+      "npu_path_ids": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "independent_layer_compute_total_ms": 266662.9615577777,
+      "makespan_ms": 8363.870475974534,
+      "windows": [
+        {
+          "start_ms": 2000.0,
+          "end_ms": 4000.0,
+          "full_population": false,
+          "U_percent": 99.99061107768664,
+          "per_npu_U_percent": [
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            99.82599895626166,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            99.89922207027533,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            99.97433345943548,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0
+          ],
+          "all_npus_active": true,
+          "cohort_count": 160,
+          "completed_after_window": 32,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 160,
+                  "passed": 157,
+                  "percent": 98.125
+                },
+                "1.5": {
+                  "count": 160,
+                  "passed": 160,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 392.43460626286185,
+              "mean_ratio": 1.0001007798245722
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 160,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 160,
+                  "passed": 0,
+                  "percent": 0.0
+                }
+              },
+              "mean_ms": 3293.5223874250923,
+              "mean_ratio": 8.732640032788106
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              16.95440431604004,
+              18.08340974835205,
+              18.072368130432128
+            ],
+            "per_disk_max_GiB_s": [
+              37.18607149511718,
+              40.51191878096923,
+              39.614696707104486
+            ],
+            "per_disk_mean_GiB_s": [
+              26.75590185206833,
+              29.175484597588532,
+              28.6682032198601
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              18.630445390233763,
+              0.0
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              18.630445390233763,
+              0.0
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              2.813928504882817,
+              -0.511918780969232,
+              0.38530329289551446
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 18.630445390233763,
+            "any_disk_at_or_above_capacity_percent": 18.630445390233763,
+            "strict_underload_all_disks": false,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 161,
+          "active_npu_count_min": 32,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        },
+        {
+          "start_ms": 2000.0,
+          "end_ms": 6000.0,
+          "full_population": false,
+          "U_percent": 99.98947985634692,
+          "per_npu_U_percent": [
+            100.0,
+            100.0,
+            100.0,
+            99.99189129372512,
+            100.0,
+            100.0,
+            100.0,
+            99.86204163529189,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            99.90830437638076,
+            100.0,
+            99.97237911721145,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            99.92873898049271,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0
+          ],
+          "all_npus_active": true,
+          "cohort_count": 256,
+          "completed_after_window": 32,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 256,
+                  "passed": 248,
+                  "percent": 96.875
+                },
+                "1.5": {
+                  "count": 256,
+                  "passed": 256,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 488.6621533909035,
+              "mean_ratio": 1.0001438975264842
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 256,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 256,
+                  "passed": 0,
+                  "percent": 0.0
+                }
+              },
+              "mean_ms": 4121.0980301597465,
+              "mean_ratio": 8.863155527849312
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              16.95440431604004,
+              18.08340974835205,
+              18.072368130432128
+            ],
+            "per_disk_max_GiB_s": [
+              37.67260588330078,
+              40.712183412011726,
+              40.05917205468751
+            ],
+            "per_disk_mean_GiB_s": [
+              24.830436838727728,
+              27.21706461216783,
+              26.658020943666834
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              19.3767039752782,
+              10.024764818979678
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              19.3767039752782,
+              10.024764818979678
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              2.3273941166992174,
+              -0.7121834120117256,
+              -0.05917205468750808
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 19.3767039752782,
+            "any_disk_at_or_above_capacity_percent": 19.3767039752782,
+            "strict_underload_all_disks": false,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 257,
+          "active_npu_count_min": 32,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        },
+        {
+          "start_ms": 0.0,
+          "end_ms": 8363.870475974534,
+          "full_population": true,
+          "U_percent": 99.63350786717491,
+          "per_npu_U_percent": [
+            99.63350786717491,
+            99.63350786717491,
+            99.63350786717491,
+            99.63350786717491,
+            99.63350786717491,
+            99.63350786717491,
+            99.63350786717491,
+            99.63350786717491,
+            99.6335078671749,
+            99.63350786717491,
+            99.63350786717491,
+            99.63350786717491,
+            99.63350786717491,
+            99.63350786717491,
+            99.63350786717491,
+            99.63350786717491,
+            99.63350786717491,
+            99.63350786717491,
+            99.63350786717491,
+            99.6335078671749,
+            99.6335078671749,
+            99.63350786717491,
+            99.63350786717491,
+            99.6335078671749,
+            99.63350786717491,
+            99.63350786717491,
+            99.6335078671749,
+            99.6335078671749,
+            99.63350786717491,
+            99.63350786717491,
+            99.6335078671749,
+            99.63350786717491
+          ],
+          "all_npus_active": false,
+          "cohort_count": 640,
+          "completed_after_window": 0,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 640,
+                  "passed": 575,
+                  "percent": 89.84375
+                },
+                "1.5": {
+                  "count": 640,
+                  "passed": 640,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 417.3954813168457,
+              "mean_ratio": 1.0052036833970972
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 640,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 640,
+                  "passed": 32,
+                  "percent": 5.0
+                }
+              },
+              "mean_ms": 3217.306173496185,
+              "mean_ratio": 6.894443759439888
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              0.5820060078002931,
+              0.6274523207519532,
+              0.620122270275879
+            ],
+            "per_disk_max_GiB_s": [
+              37.7487417366211,
+              41.183640042187506,
+              40.28757961464844
+            ],
+            "per_disk_mean_GiB_s": [
+              23.325888763104455,
+              25.57150452942064,
+              25.086216712283697
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              15.389434960693167,
+              10.87159114506595
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              15.389434960693167,
+              10.87159114506595
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              2.251258263378901,
+              -1.1836400421875055,
+              -0.2875796146484433
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 15.389434960693167,
+            "any_disk_at_or_above_capacity_percent": 15.389434960693167,
+            "strict_underload_all_disks": false,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 640,
+          "active_npu_count_min": 1,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "label": "ordered_od_baseline_seed43_local",
+      "order": "ordered",
+      "policy": "od_baseline",
+      "seed": 43,
+      "files_sha256": {
+        "results/continuous_underload_asu_od_20260918/runs/ordered_od_baseline_seed43_local/command.json": "3e5731a30d2ca6d6ffc36b2630c7a63985a746b06dbc986f93e93097ee2e1269",
+        "results/continuous_underload_asu_od_20260918/runs/ordered_od_baseline_seed43_local/manifest.json.gz": "4138afed01bbf623bd275ee13f1b6a72dd7195cd320426ba69335f21d2408677",
+        "results/continuous_underload_asu_od_20260918/runs/ordered_od_baseline_seed43_local/result.json.gz": "5e7fe368578b1d6f7fbe245348ddb599aba88e534efbc30a77b3dd373c5abcfb"
+      },
+      "physical_inventory_sha256": "09aea0b8bd1518c9132195e0af2a43005a1e5b2bfe267be38498ce543e41e2de",
+      "original_ids_count": 640,
+      "request_count": 640,
+      "block_count": 3678208,
+      "path_ownership_observed_and_configured": true,
+      "npu_path_ids": [
+        0,
+        32,
+        64,
+        96,
+        128,
+        160,
+        192,
+        224,
+        1,
+        33,
+        65,
+        97,
+        129,
+        161,
+        193,
+        225,
+        2,
+        34,
+        66,
+        98,
+        130,
+        162,
+        194,
+        226,
+        3,
+        35,
+        67,
+        99,
+        131,
+        163,
+        195,
+        227
+      ],
+      "independent_layer_compute_total_ms": 266662.9615577777,
+      "makespan_ms": 8399.63353884995,
+      "windows": [
+        {
+          "start_ms": 2000.0,
+          "end_ms": 4000.0,
+          "full_population": false,
+          "U_percent": 99.82696427204286,
+          "per_npu_U_percent": [
+            100.0,
+            100.0,
+            99.57087200313666,
+            99.9533380696771,
+            99.93678276485541,
+            99.78319805294134,
+            100.0,
+            100.0,
+            99.6860567870722,
+            100.0,
+            99.90109579062437,
+            99.40447942709898,
+            100.0,
+            100.0,
+            99.86838024288275,
+            99.18944042354681,
+            99.98419445186713,
+            99.49994222617124,
+            99.9644579122064,
+            99.6837538952265,
+            100.0,
+            99.87172262167906,
+            99.93382589316343,
+            99.85789482540228,
+            100.0,
+            99.83544033199408,
+            99.04845421260931,
+            99.81843630087828,
+            99.73934810787298,
+            99.93174236446478,
+            100.0,
+            100.0
+          ],
+          "all_npus_active": true,
+          "cohort_count": 160,
+          "completed_after_window": 32,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 160,
+                  "passed": 133,
+                  "percent": 83.125
+                },
+                "1.5": {
+                  "count": 160,
+                  "passed": 160,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 393.0891934854371,
+              "mean_ratio": 1.001857349515388
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 160,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 160,
+                  "passed": 0,
+                  "percent": 0.0
+                }
+              },
+              "mean_ms": 3295.0456948328306,
+              "mean_ratio": 8.736735869115462
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              16.882633799560548,
+              18.066847321472167,
+              17.995076804992678
+            ],
+            "per_disk_max_GiB_s": [
+              37.13562527409667,
+              40.77495979057616,
+              39.7768452746704
+            ],
+            "per_disk_mean_GiB_s": [
+              26.75163198838843,
+              29.178959634741027,
+              28.668222544133847
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              18.762904380749458,
+              0.0
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              18.762904380749458,
+              0.0
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              2.864374725903332,
+              -0.7749597905761618,
+              0.2231547253296
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 18.762904380749458,
+            "any_disk_at_or_above_capacity_percent": 18.762904380749458,
+            "strict_underload_all_disks": false,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 161,
+          "active_npu_count_min": 32,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        },
+        {
+          "start_ms": 2000.0,
+          "end_ms": 6000.0,
+          "full_population": false,
+          "U_percent": 99.8570283033351,
+          "per_npu_U_percent": [
+            100.0,
+            100.0,
+            99.73741547562392,
+            99.9669241001216,
+            99.95622637429153,
+            99.89159902647066,
+            99.88260285355359,
+            99.93241062661086,
+            99.65024010636122,
+            100.0,
+            99.95054789531218,
+            99.70223971354949,
+            99.94468691506302,
+            100.0,
+            99.90358368851454,
+            99.59472021177339,
+            99.94583836098587,
+            99.50704590775281,
+            99.9822289561032,
+            99.84187694761326,
+            100.0,
+            99.93586131083953,
+            99.88574997879773,
+            99.43214682694227,
+            99.73489777542859,
+            99.8757840821913,
+            99.52422710630466,
+            99.90921815043914,
+            99.80392472245009,
+            99.96587118223238,
+            99.98874666848099,
+            99.97829074291533
+          ],
+          "all_npus_active": true,
+          "cohort_count": 256,
+          "completed_after_window": 32,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 256,
+                  "passed": 212,
+                  "percent": 82.8125
+                },
+                "1.5": {
+                  "count": 256,
+                  "passed": 256,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 489.4244472563061,
+              "mean_ratio": 1.002011956857339
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 256,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 256,
+                  "passed": 0,
+                  "percent": 0.0
+                }
+              },
+              "mean_ms": 4123.7236632451095,
+              "mean_ratio": 8.868628381683845
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              16.882633799560548,
+              18.066847321472167,
+              17.995076804992678
+            ],
+            "per_disk_max_GiB_s": [
+              37.67260588330078,
+              40.77495979057616,
+              40.05917205468751
+            ],
+            "per_disk_mean_GiB_s": [
+              24.828151192856136,
+              27.218465026037887,
+              26.6565678857946
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              19.07954540901261,
+              9.649207873178897
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              19.07954540901261,
+              9.649207873178897
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              2.3273941166992174,
+              -0.7749597905761618,
+              -0.05917205468750808
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 19.07954540901261,
+            "any_disk_at_or_above_capacity_percent": 19.07954540901261,
+            "strict_underload_all_disks": false,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 257,
+          "active_npu_count_min": 32,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        },
+        {
+          "start_ms": 0.0,
+          "end_ms": 8399.63353884995,
+          "full_population": true,
+          "U_percent": 99.20929895497994,
+          "per_npu_U_percent": [
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994,
+            99.20929895497994
+          ],
+          "all_npus_active": false,
+          "cohort_count": 640,
+          "completed_after_window": 0,
+          "slos": {
+            "admission": {
+              "slo": {
+                "1": {
+                  "count": 640,
+                  "passed": 527,
+                  "percent": 82.34375
+                },
+                "1.5": {
+                  "count": 640,
+                  "passed": 640,
+                  "percent": 100.0
+                }
+              },
+              "mean_ms": 418.2076762278708,
+              "mean_ratio": 1.0071127261772677
+            },
+            "arrival": {
+              "slo": {
+                "1": {
+                  "count": 640,
+                  "passed": 0,
+                  "percent": 0.0
+                },
+                "1.5": {
+                  "count": 640,
+                  "passed": 32,
+                  "percent": 5.0
+                }
+              },
+              "mean_ms": 3220.881419306172,
+              "mean_ratio": 6.900687560299097
+            }
+          },
+          "demand": {
+            "per_disk_min_GiB_s": [
+              0.5776079775146485,
+              0.6435784317993165,
+              0.6083941895141602
+            ],
+            "per_disk_max_GiB_s": [
+              37.67260588330078,
+              41.318341936523446,
+              40.10309658544922
+            ],
+            "per_disk_mean_GiB_s": [
+              23.294885826614824,
+              25.544281342334425,
+              25.05347366427902
+            ],
+            "per_disk_overload_percent": [
+              0.0,
+              15.19176320378543,
+              10.373995786996169
+            ],
+            "per_disk_at_or_above_capacity_percent": [
+              0.0,
+              15.19176320378543,
+              10.373995786996169
+            ],
+            "minimum_capacity_margin_GiB_s": [
+              2.3273941166992174,
+              -1.3183419365234457,
+              -0.10309658544922229
+            ],
+            "all_disks_overload_percent": 0.0,
+            "any_disk_overload_percent": 15.19176320378543,
+            "any_disk_at_or_above_capacity_percent": 15.19176320378543,
+            "strict_underload_all_disks": false,
+            "midpoint_rounding_fallback_count": 0
+          },
+          "demand_interval_count": 640,
+          "active_npu_count_min": 1,
+          "active_npu_count_max": 32,
+          "checks": "U, 32 per-NPU U/active durations, both SLO clocks/factors, category/length/profile SLO, all exact demand intervals passed"
+        }
+      ],
+      "status": "passed"
+    }
+  ],
+  "queue_checks": [
+    {
+      "host": "local",
+      "jobs": 4,
+      "complete": true,
+      "sources_verified_before": true,
+      "sources_verified_after": true,
+      "queue_source_sha256": "fa52f6b317e5169cd1e30ac6295c98b3ff173f3033744fc0f42ee758bc9fe1d0",
+      "status_sha256": "cc252038accc1edbf75bf7b575090fdc92b80d4f1c9cd58c3b290defad6aa2eb"
+    },
+    {
+      "host": "remote",
+      "jobs": 8,
+      "complete": true,
+      "sources_verified_before": true,
+      "sources_verified_after": true,
+      "queue_source_sha256": "fa52f6b317e5169cd1e30ac6295c98b3ff173f3033744fc0f42ee758bc9fe1d0",
+      "status_sha256": "8182655c2d88446c8da0e02290cd05b90806fc3981e98047e5ecd5f2666a6a30"
+    }
+  ],
+  "formal_cases": 12,
+  "windows_recomputed": 36,
+  "same_physical_requests_across_all_cases": true,
+  "same_frozen_manifest_across_policies": true,
+  "all_32_npus_active_in_both_warm_windows": true,
+  "inputs_raw_results_and_frozen_sources_unchanged": true,
+  "ended_utc": "2026-09-18T13:04:34.511554+00:00"
+}

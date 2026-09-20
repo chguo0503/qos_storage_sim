@@ -1,0 +1,1082 @@
+{
+  "schema_version": 1,
+  "num_npu": 8,
+  "num_ssu": 1,
+  "definitions": {
+    "utilization": "Exact overlap of compute intervals / (NPU count * wall window)",
+    "group_utilization": "Group compute overlap / group admission-to-completion overlap",
+    "stall_count": "Number of positive stall intervals intersecting the window",
+    "count_windows": "admitted_count uses [start,end); completed_count uses (start,end]",
+    "slo": "completion - admission <= alpha * own_compute_ms; final completions retained",
+    "slo_alpha": 1.5,
+    "ordinary_demand": "Current request disk_GiB / own layer compute time over [admission,completion)",
+    "ordinary_pending_demand": "Only k>=1: disk_GiB / own C over [io_start,all-SSU io_ready); conservative per-SSU envelope",
+    "boundary_exemption": "No extra next-request L0 burst term; no entire time interval is removed",
+    "demand_caveat": "Nominal profile demand, not physical service or remaining-bytes/remaining-deadline demand"
+  },
+  "input_audit": {
+    "request_count": 520,
+    "max_layer_volume_sum_error_gib": 0.0
+  },
+  "slo_all_requests": {
+    "count": 520,
+    "passed": 520,
+    "rate": 1.0,
+    "completion_after_window_end_count": 0,
+    "by_group": {
+      "A": {
+        "count": 40,
+        "passed": 40,
+        "rate": 1.0,
+        "completion_after_window_end_count": 0
+      },
+      "B": {
+        "count": 480,
+        "passed": 480,
+        "rate": 1.0,
+        "completion_after_window_end_count": 0
+      }
+    }
+  },
+  "full": {
+    "start_ms": 0.0,
+    "end_ms": 6166.244272506857,
+    "duration_ms": 6166.244272506857,
+    "fleet_utilization": 0.9807933963675991,
+    "compute_card_ms": 48382.493302914045,
+    "active_card_ms": 49164.556753614845,
+    "all_npus_active_whole_window": false,
+    "per_npu": [
+      {
+        "npu_id": 0,
+        "utilization": 0.9807933963676059,
+        "compute_card_ms": 6047.811662864297,
+        "active_card_ms": 6156.876073768566,
+        "idle_ms": 9.36819873829063,
+        "roles": [
+          "A",
+          "B"
+        ],
+        "role": "A+B",
+        "by_group": {
+          "A": {
+            "compute_card_ms": 3024.034215048629,
+            "active_card_ms": 3091.115984421139,
+            "compute_active_utilization": 0.9782985272275145
+          },
+          "B": {
+            "compute_card_ms": 3023.777447815669,
+            "active_card_ms": 3065.7600893474273,
+            "compute_active_utilization": 0.9863059599224234
+          }
+        }
+      },
+      {
+        "npu_id": 1,
+        "utilization": 0.9807933963675944,
+        "compute_card_ms": 6047.8116628642265,
+        "active_card_ms": 6166.244272506857,
+        "idle_ms": 0.0,
+        "roles": [
+          "A",
+          "B"
+        ],
+        "role": "A+B",
+        "by_group": {
+          "A": {
+            "compute_card_ms": 3024.0342150486294,
+            "active_card_ms": 3097.139047477052,
+            "compute_active_utilization": 0.9763960121558074
+          },
+          "B": {
+            "compute_card_ms": 3023.777447815597,
+            "active_card_ms": 3069.1052250298044,
+            "compute_active_utilization": 0.9852309471683992
+          }
+        }
+      },
+      {
+        "npu_id": 2,
+        "utilization": 0.9807933963675964,
+        "compute_card_ms": 6047.811662864239,
+        "active_card_ms": 6157.642518907044,
+        "idle_ms": 8.601753599812582,
+        "roles": [
+          "A",
+          "B"
+        ],
+        "role": "A+B",
+        "by_group": {
+          "A": {
+            "compute_card_ms": 3024.0342150486294,
+            "active_card_ms": 3089.928748357138,
+            "compute_active_utilization": 0.9786744165723745
+          },
+          "B": {
+            "compute_card_ms": 3023.77744781561,
+            "active_card_ms": 3067.7137705499063,
+            "compute_active_utilization": 0.9856778285001405
+          }
+        }
+      },
+      {
+        "npu_id": 3,
+        "utilization": 0.9807933963676018,
+        "compute_card_ms": 6047.811662864272,
+        "active_card_ms": 6127.6296119086865,
+        "idle_ms": 38.6146605981703,
+        "roles": [
+          "A",
+          "B"
+        ],
+        "role": "A+B",
+        "by_group": {
+          "A": {
+            "compute_card_ms": 3024.03421504863,
+            "active_card_ms": 3088.7850040220633,
+            "compute_active_utilization": 0.9790368093314626
+          },
+          "B": {
+            "compute_card_ms": 3023.7774478156416,
+            "active_card_ms": 3038.844607886623,
+            "compute_active_utilization": 0.9950418129206481
+          }
+        }
+      },
+      {
+        "npu_id": 4,
+        "utilization": 0.9807933963675962,
+        "compute_card_ms": 6047.811662864237,
+        "active_card_ms": 6133.004370350214,
+        "idle_ms": 33.23990215664253,
+        "roles": [
+          "A",
+          "B"
+        ],
+        "role": "A+B",
+        "by_group": {
+          "A": {
+            "compute_card_ms": 3024.034215048629,
+            "active_card_ms": 3066.2669724858897,
+            "compute_active_utilization": 0.9862266535118364
+          },
+          "B": {
+            "compute_card_ms": 3023.777447815609,
+            "active_card_ms": 3066.7373978643245,
+            "compute_active_utilization": 0.9859916437323153
+          }
+        }
+      },
+      {
+        "npu_id": 5,
+        "utilization": 0.9807933963676008,
+        "compute_card_ms": 6047.811662864266,
+        "active_card_ms": 6148.975004726738,
+        "idle_ms": 17.269267780118753,
+        "roles": [
+          "A",
+          "B"
+        ],
+        "role": "A+B",
+        "by_group": {
+          "A": {
+            "compute_card_ms": 3024.034215048631,
+            "active_card_ms": 3083.2966222312043,
+            "compute_active_utilization": 0.9807795309879435
+          },
+          "B": {
+            "compute_card_ms": 3023.777447815634,
+            "active_card_ms": 3065.6783824955337,
+            "compute_active_utilization": 0.9863322470748573
+          }
+        }
+      },
+      {
+        "npu_id": 6,
+        "utilization": 0.980793396367599,
+        "compute_card_ms": 6047.811662864255,
+        "active_card_ms": 6118.479473739649,
+        "idle_ms": 47.76479876720805,
+        "roles": [
+          "A",
+          "B"
+        ],
+        "role": "A+B",
+        "by_group": {
+          "A": {
+            "compute_card_ms": 3024.0342150486313,
+            "active_card_ms": 3049.0316637700626,
+            "compute_active_utilization": 0.9918015122576581
+          },
+          "B": {
+            "compute_card_ms": 3023.7774478156234,
+            "active_card_ms": 3069.4478099695857,
+            "compute_active_utilization": 0.9851209843002952
+          }
+        }
+      },
+      {
+        "npu_id": 7,
+        "utilization": 0.9807933963675982,
+        "compute_card_ms": 6047.81166286425,
+        "active_card_ms": 6155.7054277070865,
+        "idle_ms": 10.538844799770231,
+        "roles": [
+          "A",
+          "B"
+        ],
+        "role": "A+B",
+        "by_group": {
+          "A": {
+            "compute_card_ms": 3024.034215048629,
+            "active_card_ms": 3063.511448759184,
+            "compute_active_utilization": 0.9871137306418278
+          },
+          "B": {
+            "compute_card_ms": 3023.7774478156207,
+            "active_card_ms": 3092.1939789479025,
+            "compute_active_utilization": 0.9778744375035747
+          }
+        }
+      }
+    ],
+    "by_group": {
+      "A": {
+        "compute_card_ms": 24192.273720388865,
+        "active_card_ms": 24629.07549152373,
+        "active_request_count": 40,
+        "admitted_count": 40,
+        "completed_count": 40,
+        "compute_active_utilization": 0.9822647922255469
+      },
+      "B": {
+        "compute_card_ms": 24190.21958252428,
+        "active_card_ms": 24535.481262091103,
+        "active_request_count": 480,
+        "admitted_count": 480,
+        "completed_count": 480,
+        "compute_active_utilization": 0.985928065731473
+      }
+    },
+    "stall": {
+      "internal": {
+        "card_ms": 237.4978000569198,
+        "count": 122,
+        "by_group": {
+          "A": {
+            "card_ms": 0.0,
+            "count": 0
+          },
+          "B": {
+            "card_ms": 237.4978000569198,
+            "count": 122
+          }
+        }
+      },
+      "layer0": {
+        "card_ms": 544.5656506438798,
+        "count": 64,
+        "by_group": {
+          "A": {
+            "card_ms": 436.8017711346956,
+            "count": 37
+          },
+          "B": {
+            "card_ms": 107.76387950918426,
+            "count": 27
+          }
+        }
+      }
+    },
+    "total_stall_card_ms": 782.0634507007996,
+    "internal_stall_fraction": 0.30368098629861845,
+    "accounting_error_card_ms": 2.2737367544323206e-13,
+    "slo_admitted": {
+      "count": 520,
+      "passed": 520,
+      "rate": 1.0,
+      "completion_after_window_end_count": 0,
+      "by_group": {
+        "A": {
+          "count": 40,
+          "passed": 40,
+          "rate": 1.0,
+          "completion_after_window_end_count": 0
+        },
+        "B": {
+          "count": 480,
+          "passed": 480,
+          "rate": 1.0,
+          "completion_after_window_end_count": 0
+        }
+      }
+    },
+    "ordinary_demand": {
+      "start_ms": 0.0,
+      "end_ms": 6166.244272506857,
+      "duration_ms": 6166.244272506857,
+      "bandwidth_unit": "decimal GB/s",
+      "per_ssu_capacity_gb_s": 40.0,
+      "near_capacity_threshold_gb_s": 36.0,
+      "peak_gb_s_by_ssu": [
+        33.88183790274593
+      ],
+      "peak_at_ms_by_ssu": [
+        0.0
+      ],
+      "max_single_ssu_gb_s": 33.88183790274593,
+      "peak_total_gb_s": 33.88183790274593,
+      "peak_total_at_ms": 0.0,
+      "mean_gb_s_by_ssu": [
+        32.18630545325321
+      ],
+      "overload_ms_by_ssu": [
+        0.0
+      ],
+      "overload_fraction_by_ssu": [
+        0.0
+      ],
+      "at_or_above_near_ms_by_ssu": [
+        0.0
+      ],
+      "any_ssu_overload_ms": 0.0,
+      "any_ssu_overload_fraction": 0.0,
+      "any_ssu_at_or_above_near_ms": 0.0,
+      "any_ssu_at_or_above_near_fraction": 0.0,
+      "aggregate_overload_ms": 0.0,
+      "aggregate_at_or_above_near_ms": 0.0,
+      "no_ssu_overload": true,
+      "strictly_under_capacity": true,
+      "first_overload_interval": null
+    },
+    "ordinary_pending_demand": {
+      "start_ms": 0.0,
+      "end_ms": 6166.244272506857,
+      "duration_ms": 6166.244272506857,
+      "bandwidth_unit": "decimal GB/s",
+      "per_ssu_capacity_gb_s": 40.0,
+      "near_capacity_threshold_gb_s": 36.0,
+      "peak_gb_s_by_ssu": [
+        33.88183790274593
+      ],
+      "peak_at_ms_by_ssu": [
+        16.127179229615766
+      ],
+      "max_single_ssu_gb_s": 33.88183790274593,
+      "peak_total_gb_s": 33.88183790274593,
+      "peak_total_at_ms": 16.127179229615766,
+      "mean_gb_s_by_ssu": [
+        7.243303735157638
+      ],
+      "overload_ms_by_ssu": [
+        0.0
+      ],
+      "overload_fraction_by_ssu": [
+        0.0
+      ],
+      "at_or_above_near_ms_by_ssu": [
+        0.0
+      ],
+      "any_ssu_overload_ms": 0.0,
+      "any_ssu_overload_fraction": 0.0,
+      "any_ssu_at_or_above_near_ms": 0.0,
+      "any_ssu_at_or_above_near_fraction": 0.0,
+      "aggregate_overload_ms": 0.0,
+      "aggregate_at_or_above_near_ms": 0.0,
+      "no_ssu_overload": true,
+      "strictly_under_capacity": true,
+      "first_overload_interval": null
+    },
+    "composition": {
+      "definition": "Admitted current requests, including compute and I/O stall",
+      "nA_duration_ms": [
+        17.269267780118753,
+        511.7258107582213,
+        556.0412978544693,
+        977.5767402131471,
+        1308.691670546458,
+        2018.033582119007,
+        690.7390510117817,
+        86.16685222365334,
+        0.0
+      ],
+      "nA_time_fraction": [
+        0.002800613633993779,
+        0.08298824829885983,
+        0.09017503577236868,
+        0.15853681706574982,
+        0.21223480820918172,
+        0.32727110586856223,
+        0.11201941092271472,
+        0.013973960228569183,
+        0.0
+      ],
+      "joint_nA_nB": [
+        {
+          "n_A": 0,
+          "n_B": 1,
+          "idle_npu": 7,
+          "duration_ms": 8.601753599812582,
+          "time_fraction": 0.0013949745127945735
+        },
+        {
+          "n_A": 0,
+          "n_B": 2,
+          "idle_npu": 6,
+          "duration_ms": 0.7664451384780477,
+          "time_fraction": 0.0001242969147192823
+        },
+        {
+          "n_A": 0,
+          "n_B": 3,
+          "idle_npu": 5,
+          "duration_ms": 1.1706460614796015,
+          "time_fraction": 0.0001898475003170254
+        },
+        {
+          "n_A": 0,
+          "n_B": 4,
+          "idle_npu": 4,
+          "duration_ms": 6.730422980348521,
+          "time_fraction": 0.0010914947061628976
+        },
+        {
+          "n_A": 1,
+          "n_B": 4,
+          "idle_npu": 3,
+          "duration_ms": 15.970634376523776,
+          "time_fraction": 0.0025900100078310702
+        },
+        {
+          "n_A": 1,
+          "n_B": 5,
+          "idle_npu": 2,
+          "duration_ms": 5.374758441527774,
+          "time_fraction": 0.0008716421542837602
+        },
+        {
+          "n_A": 1,
+          "n_B": 6,
+          "idle_npu": 1,
+          "duration_ms": 9.150138169037746,
+          "time_fraction": 0.0014839078318442615
+        },
+        {
+          "n_A": 1,
+          "n_B": 7,
+          "idle_npu": 0,
+          "duration_ms": 481.230279771132,
+          "time_fraction": 0.07804268830490074
+        },
+        {
+          "n_A": 2,
+          "n_B": 6,
+          "idle_npu": 0,
+          "duration_ms": 556.0412978544693,
+          "time_fraction": 0.09017503577236868
+        },
+        {
+          "n_A": 3,
+          "n_B": 5,
+          "idle_npu": 0,
+          "duration_ms": 977.5767402131471,
+          "time_fraction": 0.15853681706574982
+        },
+        {
+          "n_A": 4,
+          "n_B": 4,
+          "idle_npu": 0,
+          "duration_ms": 1308.691670546458,
+          "time_fraction": 0.21223480820918172
+        },
+        {
+          "n_A": 5,
+          "n_B": 3,
+          "idle_npu": 0,
+          "duration_ms": 2018.033582119007,
+          "time_fraction": 0.32727110586856223
+        },
+        {
+          "n_A": 6,
+          "n_B": 2,
+          "idle_npu": 0,
+          "duration_ms": 690.7390510117817,
+          "time_fraction": 0.11201941092271472
+        },
+        {
+          "n_A": 7,
+          "n_B": 1,
+          "idle_npu": 0,
+          "duration_ms": 86.16685222365334,
+          "time_fraction": 0.013973960228569183
+        }
+      ]
+    }
+  },
+  "warm": {
+    "start_ms": 2000.0,
+    "end_ms": 4000.0,
+    "duration_ms": 2000.0,
+    "fleet_utilization": 0.988305472005568,
+    "compute_card_ms": 15812.887552089087,
+    "active_card_ms": 16000.0,
+    "all_npus_active_whole_window": true,
+    "per_npu": [
+      {
+        "npu_id": 0,
+        "utilization": 0.9843874123091503,
+        "compute_card_ms": 1968.7748246183005,
+        "active_card_ms": 2000.0,
+        "idle_ms": 0.0,
+        "roles": [
+          "A",
+          "B"
+        ],
+        "role": "A+B",
+        "by_group": {
+          "A": {
+            "compute_card_ms": 285.52056996701367,
+            "active_card_ms": 310.8674736569924,
+            "compute_active_utilization": 0.9184639570302997
+          },
+          "B": {
+            "compute_card_ms": 1683.2542546512868,
+            "active_card_ms": 1689.1325263430076,
+            "compute_active_utilization": 0.9965199464221749
+          }
+        }
+      },
+      {
+        "npu_id": 1,
+        "utilization": 0.984033353920699,
+        "compute_card_ms": 1968.066707841398,
+        "active_card_ms": 2000.0,
+        "idle_ms": 0.0,
+        "roles": [
+          "A",
+          "B"
+        ],
+        "role": "A+B",
+        "by_group": {
+          "A": {
+            "compute_card_ms": 1273.9050443476162,
+            "active_card_ms": 1304.6135785941883,
+            "compute_active_utilization": 0.9764615862118631
+          },
+          "B": {
+            "compute_card_ms": 694.1616634937818,
+            "active_card_ms": 695.3864214058117,
+            "compute_active_utilization": 0.9982387376653776
+          }
+        }
+      },
+      {
+        "npu_id": 2,
+        "utilization": 0.9909235697208785,
+        "compute_card_ms": 1981.847139441757,
+        "active_card_ms": 2000.0,
+        "idle_ms": 0.0,
+        "roles": [
+          "A",
+          "B"
+        ],
+        "role": "A+B",
+        "by_group": {
+          "A": {
+            "compute_card_ms": 1209.6136860194529,
+            "active_card_ms": 1227.7665465776959,
+            "compute_active_utilization": 0.9852147294541925
+          },
+          "B": {
+            "compute_card_ms": 772.2334534223041,
+            "active_card_ms": 772.2334534223041,
+            "compute_active_utilization": 1.0
+          }
+        }
+      },
+      {
+        "npu_id": 3,
+        "utilization": 0.9901953725066776,
+        "compute_card_ms": 1980.3907450133552,
+        "active_card_ms": 2000.0,
+        "idle_ms": 0.0,
+        "roles": [
+          "A",
+          "B"
+        ],
+        "role": "A+B",
+        "by_group": {
+          "A": {
+            "compute_card_ms": 898.8859786820435,
+            "active_card_ms": 912.8712905627267,
+            "compute_active_utilization": 0.9846798644833467
+          },
+          "B": {
+            "compute_card_ms": 1081.5047663313117,
+            "active_card_ms": 1087.1287094372733,
+            "compute_active_utilization": 0.9948267918442952
+          }
+        }
+      },
+      {
+        "npu_id": 4,
+        "utilization": 0.9882053150386141,
+        "compute_card_ms": 1976.4106300772282,
+        "active_card_ms": 2000.0,
+        "idle_ms": 0.0,
+        "roles": [
+          "A",
+          "B"
+        ],
+        "role": "A+B",
+        "by_group": {
+          "A": {
+            "compute_card_ms": 1024.3751393371758,
+            "active_card_ms": 1039.021025067104,
+            "compute_active_utilization": 0.9859041488318466
+          },
+          "B": {
+            "compute_card_ms": 952.0354907400524,
+            "active_card_ms": 960.9789749328961,
+            "compute_active_utilization": 0.9906933612221139
+          }
+        }
+      },
+      {
+        "npu_id": 5,
+        "utilization": 0.9932868239793483,
+        "compute_card_ms": 1986.5736479586967,
+        "active_card_ms": 2000.0,
+        "idle_ms": 0.0,
+        "roles": [
+          "A",
+          "B"
+        ],
+        "role": "A+B",
+        "by_group": {
+          "A": {
+            "compute_card_ms": 1129.8367044109045,
+            "active_card_ms": 1137.6455779690427,
+            "compute_active_utilization": 0.9931359346800444
+          },
+          "B": {
+            "compute_card_ms": 856.7369435477922,
+            "active_card_ms": 862.3544220309573,
+            "compute_active_utilization": 0.9934858819765368
+          }
+        }
+      },
+      {
+        "npu_id": 6,
+        "utilization": 0.9852332892297614,
+        "compute_card_ms": 1970.4665784595227,
+        "active_card_ms": 2000.0,
+        "idle_ms": 0.0,
+        "roles": [
+          "A",
+          "B"
+        ],
+        "role": "A+B",
+        "by_group": {
+          "A": {
+            "compute_card_ms": 1516.8999612871621,
+            "active_card_ms": 1532.1454717985584,
+            "compute_active_utilization": 0.9900495672297358
+          },
+          "B": {
+            "compute_card_ms": 453.56661717236057,
+            "active_card_ms": 467.85452820144155,
+            "compute_active_utilization": 0.9694607828548597
+          }
+        }
+      },
+      {
+        "npu_id": 7,
+        "utilization": 0.9901786393394139,
+        "compute_card_ms": 1980.3572786788277,
+        "active_card_ms": 2000.0,
+        "idle_ms": 0.0,
+        "roles": [
+          "A",
+          "B"
+        ],
+        "role": "A+B",
+        "by_group": {
+          "A": {
+            "compute_card_ms": 1022.8277535371776,
+            "active_card_ms": 1034.0672049974269,
+            "compute_active_utilization": 0.9891308307565201
+          },
+          "B": {
+            "compute_card_ms": 957.5295251416501,
+            "active_card_ms": 965.9327950025731,
+            "compute_active_utilization": 0.9913003576393732
+          }
+        }
+      }
+    ],
+    "by_group": {
+      "A": {
+        "compute_card_ms": 8361.864837588546,
+        "active_card_ms": 8498.998169223736,
+        "active_request_count": 18,
+        "admitted_count": 13,
+        "completed_count": 13,
+        "compute_active_utilization": 0.9838647651282274
+      },
+      "B": {
+        "compute_card_ms": 7451.022714500299,
+        "active_card_ms": 7501.001830776264,
+        "active_request_count": 150,
+        "admitted_count": 147,
+        "completed_count": 147,
+        "compute_active_utilization": 0.9933370078552837
+      }
+    },
+    "stall": {
+      "internal": {
+        "card_ms": 35.09418533325197,
+        "count": 24,
+        "by_group": {
+          "A": {
+            "card_ms": 0.0,
+            "count": 0
+          },
+          "B": {
+            "card_ms": 35.09418533325197,
+            "count": 24
+          }
+        }
+      },
+      "layer0": {
+        "card_ms": 152.01826257766197,
+        "count": 18,
+        "by_group": {
+          "A": {
+            "card_ms": 137.13333163518882,
+            "count": 12
+          },
+          "B": {
+            "card_ms": 14.884930942473147,
+            "count": 6
+          }
+        }
+      }
+    },
+    "total_stall_card_ms": 187.11244791091394,
+    "internal_stall_fraction": 0.18755665764129523,
+    "accounting_error_card_ms": -9.094947017729282e-13,
+    "slo_admitted": {
+      "count": 160,
+      "passed": 160,
+      "rate": 1.0,
+      "completion_after_window_end_count": 8,
+      "by_group": {
+        "A": {
+          "count": 13,
+          "passed": 13,
+          "rate": 1.0,
+          "completion_after_window_end_count": 5
+        },
+        "B": {
+          "count": 147,
+          "passed": 147,
+          "rate": 1.0,
+          "completion_after_window_end_count": 3
+        }
+      }
+    },
+    "ordinary_demand": {
+      "start_ms": 2000.0,
+      "end_ms": 4000.0,
+      "duration_ms": 2000.0,
+      "bandwidth_unit": "decimal GB/s",
+      "per_ssu_capacity_gb_s": 40.0,
+      "near_capacity_threshold_gb_s": 36.0,
+      "peak_gb_s_by_ssu": [
+        33.88183790274592
+      ],
+      "peak_at_ms_by_ssu": [
+        2560.52352537895
+      ],
+      "max_single_ssu_gb_s": 33.88183790274592,
+      "peak_total_gb_s": 33.88183790274592,
+      "peak_total_at_ms": 2560.52352537895,
+      "mean_gb_s_by_ssu": [
+        32.166932179775756
+      ],
+      "overload_ms_by_ssu": [
+        0.0
+      ],
+      "overload_fraction_by_ssu": [
+        0.0
+      ],
+      "at_or_above_near_ms_by_ssu": [
+        0.0
+      ],
+      "any_ssu_overload_ms": 0.0,
+      "any_ssu_overload_fraction": 0.0,
+      "any_ssu_at_or_above_near_ms": 0.0,
+      "any_ssu_at_or_above_near_fraction": 0.0,
+      "aggregate_overload_ms": 0.0,
+      "aggregate_at_or_above_near_ms": 0.0,
+      "no_ssu_overload": true,
+      "strictly_under_capacity": true,
+      "first_overload_interval": null
+    },
+    "ordinary_pending_demand": {
+      "start_ms": 2000.0,
+      "end_ms": 4000.0,
+      "duration_ms": 2000.0,
+      "bandwidth_unit": "decimal GB/s",
+      "per_ssu_capacity_gb_s": 40.0,
+      "near_capacity_threshold_gb_s": 36.0,
+      "peak_gb_s_by_ssu": [
+        29.580640084964955
+      ],
+      "peak_at_ms_by_ssu": [
+        2552.360126006578
+      ],
+      "max_single_ssu_gb_s": 29.580640084964955,
+      "peak_total_gb_s": 29.580640084964955,
+      "peak_total_at_ms": 2552.360126006578,
+      "mean_gb_s_by_ssu": [
+        6.59846487354936
+      ],
+      "overload_ms_by_ssu": [
+        0.0
+      ],
+      "overload_fraction_by_ssu": [
+        0.0
+      ],
+      "at_or_above_near_ms_by_ssu": [
+        0.0
+      ],
+      "any_ssu_overload_ms": 0.0,
+      "any_ssu_overload_fraction": 0.0,
+      "any_ssu_at_or_above_near_ms": 0.0,
+      "any_ssu_at_or_above_near_fraction": 0.0,
+      "aggregate_overload_ms": 0.0,
+      "aggregate_at_or_above_near_ms": 0.0,
+      "no_ssu_overload": true,
+      "strictly_under_capacity": true,
+      "first_overload_interval": null
+    },
+    "composition": {
+      "definition": "Admitted current requests, including compute and I/O stall",
+      "nA_duration_ms": [
+        0.0,
+        66.7208892382614,
+        135.79232762150514,
+        310.48928550137725,
+        444.5159353887784,
+        803.7283468172486,
+        238.75321543282917,
+        0.0,
+        0.0
+      ],
+      "nA_time_fraction": [
+        0.0,
+        0.0333604446191307,
+        0.06789616381075257,
+        0.15524464275068864,
+        0.2222579676943892,
+        0.4018641734086243,
+        0.11937660771641458,
+        0.0,
+        0.0
+      ],
+      "joint_nA_nB": [
+        {
+          "n_A": 1,
+          "n_B": 7,
+          "idle_npu": 0,
+          "duration_ms": 66.7208892382614,
+          "time_fraction": 0.0333604446191307
+        },
+        {
+          "n_A": 2,
+          "n_B": 6,
+          "idle_npu": 0,
+          "duration_ms": 135.79232762150514,
+          "time_fraction": 0.06789616381075257
+        },
+        {
+          "n_A": 3,
+          "n_B": 5,
+          "idle_npu": 0,
+          "duration_ms": 310.48928550137725,
+          "time_fraction": 0.15524464275068864
+        },
+        {
+          "n_A": 4,
+          "n_B": 4,
+          "idle_npu": 0,
+          "duration_ms": 444.5159353887784,
+          "time_fraction": 0.2222579676943892
+        },
+        {
+          "n_A": 5,
+          "n_B": 3,
+          "idle_npu": 0,
+          "duration_ms": 803.7283468172486,
+          "time_fraction": 0.4018641734086243
+        },
+        {
+          "n_A": 6,
+          "n_B": 2,
+          "idle_npu": 0,
+          "duration_ms": 238.75321543282917,
+          "time_fraction": 0.11937660771641458
+        }
+      ]
+    }
+  },
+  "name": "XY12_20_random_s1_seed7",
+  "strategy": "once",
+  "wall_seconds": 73.3726065158844,
+  "input_fingerprint": "052d6ceddf2835a45552552961d098089ee49299d3a5eb2b8374daeb97cf34f2",
+  "invariants": {
+    "all_requests_completed": true,
+    "microbatch_capacity": true,
+    "one_compute_job_per_npu": true,
+    "one_link_io_per_npu": true,
+    "one_command_per_ssd": true,
+    "block_conservation": true,
+    "ssd_byte_conservation": true,
+    "npu_link_byte_conservation": true,
+    "cir_capacity": true,
+    "actual_cir_per_ssu_capacity": true,
+    "actual_cir_per_npu_capacity": true,
+    "cir_entry_write_counter_consistency": true,
+    "causal_control_drained": true,
+    "batch_latency_decomposition": true,
+    "request_latency_decomposition": true,
+    "compute_work_conservation": true,
+    "microbatch_membership": true,
+    "fixed_batch_layer_barrier": true,
+    "next_layer_prefetch_at_compute_start": true,
+    "all_microbatches_released": true
+  },
+  "n_requests": 520,
+  "units": {
+    "capacity": "decimal GB/s",
+    "native_volume": "GiB",
+    "time": "ms"
+  },
+  "source_sha256": {
+    "run_20k_sensitivity.py": "cd745965e1f47ff3535d55b3e07e63065a2a54c1bec41a2b2ad8bb83e6010e86",
+    "proxy_4npu_agent.py": "de6b13dbd5e00aed70716e0e5c5ad28eca1a599888495cd5001b3a9cc0b82ccd",
+    "plot_abcd_layer_demand_supply.py": "84e88fc62b286549140366ff79706fa39ba555aecfa64197e7892ba6fd843393",
+    "report_ratio8_4npu.py": "d9f640479cf3ebe821555fca2e006f7a13aef9409d19af3c95e690031e7b8427",
+    "coflow_capacity_analysis.py": "c343351f0d9d2bded9eda395840d1bd58c5689a5451659346476f63cf41f8dfc",
+    "test_coflow_experiment_inputs.py": "3edb77ef0842cae3a2e8c13255c20a6c3444608892506a003b7913f9653da758",
+    "correlated_fifo_probe.py": "a5ce8e932f5ee54502f074f8724ba78e0f19f6025f3108c6481ec3c3b8f4b24d",
+    "audit_once_mixed8.py": "b39539c4c5deaf9ccd7304efcaa0f8e458af250b8474a2eb4aa36be7170e3111",
+    "strategy_profiles.py": "d72d471d08fb0d28ab2412cc24fa69b52fd15677c859fd43bafbcf66bdddc2fb",
+    "coflow_sim_adapter.py": "5f65a1392e4387d35bdc637faf7e136bfe4e73de36e812c75a13bc822bd364c6",
+    "build_correlated_workload.py": "7b4483a0e0cc1a9449dd726a0ea7bfc5aa37ed3293eef58957f0d2dacc2e7475",
+    "audit_abcd_8npu.py": "1c93d10d1d78cc7f437a6a633652e414f362a1af73660a1bfd60e3ade1371e55",
+    "run_4npu_ratio8.py": "76a32dc3107a160a1a0ece0a6dfcf3fd81714f594dab1c1a8371950f85572dc9",
+    "audit_fixed128_32.py": "ad48d4fa6b6f853fe42154ca60ad194c3b5ad7aa95293be08a59eff0e5906418",
+    "report_boundary_underload.py": "08979deb6d3e506f7ed4d39210cf3b572b9818fa2a6c526a7a0bda80b6576ca6",
+    "report_ratio_sweep_r40_4npu.py": "71449378b11c04304d8f3d11cc7498c169995bfea02b34d99879a83546162b9f",
+    "report_ratio_sweep_4npu.py": "723263b01e2a43690806a44f7bc7410593a5c6a09a97df3173187046587c050d",
+    "plot_fifo_mixed8.py": "dcfe48442383aab9d2a686212f3dbd201845d59a2961adb9106648f9affd243b",
+    "coflow_disk_policy.py": "a91d80b9903fad4160f522db8e3c76aa472258af20c39b84b5abfbe5c701ff8a",
+    "extract_random_multitype_hol.py": "ffe36ee822d143c898baee225ba82ec80348f6242462aeb7d84723eeee557409",
+    "analyze_fifo_trace.py": "c4be2a77f109910552ed2c4a5acd1bb99b7ebbdf0a4aabb65c4f82dc64a21000",
+    "authenticated_workload_inputs.py": "d3b2f9917108916164006b70a6f7f2687911484f3231da1cd3328211b86ac95f",
+    "fast_strict_underload.py": "e18454b8a1c2ed1a30ea7830492ec3a138d8aacb060f4cf8765040e73337b638",
+    "run_baseline_4npu_ssu1_low_utilization.py": "f312c55f7a339bedd2b4d02fefd4fbebc371435f16a88df6f0e99a069956acf2",
+    "shared_ssu_state.py": "e8f1aff1e46ebb51772de113e4192a6f40d7f1daaca938288d201cb3a708a481",
+    "audit_boundary_underload.py": "690ff1393d51a0af923b7414fe5bb44df7066c3c617129d8690f5a13308e26d8",
+    "lower_fifo_search_agent.py": "d97f3deca1efd728dee18cb154cb26107b406566a68aaba6a3372bd31b6f1a0c",
+    "correlated_causal_followup.py": "d6caea683ba4d254e61c33e0eb5a100e63f0003a52d1a1f144cde16be08aa1ab",
+    "fifo_20k_sensitivity.py": "0e42d97fb8823798fdc67867f3f813040559a92dd8b00c9971e510a08aa50588",
+    "summarize_ring_results.py": "e9a36fe78c6c18b0a14ac85a43c8fa1c47aa87770d3eab37121beca2dc8f58c7",
+    "plot_abcd_8npu.py": "6db6d48b05e830c1adc6c0a2fe806383b828771d9b7b37a8c787a5e417a244f2",
+    "coflow_disk_adapter.py": "c1893e63c3274eb52b68dd0c970f206ce2dda2ded5bd19e0ac9e278682cb80f5",
+    "explore_fifo_underload.py": "4ec1a1621e673aaefef1c2086d21ee7e39d9853d394ae15e13492dc31f3a49c2",
+    "run_strict_random.py": "b1aecde03e34e431d6bb8730d8039ce6d66286cf0627dbcdf29acefaf5081221",
+    "shared_path_new_once.py": "083c418f7f2e30231fffb08aadc28f3d421ab2b9768991009a1f5104063d46f1",
+    "run_fifo_mixed_unique.py": "55451ba66aaccd3baa181e63e4a19a333d5fd5707c754fada83cc8fef685b110",
+    "plot_mixed8_fleet_total.py": "900aa156dfc4d8236e8eb6ae20db6517a9f72849dad0fed2e54ea3dd4c079d08",
+    "plot_abcd_total_demand.py": "70ab876b8166f87c02844d747ef5c3e5d31d3d2387fb6c369d22c61ae300e096",
+    "report_random_multitype.py": "35ac7e9ac2d0cfd49ee1dd4ef69ef3df0cf78ce04165a5ea1fbe286e815a3641",
+    "newexport_lower_fifo_sensitivity.py": "93a8a47f2a2952ac9c780408fa3a0d076c95262c45cb77fe46258f0574b41981",
+    "replay_fifo_figure_receipts.py": "84b24fec3e8bcdf308370b72abb01ca67ecaa68a3633a825755c86753c5cd263",
+    "export_mixed8_request_details.py": "6005d3aa9619f70fe06699a677d24b99f7e80fa541cc610faca2632aaddc3f63",
+    "coflow_joint_policy.py": "8c586646c2eed9b0e104f5c49d7b203178e68f14219447af6aa64b2d110579dc",
+    "run_baseline_npu32_stress.py": "94704edf908fbf90b9e39f5b26f94ad59c0c5dcfc4c1b981e1a2860921c2946d",
+    "fixed_total_compat.py": "34ffc565ee84dd329b63fe441fa455175d1bf790b4ffc037c3135b41cc0d6253",
+    "run_abcd_fixed_8npu.py": "9da86f306d0702074c43f09e9c53e8ac66d68c3c209e6405ece1d35eb7e48302",
+    "replay_mixed8_physical.py": "24fb5d40ca1d1d9d1e887fb958bc8da38879bd8f295979ec87616a550ab4b98c",
+    "multi_ssu_qos_controller.py": "6712548192b89b49565f55a7094b6995eddc419c251e02a948671a38f46ca038",
+    "run_abcd_bd_heavy_8npu.py": "58f876d67cf8adf312e726f13112ec2d7b0db4baf6fa8aac66b415c881899a07",
+    "continuous_prefill_client.py": "04a8c4dc2d6430ff803b43127007c6fcb58d1279b4c260468425c3899ed0c9da",
+    "continuous_batch_sim.py": "c652bfb22fb6c3d219d7b8f78e172ca5808c55c5e929547ece5da0680129f9b1",
+    "continuous_prefill_workload.py": "65c901ed1d63df88b4ccf35d309e586d563e470a3874ae0d1da2b221f2b5b5de",
+    "run_random_multitype.py": "0c91c6a09d03d55ff80be2132b1556fb6b017aa450a63791e79f380e1f5a48ac",
+    "shared_path_common.py": "0ea11b61594786f8b689d8aab5126d5647e18e9db713e2aea242b2b84c41a892",
+    "audit_boundary_20k_sensitivity.py": "33fc7f6969350a45d1574d8a4c0d9bfbe6fc858494d10c966e60646a1d0fc92d",
+    "shared_path_strategy1.py": "6a2d7ed0b386190a4a34c321ce780164c3d2147db5121e4b7c950afa4cabf233",
+    "sweep_coflow_development.py": "cd1657d06e4edcb03609e00409b09f7175e38db90270d6bd5f4baebfe0d5938e",
+    "export_fixed128_32_results.py": "83850cb1b2088c76e72724c95bedcc1c7ad12d7fc52a2ec19d8b3f13fd957c46",
+    "shared_path_once.py": "c229a16794bc1a19fba389aedd88963cb9092e5ea025373c3108c6cf3a97a8c7",
+    "coflow_client_policy.py": "7a79e24ad380c91dc97f9e2c3173aabf9dfa2b64111d5b9836c6a7de6154378f",
+    "shared_path_strategy2.py": "7e4627bf67db620f0922b10679f9a6e774662b70dd6bf68c81340fc06849c720",
+    "random_steady_state_workload.py": "70284f3ede4097453338e396ec0a0d252909be6999ec158d854d36b7df015607",
+    "fast_multitype_probe.py": "610c5cb676ddffe78e49fce206a7d5c36ec94d643b05404dc5ac83626bb0a332",
+    "run_mixed8_screen_batch.py": "cd695c4b8759f15e03d73579392f7a066c9bd343bf064876a4069180ae052504",
+    "extract_boundary_fifo_timebill.py": "dfe43c3ca73ea0a0c3e7c6dd73538ed2485a5ebbeb73c57132b92f0bb3f2e6c4",
+    "summarize_fifo_exploration.py": "e114e1f3434040ca56c23aa6a481fb33483aed95dd35fb6b29347b2d8d8f0b97",
+    "test_shared_path_policies.py": "86a21d0e3e485f4cf4df60237fb31c9874eb0cdb7c04870c48d1924fecc99bbf",
+    "audit_4npu_exact_data.py": "62dc0478555b159f56472ab04bfe72ecb4962d32527b53a6b4bd241255f143de",
+    "baseline_path0_layout.py": "34543f37306dba5775a069830c6aa87a54beeff2403b33132180fa4aebdf89ac",
+    "sim.py": "5f3a9bb82c5740a86c9c916e01495326a0bf4363fb6a5312cb99ac747e8600fd",
+    "run_coflow_experiments.py": "9c6a435a87903ddb8d0c02789088b1f58eb8ab6bc017964ae049bb0afd36edb3",
+    "export_boundary_underload.py": "3d805c38b7d6472a6bef53a1f5585f8c0ef3b14317dac992cd538d0fc28a9100",
+    "report_4npu_exact_data.py": "dd46bd77bc470717ff04496e8669f08d74c7e4ecef985ca25dcf0c356fb659e4",
+    "plot_mixed8_physical.py": "7f41bccba511b831179df2a7d39253fcf777edacc011dae15038e3782db1b32e",
+    "fast_boundary_underload.py": "2a955ea1cd4d1eaf11597773211ef5bda88a75e33459a300fd530cd50d812462",
+    "audit_strict_random.py": "137a7261b4c02c35c657799a79ded5707a1e240f9fc1f5adaa78bc9bb5c878d4",
+    "export_strict_random.py": "1d617159c073ddb4ac8fd8da454ee85fff2975e1f95ae6b541ecce044ec5e0ae",
+    "run_fixed128_32.py": "61d3b037553d3a7dab230fabe94e4632dbe522ca9df0b49ff13217a690881a5e",
+    "fifo_followup_theory.py": "b95a89a87a331e138ae21b81c51a8ee8222f3fa35e6083eb4169d6abfb09baf8",
+    "explore_fifo_tiny_jitter.py": "b3756a45e921742f7f708432783f4c6530a0cb18ed72b2e856dc1b9b0cd53690",
+    "continuous_batch_control.py": "fe7ee3933ba37362cf7b67e1c39c9f4720bd682a66bd008b57c06aa72076591f",
+    "shared_path_baseline.py": "2232bfe14f853f467721a37aa11b4fc5365b7a950feb8f0cb8de3c751c575047",
+    "policy_logic.py": "fb72249119635558a8db6efbc12e9dbc33e4a065327c558b15e49bb996f5d229",
+    "export_random_multitype.py": "dbaf620b2a6cefe9011b80ecdc24fd12dd4d03d2566166d156e3b61fb38c9657",
+    "run_fifo_proof.py": "2cefa9a9fdbc9782c9826235a5d52c14e9b960add677237083703af8d444d551",
+    "run_random_multitype_batch.py": "715579450974d140920c746b47eaed933021928dd30f96767eb5c1f7e45b8bdb",
+    "run_boundary_random.py": "7d7f63cd38ea910cf36f9278248fe3cb677eca977b938de1aae23a48e5fcc6bd",
+    "run_lower_fifo_followup.py": "ea81f1b1564a80faa0e65532d5fb8f97b411de92f7f5840978145209453a7b41",
+    "run_fixed128_32_screen.py": "dc4a2dee235d995a0f720ef2d02f030085590524ebb9b9561d5913a3d9280e03",
+    "run_abcd_8npu.py": "620e12663859ed12b8f4d4e3983c9d3c3979f0178d53e2c265eb0e15f14a4c29",
+    "audit_abcd_bd_heavy_8npu.py": "7ea1feb435226a058caadcfdb3a9ce7d71e7d43ec9fca2de04dbd1801543080e",
+    "six_request_workload.py": "f5d3654d5ce3aa86858d4b6d8695054354d98b1ed84863dc63e05d3ab3fb2e26",
+    "audit_4npu_ratio8.py": "42d4dd09b7b9beede14dd6f8788523f79011280ac31dfc3fd68b88a3d5d19a47",
+    "audit_abcd_fixed_8npu.py": "c69c3ab8f39d5c3d619284d0ff709a88cd7e63d5561df7efd6e070754ec76c48",
+    "test_shared_path_sim_adapter.py": "1d14c728c9bf9109319ad457dcd4f2bdb640e051d5c435e41e076e9601ec5574",
+    "sweep_coflow_experiments.py": "b7e246055af5d92a8e84c1fd9bc86402cd733858b6c35fe8601627fe40e34221",
+    "run_multi_ssu_stall_experiments.py": "e2d545ce20ef60c1ddfd9d7b29632b04e0c1d3ae7ca28cedf32edec171953944",
+    "explore_fifo_mixed20.py": "1ab5b5da28ecf699d7273c50d2c7ca4dacd48567d2a7ae65ac3cffa1c0717156",
+    "audit_fifo_mixed8.py": "61904e43628316649975aeb4eb9ed284a7461bb9e73d56256ec7b8808318f6fb",
+    "multi_ssu_npu_assignment.py": "c14ff5fa6fd3571daf19b79678e5db79b35c4afcdce9125b71d3c8ca322d7fba",
+    "audit_random_multitype.py": "645c1f2c2328ad2fd4328eebfd2f8db8ba5de421fb37fe55887bf2e8afe2c1d6",
+    "run_ring_baseline.py": "e978d7b0f67303160b52921d20440cdd6a327568600286195e7099b49a1ece96",
+    "run_4npu_exact_data.py": "2ef6321c624b391f665795852730e8ab25981db022bbf7387295310188c657df",
+    "explore_fifo_variants.py": "7c7758369a9e33018e6b096696ff7d1c27f530aea717d6fac22ebd59a289892d",
+    "test_shared_ssu_state.py": "6781408220c00aa28e81f9d4fc3d3c7aeb9cd28a42a5abb095a063d24364fa3e",
+    "summarize_random_multitype.py": "965eae98fab965aa0acf2c399464fe99c14a7b30c1a1c46da0794e78e56341ea",
+    "report_lower_fifo_followup.py": "874bf5edc9beab0dc1295358660f40b4b63ad4c52d5457d4f2b1341175fd7635",
+    "plot_mixed8_slo15.py": "50121819a36aa4e0238436290ed577d393ab3773955788c1613b08f8ae5d8173",
+    "build_strict_report.py": "5d216036da221d281764060f04143b123f4b85646549e18ce3604f8f0cbe4c04",
+    "plot_fixed128_32_hol.py": "87ec099d9b9b762ce54074860cec61f7f440ce9b3b37a0a628677acad8619ea9",
+    "shared_path_sim_adapter.py": "174103c5c17d5f75ccdfe41a2415cbe93a0b6cfe9858bdeed2b6c1628c0bebf2",
+    "run_shared_path_experiments.py": "e1147311dabbe3117300fbdfdf56c39748771cc3f37ea07d085bb76166464d22",
+    "plot_fifo_fleet_bandwidth.py": "7049d1b4379900fd06fc28eb0565721d7757b5413e8d8a38afc2070008516774"
+  }
+}

@@ -1,0 +1,386 @@
+{
+  "all_checks_passed": true,
+  "scenarios": [
+    {
+      "policy": "fifo",
+      "source_case": "n8_s1_L200n1664_S20n1024_r11_random_b1_sync_jnarrow_seed7_fifo",
+      "num_npu": 8,
+      "num_ssu": 1,
+      "window_ms": [
+        2000.0,
+        4000.0
+      ],
+      "demand_definition": "Sum over NPUs of currently admitted request per-layer bytes / own layer compute time; no division by NPU count.",
+      "supply_definition": "Per-NPU physical next-layer received bytes / compute-start to next-compute-start period, including request handoffs. Edge periods use actual in-window bytes / clipped period duration. Sum the resulting eight time functions.",
+      "instantaneous_throughput": false,
+      "utilization_is_supply_demand_ratio": false,
+      "mean_total_demand_GiB_s": 37.33413599804822,
+      "mean_total_received_supply_GiB_s": 34.65283803527628,
+      "peak_total_demand_GiB_s": 37.81238138207306,
+      "peak_total_period_mean_supply_GiB_s": 83.88446495091506,
+      "total_supply_curve_area_GiB": 69.30567607055256,
+      "total_physical_received_GiB": 69.3056760705526,
+      "U_percent": 92.52397715502856,
+      "SLO_1p5_percent": 98.21428571428571,
+      "period_count": 1356,
+      "segment_count": 1402,
+      "per_npu": [
+        {
+          "npu_id": 0,
+          "periods": 216,
+          "cross_request_periods": 27,
+          "clipped_periods": 2,
+          "covered_ms": 2000.0,
+          "period_integral_received_GiB": 8.882781982421875,
+          "physical_window_received_GiB": 8.882781982421875,
+          "mean_demand_GiB_s": 4.680227693923271
+        },
+        {
+          "npu_id": 1,
+          "periods": 163,
+          "cross_request_periods": 20,
+          "clipped_periods": 2,
+          "covered_ms": 2000.0,
+          "period_integral_received_GiB": 8.97576904296875,
+          "physical_window_received_GiB": 8.97576904296875,
+          "mean_demand_GiB_s": 4.659420421469773
+        },
+        {
+          "npu_id": 2,
+          "periods": 126,
+          "cross_request_periods": 16,
+          "clipped_periods": 2,
+          "covered_ms": 2000.0,
+          "period_integral_received_GiB": 8.9697265625,
+          "physical_window_received_GiB": 8.9697265625,
+          "mean_demand_GiB_s": 4.669755957599705
+        },
+        {
+          "npu_id": 3,
+          "periods": 177,
+          "cross_request_periods": 22,
+          "clipped_periods": 2,
+          "covered_ms": 2000.0,
+          "period_integral_received_GiB": 8.343994140625,
+          "physical_window_received_GiB": 8.343994140625,
+          "mean_demand_GiB_s": 4.669034136346421
+        },
+        {
+          "npu_id": 4,
+          "periods": 170,
+          "cross_request_periods": 21,
+          "clipped_periods": 2,
+          "covered_ms": 2000.0,
+          "period_integral_received_GiB": 8.406265258789052,
+          "physical_window_received_GiB": 8.406265258789052,
+          "mean_demand_GiB_s": 4.673773756173097
+        },
+        {
+          "npu_id": 5,
+          "periods": 164,
+          "cross_request_periods": 21,
+          "clipped_periods": 2,
+          "covered_ms": 2000.0,
+          "period_integral_received_GiB": 8.494049072265625,
+          "physical_window_received_GiB": 8.494049072265625,
+          "mean_demand_GiB_s": 4.657208684238899
+        },
+        {
+          "npu_id": 6,
+          "periods": 183,
+          "cross_request_periods": 23,
+          "clipped_periods": 2,
+          "covered_ms": 2000.0,
+          "period_integral_received_GiB": 8.473289053439487,
+          "physical_window_received_GiB": 8.473289053439487,
+          "mean_demand_GiB_s": 4.663736541543193
+        },
+        {
+          "npu_id": 7,
+          "periods": 157,
+          "cross_request_periods": 19,
+          "clipped_periods": 2,
+          "covered_ms": 2000.0,
+          "period_integral_received_GiB": 8.759800957542803,
+          "physical_window_received_GiB": 8.759800957542803,
+          "mean_demand_GiB_s": 4.660978806753875
+        }
+      ],
+      "checks": {
+        "same_run_observer_checks": true,
+        "original_result_hash_matches": true,
+        "original_manifest_hash_matches": true,
+        "physical_receipts_supported_inside_periods": true,
+        "all_eight_lanes_cover_entire_window": true,
+        "every_in_window_receipt_allocated_once": true,
+        "per_npu_supply_area_equals_received_bytes": true,
+        "fleet_supply_area_equals_received_bytes": true,
+        "mean_and_peak_demand_equal_original_audit": true
+      },
+      "source_sha256": {
+        "result.json.gz": "a6d81e478533c6bfe3926b17e2a7a6e27c705f6d4b77c8f11de1d5544e727194",
+        "manifest.json.gz": "9eeed6a06ecabb17e7e595c069fea2a019ccdab3bcb3508891d5bd3ff0ac8477",
+        "metrics.json": "49c32a2248bbf79aa07b0f0cab2c7d94a70b18273f3ba285e8a06804c9ad8e96",
+        "receipts.json": "d465d2cb80e2dd00dfd27770a88773494c78c4c86113ed037c74414b9d46a30f"
+      },
+      "common_y_axis_GiB_s": [
+        0,
+        90
+      ]
+    },
+    {
+      "policy": "once",
+      "source_case": "n8_s1_L200n1664_S20n1024_r11_random_b1_sync_jnarrow_seed7_once",
+      "num_npu": 8,
+      "num_ssu": 1,
+      "window_ms": [
+        2000.0,
+        4000.0
+      ],
+      "demand_definition": "Sum over NPUs of currently admitted request per-layer bytes / own layer compute time; no division by NPU count.",
+      "supply_definition": "Per-NPU physical next-layer received bytes / compute-start to next-compute-start period, including request handoffs. Edge periods use actual in-window bytes / clipped period duration. Sum the resulting eight time functions.",
+      "instantaneous_throughput": false,
+      "utilization_is_supply_demand_ratio": false,
+      "mean_total_demand_GiB_s": 37.322828365868666,
+      "mean_total_received_supply_GiB_s": 36.8713513759096,
+      "peak_total_demand_GiB_s": 37.79711950532911,
+      "peak_total_period_mean_supply_GiB_s": 58.42474986033455,
+      "total_supply_curve_area_GiB": 73.7427027518192,
+      "total_physical_received_GiB": 73.74270275181922,
+      "U_percent": 97.15574265298257,
+      "SLO_1p5_percent": 100.0,
+      "period_count": 1380,
+      "segment_count": 1403,
+      "per_npu": [
+        {
+          "npu_id": 0,
+          "periods": 218,
+          "cross_request_periods": 27,
+          "clipped_periods": 2,
+          "covered_ms": 2000.0,
+          "period_integral_received_GiB": 9.407974243164062,
+          "physical_window_received_GiB": 9.407974243164062,
+          "mean_demand_GiB_s": 4.677815175037667
+        },
+        {
+          "npu_id": 1,
+          "periods": 143,
+          "cross_request_periods": 17,
+          "clipped_periods": 2,
+          "covered_ms": 2000.0,
+          "period_integral_received_GiB": 9.162582397460938,
+          "physical_window_received_GiB": 9.162582397460938,
+          "mean_demand_GiB_s": 4.661005905963308
+        },
+        {
+          "npu_id": 2,
+          "periods": 111,
+          "cross_request_periods": 14,
+          "clipped_periods": 2,
+          "covered_ms": 2000.0,
+          "period_integral_received_GiB": 9.284103393554688,
+          "physical_window_received_GiB": 9.284103393554688,
+          "mean_demand_GiB_s": 4.6677043566314325
+        },
+        {
+          "npu_id": 3,
+          "periods": 171,
+          "cross_request_periods": 21,
+          "clipped_periods": 2,
+          "covered_ms": 2000.0,
+          "period_integral_received_GiB": 9.420730590820312,
+          "physical_window_received_GiB": 9.420730590820312,
+          "mean_demand_GiB_s": 4.661480616723828
+        },
+        {
+          "npu_id": 4,
+          "periods": 172,
+          "cross_request_periods": 21,
+          "clipped_periods": 2,
+          "covered_ms": 2000.0,
+          "period_integral_received_GiB": 9.110860471025784,
+          "physical_window_received_GiB": 9.110860471025784,
+          "mean_demand_GiB_s": 4.671265689949285
+        },
+        {
+          "npu_id": 5,
+          "periods": 216,
+          "cross_request_periods": 27,
+          "clipped_periods": 2,
+          "covered_ms": 2000.0,
+          "period_integral_received_GiB": 8.842962886262194,
+          "physical_window_received_GiB": 8.842962886262194,
+          "mean_demand_GiB_s": 4.6613652858578085
+        },
+        {
+          "npu_id": 6,
+          "periods": 191,
+          "cross_request_periods": 24,
+          "clipped_periods": 2,
+          "covered_ms": 2000.0,
+          "period_integral_received_GiB": 9.426773071289062,
+          "physical_window_received_GiB": 9.426773071289062,
+          "mean_demand_GiB_s": 4.663038516319727
+        },
+        {
+          "npu_id": 7,
+          "periods": 158,
+          "cross_request_periods": 19,
+          "clipped_periods": 2,
+          "covered_ms": 2000.0,
+          "period_integral_received_GiB": 9.086715698242188,
+          "physical_window_received_GiB": 9.086715698242188,
+          "mean_demand_GiB_s": 4.659152819385631
+        }
+      ],
+      "checks": {
+        "same_run_observer_checks": true,
+        "original_result_hash_matches": true,
+        "original_manifest_hash_matches": true,
+        "physical_receipts_supported_inside_periods": true,
+        "all_eight_lanes_cover_entire_window": true,
+        "every_in_window_receipt_allocated_once": true,
+        "per_npu_supply_area_equals_received_bytes": true,
+        "fleet_supply_area_equals_received_bytes": true,
+        "mean_and_peak_demand_equal_original_audit": true
+      },
+      "source_sha256": {
+        "result.json.gz": "7791733dd3430caa2aabbc34ae172c98e9d965c86048d26a20680eb1ed753a38",
+        "manifest.json.gz": "af04384a1812c2a6a456f34269fa9f4230f881a4d89117c852446c639f5f0731",
+        "metrics.json": "a414fddd507b6af540600c068a651678c52691e60f71a310f9e52f51b863b14f",
+        "receipts.json": "cad8cf2711296a96b70ca3320dc6686b317ad6fb6965aa62ba9b2cdd1f4edaab"
+      },
+      "common_y_axis_GiB_s": [
+        0,
+        90
+      ]
+    },
+    {
+      "policy": "short_first",
+      "source_case": "n8_s1_L200n1664_S20n1024_r11_random_b1_sync_jnarrow_seed7_short_first",
+      "num_npu": 8,
+      "num_ssu": 1,
+      "window_ms": [
+        2000.0,
+        4000.0
+      ],
+      "demand_definition": "Sum over NPUs of currently admitted request per-layer bytes / own layer compute time; no division by NPU count.",
+      "supply_definition": "Per-NPU physical next-layer received bytes / compute-start to next-compute-start period, including request handoffs. Edge periods use actual in-window bytes / clipped period duration. Sum the resulting eight time functions.",
+      "instantaneous_throughput": false,
+      "utilization_is_supply_demand_ratio": false,
+      "mean_total_demand_GiB_s": 37.320952973543186,
+      "mean_total_received_supply_GiB_s": 37.0557632446289,
+      "peak_total_demand_GiB_s": 37.76122928046538,
+      "peak_total_period_mean_supply_GiB_s": 66.07123689430529,
+      "total_supply_curve_area_GiB": 74.1115264892578,
+      "total_physical_received_GiB": 74.1115264892578,
+      "U_percent": 98.1498365559261,
+      "SLO_1p5_percent": 100.0,
+      "period_count": 1345,
+      "segment_count": 1356,
+      "per_npu": [
+        {
+          "npu_id": 0,
+          "periods": 211,
+          "cross_request_periods": 27,
+          "clipped_periods": 2,
+          "covered_ms": 2000.0,
+          "period_integral_received_GiB": 9.21142578125,
+          "physical_window_received_GiB": 9.21142578125,
+          "mean_demand_GiB_s": 4.677064148967477
+        },
+        {
+          "npu_id": 1,
+          "periods": 136,
+          "cross_request_periods": 17,
+          "clipped_periods": 2,
+          "covered_ms": 2000.0,
+          "period_integral_received_GiB": 9.224853515625,
+          "physical_window_received_GiB": 9.224853515625,
+          "mean_demand_GiB_s": 4.6632376697527
+        },
+        {
+          "npu_id": 2,
+          "periods": 106,
+          "cross_request_periods": 13,
+          "clipped_periods": 2,
+          "covered_ms": 2000.0,
+          "period_integral_received_GiB": 9.663772583007812,
+          "physical_window_received_GiB": 9.663772583007812,
+          "mean_demand_GiB_s": 4.665648929432258
+        },
+        {
+          "npu_id": 3,
+          "periods": 165,
+          "cross_request_periods": 20,
+          "clipped_periods": 2,
+          "covered_ms": 2000.0,
+          "period_integral_received_GiB": 9.00128173828124,
+          "physical_window_received_GiB": 9.00128173828124,
+          "mean_demand_GiB_s": 4.6592825022000115
+        },
+        {
+          "npu_id": 4,
+          "periods": 172,
+          "cross_request_periods": 21,
+          "clipped_periods": 2,
+          "covered_ms": 2000.0,
+          "period_integral_received_GiB": 9.20538330078125,
+          "physical_window_received_GiB": 9.20538330078125,
+          "mean_demand_GiB_s": 4.6716309467196275
+        },
+        {
+          "npu_id": 5,
+          "periods": 216,
+          "cross_request_periods": 27,
+          "clipped_periods": 2,
+          "covered_ms": 2000.0,
+          "period_integral_received_GiB": 9.364501953125,
+          "physical_window_received_GiB": 9.364501953125,
+          "mean_demand_GiB_s": 4.660981054060734
+        },
+        {
+          "npu_id": 6,
+          "periods": 181,
+          "cross_request_periods": 23,
+          "clipped_periods": 2,
+          "covered_ms": 2000.0,
+          "period_integral_received_GiB": 9.40948486328125,
+          "physical_window_received_GiB": 9.40948486328125,
+          "mean_demand_GiB_s": 4.664443090685368
+        },
+        {
+          "npu_id": 7,
+          "periods": 158,
+          "cross_request_periods": 20,
+          "clipped_periods": 2,
+          "covered_ms": 2000.0,
+          "period_integral_received_GiB": 9.03082275390625,
+          "physical_window_received_GiB": 9.03082275390625,
+          "mean_demand_GiB_s": 4.658664631725021
+        }
+      ],
+      "checks": {
+        "same_run_observer_checks": true,
+        "original_result_hash_matches": true,
+        "original_manifest_hash_matches": true,
+        "physical_receipts_supported_inside_periods": true,
+        "all_eight_lanes_cover_entire_window": true,
+        "every_in_window_receipt_allocated_once": true,
+        "per_npu_supply_area_equals_received_bytes": true,
+        "fleet_supply_area_equals_received_bytes": true,
+        "mean_and_peak_demand_equal_original_audit": true
+      },
+      "source_sha256": {
+        "result.json.gz": "77da3f912fa1766c64f65415885586fd22471f31c636d348855450a67213749a",
+        "manifest.json.gz": "ebf3b777c2e598afc519399598fdffbba6281698247b077533366bba17b5cf4c",
+        "metrics.json": "62679376eb5da12fd7242481d72aa091dd3e9e0198fff694cc9214ad50eebd53",
+        "receipts.json": "de77e007f09ca16c1ab2f43259a822e901de83da7e830015f8623cb1c23873bf"
+      },
+      "common_y_axis_GiB_s": [
+        0,
+        90
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1444 @@
+{
+  "scope": "OD full, seeds7/19/43, requests admitted in [2,4)s and followed until completion; complete internal cycles may extend beyond 4s",
+  "source_files": [
+    {
+      "seed": 7,
+      "result_sha256": "0eaf7a0189e3bc966c2e8314ec993901a588c358b0c758ea676b4e023b091e42",
+      "manifest_sha256": "2579438ed8ad9809db54da540f53bfe0c4020ac9c7b49b4a8c6f4a9808148706",
+      "OD_configuration": {
+        "canonical_strategy": "od_baseline",
+        "cross_request_layer0_uses_execution_npu_path": true,
+        "exclusive_per_npu": true,
+        "idle_capacity_borrowing": true,
+        "npu_path_ids": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224,
+          1,
+          33,
+          65,
+          97,
+          129,
+          161,
+          193,
+          225,
+          2,
+          34,
+          66,
+          98,
+          130,
+          162,
+          194,
+          226,
+          3,
+          35,
+          67,
+          99,
+          131,
+          163,
+          195,
+          227
+        ],
+        "path_pir": "unlimited",
+        "per_npu_cir_gib_s": 1.25,
+        "runtime_cir_updates": false,
+        "surplus_policy": "native equal-weight active-group WRR, then active-path WRR",
+        "unused_od_path_cir_and_weight": 0,
+        "usable_path_count_per_ssu": 32,
+        "within_path_order": "FIFO, nonpreemptive I/O"
+      }
+    },
+    {
+      "seed": 19,
+      "result_sha256": "206afe442b5b06dd5222c796967d641b32719e6c67eb5f2cb22bf9239c5eff07",
+      "manifest_sha256": "82199c7849ad9a15d1e2ec67d55e538b1027068748eb7e3d7ad2a3c072613fc8",
+      "OD_configuration": {
+        "canonical_strategy": "od_baseline",
+        "cross_request_layer0_uses_execution_npu_path": true,
+        "exclusive_per_npu": true,
+        "idle_capacity_borrowing": true,
+        "npu_path_ids": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224,
+          1,
+          33,
+          65,
+          97,
+          129,
+          161,
+          193,
+          225,
+          2,
+          34,
+          66,
+          98,
+          130,
+          162,
+          194,
+          226,
+          3,
+          35,
+          67,
+          99,
+          131,
+          163,
+          195,
+          227
+        ],
+        "path_pir": "unlimited",
+        "per_npu_cir_gib_s": 1.25,
+        "runtime_cir_updates": false,
+        "surplus_policy": "native equal-weight active-group WRR, then active-path WRR",
+        "unused_od_path_cir_and_weight": 0,
+        "usable_path_count_per_ssu": 32,
+        "within_path_order": "FIFO, nonpreemptive I/O"
+      }
+    },
+    {
+      "seed": 43,
+      "result_sha256": "2e2eb832791d13c2c24b4d4f4bda039c3995d7f08bf09d2508d940b33a1d4b6d",
+      "manifest_sha256": "a599c1ed8effea4d9b96cc0ca774cb22fb59c034e2c074658c2411354d5311ac",
+      "OD_configuration": {
+        "canonical_strategy": "od_baseline",
+        "cross_request_layer0_uses_execution_npu_path": true,
+        "exclusive_per_npu": true,
+        "idle_capacity_borrowing": true,
+        "npu_path_ids": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224,
+          1,
+          33,
+          65,
+          97,
+          129,
+          161,
+          193,
+          225,
+          2,
+          34,
+          66,
+          98,
+          130,
+          162,
+          194,
+          226,
+          3,
+          35,
+          67,
+          99,
+          131,
+          163,
+          195,
+          227
+        ],
+        "path_pir": "unlimited",
+        "per_npu_cir_gib_s": 1.25,
+        "runtime_cir_updates": false,
+        "surplus_policy": "native equal-weight active-group WRR, then active-path WRR",
+        "unused_od_path_cir_and_weight": 0,
+        "usable_path_count_per_ssu": 32,
+        "within_path_order": "FIFO, nonpreemptive I/O"
+      }
+    }
+  ],
+  "definitions": {
+    "C": "Pure compute milliseconds per layer",
+    "B_s": "1000 * per-layer bytes on SSD s in GiB / C_ms",
+    "period": "compute_start(layer k)-compute_start(layer k-1), k=1..7",
+    "b_s": "1000 * full layer volume on SSD s / actual internal period_ms",
+    "b_over_B": "C_ms / period_ms, cycle compute fraction, not instantaneous utilization",
+    "TTFT": "8*C + L0_stall + sum(internal_stall)",
+    "aggregation": "b=sum(layer bytes)/sum(complete internal periods), not the arithmetic mean of per-cycle rates; subgroup counts pooled for mechanism only, not the equal-seed CDF"
+  },
+  "checks": {
+    "request_count": 586,
+    "internal_cycle_count": 4102,
+    "max_io_start_minus_previous_compute_start_error_ms": 0.0,
+    "max_period_minus_compute_minus_stall_error_ms": 4.2810199829546036e-13,
+    "max_TTFT_decomposition_error_ms": 2.9558577807620168e-12,
+    "all_warm_requests_are_cross_request_L0_prefetched": true,
+    "all_compute_queue_wait_zero": true,
+    "each_SSD_busy_40_GiB_s_through_warm": true
+  },
+  "by_miss": {
+    "256": {
+      "request_count": 249,
+      "cycle_count": 1743,
+      "ratio_min": 3.588658678248402,
+      "ratio_max": 6.851750288873248,
+      "ratio_mean": 5.530805279399769,
+      "C_ms_min": 1.9974796959734433,
+      "C_ms_max": 9.043910535256627,
+      "B_s_mean_across_disks_min": 7.114474759796142,
+      "B_s_mean_across_disks_max": 9.88580449039917,
+      "aggregate_internal_cycle_b_per_disk_GiB_s": [
+        1.5759227620045069,
+        1.5758829025624146,
+        1.5754843081414913
+      ],
+      "b_mean_across_disks_GiB_s": 1.5757633242361375,
+      "total_pure_compute_ms": 11275.05531744763,
+      "total_io_stall_ms": 53628.18434483646,
+      "internal_L1_L7_io_stall_ms": 49087.82399395411,
+      "L0_io_stall_ms": 4540.360350882382,
+      "internal_fraction_of_io_stall": 0.9153363029841319,
+      "cycle_b_mean_across_disks_min": 1.3078610059351394,
+      "cycle_b_mean_across_disks_max": 3.283437952679865,
+      "requests_above_4": 243
+    },
+    "1024": {
+      "request_count": 181,
+      "cycle_count": 1267,
+      "ratio_min": 1.0738604036294086,
+      "ratio_max": 1.8142302265732846,
+      "ratio_mean": 1.5080899671741421,
+      "C_ms_min": 7.257231579079756,
+      "C_ms_max": 35.44295093756352,
+      "B_s_mean_across_disks_min": 1.9119309298095704,
+      "B_s_mean_across_disks_max": 2.513070601196289,
+      "aggregate_internal_cycle_b_per_disk_GiB_s": [
+        1.5771348758944241,
+        1.5770789421836482,
+        1.5771069090390362
+      ],
+      "b_mean_across_disks_GiB_s": 1.5771069090390362,
+      "total_pure_compute_ms": 31360.536615099,
+      "total_io_stall_ms": 17647.27042332309,
+      "internal_L1_L7_io_stall_ms": 14570.93079668001,
+      "L0_io_stall_ms": 3076.33962664309,
+      "internal_fraction_of_io_stall": 0.8256761780803613,
+      "cycle_b_mean_across_disks_min": 1.328512119994643,
+      "cycle_b_mean_across_disks_max": 2.4769185987304603,
+      "requests_above_4": 0
+    },
+    "2048": {
+      "request_count": 83,
+      "cycle_count": 581,
+      "ratio_min": 0.9999999999999943,
+      "ratio_max": 1.097841665017008,
+      "ratio_mean": 1.0358758720238612,
+      "C_ms_min": 14.369102622125,
+      "C_ms_max": 70.74053784115809,
+      "B_s_mean_across_disks_min": 0.9344866362304688,
+      "B_s_mean_across_disks_max": 1.2527901197753908,
+      "aggregate_internal_cycle_b_per_disk_GiB_s": [
+        1.1834961000454356,
+        1.183549076594229,
+        1.1836550296918158
+      ],
+      "b_mean_across_disks_GiB_s": 1.1835667354438268,
+      "total_pure_compute_ms": 25346.563112965385,
+      "total_io_stall_ms": 1087.2623362964357,
+      "internal_L1_L7_io_stall_ms": 0.0,
+      "L0_io_stall_ms": 1087.2623362964357,
+      "internal_fraction_of_io_stall": 0.0,
+      "cycle_b_mean_across_disks_min": 0.9344866362304717,
+      "cycle_b_mean_across_disks_max": 1.2527901197753981,
+      "requests_above_4": 0
+    },
+    "4096": {
+      "request_count": 73,
+      "cycle_count": 511,
+      "ratio_min": 0.999999999999998,
+      "ratio_max": 1.0498396481841203,
+      "ratio_mean": 1.022461736115166,
+      "C_ms_min": 28.592841995880782,
+      "C_ms_max": 141.33578827944143,
+      "B_s_mean_across_disks_min": 0.43831082216796885,
+      "B_s_mean_across_disks_max": 0.62070524140625,
+      "aggregate_internal_cycle_b_per_disk_GiB_s": [
+        0.5928168815183916,
+        0.5928950551730974,
+        0.5928950551730974
+      ],
+      "b_mean_across_disks_GiB_s": 0.5928689972881954,
+      "total_pure_compute_ms": 51530.40788056117,
+      "total_io_stall_ms": 1358.6220734286833,
+      "internal_L1_L7_io_stall_ms": 0.0,
+      "L0_io_stall_ms": 1358.6220734286833,
+      "internal_fraction_of_io_stall": 0.0,
+      "cycle_b_mean_across_disks_min": 0.4383108221679668,
+      "cycle_b_mean_across_disks_max": 0.620705241406251,
+      "requests_above_4": 0
+    }
+  },
+  "by_profile": {
+    "32K_miss256": {
+      "request_count": 29,
+      "cycle_count": 203,
+      "ratio_min": 3.588658678248402,
+      "ratio_max": 4.810710689866842,
+      "ratio_mean": 4.252542357942234,
+      "C_ms_min": 1.9974796959734433,
+      "C_ms_max": 1.9974796959734433,
+      "B_s_mean_across_disks_min": 7.114474759796142,
+      "B_s_mean_across_disks_max": 7.114474759796142,
+      "aggregate_internal_cycle_b_per_disk_GiB_s": [
+        1.537566254763782,
+        1.531318525162954,
+        1.5331928440432023
+      ],
+      "b_mean_across_disks_GiB_s": 1.5340258746566462,
+      "total_pure_compute_ms": 463.41528946583907,
+      "total_io_stall_ms": 1507.2778583056538,
+      "internal_L1_L7_io_stall_ms": 1475.07757587897,
+      "L0_io_stall_ms": 32.20028242668377,
+      "internal_fraction_of_io_stall": 0.9786367972903944,
+      "cycle_b_mean_across_disks_min": 1.3078610059351394,
+      "cycle_b_mean_across_disks_max": 2.037705575611713,
+      "requests_above_4": 24
+    },
+    "32K_miss1024": {
+      "request_count": 25,
+      "cycle_count": 175,
+      "ratio_min": 1.0738604036294086,
+      "ratio_max": 1.368226457445938,
+      "ratio_mean": 1.2031127252472813,
+      "C_ms_min": 7.257231579079756,
+      "C_ms_max": 7.257231579079756,
+      "B_s_mean_across_disks_min": 1.9119309298095704,
+      "B_s_mean_across_disks_max": 1.9119309298095704,
+      "aggregate_internal_cycle_b_per_disk_GiB_s": [
+        1.5830434610818327,
+        1.5822779661780215,
+        1.5807469763703987
+      ],
+      "b_mean_across_disks_GiB_s": 1.5820228012100843,
+      "total_pure_compute_ms": 1451.4463158159513,
+      "total_io_stall_ms": 294.80721675548125,
+      "internal_L1_L7_io_stall_ms": 264.8434935743419,
+      "L0_io_stall_ms": 29.963723181139358,
+      "internal_fraction_of_io_stall": 0.8983616360857548,
+      "cycle_b_mean_across_disks_min": 1.328512119994643,
+      "cycle_b_mean_across_disks_max": 1.91193092980954,
+      "requests_above_4": 0
+    },
+    "32K_miss2048": {
+      "request_count": 16,
+      "cycle_count": 112,
+      "ratio_min": 0.9999999999999969,
+      "ratio_max": 1.0438448436489365,
+      "ratio_mean": 1.0100039001471357,
+      "C_ms_min": 14.369102622125,
+      "C_ms_max": 14.369102622125,
+      "B_s_mean_across_disks_min": 0.9344866362304688,
+      "B_s_mean_across_disks_max": 0.9344866362304688,
+      "aggregate_internal_cycle_b_per_disk_GiB_s": [
+        0.9344866362304717,
+        0.9344866362304717,
+        0.9344866362304717
+      ],
+      "b_mean_across_disks_GiB_s": 0.9344866362304717,
+      "total_pure_compute_ms": 1839.2451356320007,
+      "total_io_stall_ms": 18.399624682973354,
+      "internal_L1_L7_io_stall_ms": 0.0,
+      "L0_io_stall_ms": 18.399624682973354,
+      "internal_fraction_of_io_stall": 0.0,
+      "cycle_b_mean_across_disks_min": 0.9344866362304717,
+      "cycle_b_mean_across_disks_max": 0.9344866362304717,
+      "requests_above_4": 0
+    },
+    "32K_miss4096": {
+      "request_count": 8,
+      "cycle_count": 56,
+      "ratio_min": 1.0000000000000047,
+      "ratio_max": 1.0155045410127737,
+      "ratio_mean": 1.0038606153769087,
+      "C_ms_min": 28.592841995880782,
+      "C_ms_max": 28.592841995880782,
+      "B_s_mean_across_disks_min": 0.43831082216796885,
+      "B_s_mean_across_disks_max": 0.43831082216796885,
+      "aggregate_internal_cycle_b_per_disk_GiB_s": [
+        0.43880000835342226,
+        0.43733244979705627,
+        0.43880000835342226
+      ],
+      "b_mean_across_disks_GiB_s": 0.4383108221679669,
+      "total_pure_compute_ms": 1829.9418877363698,
+      "total_io_stall_ms": 7.0647017906362635,
+      "internal_L1_L7_io_stall_ms": 0.0,
+      "L0_io_stall_ms": 7.0647017906362635,
+      "internal_fraction_of_io_stall": 0.0,
+      "cycle_b_mean_across_disks_min": 0.4383108221679668,
+      "cycle_b_mean_across_disks_max": 0.43831082216797373,
+      "requests_above_4": 0
+    },
+    "64K_miss256": {
+      "request_count": 36,
+      "cycle_count": 252,
+      "ratio_min": 3.9716244688407336,
+      "ratio_max": 5.859037790501031,
+      "ratio_mean": 5.127210296276528,
+      "C_ms_min": 3.3396570206571456,
+      "C_ms_max": 3.3396570206571456,
+      "B_s_mean_across_disks_min": 8.543971842132569,
+      "B_s_mean_across_disks_max": 8.543971842132569,
+      "aggregate_internal_cycle_b_per_disk_GiB_s": [
+        1.565682334995387,
+        1.565682334995387,
+        1.565682334995387
+      ],
+      "b_mean_across_disks_GiB_s": 1.565682334995387,
+      "total_pure_compute_ms": 961.8212219492573,
+      "total_io_stall_ms": 3969.638450406192,
+      "internal_L1_L7_io_stall_ms": 3751.0058343213022,
+      "L0_io_stall_ms": 218.63261608488983,
+      "internal_fraction_of_io_stall": 0.9449237962559239,
+      "cycle_b_mean_across_disks_min": 1.3404297260003943,
+      "cycle_b_mean_across_disks_max": 3.283437952679865,
+      "requests_above_4": 35
+    },
+    "64K_miss1024": {
+      "request_count": 37,
+      "cycle_count": 259,
+      "ratio_min": 1.2185581858693082,
+      "ratio_max": 1.638590562448879,
+      "ratio_mean": 1.4696503939192727,
+      "C_ms_min": 12.625940760424301,
+      "C_ms_max": 12.625940760424301,
+      "B_s_mean_across_disks_min": 2.233357713500977,
+      "B_s_mean_across_disks_max": 2.233357713500977,
+      "aggregate_internal_cycle_b_per_disk_GiB_s": [
+        1.5464112194327455,
+        1.5464112194327455,
+        1.5464112194327455
+      ],
+      "b_mean_across_disks_GiB_s": 1.5464112194327455,
+      "total_pure_compute_ms": 3737.2784650855965,
+      "total_io_stall_ms": 1755.2143033134569,
+      "internal_L1_L7_io_stall_ms": 1452.6514799878755,
+      "L0_io_stall_ms": 302.56282332558135,
+      "internal_fraction_of_io_stall": 0.8276205801454503,
+      "cycle_b_mean_across_disks_min": 1.3532017720499396,
+      "cycle_b_mean_across_disks_max": 2.233357713500972,
+      "requests_above_4": 0
+    },
+    "64K_miss2048": {
+      "request_count": 13,
+      "cycle_count": 91,
+      "ratio_min": 0.9999999999999952,
+      "ratio_max": 1.0763829460499614,
+      "ratio_mean": 1.0229677066715537,
+      "C_ms_min": 25.106517917176127,
+      "C_ms_max": 25.106517917176127,
+      "B_s_mean_across_disks_min": 1.10531660078125,
+      "B_s_mean_across_disks_max": 1.10531660078125,
+      "aggregate_internal_cycle_b_per_disk_GiB_s": [
+        1.1046309205078175,
+        1.1056594409179739,
+        1.1056594409179739
+      ],
+      "b_mean_across_disks_GiB_s": 1.1053166007812552,
+      "total_pure_compute_ms": 2611.077863386317,
+      "total_io_stall_ms": 59.97047046285593,
+      "internal_L1_L7_io_stall_ms": 0.0,
+      "L0_io_stall_ms": 59.97047046285593,
+      "internal_fraction_of_io_stall": 0.0,
+      "cycle_b_mean_across_disks_min": 1.1053166007812454,
+      "cycle_b_mean_across_disks_max": 1.1053166007812554,
+      "requests_above_4": 0
+    },
+    "64K_miss4096": {
+      "request_count": 14,
+      "cycle_count": 98,
+      "ratio_min": 1.000000000000001,
+      "ratio_max": 1.0371275306607377,
+      "ratio_mean": 1.016821415076851,
+      "C_ms_min": 50.06766996068876,
+      "C_ms_max": 50.06766996068876,
+      "B_s_mean_across_disks_min": 0.5363834340820314,
+      "B_s_mean_across_disks_max": 0.5363834340820314,
+      "aggregate_internal_cycle_b_per_disk_GiB_s": [
+        0.5363834340820318,
+        0.5363834340820318,
+        0.5363834340820318
+      ],
+      "b_mean_across_disks_GiB_s": 0.5363834340820318,
+      "total_pure_compute_ms": 5607.579035597142,
+      "total_io_stall_ms": 94.32741453402514,
+      "internal_L1_L7_io_stall_ms": 0.0,
+      "L0_io_stall_ms": 94.32741453402514,
+      "internal_fraction_of_io_stall": 0.0,
+      "cycle_b_mean_across_disks_min": 0.5363834340820307,
+      "cycle_b_mean_across_disks_max": 0.5363834340820356,
+      "requests_above_4": 0
+    },
+    "80K_miss256": {
+      "request_count": 41,
+      "cycle_count": 287,
+      "ratio_min": 4.234373670914471,
+      "ratio_max": 6.0664281191604195,
+      "ratio_mean": 5.291924940112385,
+      "C_ms_min": 4.010745621755773,
+      "C_ms_max": 4.010745621755773,
+      "B_s_mean_across_disks_min": 8.899939623840332,
+      "B_s_mean_across_disks_max": 8.899939623840332,
+      "aggregate_internal_cycle_b_per_disk_GiB_s": [
+        1.595611362706372,
+        1.597808417939014,
+        1.5957944506424253
+      ],
+      "b_mean_across_disks_GiB_s": 1.5964047437626037,
+      "total_pure_compute_ms": 1315.5245639358936,
+      "total_io_stall_ms": 5646.132685286979,
+      "internal_L1_L7_io_stall_ms": 5266.197140082526,
+      "L0_io_stall_ms": 379.9355452044515,
+      "internal_fraction_of_io_stall": 0.9327087111865948,
+      "cycle_b_mean_across_disks_min": 1.3366855227320342,
+      "cycle_b_mean_across_disks_max": 2.4592849571167004,
+      "requests_above_4": 41
+    },
+    "80K_miss1024": {
+      "request_count": 20,
+      "cycle_count": 140,
+      "ratio_min": 1.2522738400012903,
+      "ratio_max": 1.628714278246443,
+      "ratio_mean": 1.5047907307878334,
+      "C_ms_min": 15.310296145067996,
+      "C_ms_max": 15.310296145067996,
+      "B_s_mean_across_disks_min": 2.3095373326416015,
+      "B_s_mean_across_disks_max": 2.3095373326416015,
+      "aggregate_internal_cycle_b_per_disk_GiB_s": [
+        1.5628218188664609,
+        1.563935204156558,
+        1.5643063325865905
+      ],
+      "b_mean_across_disks_GiB_s": 1.5636877852032032,
+      "total_pure_compute_ms": 2449.6473832108795,
+      "total_io_stall_ms": 1236.5592927434993,
+      "internal_L1_L7_io_stall_ms": 1022.3811033509928,
+      "L0_io_stall_ms": 214.1781893925065,
+      "internal_fraction_of_io_stall": 0.8267950508727173,
+      "cycle_b_mean_across_disks_min": 1.3401187446988974,
+      "cycle_b_mean_across_disks_max": 2.309537332641612,
+      "requests_above_4": 0
+    },
+    "80K_miss2048": {
+      "request_count": 14,
+      "cycle_count": 98,
+      "ratio_min": 0.9999999999999943,
+      "ratio_max": 1.0716025902556885,
+      "ratio_mean": 1.0354672471697084,
+      "C_ms_min": 30.475232543852318,
+      "C_ms_max": 30.475232543852318,
+      "B_s_mean_across_disks_min": 1.1455895972167969,
+      "B_s_mean_across_disks_max": 1.1455895972167969,
+      "aggregate_internal_cycle_b_per_disk_GiB_s": [
+        1.1455895972168035,
+        1.1455895972168035,
+        1.1455895972168035
+      ],
+      "b_mean_across_disks_GiB_s": 1.1455895972168035,
+      "total_pure_compute_ms": 3413.2260449114597,
+      "total_io_stall_ms": 121.0577317809807,
+      "internal_L1_L7_io_stall_ms": 0.0,
+      "L0_io_stall_ms": 121.0577317809807,
+      "internal_fraction_of_io_stall": 0.0,
+      "cycle_b_mean_across_disks_min": 1.1455895972168035,
+      "cycle_b_mean_across_disks_max": 1.1455895972168035,
+      "requests_above_4": 0
+    },
+    "80K_miss4096": {
+      "request_count": 11,
+      "cycle_count": 77,
+      "ratio_min": 0.9999999999999994,
+      "ratio_max": 1.0390440949518591,
+      "ratio_mean": 1.0202554657238254,
+      "C_ms_min": 60.80510334800196,
+      "C_ms_max": 60.80510334800196,
+      "B_s_mean_across_disks_min": 0.559441974609375,
+      "B_s_mean_across_disks_max": 0.559441974609375,
+      "aggregate_internal_cycle_b_per_disk_GiB_s": [
+        0.5586054884033199,
+        0.5598602177124019,
+        0.5598602177124019
+      ],
+      "b_mean_across_disks_GiB_s": 0.5594419746093746,
+      "total_pure_compute_ms": 5350.849094624172,
+      "total_io_stall_ms": 108.38394042952177,
+      "internal_L1_L7_io_stall_ms": 0.0,
+      "L0_io_stall_ms": 108.38394042952177,
+      "internal_fraction_of_io_stall": 0.0,
+      "cycle_b_mean_across_disks_min": 0.5594419746093712,
+      "cycle_b_mean_across_disks_max": 0.5594419746093753,
+      "requests_above_4": 0
+    },
+    "128K_miss256": {
+      "request_count": 45,
+      "cycle_count": 315,
+      "ratio_min": 4.109652770445076,
+      "ratio_max": 6.624999035366144,
+      "ratio_mean": 5.7704074090140205,
+      "C_ms_min": 6.024011548589168,
+      "C_ms_max": 6.024011548589168,
+      "B_s_mean_across_disks_min": 9.49197530897827,
+      "B_s_mean_across_disks_max": 9.49197530897827,
+      "aggregate_internal_cycle_b_per_disk_GiB_s": [
+        1.5706353122199113,
+        1.5704304422907103,
+        1.5699182674677077
+      ],
+      "b_mean_across_disks_GiB_s": 1.5703280073261097,
+      "total_pure_compute_ms": 2168.644157492099,
+      "total_io_stall_ms": 10345.316156415343,
+      "internal_L1_L7_io_stall_ms": 9572.414044077039,
+      "L0_io_stall_ms": 772.9021123382954,
+      "internal_fraction_of_io_stall": 0.9252896575945616,
+      "cycle_b_mean_across_disks_min": 1.3497094558901215,
+      "cycle_b_mean_across_disks_max": 2.497109433014925,
+      "requests_above_4": 45
+    },
+    "128K_miss1024": {
+      "request_count": 25,
+      "cycle_count": 175,
+      "ratio_min": 1.2619244038818742,
+      "ratio_max": 1.7368848416987588,
+      "ratio_mean": 1.5290514715961092,
+      "C_ms_min": 23.363359736359623,
+      "C_ms_max": 23.363359736359623,
+      "B_s_mean_across_disks_min": 2.4330437129882814,
+      "B_s_mean_across_disks_max": 2.4330437129882814,
+      "aggregate_internal_cycle_b_per_disk_GiB_s": [
+        1.6123465028024824,
+        1.6117752888784853,
+        1.61215609816115
+      ],
+      "b_mean_across_disks_GiB_s": 1.6120926299473726,
+      "total_pure_compute_ms": 4672.671947271922,
+      "total_io_stall_ms": 2472.083969990074,
+      "internal_L1_L7_io_stall_ms": 2082.0954369981655,
+      "L0_io_stall_ms": 389.9885329919084,
+      "internal_fraction_of_io_stall": 0.8422430072254081,
+      "cycle_b_mean_across_disks_min": 1.3651785414357218,
+      "cycle_b_mean_across_disks_max": 2.433043712988284,
+      "requests_above_4": 0
+    },
+    "128K_miss2048": {
+      "request_count": 15,
+      "cycle_count": 105,
+      "ratio_min": 0.9999999999999963,
+      "ratio_max": 1.0973918034103127,
+      "ratio_mean": 1.0503858519796223,
+      "C_ms_min": 46.58135868432481,
+      "C_ms_max": 46.58135868432481,
+      "B_s_mean_across_disks_min": 1.2107093044921873,
+      "B_s_mean_across_disks_max": 1.2107093044921873,
+      "aggregate_internal_cycle_b_per_disk_GiB_s": [
+        1.2107093044921893,
+        1.2107093044921893,
+        1.2107093044921893
+      ],
+      "b_mean_across_disks_GiB_s": 1.2107093044921893,
+      "total_pure_compute_ms": 5589.763042118979,
+      "total_io_stall_ms": 281.64497324138665,
+      "internal_L1_L7_io_stall_ms": 0.0,
+      "L0_io_stall_ms": 281.64497324138665,
+      "internal_fraction_of_io_stall": 0.0,
+      "cycle_b_mean_across_disks_min": 1.21070930449218,
+      "cycle_b_mean_across_disks_max": 1.2107093044921917,
+      "requests_above_4": 0
+    },
+    "128K_miss4096": {
+      "request_count": 9,
+      "cycle_count": 63,
+      "ratio_min": 1.000000000000001,
+      "ratio_max": 1.0464824648882334,
+      "ratio_mean": 1.0227533713128898,
+      "C_ms_min": 93.01732520235409,
+      "C_ms_max": 93.01732520235409,
+      "B_s_mean_across_disks_min": 0.5966770379882812,
+      "B_s_mean_across_disks_max": 0.5966770379882812,
+      "aggregate_internal_cycle_b_per_disk_GiB_s": [
+        0.5966770379882805,
+        0.5968775343048088,
+        0.5964765416717522
+      ],
+      "b_mean_across_disks_GiB_s": 0.5966770379882805,
+      "total_pure_compute_ms": 6697.247414569494,
+      "total_io_stall_ms": 152.38495719798448,
+      "internal_L1_L7_io_stall_ms": 0.0,
+      "L0_io_stall_ms": 152.38495719798448,
+      "internal_fraction_of_io_stall": 0.0,
+      "cycle_b_mean_across_disks_min": 0.5966770379882805,
+      "cycle_b_mean_across_disks_max": 0.5966770379882834,
+      "requests_above_4": 0
+    },
+    "160K_miss256": {
+      "request_count": 54,
+      "cycle_count": 378,
+      "ratio_min": 5.039145763958706,
+      "ratio_max": 6.750055397625071,
+      "ratio_mean": 6.004711457077828,
+      "C_ms_min": 7.366188833782921,
+      "C_ms_max": 7.366188833782921,
+      "B_s_mean_across_disks_min": 9.706876535522461,
+      "B_s_mean_across_disks_max": 9.706876535522461,
+      "aggregate_internal_cycle_b_per_disk_GiB_s": [
+        1.5593618097271629,
+        1.5593618097271629,
+        1.5593618097271629
+      ],
+      "b_mean_across_disks_GiB_s": 1.5593618097271629,
+      "total_pure_compute_ms": 3182.1935761942245,
+      "total_io_stall_ms": 15925.96064941871,
+      "internal_L1_L7_io_stall_ms": 14548.322110406356,
+      "L0_io_stall_ms": 1377.6385390123526,
+      "internal_fraction_of_io_stall": 0.9134973035951437,
+      "cycle_b_mean_across_disks_min": 1.3712078538665808,
+      "cycle_b_mean_across_disks_max": 2.6183159188690843,
+      "requests_above_4": 54
+    },
+    "160K_miss1024": {
+      "request_count": 36,
+      "cycle_count": 252,
+      "ratio_min": 1.2775174601277455,
+      "ratio_max": 1.8142302265732846,
+      "ratio_mean": 1.6247666389132225,
+      "C_ms_min": 28.732067426025328,
+      "C_ms_max": 28.732067426025328,
+      "B_s_mean_across_disks_min": 2.4769185987304687,
+      "B_s_mean_across_disks_max": 2.4769185987304687,
+      "aggregate_internal_cycle_b_per_disk_GiB_s": [
+        1.5597316132501955,
+        1.5597316132501955,
+        1.5597316132501955
+      ],
+      "b_mean_across_disks_GiB_s": 1.5597316132501955,
+      "total_pure_compute_ms": 8274.835418695291,
+      "total_io_stall_ms": 5169.841112098318,
+      "internal_L1_L7_io_stall_ms": 4257.703618671169,
+      "L0_io_stall_ms": 912.1374934271507,
+      "internal_fraction_of_io_stall": 0.8235656621452853,
+      "cycle_b_mean_across_disks_min": 1.3761765660499838,
+      "cycle_b_mean_across_disks_max": 2.4769185987304603,
+      "requests_above_4": 0
+    },
+    "160K_miss2048": {
+      "request_count": 21,
+      "cycle_count": 147,
+      "ratio_min": 0.9999999999999978,
+      "ratio_max": 1.097841665017008,
+      "ratio_mean": 1.0490857111361287,
+      "C_ms_min": 57.31877271428324,
+      "C_ms_max": 57.31877271428324,
+      "B_s_mean_across_disks_min": 1.2337912640625002,
+      "B_s_mean_across_disks_max": 1.2337912640625002,
+      "aggregate_internal_cycle_b_per_disk_GiB_s": [
+        1.233791264062503,
+        1.2336518211077039,
+        1.233930707017302
+      ],
+      "b_mean_across_disks_GiB_s": 1.233791264062503,
+      "total_pure_compute_ms": 9629.553815999587,
+      "total_io_stall_ms": 472.6734969819827,
+      "internal_L1_L7_io_stall_ms": 0.0,
+      "L0_io_stall_ms": 472.6734969819827,
+      "internal_fraction_of_io_stall": 0.0,
+      "cycle_b_mean_across_disks_min": 1.2337912640624933,
+      "cycle_b_mean_across_disks_max": 1.233791264062503,
+      "requests_above_4": 0
+    },
+    "160K_miss4096": {
+      "request_count": 14,
+      "cycle_count": 98,
+      "ratio_min": 0.999999999999998,
+      "ratio_max": 1.0498396481841203,
+      "ratio_mean": 1.0242358229944593,
+      "C_ms_min": 114.4921718038388,
+      "C_ms_max": 114.4921718038388,
+      "B_s_mean_across_disks_min": 0.6098601996093751,
+      "B_s_mean_across_disks_max": 0.6098601996093751,
+      "aggregate_internal_cycle_b_per_disk_GiB_s": [
+        0.6098601996093762,
+        0.6098601996093762,
+        0.6098601996093762
+      ],
+      "b_mean_across_disks_GiB_s": 0.6098601996093762,
+      "total_pure_compute_ms": 12823.123242029946,
+      "total_io_stall_ms": 310.77894512999933,
+      "internal_L1_L7_io_stall_ms": 0.0,
+      "L0_io_stall_ms": 310.77894512999933,
+      "internal_fraction_of_io_stall": 0.0,
+      "cycle_b_mean_across_disks_min": 0.6098601996093739,
+      "cycle_b_mean_across_disks_max": 0.6098601996093763,
+      "requests_above_4": 0
+    },
+    "200K_miss256": {
+      "request_count": 44,
+      "cycle_count": 308,
+      "ratio_min": 4.659581191591477,
+      "ratio_max": 6.851750288873248,
+      "ratio_mean": 6.099444111177758,
+      "C_ms_min": 9.043910535256627,
+      "C_ms_max": 9.043910535256627,
+      "B_s_mean_across_disks_min": 9.88580449039917,
+      "B_s_mean_across_disks_max": 9.88580449039917,
+      "aggregate_internal_cycle_b_per_disk_GiB_s": [
+        1.5956505676861268,
+        1.5955144258348675,
+        1.5950379293554595
+      ],
+      "b_mean_across_disks_GiB_s": 1.5954009742921513,
+      "total_pure_compute_ms": 3183.4565084103297,
+      "total_io_stall_ms": 16233.858545003572,
+      "internal_L1_L7_io_stall_ms": 14474.807289187855,
+      "L0_io_stall_ms": 1759.0512558157097,
+      "internal_fraction_of_io_stall": 0.8916430587996521,
+      "cycle_b_mean_across_disks_min": 1.3759552254870304,
+      "cycle_b_mean_across_disks_max": 3.1053394384160415,
+      "requests_above_4": 44
+    },
+    "200K_miss1024": {
+      "request_count": 38,
+      "cycle_count": 266,
+      "ratio_min": 1.388344565406613,
+      "ratio_max": 1.795731024733352,
+      "ratio_mean": 1.623571077520768,
+      "C_ms_min": 35.44295093756352,
+      "C_ms_max": 35.44295093756352,
+      "B_s_mean_across_disks_min": 2.513070601196289,
+      "B_s_mean_across_disks_max": 2.513070601196289,
+      "aggregate_internal_cycle_b_per_disk_GiB_s": [
+        1.5881389484968595,
+        1.5880601952017839,
+        1.5880601952017839
+      ],
+      "b_mean_across_disks_GiB_s": 1.5880864463001425,
+      "total_pure_compute_ms": 10774.65708501932,
+      "total_io_stall_ms": 6718.764528422251,
+      "internal_L1_L7_io_stall_ms": 5491.255664097451,
+      "L0_io_stall_ms": 1227.5088643248037,
+      "internal_fraction_of_io_stall": 0.8173014013019664,
+      "cycle_b_mean_across_disks_min": 1.3924604215866352,
+      "cycle_b_mean_across_disks_max": 2.2581560283687945,
+      "requests_above_4": 0
+    },
+    "200K_miss2048": {
+      "request_count": 4,
+      "cycle_count": 28,
+      "ratio_min": 0.9999999999999973,
+      "ratio_max": 1.0870096031373029,
+      "ratio_mean": 1.0589814037417868,
+      "C_ms_min": 70.74053784115809,
+      "C_ms_max": 70.74053784115809,
+      "B_s_mean_across_disks_min": 1.2527901197753908,
+      "B_s_mean_across_disks_max": 1.2527901197753908,
+      "aggregate_internal_cycle_b_per_disk_GiB_s": [
+        1.2527901197753908,
+        1.2527901197753908,
+        1.2527901197753908
+      ],
+      "b_mean_across_disks_GiB_s": 1.2527901197753908,
+      "total_pure_compute_ms": 2263.697210917059,
+      "total_io_stall_ms": 133.5160391462564,
+      "internal_L1_L7_io_stall_ms": 0.0,
+      "L0_io_stall_ms": 133.5160391462564,
+      "internal_fraction_of_io_stall": 0.0,
+      "cycle_b_mean_across_disks_min": 1.25279011977539,
+      "cycle_b_mean_across_disks_max": 1.2527901197753981,
+      "requests_above_4": 0
+    },
+    "200K_miss4096": {
+      "request_count": 17,
+      "cycle_count": 119,
+      "ratio_min": 1.000000000000001,
+      "ratio_max": 1.0487109720760996,
+      "ratio_mean": 1.03567235385973,
+      "C_ms_min": 141.33578827944143,
+      "C_ms_max": 141.33578827944143,
+      "B_s_mean_across_disks_min": 0.62070524140625,
+      "B_s_mean_across_disks_max": 0.62070524140625,
+      "aggregate_internal_cycle_b_per_disk_GiB_s": [
+        0.6207518129279653,
+        0.6206819556453941,
+        0.6206819556453941
+      ],
+      "b_mean_across_disks_GiB_s": 0.6207052414062512,
+      "total_pure_compute_ms": 19221.667206004036,
+      "total_io_stall_ms": 685.6821143465163,
+      "internal_L1_L7_io_stall_ms": 0.0,
+      "L0_io_stall_ms": 685.6821143465163,
+      "internal_fraction_of_io_stall": 0.0,
+      "cycle_b_mean_across_disks_min": 0.620705241406249,
+      "cycle_b_mean_across_disks_max": 0.620705241406251,
+      "requests_above_4": 0
+    }
+  },
+  "median_128K_representatives": [
+    {
+      "seed": 7,
+      "request_id": 18000011,
+      "npu_id": 18,
+      "total_input_K": 128,
+      "miss_tokens": 256,
+      "category": "LS",
+      "C_ms": 6.024011548589168,
+      "V_total_MiB": 175.65625,
+      "V_s_GiB": [
+        0.0572357177734375,
+        0.0572357177734375,
+        0.05706787109375
+      ],
+      "B_s_GiB_s": [
+        9.501262956051635,
+        9.501262956051635,
+        9.473400014831542
+      ],
+      "own_compute_ms": 48.19209238871334,
+      "TTFT_ms": 276.49770780573226,
+      "TTFT_ratio": 5.737408236511607,
+      "io_stall_ms": 228.30561541702036,
+      "internal_stall_ms": 228.30561541702036,
+      "L0_stall_ms": 0.0,
+      "admission_ms": 2550.3443748366067,
+      "completion_ms": 2826.842082642339,
+      "mean_internal_period_ms": 38.63909946530618,
+      "internal_cycle_b_s_GiB_s": [
+        1.4812901585563378,
+        1.4812901585563378,
+        1.4769461991470816
+      ],
+      "cycles": [
+        {
+          "layer_being_read": 1,
+          "start_ms": 2550.3443748366067,
+          "end_ms": 2588.5685204101565,
+          "period_ms": 38.22414557354978,
+          "compute_ms": 6.024011548589168,
+          "stall_ms": 32.20013402496079,
+          "b_s_GiB_s": [
+            1.4973707564844376,
+            1.4973707564844376,
+            1.4929796398965067
+          ],
+          "b_over_B": 0.15759702298637238
+        },
+        {
+          "layer_being_read": 2,
+          "start_ms": 2588.5685204101565,
+          "end_ms": 2629.3007134033205,
+          "period_ms": 40.73219299316406,
+          "compute_ms": 6.024011548589168,
+          "stall_ms": 34.708181444575075,
+          "b_s_GiB_s": [
+            1.4051715257031008,
+            1.4051715257031008,
+            1.4010507880910683
+          ],
+          "b_over_B": 0.14789313086089315
+        },
+        {
+          "layer_being_read": 3,
+          "start_ms": 2629.3007134033205,
+          "end_ms": 2666.8731926513674,
+          "period_ms": 37.572479248046875,
+          "compute_ms": 6.024011548589168,
+          "stall_ms": 31.548467699457888,
+          "b_s_GiB_s": [
+            1.5233415233415233,
+            1.5233415233415233,
+            1.5188742461469735
+          ],
+          "b_over_B": 0.16033042453279983
+        },
+        {
+          "layer_being_read": 4,
+          "start_ms": 2666.8731926513674,
+          "end_ms": 2705.51149831543,
+          "period_ms": 38.6383056640625,
+          "compute_ms": 6.024011548589168,
+          "stall_ms": 32.61429411547351,
+          "b_s_GiB_s": [
+            1.4813205907906168,
+            1.4813205907906168,
+            1.476976542137272
+          ],
+          "b_over_B": 0.1559077564364346
+        },
+        {
+          "layer_being_read": 5,
+          "start_ms": 2705.51149831543,
+          "end_ms": 2746.9234703613283,
+          "period_ms": 41.41197204589844,
+          "compute_ms": 6.024011548589168,
+          "stall_ms": 35.38796049730945,
+          "b_s_GiB_s": [
+            1.3821055831391225,
+            1.3821055831391225,
+            1.378052487587395
+          ],
+          "b_over_B": 0.14546545964805854
+        },
+        {
+          "layer_being_read": 6,
+          "start_ms": 2746.9234703613283,
+          "end_ms": 2784.7896812988283,
+          "period_ms": 37.8662109375,
+          "compute_ms": 6.024011548589168,
+          "stall_ms": 31.842199388911013,
+          "b_s_GiB_s": [
+            1.5115248226950355,
+            1.5115248226950355,
+            1.5070921985815602
+          ],
+          "b_over_B": 0.15908672664746118
+        },
+        {
+          "layer_being_read": 7,
+          "start_ms": 2784.7896812988283,
+          "end_ms": 2820.81807109375,
+          "period_ms": 36.02838979492162,
+          "compute_ms": 6.024011548589168,
+          "stall_ms": 30.004378246332635,
+          "b_s_GiB_s": [
+            1.5886282484238348,
+            1.5886282484238348,
+            1.5839695145574892
+          ],
+          "b_over_B": 0.1672017978843529
+        }
+      ],
+      "selection": "Exact median TTFT ratio among warm-admitted 128K requests of this miss count across three seeds",
+      "profile_request_count": 45
+    },
+    {
+      "seed": 19,
+      "request_id": 20000009,
+      "npu_id": 20,
+      "total_input_K": 128,
+      "miss_tokens": 1024,
+      "category": "LL",
+      "C_ms": 23.363359736359623,
+      "V_total_MiB": 174.625,
+      "V_s_GiB": [
+        0.0569000244140625,
+        0.056732177734375,
+        0.0569000244140625
+      ],
+      "B_s_GiB_s": [
+        2.4354384410522463,
+        2.4282542568603516,
+        2.4354384410522463
+      ],
+      "own_compute_ms": 186.90687789087698,
+      "TTFT_ms": 287.638182623396,
+      "TTFT_ratio": 1.5389384589224673,
+      "io_stall_ms": 100.73130473251922,
+      "internal_stall_ms": 77.2535246921625,
+      "L0_stall_ms": 23.47778004035672,
+      "admission_ms": 2172.451098743823,
+      "completion_ms": 2460.089281367219,
+      "mean_internal_period_ms": 34.39957754952567,
+      "internal_cycle_b_s_GiB_s": [
+        1.6540907902762045,
+        1.649211466411083,
+        1.6540907902762045
+      ],
+      "cycles": [
+        {
+          "layer_being_read": 1,
+          "start_ms": 2195.9288787841797,
+          "end_ms": 2232.821578979492,
+          "period_ms": 36.8927001953125,
+          "compute_ms": 23.363359736359623,
+          "stall_ms": 13.529340458952902,
+          "b_s_GiB_s": [
+            1.5423111919927206,
+            1.537761601455869,
+            1.5423111919927206
+          ],
+          "b_over_B": 0.6332786598072894
+        },
+        {
+          "layer_being_read": 2,
+          "start_ms": 2232.821578979492,
+          "end_ms": 2267.6917266845703,
+          "period_ms": 34.870147705078125,
+          "compute_ms": 23.363359736359623,
+          "stall_ms": 11.506787968718527,
+          "b_s_GiB_s": [
+            1.6317689530685922,
+            1.6269554753309265,
+            1.6317689530685922
+          ],
+          "b_over_B": 0.6700103462124776
+        },
+        {
+          "layer_being_read": 3,
+          "start_ms": 2267.6917266845703,
+          "end_ms": 2302.5366973876953,
+          "period_ms": 34.844970703125,
+          "compute_ms": 23.363359736359623,
+          "stall_ms": 11.481610966765402,
+          "b_s_GiB_s": [
+            1.6329479768786128,
+            1.628131021194605,
+            1.6329479768786128
+          ],
+          "b_over_B": 0.6704944577343074
+        },
+        {
+          "layer_being_read": 4,
+          "start_ms": 2302.5366973876953,
+          "end_ms": 2335.543746948242,
+          "period_ms": 33.007049560546875,
+          "compute_ms": 23.363359736359623,
+          "stall_ms": 9.643689824187277,
+          "b_s_GiB_s": [
+            1.7238749046529367,
+            1.718789727943046,
+            1.7238749046529367
+          ],
+          "b_over_B": 0.7078293894006723
+        },
+        {
+          "layer_being_read": 5,
+          "start_ms": 2335.543746948242,
+          "end_ms": 2367.6192474365234,
+          "period_ms": 32.07550048828125,
+          "compute_ms": 23.363359736359623,
+          "stall_ms": 8.712140751921652,
+          "b_s_GiB_s": [
+            1.7739403453689169,
+            1.7687074829931972,
+            1.7739403453689169
+          ],
+          "b_over_B": 0.7283864438809116
+        },
+        {
+          "layer_being_read": 6,
+          "start_ms": 2367.6192474365234,
+          "end_ms": 2400.194091796875,
+          "period_ms": 32.57484436035156,
+          "compute_ms": 23.363359736359623,
+          "stall_ms": 9.211484623991964,
+          "b_s_GiB_s": [
+            1.746747391472369,
+            1.741594744299884,
+            1.746747391472369
+          ],
+          "b_over_B": 0.7172209167880572
+        },
+        {
+          "layer_being_read": 7,
+          "start_ms": 2400.194091796875,
+          "end_ms": 2436.7259216308594,
+          "period_ms": 36.531829833984375,
+          "compute_ms": 23.363359736359623,
+          "stall_ms": 13.168470097624777,
+          "b_s_GiB_s": [
+            1.5575465196416265,
+            1.552951987135309,
+            1.5575465196416265
+          ],
+          "b_over_B": 0.6395343414915792
+        }
+      ],
+      "selection": "Exact median TTFT ratio among warm-admitted 128K requests of this miss count across three seeds",
+      "profile_request_count": 25
+    },
+    {
+      "seed": 7,
+      "request_id": 19000008,
+      "npu_id": 19,
+      "total_input_K": 128,
+      "miss_tokens": 2048,
+      "category": "LL",
+      "C_ms": 46.58135868432481,
+      "V_total_MiB": 173.25,
+      "V_s_GiB": [
+        0.056396484375,
+        0.056396484375,
+        0.056396484375
+      ],
+      "B_s_GiB_s": [
+        1.2107093044921873,
+        1.2107093044921873,
+        1.2107093044921873
+      ],
+      "own_compute_ms": 372.6508694745985,
+      "TTFT_ms": 393.28191739159183,
+      "TTFT_ratio": 1.0553629405080447,
+      "io_stall_ms": 20.631047916994703,
+      "internal_stall_ms": 0.0,
+      "L0_stall_ms": 20.631047916994703,
+      "admission_ms": 2284.1087371415992,
+      "completion_ms": 2677.390654533191,
+      "mean_internal_period_ms": 46.58135868432464,
+      "internal_cycle_b_s_GiB_s": [
+        1.2107093044921917,
+        1.2107093044921917,
+        1.2107093044921917
+      ],
+      "cycles": [
+        {
+          "layer_being_read": 1,
+          "start_ms": 2304.739785058594,
+          "end_ms": 2351.3211437429186,
+          "period_ms": 46.58135868432464,
+          "compute_ms": 46.58135868432481,
+          "stall_ms": 0.0,
+          "b_s_GiB_s": [
+            1.2107093044921917,
+            1.2107093044921917,
+            1.2107093044921917
+          ],
+          "b_over_B": 1.0000000000000036
+        },
+        {
+          "layer_being_read": 2,
+          "start_ms": 2351.3211437429186,
+          "end_ms": 2397.9025024272432,
+          "period_ms": 46.58135868432464,
+          "compute_ms": 46.58135868432481,
+          "stall_ms": 0.0,
+          "b_s_GiB_s": [
+            1.2107093044921917,
+            1.2107093044921917,
+            1.2107093044921917
+          ],
+          "b_over_B": 1.0000000000000036
+        },
+        {
+          "layer_being_read": 3,
+          "start_ms": 2397.9025024272432,
+          "end_ms": 2444.483861111568,
+          "period_ms": 46.58135868432464,
+          "compute_ms": 46.58135868432481,
+          "stall_ms": 0.0,
+          "b_s_GiB_s": [
+            1.2107093044921917,
+            1.2107093044921917,
+            1.2107093044921917
+          ],
+          "b_over_B": 1.0000000000000036
+        },
+        {
+          "layer_being_read": 4,
+          "start_ms": 2444.483861111568,
+          "end_ms": 2491.0652197958925,
+          "period_ms": 46.58135868432464,
+          "compute_ms": 46.58135868432481,
+          "stall_ms": 0.0,
+          "b_s_GiB_s": [
+            1.2107093044921917,
+            1.2107093044921917,
+            1.2107093044921917
+          ],
+          "b_over_B": 1.0000000000000036
+        },
+        {
+          "layer_being_read": 5,
+          "start_ms": 2491.0652197958925,
+          "end_ms": 2537.646578480217,
+          "period_ms": 46.58135868432464,
+          "compute_ms": 46.58135868432481,
+          "stall_ms": 0.0,
+          "b_s_GiB_s": [
+            1.2107093044921917,
+            1.2107093044921917,
+            1.2107093044921917
+          ],
+          "b_over_B": 1.0000000000000036
+        },
+        {
+          "layer_being_read": 6,
+          "start_ms": 2537.646578480217,
+          "end_ms": 2584.227937164542,
+          "period_ms": 46.58135868432464,
+          "compute_ms": 46.58135868432481,
+          "stall_ms": 0.0,
+          "b_s_GiB_s": [
+            1.2107093044921917,
+            1.2107093044921917,
+            1.2107093044921917
+          ],
+          "b_over_B": 1.0000000000000036
+        },
+        {
+          "layer_being_read": 7,
+          "start_ms": 2584.227937164542,
+          "end_ms": 2630.8092958488664,
+          "period_ms": 46.58135868432464,
+          "compute_ms": 46.58135868432481,
+          "stall_ms": 0.0,
+          "b_s_GiB_s": [
+            1.2107093044921917,
+            1.2107093044921917,
+            1.2107093044921917
+          ],
+          "b_over_B": 1.0000000000000036
+        }
+      ],
+      "selection": "Exact median TTFT ratio among warm-admitted 128K requests of this miss count across three seeds",
+      "profile_request_count": 15
+    },
+    {
+      "seed": 19,
+      "request_id": 9000011,
+      "npu_id": 9,
+      "total_input_K": 128,
+      "miss_tokens": 4096,
+      "category": "LL",
+      "C_ms": 93.01732520235409,
+      "V_total_MiB": 170.5,
+      "V_s_GiB": [
+        0.0555572509765625,
+        0.0555572509765625,
+        0.055389404296875
+      ],
+      "B_s_GiB_s": [
+        0.5972785269378661,
+        0.5972785269378661,
+        0.5954740600891113
+      ],
+      "own_compute_ms": 744.1386016188327,
+      "TTFT_ms": 754.7683906861848,
+      "TTFT_ratio": 1.0142846897664328,
+      "io_stall_ms": 10.62978906735134,
+      "internal_stall_ms": 0.0,
+      "L0_stall_ms": 10.62978906735134,
+      "admission_ms": 2477.411158710969,
+      "completion_ms": 3232.179549397154,
+      "mean_internal_period_ms": 93.01732520235419,
+      "internal_cycle_b_s_GiB_s": [
+        0.5972785269378655,
+        0.5972785269378655,
+        0.5954740600891106
+      ],
+      "cycles": [
+        {
+          "layer_being_read": 1,
+          "start_ms": 2488.0409477783205,
+          "end_ms": 2581.0582729806747,
+          "period_ms": 93.01732520235419,
+          "compute_ms": 93.01732520235409,
+          "stall_ms": 0.0,
+          "b_s_GiB_s": [
+            0.5972785269378655,
+            0.5972785269378655,
+            0.5954740600891106
+          ],
+          "b_over_B": 0.9999999999999989
+        },
+        {
+          "layer_being_read": 2,
+          "start_ms": 2581.0582729806747,
+          "end_ms": 2674.075598183029,
+          "period_ms": 93.01732520235419,
+          "compute_ms": 93.01732520235409,
+          "stall_ms": 0.0,
+          "b_s_GiB_s": [
+            0.5972785269378655,
+            0.5972785269378655,
+            0.5954740600891106
+          ],
+          "b_over_B": 0.9999999999999989
+        },
+        {
+          "layer_being_read": 3,
+          "start_ms": 2674.075598183029,
+          "end_ms": 2767.092923385383,
+          "period_ms": 93.01732520235419,
+          "compute_ms": 93.01732520235409,
+          "stall_ms": 0.0,
+          "b_s_GiB_s": [
+            0.5972785269378655,
+            0.5972785269378655,
+            0.5954740600891106
+          ],
+          "b_over_B": 0.9999999999999989
+        },
+        {
+          "layer_being_read": 4,
+          "start_ms": 2767.092923385383,
+          "end_ms": 2860.1102485877373,
+          "period_ms": 93.01732520235419,
+          "compute_ms": 93.01732520235409,
+          "stall_ms": 0.0,
+          "b_s_GiB_s": [
+            0.5972785269378655,
+            0.5972785269378655,
+            0.5954740600891106
+          ],
+          "b_over_B": 0.9999999999999989
+        },
+        {
+          "layer_being_read": 5,
+          "start_ms": 2860.1102485877373,
+          "end_ms": 2953.1275737900914,
+          "period_ms": 93.01732520235419,
+          "compute_ms": 93.01732520235409,
+          "stall_ms": 0.0,
+          "b_s_GiB_s": [
+            0.5972785269378655,
+            0.5972785269378655,
+            0.5954740600891106
+          ],
+          "b_over_B": 0.9999999999999989
+        },
+        {
+          "layer_being_read": 6,
+          "start_ms": 2953.1275737900914,
+          "end_ms": 3046.1448989924456,
+          "period_ms": 93.01732520235419,
+          "compute_ms": 93.01732520235409,
+          "stall_ms": 0.0,
+          "b_s_GiB_s": [
+            0.5972785269378655,
+            0.5972785269378655,
+            0.5954740600891106
+          ],
+          "b_over_B": 0.9999999999999989
+        },
+        {
+          "layer_being_read": 7,
+          "start_ms": 3046.1448989924456,
+          "end_ms": 3139.1622241948,
+          "period_ms": 93.01732520235419,
+          "compute_ms": 93.01732520235409,
+          "stall_ms": 0.0,
+          "b_s_GiB_s": [
+            0.5972785269378655,
+            0.5972785269378655,
+            0.5954740600891106
+          ],
+          "b_over_B": 0.9999999999999989
+        }
+      ],
+      "selection": "Exact median TTFT ratio among warm-admitted 128K requests of this miss count across three seeds",
+      "profile_request_count": 9
+    }
+  ],
+  "facts": [
+    "Every ratio>4 request in the warm cohort has miss=256.",
+    "All miss>=2048 requests have zero internal L1..L7 stall; their nonzero ratio excess arises only from exposed cross-request L0 wait.",
+    "Miss256 and miss1024 obtain almost equal cycle-averaged bandwidth, around1.576 GiB/s per disk, despite very different V/C.",
+    "Measured internal-cycle supply exceeds the1.25GiB/s CIR for both bandwidth-demanding miss groups; CIR is not a cap."
+  ],
+  "interpretation": [
+    "The discrete input excludes miss512. Fixed-total-length miss256 and miss1024 read nearly the same KV volume but have approximately fourfold compute-time differences. Their similar absolute I/O-dominated latencies divide by very different pure-compute SLO bases, producing separated normalized ratios.",
+    "OD reserves equal per-NPU paths and has no demand-aware priority among them. Under sustained full SSD utilization, observed borrowing is insufficient to bridge the high miss256 V/C. The underlying scheduler is work-conserving, not fixed1.25GiB/s throttling."
+  ],
+  "limits": [
+    "Cycle bandwidth is reconstructed by conservation from full layer volume and actual layer boundaries, not a separately saved per-block SSD log. The checked submit/ready timing encloses every block of that next layer within the cycle.",
+    "The plateau is a property of this sampled input and execution; it is not a universal OD invariant. Adding intermediate miss profiles or changing the SLO base could change the CDF shape; no such counterfactual was simulated."
+  ]
+}

@@ -16,7 +16,7 @@ ROOT=HERE.parents[1]
 OLD=ROOT/'results/baseline_ab128_32_ratio12_20260912'
 sys.path[:0]=[str(HERE),str(ROOT),str(OLD)]
 import experiment as original
-import continuous_batch_sim as native
+from simulator.core import continuous_batch_sim as native
 from policy import install_policy,make_stats,simulator_strategy,POLICIES
 from metrics import live_summary,summarize,overlap
 

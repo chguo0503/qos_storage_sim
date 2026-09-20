@@ -1,0 +1,356 @@
+{
+  "all_checks_passed": true,
+  "source_sha256": {
+    "result.json.gz": "5b69b8a7a15410f1b800c7f48aa840bd4b81fc1df3d1be25277b10b9e82814fc",
+    "manifest.json.gz": "7ac2e6464f81bda230059c528f49684f5b35a0498718e47d154cd2c60dc26666",
+    "command.json": "cccee717fd62a949c486ebbf993d5daf76e17759b605e11a8f9965958b441c2b"
+  },
+  "sources_unchanged": true,
+  "script_sha256": "db90c92d4a44601ff9f8487bc2eb6db6904517e6b88fe2e364c8fbf9fee426db",
+  "C_B_ms": 93.15531959632574,
+  "periodic_mix_reference": {
+    "A_requests": 35,
+    "B_requests": 3,
+    "C_A_ms": 1.9149208743596717,
+    "C_B_ms": 93.15531959632574,
+    "pure_compute_A_share": 0.19343294419437426,
+    "equivalent_A_cards": 6.189854214219976,
+    "note": "Periodic repeat only: excludes B prefixes, waiting, and window phase effects; not a warm-window prediction."
+  },
+  "definitions": {
+    "A_residence": "Overlap of A admission-to-completion intervals / total active NPU card time, not request counts or compute share.",
+    "phase_events": "B compute starts for layers L0..L6, equivalently the submissions of next layers of that same B request. L7 cross-request prefetch excluded.",
+    "phase": "(absolute time_ms mod fixed C_B_ms) / C_B_ms, with fixed reference t=0. No reference or period fitted to outcomes.",
+    "R": "Magnitude of mean(exp(2*pi*i*h*phase)); h=1,2,4,8. event-weighted and equal-card means reported separately.",
+    "phase_caution": "Low R1 can also mean several phase clusters, not uniform phases; R2/R4/R8 and histogram provided. C_B is pure compute, not an assumed observed IO period.",
+    "B_outstanding": "Half-open io_start_time_ms to io_ready_time_ms of internal B prefetch. Includes queue, SSD, and NPU transfer; not measured SSD service or disk causality.",
+    "A_deadline": "A layer compute_end for an internal next-layer prefetch; classified stalled iff its actual next-layer io_barrier_wait_ms >1e-9.",
+    "scope": "Fixed reported windows; concurrent changes are mechanism evidence, not proof that one phase statistic caused recovery."
+  },
+  "windows": [
+    {
+      "window_ms": [
+        2000.0,
+        4000.0
+      ],
+      "U_percent": 99.49781452172067,
+      "all_npus_active": true,
+      "all_32_npus_have_A_and_B_compute": true,
+      "strict_underload": true,
+      "A_residence_card_ms": 12581.325067243044,
+      "B_residence_card_ms": 51418.674932756956,
+      "A_residence_fraction": 0.19658320417567257,
+      "mean_A_resident_cards": 6.290662533621522,
+      "role_summary": {
+        "A": {
+          "compute_card_ms": 12456.820908190819,
+          "active_card_ms": 12581.325067243044,
+          "active_U_percent": 99.01040503773021
+        },
+        "B": {
+          "compute_card_ms": 51221.78038571041,
+          "active_card_ms": 51418.674932756956,
+          "active_U_percent": 99.61707580503769
+        }
+      },
+      "IO_wait_card_ms_by_kind": {
+        "internal_L1_to_L7": 107.254450721897,
+        "cross_request_L0": 214.14425537687384
+      },
+      "IO_loss_pp_by_kind": {
+        "internal_L1_to_L7": 0.16758507925296406,
+        "cross_request_L0": 0.3346003990263654
+      },
+      "B_phase_event_count": 488,
+      "B_phase_card_count": 32,
+      "B_phase_harmonics": {
+        "1": {
+          "event_weighted_R": 0.8746882048836937,
+          "equal_card_R": 0.8703548233839385
+        },
+        "2": {
+          "event_weighted_R": 0.5621583206048937,
+          "equal_card_R": 0.5463808027551467
+        },
+        "4": {
+          "event_weighted_R": 0.1397407862322873,
+          "equal_card_R": 0.12831789508363242
+        },
+        "8": {
+          "event_weighted_R": 0.1410564396495656,
+          "equal_card_R": 0.16254356012749113
+        }
+      },
+      "B_phase_hist16_counts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        43,
+        148,
+        124,
+        72,
+        87,
+        14,
+        0,
+        0,
+        0,
+        0
+      ],
+      "B_IO_mean_outstanding": 8.210590010181587,
+      "B_IO_max_outstanding": 26,
+      "B_IO_any_outstanding_fraction": 0.7667384545716218,
+      "A_internal_deadline_count": 5693,
+      "A_internal_stalled_deadline_count": 222,
+      "A_internal_stalled_fraction": 0.03899525733356754,
+      "B_outstanding_at_A_deadline_mean": 8.609696118039698,
+      "B_outstanding_at_stalled_A_deadline_mean": 11.558558558558559,
+      "B_outstanding_at_unstalled_A_deadline_mean": 8.49003838420764
+    },
+    {
+      "window_ms": [
+        4000.0,
+        8000.0
+      ],
+      "U_percent": 99.28726811866517,
+      "all_npus_active": true,
+      "all_32_npus_have_A_and_B_compute": true,
+      "strict_underload": true,
+      "A_residence_card_ms": 23875.759530140393,
+      "B_residence_card_ms": 104124.24046985961,
+      "A_residence_fraction": 0.18652937132922182,
+      "mean_A_resident_cards": 5.968939882535098,
+      "role_summary": {
+        "A": {
+          "compute_card_ms": 23647.533769006077,
+          "active_card_ms": 23875.759530140393,
+          "active_U_percent": 99.04411099112383
+        },
+        "B": {
+          "compute_card_ms": 103440.16942288534,
+          "active_card_ms": 104124.24046985961,
+          "active_U_percent": 99.34302421425846
+        }
+      },
+      "IO_wait_card_ms_by_kind": {
+        "internal_L1_to_L7": 204.12962724861336,
+        "cross_request_L0": 708.1671808599713
+      },
+      "IO_loss_pp_by_kind": {
+        "internal_L1_to_L7": 0.1594762712879792,
+        "cross_request_L0": 0.5532556100468525
+      },
+      "B_phase_event_count": 964,
+      "B_phase_card_count": 32,
+      "B_phase_harmonics": {
+        "1": {
+          "event_weighted_R": 0.521784832777107,
+          "equal_card_R": 0.5310012879507898
+        },
+        "2": {
+          "event_weighted_R": 0.25368073490808773,
+          "equal_card_R": 0.2530651823071344
+        },
+        "4": {
+          "event_weighted_R": 0.17781962474814506,
+          "equal_card_R": 0.17688395145088356
+        },
+        "8": {
+          "event_weighted_R": 0.03863660141159289,
+          "equal_card_R": 0.03289609211171338
+        }
+      },
+      "B_phase_hist16_counts": [
+        15,
+        40,
+        8,
+        51,
+        100,
+        121,
+        114,
+        184,
+        142,
+        37,
+        52,
+        0,
+        48,
+        11,
+        0,
+        41
+      ],
+      "B_IO_mean_outstanding": 5.211994279021365,
+      "B_IO_max_outstanding": 23,
+      "B_IO_any_outstanding_fraction": 0.7901975797627421,
+      "A_internal_deadline_count": 10806,
+      "A_internal_stalled_deadline_count": 462,
+      "A_internal_stalled_fraction": 0.042754025541365905,
+      "B_outstanding_at_A_deadline_mean": 5.586340921710161,
+      "B_outstanding_at_stalled_A_deadline_mean": 7.008658008658009,
+      "B_outstanding_at_unstalled_A_deadline_mean": 5.522815158546017
+    },
+    {
+      "window_ms": [
+        8000.0,
+        12000.0
+      ],
+      "U_percent": 99.42791294737071,
+      "all_npus_active": true,
+      "all_32_npus_have_A_and_B_compute": true,
+      "strict_underload": true,
+      "A_residence_card_ms": 25067.39312863699,
+      "B_residence_card_ms": 102932.60687136301,
+      "A_residence_fraction": 0.19583900881747648,
+      "mean_A_resident_cards": 6.2668482821592475,
+      "role_summary": {
+        "A": {
+          "compute_card_ms": 24887.391927569108,
+          "active_card_ms": 25067.39312863699,
+          "active_U_percent": 99.2819309126235
+        },
+        "B": {
+          "compute_card_ms": 102380.3366450654,
+          "active_card_ms": 102932.60687136301,
+          "active_U_percent": 99.46346425774702
+        }
+      },
+      "IO_wait_card_ms_by_kind": {
+        "internal_L1_to_L7": 157.04135215397218,
+        "cross_request_L0": 575.2300752115125
+      },
+      "IO_loss_pp_by_kind": {
+        "internal_L1_to_L7": 0.12268855637029077,
+        "cross_request_L0": 0.44939849625899414
+      },
+      "B_phase_event_count": 955,
+      "B_phase_card_count": 32,
+      "B_phase_harmonics": {
+        "1": {
+          "event_weighted_R": 0.20698269281050002,
+          "equal_card_R": 0.20484456073084975
+        },
+        "2": {
+          "event_weighted_R": 0.037435469308311764,
+          "equal_card_R": 0.04187552126302423
+        },
+        "4": {
+          "event_weighted_R": 0.21803398605540006,
+          "equal_card_R": 0.22044021996143034
+        },
+        "8": {
+          "event_weighted_R": 0.0900947859921109,
+          "equal_card_R": 0.09564883243204929
+        }
+      },
+      "B_phase_hist16_counts": [
+        27,
+        137,
+        63,
+        62,
+        79,
+        55,
+        112,
+        74,
+        16,
+        42,
+        80,
+        43,
+        16,
+        31,
+        22,
+        96
+      ],
+      "B_IO_mean_outstanding": 2.7972307534405294,
+      "B_IO_max_outstanding": 12,
+      "B_IO_any_outstanding_fraction": 0.7891929792485001,
+      "A_internal_deadline_count": 11373,
+      "A_internal_stalled_deadline_count": 469,
+      "A_internal_stalled_fraction": 0.04123801987162578,
+      "B_outstanding_at_A_deadline_mean": 2.915589554207333,
+      "B_outstanding_at_stalled_A_deadline_mean": 3.8805970149253732,
+      "B_outstanding_at_unstalled_A_deadline_mean": 2.8740829053558326
+    },
+    {
+      "window_ms": [
+        12000.0,
+        16000.0
+      ],
+      "U_percent": 99.48279122141794,
+      "all_npus_active": true,
+      "all_32_npus_have_A_and_B_compute": true,
+      "strict_underload": true,
+      "A_residence_card_ms": 25656.92949576018,
+      "B_residence_card_ms": 102343.07050423982,
+      "A_residence_fraction": 0.20044476168562642,
+      "mean_A_resident_cards": 6.414232373940045,
+      "role_summary": {
+        "A": {
+          "compute_card_ms": 25309.814367727085,
+          "active_card_ms": 25656.92949576018,
+          "active_U_percent": 98.6470901434622
+        },
+        "B": {
+          "compute_card_ms": 102028.15839568787,
+          "active_card_ms": 102343.07050423982,
+          "active_U_percent": 99.69229757618139
+        }
+      },
+      "IO_wait_card_ms_by_kind": {
+        "cross_request_L0": 352.2915284894716,
+        "internal_L1_to_L7": 309.7357080955717
+      },
+      "IO_loss_pp_by_kind": {
+        "cross_request_L0": 0.2752277566323997,
+        "internal_L1_to_L7": 0.24198102194966536
+      },
+      "B_phase_event_count": 969,
+      "B_phase_card_count": 32,
+      "B_phase_harmonics": {
+        "1": {
+          "event_weighted_R": 0.09342885181107087,
+          "equal_card_R": 0.10001720679537245
+        },
+        "2": {
+          "event_weighted_R": 0.11119935699337327,
+          "equal_card_R": 0.11383895065854244
+        },
+        "4": {
+          "event_weighted_R": 0.16549969747774593,
+          "equal_card_R": 0.16274148054576287
+        },
+        "8": {
+          "event_weighted_R": 0.07380140921602765,
+          "equal_card_R": 0.08207353600132929
+        }
+      },
+      "B_phase_hist16_counts": [
+        41,
+        66,
+        53,
+        75,
+        122,
+        74,
+        25,
+        61,
+        46,
+        54,
+        41,
+        40,
+        108,
+        21,
+        62,
+        80
+      ],
+      "B_IO_mean_outstanding": 2.315975355413295,
+      "B_IO_max_outstanding": 12,
+      "B_IO_any_outstanding_fraction": 0.8192193758415797,
+      "A_internal_deadline_count": 11565,
+      "A_internal_stalled_deadline_count": 717,
+      "A_internal_stalled_fraction": 0.06199740596627756,
+      "B_outstanding_at_A_deadline_mean": 2.417552961521833,
+      "B_outstanding_at_stalled_A_deadline_mean": 3.5704323570432357,
+      "B_outstanding_at_unstalled_A_deadline_mean": 2.3413532448377583
+    }
+  ]
+}

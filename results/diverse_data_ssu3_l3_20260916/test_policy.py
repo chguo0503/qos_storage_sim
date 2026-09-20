@@ -11,10 +11,10 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 sys.path[:0] = [str(HERE), str(ROOT)]
 import policy
-import sim
-from policy_logic import category_path_ids, hardware_view
-from shared_path_common import pressure_from_counts
-from strategy_profiles import FINAL_STATIC
+from simulator.core import sim
+from simulator.policies.policy_logic import category_path_ids, hardware_view
+from simulator.policies.common import pressure_from_counts
+from simulator.policies.profiles import FINAL_STATIC
 
 
 class PolicyTests(unittest.TestCase):
@@ -87,7 +87,7 @@ class PolicyTests(unittest.TestCase):
                              policy.once_path_ids(31,self.snapshot,allowed,self.qos))
 
     def test_install_restores_entry_point_without_running_simulation(self):
-        import shared_path_sim_adapter as shared
+        from simulator.adapters import shared_path as shared
         before=shared.shared_path_adapter
         for name in policy.POLICIES:
             stats=policy.make_stats()

@@ -7,7 +7,7 @@ import json
 import math
 
 from summarize_results import read, sha, flatten
-from run_baseline_npu32_stress import load_manifest
+from inputs.runners.run_baseline_npu32_stress import load_manifest
 from metrics import summarize
 
 HERE = Path(__file__).resolve().parent

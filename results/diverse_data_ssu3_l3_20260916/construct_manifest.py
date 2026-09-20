@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Freeze diverse raw-data, fixed-NPU, independently shuffled populations."""
+"""Freeze diverse raw-data, ring-hashed, fixed-NPU, shuffled populations."""
 from __future__ import annotations
 
 import argparse
@@ -14,10 +14,10 @@ import sys
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 sys.path.insert(0, str(ROOT))
-from continuous_batch_sim import ContinuousBatchRequest, continuous_batch_input_fingerprint
-from run_baseline_npu32_stress import profiles_for, save_manifest, load_manifest
-from run_shared_path_experiments import logical_input_fingerprint
-import sim
+from simulator.core.continuous_batch_sim import ContinuousBatchRequest, continuous_batch_input_fingerprint
+from inputs.runners.run_baseline_npu32_stress import profiles_for, save_manifest, load_manifest
+from inputs.runners.run_shared_path_experiments import logical_input_fingerprint
+from simulator.core import sim
 
 LENGTHS = (32, 64, 80, 128, 160, 200)
 MISSES = (256, 1024, 2048, 4096)
@@ -55,23 +55,24 @@ def build_workload(scenario="semi", seed=7, horizon_ms=6500.0, weights=None,
     rates = []
     pure_compute_ms = repeats * base_compute_ms
     for npu in range(NUM_NPU):
-        placements, npu_rates = [], []
-        for p in profiles:
-            layer = tuple(((j + npu) % NUM_SSU, BLOCK_GIB)
-                          for j in range(p["ssd_prefix_tokens"] // 128))
-            assert math.isclose(math.fsum(v for _, v in layer), p["per_layer_kv_gib"], rel_tol=0, abs_tol=1e-12)
-            placements.append((layer,))
-            npu_rates.append([math.fsum(v for d,v in layer if d == disk) /
-                              (p["per_layer_compute_us"] / 1e6) for disk in range(NUM_SSU)])
-        rates.append(npu_rates)
+        npu_rates = []
         identities = list(range(len(canonical)))
         random.Random(seed + 100003 * npu).shuffle(identities)
         for position, original in enumerate(identities):
             index = canonical[original]
             p = profiles[index]
             rid = npu * 1000000 + position
+            original_id = npu * 1000000 + original
+            # Queue shuffling must not move physical blocks between disks.
+            layer = tuple((sim.block_ring_hash_disk_id(original_id, j, NUM_SSU), BLOCK_GIB)
+                          for j in range(p["ssd_prefix_tokens"] // 128))
+            assert math.isclose(math.fsum(v for _, v in layer), p["per_layer_kv_gib"], rel_tol=0, abs_tol=1e-12)
+            disk_blocks = Counter(d for d, _ in layer)
+            request_rates = [disk_blocks[disk] * BLOCK_GIB / (p["per_layer_compute_us"] / 1e6)
+                             for disk in range(NUM_SSU)]
+            npu_rates.append((request_rates, LAYERS * p["per_layer_compute_us"] / 1000))
             load = dict(request_id=rid, npu_id=npu, generation=position,
-                        original_request_id=npu * 1000000 + original,
+                        original_request_id=original_id,
                         profile_index=index, role=p["role"], seq_len_k=p["seq_len_k"],
                         nql=p["nql"], total_tokens=p["total_tokens"],
                         ssd_prefix_tokens=p["ssd_prefix_tokens"], category=p["category"],
@@ -81,24 +82,25 @@ def build_workload(scenario="semi", seed=7, horizon_ms=6500.0, weights=None,
                         original_compute_us=p["per_layer_compute_us"], constructed_profile=False,
                         profile_construction=p["construction"], padding_gib_per_layer=0.0,
                         arrival_time=0.0, arrival_ms=0.0, initial=True)
-            requests.append(ContinuousBatchRequest.from_normalized(rid, npu, 0.0, load, placements[index]))
+            requests.append(ContinuousBatchRequest.from_normalized(rid, npu, 0.0, load, (layer,)))
+        rates.append(npu_rates)
         per_npu.append(dict(npu_id=npu, shuffle_seed=seed + 100003*npu,
                             requests=len(canonical), pure_compute_ms=pure_compute_ms,
                             unique_profiles=len(profiles),
                             profile_counts=dict(Counter(profiles[i]["role"] for i in canonical)),
                             first_24_profiles=[profiles[canonical[i]]["role"] for i in identities[:24]]))
     requests = tuple(requests)
-    profile_counts = Counter(canonical)
-    ideal_probs = [profile_counts[i] * LAYERS * p["per_layer_compute_us"] / 1000 / pure_compute_ms
-                   for i,p in enumerate(profiles)]
-    mean_by_disk = [math.fsum(rates[n][i][s] * ideal_probs[i] for n in range(NUM_NPU)
-                              for i in range(len(profiles))) for s in range(NUM_SSU)]
-    lower_by_disk = [math.fsum(min(rates[n][i][s] for i in range(len(profiles))) for n in range(NUM_NPU))
+    # Per-request hash placement varies even for identical profiles. Bounds and
+    # compute-weighted means therefore use the complete generated population.
+    mean_by_disk = [math.fsum(rate[s] * cost / pure_compute_ms
+                              for npu_rates in rates for rate, cost in npu_rates)
+                    for s in range(NUM_SSU)]
+    lower_by_disk = [math.fsum(min(rate[s] for rate, _ in npu_rates) for npu_rates in rates)
                      for s in range(NUM_SSU)]
-    upper_by_disk = [math.fsum(max(rates[n][i][s] for i in range(len(profiles))) for n in range(NUM_NPU))
+    upper_by_disk = [math.fsum(max(rate[s] for rate, _ in npu_rates) for npu_rates in rates)
                      for s in range(NUM_SSU)]
     fp = continuous_batch_input_fingerprint(requests)
-    label = f"{scenario}_{'guaranteed_' if guaranteed_full else ''}w{'-'.join(map(str, counts))}_h{horizon_ms:g}_seed{seed}"
+    label = f"{scenario}_ring_hash_{'guaranteed_' if guaranteed_full else ''}w{'-'.join(map(str, counts))}_h{horizon_ms:g}_seed{seed}"
     metadata = dict(experiment="diverse_data_ssu3_l3_20260916", label=label,
                     case_id=label + "_" + fp[:12], scenario_candidate=scenario,
                     num_npu=NUM_NPU, num_ssu=NUM_SSU, n_layers=LAYERS, seed=seed,
@@ -114,8 +116,9 @@ def build_workload(scenario="semi", seed=7, horizon_ms=6500.0, weights=None,
                     per_length_miss_counts={str(m): int(c) for m,c in zip(misses,counts)},
                     per_npu_assignment=per_npu, measurement_window_ms=[2000,4000],
                     additional_measurement_windows_ms=[[2000,6000]],
-                    layout="stripe_npu_mod_ssu",
-                    placement_rule="(block_index+npu_id)%3; exact176KiB; data row retained without padding",
+                    layout=sim.PLACEMENT_BLOCK_RING_HASH,
+                    placement_rule="sim.block_ring_hash_disk_id(original_request_id, block_index, num_ssu); exact176KiB; same placement in every layer; data row retained without padding",
+                    placement_identity_key="original_request_id",
                     population_rule="Stratified finite population: each NPU has identical weighted counts of all selected raw profiles; repeat count chosen to cover a lower bound on pure compute; all requests arrive at0 and stay bound to their NPU",
                     random_rule="One independent full-population shuffle per NPU with Random(seed+100003*npu); repeated counts do not repeat the randomized deck",
                     identity_rule="request_id=npu*1000000+position; original_request_id retains pre-shuffle identity",

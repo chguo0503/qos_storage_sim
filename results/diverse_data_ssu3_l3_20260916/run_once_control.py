@@ -11,8 +11,8 @@ from pathlib import Path
 import hashlib
 
 import run_trial as trial
-import shared_path_once
-import shared_path_sim_adapter
+from simulator.policies import once as shared_path_once
+from simulator.adapters import shared_path as shared_path_sim_adapter
 
 
 def sha(path):

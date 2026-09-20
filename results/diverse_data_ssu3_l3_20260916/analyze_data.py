@@ -18,8 +18,8 @@ import numpy as np
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 sys.path.insert(0, str(ROOT))
-from authenticated_workload_inputs import load_authenticated_bw_table
-import sim
+from inputs.authenticated import load_authenticated_bw_table
+from simulator.core import sim
 
 LENGTHS = (32, 64, 80, 128, 160, 200)
 MISSES = (256, 1024, 2048, 4096)
