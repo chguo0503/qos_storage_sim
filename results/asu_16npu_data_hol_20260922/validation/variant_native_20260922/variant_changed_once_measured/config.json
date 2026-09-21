@@ -1,0 +1,173 @@
+{
+  "disk_gb_s": 40.0,
+  "horizon_ms": 100,
+  "id": "native_smoke",
+  "input_counts": [
+    1,
+    1
+  ],
+  "input_counts_semantics": "per-card complete A/B-family counts; per-request profiles may vary",
+  "mode": "variant_explicit",
+  "name": "variant_adjusted_A_once_validation",
+  "npu_gb_s": 50.0,
+  "num_npu": 2,
+  "per_npu_sequences": [
+    [
+      "A_adjusted",
+      "B"
+    ],
+    [
+      "B",
+      "A"
+    ]
+  ],
+  "profiles_catalog": {
+    "A": {
+      "B_gib_s": 1.3149324665039066,
+      "compute_us": 28592.841995880783,
+      "constructed_profile": false,
+      "family": "A",
+      "nql": 4096,
+      "profile_construction": {
+        "anchors": [
+          {
+            "compute_us": 28592.841995880783,
+            "nql": 4096,
+            "original_data_row": [
+              1.3149324665039066,
+              28592.841995880783,
+              2230.2416756787015,
+              0.03759765625
+            ],
+            "seq_len_k": 32.0,
+            "weight": 1.0
+          }
+        ],
+        "compute_scale": 1.0,
+        "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+        "extrapolated": false,
+        "interpretation": "direct measured data row",
+        "kv_formula": "exact hit prefix tokens * 1408 / 2**30; partial final block",
+        "method": "direct_data_row",
+        "source": "data",
+        "total_length_interpolated": false
+      },
+      "read_gib": 0.03759765625,
+      "ssd_prefix_tokens": 28672,
+      "total_length_k": 32.0,
+      "total_tokens": 32768
+    },
+    "A_adjusted": {
+      "B_gib_s": 1.998268369456344,
+      "compute_us": 24921.238730070476,
+      "constructed_profile": true,
+      "family": "A",
+      "nql": 3000,
+      "profile_construction": {
+        "anchors": [
+          {
+            "compute_us": 14369.102622125,
+            "nql": 2048,
+            "original_data_row": [
+              2.8034599086914067,
+              14369.102622125,
+              1120.79000452575,
+              0.04028320312500001
+            ],
+            "seq_len_k": 32,
+            "weight": 0.26702284812927246
+          },
+          {
+            "compute_us": 28592.841995880783,
+            "nql": 4096,
+            "original_data_row": [
+              1.3149324665039066,
+              28592.841995880783,
+              2230.2416756787015,
+              0.03759765625
+            ],
+            "seq_len_k": 32,
+            "weight": 0.23193955421447754
+          },
+          {
+            "compute_us": 19737.809881246598,
+            "nql": 2048,
+            "original_data_row": [
+              3.12940384453125,
+              19737.809881246598,
+              1539.5491707372346,
+              0.061767578125
+            ],
+            "seq_len_k": 48,
+            "weight": 0.26813340187072754
+          },
+          {
+            "compute_us": 39330.261341012614,
+            "nql": 4096,
+            "original_data_row": [
+              1.5022028645507812,
+              39330.261341012614,
+              3067.760384598984,
+              0.05908203125
+            ],
+            "seq_len_k": 48,
+            "weight": 0.23290419578552246
+          }
+        ],
+        "compute_scale": 1.0,
+        "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+        "extrapolated": false,
+        "interpretation": "Compute time is a grid-internal interpolation estimate; KV volume uses exact hit tokens.",
+        "kv_formula": "exact hit prefix tokens * 1408 / 2**30; partial final block",
+        "method": "bilinear_interpolation_length_nql",
+        "source": "data",
+        "total_length_interpolated": true
+      },
+      "read_gib": 0.049799323081970215,
+      "ssd_prefix_tokens": 37977,
+      "total_length_k": 40.0166015625,
+      "total_tokens": 40977
+    },
+    "B": {
+      "B_gib_s": 1.5022028645507812,
+      "compute_us": 39330.261341012614,
+      "constructed_profile": false,
+      "family": "B",
+      "nql": 4096,
+      "profile_construction": {
+        "anchors": [
+          {
+            "compute_us": 39330.261341012614,
+            "nql": 4096,
+            "original_data_row": [
+              1.5022028645507812,
+              39330.261341012614,
+              3067.760384598984,
+              0.05908203125
+            ],
+            "seq_len_k": 48.0,
+            "weight": 1.0
+          }
+        ],
+        "compute_scale": 1.0,
+        "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+        "extrapolated": false,
+        "interpretation": "direct measured data row",
+        "kv_formula": "exact hit prefix tokens * 1408 / 2**30; partial final block",
+        "method": "direct_data_row",
+        "source": "data",
+        "total_length_interpolated": false
+      },
+      "read_gib": 0.05908203125,
+      "ssd_prefix_tokens": 45056,
+      "total_length_k": 48.0,
+      "total_tokens": 49152
+    }
+  },
+  "seed": 7,
+  "ssu": 1,
+  "window_ms": [
+    0,
+    50
+  ]
+}

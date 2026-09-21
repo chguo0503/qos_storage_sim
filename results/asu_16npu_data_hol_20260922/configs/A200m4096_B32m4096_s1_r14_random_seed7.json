@@ -1,0 +1,74 @@
+{
+  "name": "A200m4096_B32m4096_s1_r14_random_seed7",
+  "id": "A200m4096_B32m4096_r14",
+  "num_npu": 16,
+  "ssu": 1,
+  "seed": 7,
+  "horizon_ms": 12000,
+  "window_ms": [
+    2000,
+    4000
+  ],
+  "mode": "random",
+  "input_counts": [
+    1,
+    4
+  ],
+  "profile_A": {
+    "total_tokens": 204800,
+    "total_length_k": 200,
+    "nql": 4096,
+    "ssd_prefix_tokens": 200704,
+    "compute_us": 141335.78827944142,
+    "read_gib": 0.26318359375,
+    "B_gib_s": 1.8621157242187503,
+    "constructed_profile": false,
+    "profile_construction": {
+      "method": "exact_data_row",
+      "source": "data",
+      "source_key": [
+        200,
+        4096
+      ],
+      "original_row": [
+        1.8621157242187503,
+        141335.78827944142,
+        11024.191485796431,
+        0.26318359375
+      ],
+      "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+      "extrapolated": false,
+      "compute_scale": 1,
+      "kv_formula": "exact hit prefix tokens * 1408 / 2**30; partial final block"
+    }
+  },
+  "profile_B": {
+    "total_tokens": 32768,
+    "total_length_k": 32,
+    "nql": 4096,
+    "ssd_prefix_tokens": 28672,
+    "compute_us": 28592.841995880783,
+    "read_gib": 0.03759765625,
+    "B_gib_s": 1.3149324665039066,
+    "constructed_profile": false,
+    "profile_construction": {
+      "method": "exact_data_row",
+      "source": "data",
+      "source_key": [
+        32,
+        4096
+      ],
+      "original_row": [
+        1.3149324665039066,
+        28592.841995880783,
+        2230.2416756787015,
+        0.03759765625
+      ],
+      "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+      "extrapolated": false,
+      "compute_scale": 1,
+      "kv_formula": "exact hit prefix tokens * 1408 / 2**30; partial final block"
+    }
+  },
+  "selection_rule": "Raw data only; multiple-A FIFO burst hypothesis. No preselected phase or stalls. Full independent per-card shuffle."
+}

@@ -6,6 +6,7 @@
 
 | 内容 | 入口 |
 |---|---|
+| 16卡 ASU 长短读取阻塞：data 插值、名义欠载、完整输入与随机控制 | [输入、原生结果与图](results/asu_16npu_data_hol_20260922/README.md) · [独立审计](results/asu_16npu_data_hol_20260922/AUDIT.md) |
 | 五组公式 A/B 扩至32卡：6盘欠载对照、4盘容量控制与3盘新候选 | [结果与CDF](results/formula_ab_32npu_20260921/README.md) · [数学说明](results/formula_ab_32npu_20260921/math_notes.md) |
 | 保留实验的图片与资料模板；原输入增加 OD 对照 | [图片索引](template/qos_experiments_20260919/index.html) · [模板说明](template/qos_experiments_20260919/README.md) · [ASU/OD/Once 对照](template/qos_experiments_20260919/od_baseline_comparison/README.md) |
 | 周六：128K/32K画像，A:B=1:2，Random/Ordered，盘数与策略对照 | [模板中保留的报告](template/qos_experiments_20260919/repository_source/results/baseline_ab128_32_ratio12_20260912/report.md) |

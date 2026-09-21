@@ -1,0 +1,582 @@
+{
+  "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+  "num_original_data_rows": 84,
+  "units": "decimal GB/s, MB, ms",
+  "nominal_underload_definition": "Sum of current admitted requests V/C; extra next-request L0 prefetch excluded by historical convention.",
+  "construction": "Only miss-axis interpolation between existing data rows at the same total length; no extrapolation and no C scaling.",
+  "scope": "This is an additional modeled-profile experiment, distinct from the all-original-row experiment.",
+  "shortlist": [
+    {
+      "name": "I1_both_near_cap",
+      "num_npu": 16,
+      "ssu": 1,
+      "disk_GB_s": 40,
+      "profile_A": {
+        "total_tokens": 204800,
+        "total_length_k": 200,
+        "nql": 3302,
+        "ssd_prefix_tokens": 201498,
+        "compute_us": 113966.3405997554,
+        "read_gib": 0.2642247676849365,
+        "B_gib_s": 2.318445659432743,
+        "constructed_profile": true,
+        "profile_construction": {
+          "method": "linear_interpolation_miss_same_length",
+          "source": "data",
+          "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+          "extrapolated": false,
+          "total_length_interpolated": false,
+          "compute_scale": 1.0,
+          "kv_formula": "exact hit prefix tokens * 1408 bytes; no block padding",
+          "interpretation": "C is an interpolation estimate; V follows the unchanged simulator KV byte model.",
+          "anchors": [
+            {
+              "seq_len_k": 200,
+              "nql": 2048,
+              "weight": 0.3876953125,
+              "compute_us": 70740.53784115809,
+              "original_data_row": [
+                3.7583703593261726,
+                70740.53784115809,
+                5517.761951610331,
+                0.26586914062500006
+              ]
+            },
+            {
+              "seq_len_k": 200,
+              "nql": 4096,
+              "weight": 0.6123046875,
+              "compute_us": 141335.78827944142,
+              "original_data_row": [
+                1.8621157242187503,
+                141335.78827944142,
+                11024.191485796431,
+                0.26318359375
+              ]
+            }
+          ]
+        },
+        "display": {
+          "C_ms": 113.9663405997554,
+          "V_bytes": 283709184,
+          "V_MB": 283.709184,
+          "B_GB_s": 2.4894120712041965
+        }
+      },
+      "profile_B": {
+        "total_tokens": 32768,
+        "total_length_k": 32,
+        "nql": 2448,
+        "ssd_prefix_tokens": 30320,
+        "compute_us": 17147.176718561677,
+        "read_gib": 0.03975868225097656,
+        "B_gib_s": 2.3186722166301648,
+        "constructed_profile": true,
+        "profile_construction": {
+          "method": "linear_interpolation_miss_same_length",
+          "source": "data",
+          "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+          "extrapolated": false,
+          "total_length_interpolated": false,
+          "compute_scale": 1.0,
+          "kv_formula": "exact hit prefix tokens * 1408 bytes; no block padding",
+          "interpretation": "C is an interpolation estimate; V follows the unchanged simulator KV byte model.",
+          "anchors": [
+            {
+              "seq_len_k": 32,
+              "nql": 2048,
+              "weight": 0.8046875,
+              "compute_us": 14369.102622125,
+              "original_data_row": [
+                2.8034599086914067,
+                14369.102622125,
+                1120.79000452575,
+                0.04028320312500001
+              ]
+            },
+            {
+              "seq_len_k": 32,
+              "nql": 4096,
+              "weight": 0.1953125,
+              "compute_us": 28592.841995880783,
+              "original_data_row": [
+                1.3149324665039066,
+                28592.841995880783,
+                2230.2416756787015,
+                0.03759765625
+              ]
+            }
+          ]
+        },
+        "display": {
+          "C_ms": 17.147176718561678,
+          "V_bytes": 42690560,
+          "V_MB": 42.69056,
+          "B_GB_s": 2.4896553351425963
+        }
+      },
+      "x": 6.645712401055409,
+      "y": 6.646361816309257,
+      "all_combinations_demand_upper_GB_s": 39.83448536228154,
+      "all_combinations_headroom_GB_s": 0.1655146377184593,
+      "all_combinations_underload": true,
+      "one_A_disk_service_ms": 7.0927296,
+      "three_A_disk_service_ms": 21.2781888,
+      "three_A_excess_over_B_compute_ms": 4.131012081438321,
+      "three_full_A_reads_ahead_sufficient_to_exceed_full_B_compute": true,
+      "B_8_layer_compute_ms": 137.17741374849342,
+      "B_slo_1p5_extra_wait_budget_ms": 68.58870687424671,
+      "suggested_mixes": [
+        {
+          "request_count_ratio": [
+            1,
+            4
+          ],
+          "target": "about 10 A / 6 B cards without stalls",
+          "no_wait_mean_A_cards": 9.98855673851345,
+          "no_wait_mean_B_cards": 6.01144326148655,
+          "no_wait_mean_demand_GB_s": 39.8320555066304,
+          "caution": "Time mix ignores waiting; actual concurrency is policy dependent."
+        },
+        {
+          "request_count_ratio": [
+            1,
+            7
+          ],
+          "target": "about 8 A / 8 B cards without stalls",
+          "no_wait_mean_A_cards": 7.7926842694332805,
+          "no_wait_mean_B_cards": 8.20731573056672,
+          "no_wait_mean_demand_GB_s": 39.83258968321545,
+          "caution": "Time mix ignores waiting; actual concurrency is policy dependent."
+        }
+      ],
+      "warning": "Three full A reads must really precede B. This is a sufficient queue configuration, not proof that random inputs sustain it."
+    },
+    {
+      "name": "I2_small_margin",
+      "num_npu": 16,
+      "ssu": 1,
+      "disk_GB_s": 40,
+      "profile_A": {
+        "total_tokens": 204800,
+        "total_length_k": 200,
+        "nql": 3328,
+        "ssd_prefix_tokens": 201472,
+        "compute_us": 114862.56936508516,
+        "read_gib": 0.264190673828125,
+        "B_gib_s": 2.3000588902761496,
+        "constructed_profile": true,
+        "profile_construction": {
+          "method": "linear_interpolation_miss_same_length",
+          "source": "data",
+          "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+          "extrapolated": false,
+          "total_length_interpolated": false,
+          "compute_scale": 1.0,
+          "kv_formula": "exact hit prefix tokens * 1408 bytes; no block padding",
+          "interpretation": "C is an interpolation estimate; V follows the unchanged simulator KV byte model.",
+          "anchors": [
+            {
+              "seq_len_k": 200,
+              "nql": 2048,
+              "weight": 0.375,
+              "compute_us": 70740.53784115809,
+              "original_data_row": [
+                3.7583703593261726,
+                70740.53784115809,
+                5517.761951610331,
+                0.26586914062500006
+              ]
+            },
+            {
+              "seq_len_k": 200,
+              "nql": 4096,
+              "weight": 0.625,
+              "compute_us": 141335.78827944142,
+              "original_data_row": [
+                1.8621157242187503,
+                141335.78827944142,
+                11024.191485796431,
+                0.26318359375
+              ]
+            }
+          ]
+        },
+        "display": {
+          "C_ms": 114.86256936508516,
+          "V_bytes": 283672576,
+          "V_MB": 283.672576,
+          "B_GB_s": 2.4696694281525287
+        }
+      },
+      "profile_B": {
+        "total_tokens": 32768,
+        "total_length_k": 32,
+        "nql": 2500,
+        "ssd_prefix_tokens": 30268,
+        "compute_us": 17508.326351098443,
+        "read_gib": 0.039690494537353516,
+        "B_gib_s": 2.266949663915957,
+        "constructed_profile": true,
+        "profile_construction": {
+          "method": "linear_interpolation_miss_same_length",
+          "source": "data",
+          "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+          "extrapolated": false,
+          "total_length_interpolated": false,
+          "compute_scale": 1.0,
+          "kv_formula": "exact hit prefix tokens * 1408 bytes; no block padding",
+          "interpretation": "C is an interpolation estimate; V follows the unchanged simulator KV byte model.",
+          "anchors": [
+            {
+              "seq_len_k": 32,
+              "nql": 2048,
+              "weight": 0.779296875,
+              "compute_us": 14369.102622125,
+              "original_data_row": [
+                2.8034599086914067,
+                14369.102622125,
+                1120.79000452575,
+                0.04028320312500001
+              ]
+            },
+            {
+              "seq_len_k": 32,
+              "nql": 4096,
+              "weight": 0.220703125,
+              "compute_us": 28592.841995880783,
+              "original_data_row": [
+                1.3149324665039066,
+                28592.841995880783,
+                2230.2416756787015,
+                0.03759765625
+              ]
+            }
+          ]
+        },
+        "display": {
+          "C_ms": 17.508326351098443,
+          "V_bytes": 42617344,
+          "V_MB": 42.617344,
+          "B_GB_s": 2.4341186670493067
+        }
+      },
+      "x": 6.656270648870093,
+      "y": 6.560453984105618,
+      "all_combinations_demand_upper_GB_s": 39.51471085044046,
+      "all_combinations_headroom_GB_s": 0.4852891495595415,
+      "all_combinations_underload": true,
+      "one_A_disk_service_ms": 7.0918144,
+      "three_A_disk_service_ms": 21.2754432,
+      "three_A_excess_over_B_compute_ms": 3.7671168489015585,
+      "three_full_A_reads_ahead_sufficient_to_exceed_full_B_compute": true,
+      "B_8_layer_compute_ms": 140.06661080878754,
+      "B_slo_1p5_extra_wait_budget_ms": 70.03330540439377,
+      "suggested_mixes": [
+        {
+          "request_count_ratio": [
+            1,
+            4
+          ],
+          "target": "about 10 A / 6 B cards without stalls",
+          "no_wait_mean_A_cards": 9.939654479217896,
+          "no_wait_mean_B_cards": 6.0603455207821035,
+          "no_wait_mean_demand_GB_s": 39.29926095462815,
+          "caution": "Time mix ignores waiting; actual concurrency is policy dependent."
+        },
+        {
+          "request_count_ratio": [
+            1,
+            7
+          ],
+          "target": "about 8 A / 8 B cards without stalls",
+          "no_wait_mean_A_cards": 7.740689498207314,
+          "no_wait_mean_B_cards": 8.259310501792687,
+          "no_wait_mean_demand_GB_s": 39.221086075913895,
+          "caution": "Time mix ignores waiting; actual concurrency is policy dependent."
+        }
+      ],
+      "warning": "Three full A reads must really precede B. This is a sufficient queue configuration, not proof that random inputs sustain it."
+    },
+    {
+      "name": "I3_more_margin",
+      "num_npu": 16,
+      "ssu": 1,
+      "disk_GB_s": 40,
+      "profile_A": {
+        "total_tokens": 204800,
+        "total_length_k": 200,
+        "nql": 3400,
+        "ssd_prefix_tokens": 201400,
+        "compute_us": 117344.43363830607,
+        "read_gib": 0.2640962600708008,
+        "B_gib_s": 2.2506074798982953,
+        "constructed_profile": true,
+        "profile_construction": {
+          "method": "linear_interpolation_miss_same_length",
+          "source": "data",
+          "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+          "extrapolated": false,
+          "total_length_interpolated": false,
+          "compute_scale": 1.0,
+          "kv_formula": "exact hit prefix tokens * 1408 bytes; no block padding",
+          "interpretation": "C is an interpolation estimate; V follows the unchanged simulator KV byte model.",
+          "anchors": [
+            {
+              "seq_len_k": 200,
+              "nql": 2048,
+              "weight": 0.33984375,
+              "compute_us": 70740.53784115809,
+              "original_data_row": [
+                3.7583703593261726,
+                70740.53784115809,
+                5517.761951610331,
+                0.26586914062500006
+              ]
+            },
+            {
+              "seq_len_k": 200,
+              "nql": 4096,
+              "weight": 0.66015625,
+              "compute_us": 141335.78827944142,
+              "original_data_row": [
+                1.8621157242187503,
+                141335.78827944142,
+                11024.191485796431,
+                0.26318359375
+              ]
+            }
+          ]
+        },
+        "display": {
+          "C_ms": 117.34443363830607,
+          "V_bytes": 283571200,
+          "V_MB": 283.5712,
+          "B_GB_s": 2.416571380574039
+        }
+      },
+      "profile_B": {
+        "total_tokens": 32768,
+        "total_length_k": 32,
+        "nql": 2800,
+        "ssd_prefix_tokens": 29968,
+        "compute_us": 19591.88192342595,
+        "read_gib": 0.03929710388183594,
+        "B_gib_s": 2.0057850509423765,
+        "constructed_profile": true,
+        "profile_construction": {
+          "method": "linear_interpolation_miss_same_length",
+          "source": "data",
+          "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+          "extrapolated": false,
+          "total_length_interpolated": false,
+          "compute_scale": 1.0,
+          "kv_formula": "exact hit prefix tokens * 1408 bytes; no block padding",
+          "interpretation": "C is an interpolation estimate; V follows the unchanged simulator KV byte model.",
+          "anchors": [
+            {
+              "seq_len_k": 32,
+              "nql": 2048,
+              "weight": 0.6328125,
+              "compute_us": 14369.102622125,
+              "original_data_row": [
+                2.8034599086914067,
+                14369.102622125,
+                1120.79000452575,
+                0.04028320312500001
+              ]
+            },
+            {
+              "seq_len_k": 32,
+              "nql": 4096,
+              "weight": 0.3671875,
+              "compute_us": 28592.841995880783,
+              "original_data_row": [
+                1.3149324665039066,
+                28592.841995880783,
+                2230.2416756787015,
+                0.03759765625
+              ]
+            }
+          ]
+        },
+        "display": {
+          "C_ms": 19.59188192342595,
+          "V_bytes": 42194944,
+          "V_MB": 42.194944,
+          "B_GB_s": 2.1536952991508
+        }
+      },
+      "x": 6.720501868659904,
+      "y": 5.9894416522589236,
+      "all_combinations_demand_upper_GB_s": 38.66514208918463,
+      "all_combinations_headroom_GB_s": 1.3348579108153729,
+      "all_combinations_underload": true,
+      "one_A_disk_service_ms": 7.08928,
+      "three_A_disk_service_ms": 21.26784,
+      "three_A_excess_over_B_compute_ms": 1.675958076574048,
+      "three_full_A_reads_ahead_sufficient_to_exceed_full_B_compute": true,
+      "B_8_layer_compute_ms": 156.7350553874076,
+      "B_slo_1p5_extra_wait_budget_ms": 78.3675276937038,
+      "suggested_mixes": [
+        {
+          "request_count_ratio": [
+            1,
+            4
+          ],
+          "target": "about 10 A / 6 B cards without stalls",
+          "no_wait_mean_A_cards": 9.593235515267502,
+          "no_wait_mean_B_cards": 6.4067644847324985,
+          "no_wait_mean_demand_GB_s": 36.98095694683657,
+          "caution": "Time mix ignores waiting; actual concurrency is policy dependent."
+        },
+        {
+          "request_count_ratio": [
+            1,
+            6
+          ],
+          "target": "about 8 A / 8 B cards without stalls",
+          "no_wait_mean_A_cards": 7.992954902790432,
+          "no_wait_mean_B_cards": 8.007045097209568,
+          "no_wait_mean_demand_GB_s": 36.56028145025102,
+          "caution": "Time mix ignores waiting; actual concurrency is policy dependent."
+        }
+      ],
+      "warning": "Three full A reads must really precede B. This is a sufficient queue configuration, not proof that random inputs sustain it."
+    },
+    {
+      "name": "I4_raw_A_interpolated_B",
+      "num_npu": 16,
+      "ssu": 1,
+      "disk_GB_s": 40,
+      "profile_A": {
+        "total_tokens": 204800,
+        "total_length_k": 200,
+        "nql": 4096,
+        "ssd_prefix_tokens": 200704,
+        "compute_us": 141335.78827944142,
+        "read_gib": 0.26318359375,
+        "B_gib_s": 1.8621157242187503,
+        "constructed_profile": false,
+        "profile_construction": {
+          "method": "original_data_row",
+          "source": "data",
+          "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+          "extrapolated": false,
+          "total_length_interpolated": false,
+          "compute_scale": 1.0,
+          "kv_formula": "exact hit prefix tokens * 1408 bytes; no block padding",
+          "interpretation": "C is an interpolation estimate; V follows the unchanged simulator KV byte model.",
+          "anchors": [
+            {
+              "seq_len_k": 200,
+              "nql": 4096,
+              "weight": 1.0,
+              "compute_us": 141335.78827944142,
+              "original_data_row": [
+                1.8621157242187503,
+                141335.78827944142,
+                11024.191485796431,
+                0.26318359375
+              ]
+            }
+          ]
+        },
+        "display": {
+          "C_ms": 141.33578827944143,
+          "V_bytes": 282591232,
+          "V_MB": 282.591232,
+          "B_GB_s": 1.999431534221722
+        }
+      },
+      "profile_B": {
+        "total_tokens": 32768,
+        "total_length_k": 32,
+        "nql": 2500,
+        "ssd_prefix_tokens": 30268,
+        "compute_us": 17508.326351098443,
+        "read_gib": 0.039690494537353516,
+        "B_gib_s": 2.266949663915957,
+        "constructed_profile": true,
+        "profile_construction": {
+          "method": "linear_interpolation_miss_same_length",
+          "source": "data",
+          "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+          "extrapolated": false,
+          "total_length_interpolated": false,
+          "compute_scale": 1.0,
+          "kv_formula": "exact hit prefix tokens * 1408 bytes; no block padding",
+          "interpretation": "C is an interpolation estimate; V follows the unchanged simulator KV byte model.",
+          "anchors": [
+            {
+              "seq_len_k": 32,
+              "nql": 2048,
+              "weight": 0.779296875,
+              "compute_us": 14369.102622125,
+              "original_data_row": [
+                2.8034599086914067,
+                14369.102622125,
+                1120.79000452575,
+                0.04028320312500001
+              ]
+            },
+            {
+              "seq_len_k": 32,
+              "nql": 4096,
+              "weight": 0.220703125,
+              "compute_us": 28592.841995880783,
+              "original_data_row": [
+                1.3149324665039066,
+                28592.841995880783,
+                2230.2416756787015,
+                0.03759765625
+              ]
+            }
+          ]
+        },
+        "display": {
+          "C_ms": 17.508326351098443,
+          "V_bytes": 42617344,
+          "V_MB": 42.617344,
+          "B_GB_s": 2.4341186670493067
+        }
+      },
+      "x": 6.630897317298797,
+      "y": 8.072489936799371,
+      "all_combinations_demand_upper_GB_s": 38.94589867278891,
+      "all_combinations_headroom_GB_s": 1.054101327211093,
+      "all_combinations_underload": true,
+      "one_A_disk_service_ms": 7.064780799999999,
+      "three_A_disk_service_ms": 21.1943424,
+      "three_A_excess_over_B_compute_ms": 3.686016048901557,
+      "three_full_A_reads_ahead_sufficient_to_exceed_full_B_compute": true,
+      "B_8_layer_compute_ms": 140.06661080878754,
+      "B_slo_1p5_extra_wait_budget_ms": 70.03330540439377,
+      "suggested_mixes": [
+        {
+          "request_count_ratio": [
+            1,
+            5
+          ],
+          "target": "about 10 A / 6 B cards without stalls",
+          "no_wait_mean_A_cards": 9.880278325952418,
+          "no_wait_mean_B_cards": 6.119721674047582,
+          "no_wait_mean_demand_GB_s": 34.65106881574212,
+          "caution": "Time mix ignores waiting; actual concurrency is policy dependent."
+        },
+        {
+          "request_count_ratio": [
+            1,
+            8
+          ],
+          "target": "about 8 A / 8 B cards without stalls",
+          "no_wait_mean_A_cards": 8.03608149681072,
+          "no_wait_mean_B_cards": 7.96391850318928,
+          "no_wait_mean_demand_GB_s": 35.45271744777145,
+          "caution": "Time mix ignores waiting; actual concurrency is policy dependent."
+        }
+      ],
+      "warning": "Three full A reads must really precede B. This is a sufficient queue configuration, not proof that random inputs sustain it."
+    }
+  ]
+}

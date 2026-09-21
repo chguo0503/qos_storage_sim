@@ -1,0 +1,123 @@
+{
+  "name": "I1_s1_fixed8A8B_diagnostic_seed7",
+  "id": "I1_fixed_diagnostic",
+  "num_npu": 16,
+  "ssu": 1,
+  "seed": 7,
+  "horizon_ms": 12000,
+  "window_ms": [
+    2000,
+    4000
+  ],
+  "mode": "fixed",
+  "input_counts": [
+    1,
+    4
+  ],
+  "profile_A": {
+    "total_tokens": 204800,
+    "total_length_k": 200,
+    "nql": 3302,
+    "ssd_prefix_tokens": 201498,
+    "compute_us": 113966.3405997554,
+    "read_gib": 0.2642247676849365,
+    "B_gib_s": 2.318445659432743,
+    "constructed_profile": true,
+    "profile_construction": {
+      "method": "linear_interpolation_miss_same_length",
+      "source": "data",
+      "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+      "extrapolated": false,
+      "total_length_interpolated": false,
+      "compute_scale": 1.0,
+      "kv_formula": "exact hit prefix tokens * 1408 bytes; no block padding",
+      "interpretation": "C is an interpolation estimate; V follows the unchanged simulator KV byte model.",
+      "anchors": [
+        {
+          "seq_len_k": 200,
+          "nql": 2048,
+          "weight": 0.3876953125,
+          "compute_us": 70740.53784115809,
+          "original_data_row": [
+            3.7583703593261726,
+            70740.53784115809,
+            5517.761951610331,
+            0.26586914062500006
+          ]
+        },
+        {
+          "seq_len_k": 200,
+          "nql": 4096,
+          "weight": 0.6123046875,
+          "compute_us": 141335.78827944142,
+          "original_data_row": [
+            1.8621157242187503,
+            141335.78827944142,
+            11024.191485796431,
+            0.26318359375
+          ]
+        }
+      ]
+    },
+    "display": {
+      "C_ms": 113.9663405997554,
+      "V_bytes": 283709184,
+      "V_MB": 283.709184,
+      "B_GB_s": 2.4894120712041965
+    }
+  },
+  "profile_B": {
+    "total_tokens": 32768,
+    "total_length_k": 32,
+    "nql": 2448,
+    "ssd_prefix_tokens": 30320,
+    "compute_us": 17147.176718561677,
+    "read_gib": 0.03975868225097656,
+    "B_gib_s": 2.3186722166301648,
+    "constructed_profile": true,
+    "profile_construction": {
+      "method": "linear_interpolation_miss_same_length",
+      "source": "data",
+      "data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+      "extrapolated": false,
+      "total_length_interpolated": false,
+      "compute_scale": 1.0,
+      "kv_formula": "exact hit prefix tokens * 1408 bytes; no block padding",
+      "interpretation": "C is an interpolation estimate; V follows the unchanged simulator KV byte model.",
+      "anchors": [
+        {
+          "seq_len_k": 32,
+          "nql": 2048,
+          "weight": 0.8046875,
+          "compute_us": 14369.102622125,
+          "original_data_row": [
+            2.8034599086914067,
+            14369.102622125,
+            1120.79000452575,
+            0.04028320312500001
+          ]
+        },
+        {
+          "seq_len_k": 32,
+          "nql": 4096,
+          "weight": 0.1953125,
+          "compute_us": 28592.841995880783,
+          "original_data_row": [
+            1.3149324665039066,
+            28592.841995880783,
+            2230.2416756787015,
+            0.03759765625
+          ]
+        }
+      ]
+    },
+    "display": {
+      "C_ms": 17.147176718561678,
+      "V_bytes": 42690560,
+      "V_MB": 42.69056,
+      "B_GB_s": 2.4896553351425963
+    }
+  },
+  "selection_rule": "Diagnostic only: fixed roles fails per-card mixing. Tests whether prolonged role persistence sustains FIFO HOL before constructing mixed role-rotation input.",
+  "n_A": 8
+}
