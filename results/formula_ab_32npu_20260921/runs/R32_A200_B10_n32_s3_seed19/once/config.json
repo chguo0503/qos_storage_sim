@@ -1,0 +1,135 @@
+{
+  "batch_size": 1,
+  "disk_gb_s": 40.0,
+  "horizon_ms": 4500,
+  "id": "R32_A200_B10",
+  "input_counts": [
+    1,
+    12
+  ],
+  "mode": "random",
+  "n_layers": 8,
+  "name": "R32_A200_B10_n32_s3_seed19",
+  "npu_gb_s": 50.0,
+  "num_npu": 32,
+  "profile_A": {
+    "B_gib_s": 1.8621157242187503,
+    "compute_us": 141335.78827944142,
+    "constructed_profile": false,
+    "nql": 4096,
+    "profile_construction": {
+      "anchors": [
+        {
+          "compute_us": 141335.78827944142,
+          "nql": 4096,
+          "seq_len_k": 200,
+          "weight": 1.0
+        }
+      ],
+      "archived_method_path": "template/qos_experiments_20260919/03_continuous_underload/formula_ab/original_recovered/source/run_fixed128_32.py",
+      "archived_method_sha256": "61d3b037553d3a7dab230fabe94e4632dbe522ca9df0b49ff13217a690881a5e",
+      "compute_scale": 1.0,
+      "extrapolated": false,
+      "kv_formula": "exact hit prefix tokens * 1408 / 2**30; partial final block",
+      "method": "direct_data_row",
+      "source": "data",
+      "source_path": "template/qos_experiments_20260919/03_continuous_underload/formula_ab/original_recovered/source/data",
+      "source_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b"
+    },
+    "read_gib": 0.26318359375,
+    "ssd_prefix_tokens": 200704,
+    "total_length_k": 200,
+    "total_tokens": 204800
+  },
+  "profile_B": {
+    "B_gib_s": 6.8706671665332575,
+    "compute_us": 1856.6388601074514,
+    "constructed_profile": true,
+    "nql": 512,
+    "profile_construction": {
+      "anchors": [
+        {
+          "compute_us": 3702.132666685269,
+          "nql": 512,
+          "seq_len_k": 32,
+          "weight": 2.375
+        },
+        {
+          "compute_us": 5044.309980560046,
+          "nql": 512,
+          "seq_len_k": 48,
+          "weight": -1.375
+        }
+      ],
+      "archived_method_path": "template/qos_experiments_20260919/03_continuous_underload/formula_ab/original_recovered/screen/extend16.py",
+      "archived_method_sha256": "ed979b5a63ae641010cd6ac55395f34bcbc7937d63a6c970c97e176d4f24f9ff",
+      "compute_scale": 1.0,
+      "extrapolated": true,
+      "kv_formula": "exact hit prefix tokens * 1408 / 2**30; partial final block",
+      "method": "bilinear_length_extrapolation_nql_interpolation",
+      "source": "data",
+      "source_path": "template/qos_experiments_20260919/03_continuous_underload/formula_ab/original_recovered/source/data",
+      "source_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b"
+    },
+    "read_gib": 0.01275634765625,
+    "ssd_prefix_tokens": 9728,
+    "total_length_k": 10,
+    "total_tokens": 10240
+  },
+  "provenance": {
+    "B_warning": "10K is below the measured 32K minimum: compute is extrapolated, not a direct measured data row.",
+    "preserve_archived_volume_formula": true,
+    "source_builder_path": "template/qos_experiments_20260919/03_continuous_underload/formula_ab/original_recovered/run_experiment.py",
+    "source_builder_sha256": "03850b1e75daab3a66a7713e344228579bc640d81c137f8868126f2e67f4f5fb",
+    "source_data_path": "template/qos_experiments_20260919/03_continuous_underload/formula_ab/original_recovered/source/data",
+    "source_data_sha256": "fd197b79865b4c1f42d400100c5e05349ca1ba5f2d42b904af8a1759aabeb04b",
+    "source_formula_path": "template/qos_experiments_20260919/03_continuous_underload/formula_ab/original_report.md",
+    "source_formula_sha256": "ba61c2cf979692e1a86df5b8014b7db15cb5c8627e844604531a0b6085d8e1e0"
+  },
+  "screen": {
+    "A": {
+      "B_GBs": 1.9994315342217215,
+      "C_ms": 141.33578827944143,
+      "V_MB": 282.591232,
+      "nql": 4096,
+      "total_length_k": 200
+    },
+    "B": {
+      "B_GBs": 7.377322695490332,
+      "C_ms": 1.8566388601074513,
+      "V_MB": 13.697024,
+      "nql": 512,
+      "total_length_k": 10
+    },
+    "S": 3,
+    "all_first_requests_active_total_demand_GBs": 209.18487044934756,
+    "any_composition_total_demand_upper_GBs": 236.07432625569064,
+    "capacity_GBs": 120,
+    "expected_cycles_per_npu": 5,
+    "expected_requests_per_npu": 65,
+    "expected_total_requests": 2080,
+    "generated_first_request_A_count": 5,
+    "generated_first_request_B_count": 27,
+    "group": "32npu_rederived_candidate_pending_per_event_audit",
+    "id": "R32_A200_B10",
+    "ideal_compute_only_stationary_condition_nA_over_y_plus_nB_over_x": 0.5743263122920563,
+    "ideal_compute_only_stationary_demand_GBs": 87.4158047899719,
+    "ideal_compute_only_stationary_nA": 27.642530688674462,
+    "ideal_compute_only_stationary_nB": 4.357469311325537,
+    "note": "Compute-only stationary approximation ignores startup, waiting, finite decks, Ring per-disk imbalance, and cross-request L0 prefetch. It is a screening calculation, not a proof of actual underload or utilization.",
+    "per_event_underload_status": "pending_actual_trajectory_audit",
+    "pooled_single_A_block_ratio": 1.2683817967685131,
+    "pooled_single_A_upper_GBs": 152.20581561222158,
+    "strict_any_composition_underload": false,
+    "x": 20.631578947368418,
+    "y": 76.12454490544367
+  },
+  "seed": 19,
+  "selection_rule": "New 32-NPU mathematical candidate. Select A200K/miss4096 from frozen data and B10K/miss512 via archived 32K/48K linear length extrapolation; keep count ratio 1:12. The compute-only mean satisfies a pooled single-A screening interval, but continuous per-disk underload is NOT guaranteed. Retain every seed and failed audit; status pending actual per-event audit.",
+  "slo_alpha": 1.5,
+  "ssu": 3,
+  "window_ms": [
+    2000,
+    4000
+  ]
+}

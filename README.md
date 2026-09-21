@@ -6,6 +6,7 @@
 
 | 内容 | 入口 |
 |---|---|
+| 五组公式 A/B 扩至32卡：6盘欠载对照、4盘容量控制与3盘新候选 | [结果与CDF](results/formula_ab_32npu_20260921/README.md) · [数学说明](results/formula_ab_32npu_20260921/math_notes.md) |
 | 保留实验的图片与资料模板；原输入增加 OD 对照 | [图片索引](template/qos_experiments_20260919/index.html) · [模板说明](template/qos_experiments_20260919/README.md) · [ASU/OD/Once 对照](template/qos_experiments_20260919/od_baseline_comparison/README.md) |
 | 周六：128K/32K画像，A:B=1:2，Random/Ordered，盘数与策略对照 | [模板中保留的报告](template/qos_experiments_20260919/repository_source/results/baseline_ab128_32_ratio12_20260912/report.md) |
 | 历史：接近容量时的低利用率Random输入、输入配比与每层平均b/B | [历史研究报告](https://github.com/chguo0503/qos_storage_sim/blob/1c2bb30acdf8c721476b0294cb31079f0fab6fba/results/baseline_random_near_capacity_20260914/report.md) · [历史统计](https://github.com/chguo0503/qos_storage_sim/blob/1c2bb30acdf8c721476b0294cb31079f0fab6fba/results/baseline_random_near_capacity_20260914/comparison.md) · [历史通俗方法](https://github.com/chguo0503/qos_storage_sim/blob/1c2bb30acdf8c721476b0294cb31079f0fab6fba/results/baseline_random_near_capacity_20260914/report_core.md) · [历史89%/85%目标核对](https://github.com/chguo0503/qos_storage_sim/blob/1c2bb30acdf8c721476b0294cb31079f0fab6fba/results/baseline_random_near_capacity_20260914/goal_80s_update.md) |

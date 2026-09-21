@@ -4,6 +4,7 @@
 
 | 研究 | 内容 | 入口 |
 |---|---|---|
+| 公式 A/B 扩至32卡：`formula_ab_32npu_20260921` | 五组原画像的6盘对照、第四组4盘容量控制、另一个3盘候选；ASU/OD/Once、三个种子，区分逐盘欠载与过载、warm与全输入 | [结果与CDF](formula_ab_32npu_20260921/README.md) · [数学说明](formula_ab_32npu_20260921/math_notes.md) · [独立审计](formula_ab_32npu_20260921/AUDIT.md) |
 | 保留实验模板与新增 OD 对照 | 按负载浏览原图、冻结资料与原输入 ASU/OD/Once 对照；模板缺失项单独标注 | [图片索引](../template/qos_experiments_20260919/index.html) · [模板说明](../template/qos_experiments_20260919/README.md) · [三策略对照](../template/qos_experiments_20260919/od_baseline_comparison/README.md) |
 | 周六：`baseline_ab128_32_ratio12_20260912` | A总128K/miss256，B总32K/miss4096，每卡A:B=1:2；Random/Ordered及盘数、策略对照；当前从模板读取保留资料 | [模板中保留的报告](../template/qos_experiments_20260919/repository_source/results/baseline_ab128_32_ratio12_20260912/report.md) · [历史公式核对](https://github.com/chguo0503/qos_storage_sim/blob/1c2bb30acdf8c721476b0294cb31079f0fab6fba/results/baseline_ab128_32_ratio12_20260912/formula_review/README.md) |
 | 历史：`baseline_random_near_capacity_20260914` | 各卡独立Random；按V/C、纯计算权重和等待阈值寻找低利用率；原始data与外推分列；当前目录已删除，链接固定到已提交历史 | [历史报告](https://github.com/chguo0503/qos_storage_sim/blob/1c2bb30acdf8c721476b0294cb31079f0fab6fba/results/baseline_random_near_capacity_20260914/report.md) · [历史结果表](https://github.com/chguo0503/qos_storage_sim/blob/1c2bb30acdf8c721476b0294cb31079f0fab6fba/results/baseline_random_near_capacity_20260914/comparison.md) · [历史数学说明](https://github.com/chguo0503/qos_storage_sim/blob/1c2bb30acdf8c721476b0294cb31079f0fab6fba/results/baseline_random_near_capacity_20260914/report_core.md) |

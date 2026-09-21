@@ -1,0 +1,172 @@
+{
+  "archived_8npu_screen": {
+    "A": {
+      "B_GBs": 2.3036251079682093,
+      "C_ms": 122.99756892730923,
+      "V_MB": 283.340288,
+      "nql": 3564,
+      "total_length_k": 200.0
+    },
+    "B": {
+      "B_GBs": 4.30108227231582,
+      "C_ms": 10.250606988798994,
+      "V_MB": 44.088704,
+      "nql": 1455,
+      "total_length_k": 32.0
+    },
+    "S": 1,
+    "group": "B_bandwidth_and_y_matched",
+    "id": "XY12_32",
+    "meets_single_A_block": false,
+    "note": "S1，A长度均200K；B需求约4.3GB/s，调整A的NQL使y约12，以比较x从6.4到13.3；所有非原始NQL插值，B低于32K还需长度外推。",
+    "profile_A": {
+      "B_gib_s": 2.1454180665018123,
+      "compute_us": 122997.56892730923,
+      "constructed_profile": true,
+      "nql": 3564,
+      "profile_construction": {
+        "anchors": [
+          {
+            "compute_us": 70740.53784115809,
+            "nql": 2048,
+            "seq_len_k": 200,
+            "weight": 0.259765625
+          },
+          {
+            "compute_us": 141335.78827944142,
+            "nql": 4096,
+            "seq_len_k": 200,
+            "weight": 0.740234375
+          }
+        ],
+        "compute_scale": 1.0,
+        "extrapolated": false,
+        "kv_formula": "exact hit prefix tokens * 1408 / 2**30; partial final block",
+        "method": "bilinear_interpolation_length_nql",
+        "source": "data"
+      },
+      "read_gib": 0.26388120651245117,
+      "ssd_prefix_tokens": 201236,
+      "total_length_k": 200.0,
+      "total_tokens": 204800
+    },
+    "profile_B": {
+      "B_gib_s": 4.005695015486162,
+      "compute_us": 10250.606988798994,
+      "constructed_profile": true,
+      "nql": 1455,
+      "profile_construction": {
+        "anchors": [
+          {
+            "compute_us": 7257.231579079756,
+            "nql": 1024,
+            "seq_len_k": 32,
+            "weight": 0.5791015625
+          },
+          {
+            "compute_us": 14369.102622125,
+            "nql": 2048,
+            "seq_len_k": 32,
+            "weight": 0.4208984375
+          }
+        ],
+        "compute_scale": 1.0,
+        "extrapolated": false,
+        "kv_formula": "exact hit prefix tokens * 1408 / 2**30; partial final block",
+        "method": "bilinear_interpolation_length_nql",
+        "source": "data"
+      },
+      "read_gib": 0.041060805320739746,
+      "ssd_prefix_tokens": 31313,
+      "total_length_k": 32.0,
+      "total_tokens": 32768
+    },
+    "single_A_block_ratio": 0.6910329512915931,
+    "strict_any_composition_underload": true,
+    "strict_peak_GBs": 34.40865817852656,
+    "strict_peak_rho": 0.860216454463164,
+    "x": 6.426595982499281,
+    "y": 11.999052257267369
+  },
+  "disk_gb_s": 40.0,
+  "horizon_ms": 4500,
+  "id": "XY12_32",
+  "input_counts": [
+    1,
+    12
+  ],
+  "mode": "random",
+  "name": "XY12_32_n32_s6_seed19",
+  "npu_gb_s": 50.0,
+  "num_npu": 32,
+  "profile_A": {
+    "B_gib_s": 2.1454180665018123,
+    "compute_us": 122997.56892730923,
+    "constructed_profile": true,
+    "nql": 3564,
+    "profile_construction": {
+      "anchors": [
+        {
+          "compute_us": 70740.53784115809,
+          "nql": 2048,
+          "seq_len_k": 200,
+          "weight": 0.259765625
+        },
+        {
+          "compute_us": 141335.78827944142,
+          "nql": 4096,
+          "seq_len_k": 200,
+          "weight": 0.740234375
+        }
+      ],
+      "compute_scale": 1.0,
+      "extrapolated": false,
+      "kv_formula": "exact hit prefix tokens * 1408 / 2**30; partial final block",
+      "method": "bilinear_interpolation_length_nql",
+      "source": "data"
+    },
+    "read_gib": 0.26388120651245117,
+    "ssd_prefix_tokens": 201236,
+    "total_length_k": 200.0,
+    "total_tokens": 204800
+  },
+  "profile_B": {
+    "B_gib_s": 4.005695015486162,
+    "compute_us": 10250.606988798994,
+    "constructed_profile": true,
+    "nql": 1455,
+    "profile_construction": {
+      "anchors": [
+        {
+          "compute_us": 7257.231579079756,
+          "nql": 1024,
+          "seq_len_k": 32,
+          "weight": 0.5791015625
+        },
+        {
+          "compute_us": 14369.102622125,
+          "nql": 2048,
+          "seq_len_k": 32,
+          "weight": 0.4208984375
+        }
+      ],
+      "compute_scale": 1.0,
+      "extrapolated": false,
+      "kv_formula": "exact hit prefix tokens * 1408 / 2**30; partial final block",
+      "method": "bilinear_interpolation_length_nql",
+      "source": "data"
+    },
+    "read_gib": 0.041060805320739746,
+    "ssd_prefix_tokens": 31313,
+    "total_length_k": 32.0,
+    "total_tokens": 32768
+  },
+  "seed": 19,
+  "selection_rule": "Keep original profiles and randomized request ratio; S=6 ensures per-disk sum_npu(max_request(V_disk/C))<40 GB/s for all five groups and all three seeds.",
+  "source_config": "template/qos_experiments_20260919/03_continuous_underload/formula_ab/original_recovered/configs/XY12_32_random_s1_seed19.json",
+  "ssu": 6,
+  "window_ms": [
+    2000,
+    4000
+  ]
+}

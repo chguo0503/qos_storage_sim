@@ -1,0 +1,170 @@
+{
+  "name": "XY12_32_n32_s6_seed19",
+  "id": "XY12_32",
+  "ssu": 6,
+  "seed": 19,
+  "horizon_ms": 4500,
+  "window_ms": [
+    2000,
+    4000
+  ],
+  "mode": "random",
+  "input_counts": [
+    1,
+    12
+  ],
+  "profile_A": {
+    "total_tokens": 204800,
+    "total_length_k": 200.0,
+    "nql": 3564,
+    "ssd_prefix_tokens": 201236,
+    "compute_us": 122997.56892730923,
+    "read_gib": 0.26388120651245117,
+    "B_gib_s": 2.1454180665018123,
+    "constructed_profile": true,
+    "profile_construction": {
+      "method": "bilinear_interpolation_length_nql",
+      "source": "data",
+      "anchors": [
+        {
+          "seq_len_k": 200,
+          "nql": 2048,
+          "weight": 0.259765625,
+          "compute_us": 70740.53784115809
+        },
+        {
+          "seq_len_k": 200,
+          "nql": 4096,
+          "weight": 0.740234375,
+          "compute_us": 141335.78827944142
+        }
+      ],
+      "extrapolated": false,
+      "compute_scale": 1.0,
+      "kv_formula": "exact hit prefix tokens * 1408 / 2**30; partial final block"
+    }
+  },
+  "profile_B": {
+    "total_tokens": 32768,
+    "total_length_k": 32.0,
+    "nql": 1455,
+    "ssd_prefix_tokens": 31313,
+    "compute_us": 10250.606988798994,
+    "read_gib": 0.041060805320739746,
+    "B_gib_s": 4.005695015486162,
+    "constructed_profile": true,
+    "profile_construction": {
+      "method": "bilinear_interpolation_length_nql",
+      "source": "data",
+      "anchors": [
+        {
+          "seq_len_k": 32,
+          "nql": 1024,
+          "weight": 0.5791015625,
+          "compute_us": 7257.231579079756
+        },
+        {
+          "seq_len_k": 32,
+          "nql": 2048,
+          "weight": 0.4208984375,
+          "compute_us": 14369.102622125
+        }
+      ],
+      "extrapolated": false,
+      "compute_scale": 1.0,
+      "kv_formula": "exact hit prefix tokens * 1408 / 2**30; partial final block"
+    }
+  },
+  "num_npu": 32,
+  "archived_8npu_screen": {
+    "id": "XY12_32",
+    "group": "B_bandwidth_and_y_matched",
+    "A": {
+      "total_length_k": 200.0,
+      "nql": 3564,
+      "V_MB": 283.340288,
+      "C_ms": 122.99756892730923,
+      "B_GBs": 2.3036251079682093
+    },
+    "B": {
+      "total_length_k": 32.0,
+      "nql": 1455,
+      "V_MB": 44.088704,
+      "C_ms": 10.250606988798994,
+      "B_GBs": 4.30108227231582
+    },
+    "S": 1,
+    "x": 6.426595982499281,
+    "y": 11.999052257267369,
+    "single_A_block_ratio": 0.6910329512915931,
+    "strict_peak_GBs": 34.40865817852656,
+    "strict_peak_rho": 0.860216454463164,
+    "strict_any_composition_underload": true,
+    "meets_single_A_block": false,
+    "profile_A": {
+      "total_tokens": 204800,
+      "total_length_k": 200.0,
+      "nql": 3564,
+      "ssd_prefix_tokens": 201236,
+      "compute_us": 122997.56892730923,
+      "read_gib": 0.26388120651245117,
+      "B_gib_s": 2.1454180665018123,
+      "constructed_profile": true,
+      "profile_construction": {
+        "method": "bilinear_interpolation_length_nql",
+        "source": "data",
+        "anchors": [
+          {
+            "seq_len_k": 200,
+            "nql": 2048,
+            "weight": 0.259765625,
+            "compute_us": 70740.53784115809
+          },
+          {
+            "seq_len_k": 200,
+            "nql": 4096,
+            "weight": 0.740234375,
+            "compute_us": 141335.78827944142
+          }
+        ],
+        "extrapolated": false,
+        "compute_scale": 1.0,
+        "kv_formula": "exact hit prefix tokens * 1408 / 2**30; partial final block"
+      }
+    },
+    "profile_B": {
+      "total_tokens": 32768,
+      "total_length_k": 32.0,
+      "nql": 1455,
+      "ssd_prefix_tokens": 31313,
+      "compute_us": 10250.606988798994,
+      "read_gib": 0.041060805320739746,
+      "B_gib_s": 4.005695015486162,
+      "constructed_profile": true,
+      "profile_construction": {
+        "method": "bilinear_interpolation_length_nql",
+        "source": "data",
+        "anchors": [
+          {
+            "seq_len_k": 32,
+            "nql": 1024,
+            "weight": 0.5791015625,
+            "compute_us": 7257.231579079756
+          },
+          {
+            "seq_len_k": 32,
+            "nql": 2048,
+            "weight": 0.4208984375,
+            "compute_us": 14369.102622125
+          }
+        ],
+        "extrapolated": false,
+        "compute_scale": 1.0,
+        "kv_formula": "exact hit prefix tokens * 1408 / 2**30; partial final block"
+      }
+    },
+    "note": "S1，A长度均200K；B需求约4.3GB/s，调整A的NQL使y约12，以比较x从6.4到13.3；所有非原始NQL插值，B低于32K还需长度外推。"
+  },
+  "source_config": "template/qos_experiments_20260919/03_continuous_underload/formula_ab/original_recovered/configs/XY12_32_random_s1_seed19.json",
+  "selection_rule": "Keep original profiles and randomized request ratio; S=6 ensures per-disk sum_npu(max_request(V_disk/C))<40 GB/s for all five groups and all three seeds."
+}

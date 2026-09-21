@@ -1,0 +1,194 @@
+{
+  "disk_gb_s": 40.0,
+  "horizon_ms": 100,
+  "id": "XY12_16",
+  "input_counts": [
+    1,
+    1
+  ],
+  "mode": "random",
+  "name": "smoke_2npu_2ssu",
+  "npu_gb_s": 50.0,
+  "num_npu": 2,
+  "profile_A": {
+    "B_gib_s": 4.441595545945059,
+    "compute_us": 59951.334031758575,
+    "constructed_profile": true,
+    "nql": 1735,
+    "profile_construction": {
+      "anchors": [
+        {
+          "compute_us": 35442.950937563524,
+          "nql": 1024,
+          "seq_len_k": 200,
+          "weight": 0.3056640625
+        },
+        {
+          "compute_us": 70740.53784115809,
+          "nql": 2048,
+          "seq_len_k": 200,
+          "weight": 0.6943359375
+        }
+      ],
+      "compute_scale": 1.0,
+      "extrapolated": false,
+      "kv_formula": "exact hit prefix tokens * 1408 / 2**30; partial final block",
+      "method": "bilinear_interpolation_length_nql",
+      "source": "data"
+    },
+    "read_gib": 0.26627957820892334,
+    "ssd_prefix_tokens": 203065,
+    "total_length_k": 200.0,
+    "total_tokens": 204800
+  },
+  "profile_B": {
+    "B_gib_s": 4.005339158954813,
+    "compute_us": 4996.604071248399,
+    "constructed_profile": true,
+    "nql": 1122,
+    "profile_construction": {
+      "anchors": [
+        {
+          "compute_us": 7257.231579079756,
+          "nql": 1024,
+          "seq_len_k": 32,
+          "weight": 1.80859375
+        },
+        {
+          "compute_us": 14369.102622125,
+          "nql": 2048,
+          "seq_len_k": 32,
+          "weight": 0.19140625
+        },
+        {
+          "compute_us": 9941.586459040689,
+          "nql": 1024,
+          "seq_len_k": 48,
+          "weight": -0.904296875
+        },
+        {
+          "compute_us": 19737.809881246598,
+          "nql": 2048,
+          "seq_len_k": 48,
+          "weight": -0.095703125
+        }
+      ],
+      "compute_scale": 1,
+      "extrapolated": true,
+      "kv_formula": "exact hit prefix tokens * 1408 / 2**30; partial final block",
+      "method": "bilinear_length_extrapolation_nql_interpolation",
+      "source": "data"
+    },
+    "read_gib": 0.020013093948364258,
+    "ssd_prefix_tokens": 15262,
+    "total_length_k": 16,
+    "total_tokens": 16384
+  },
+  "screen": {
+    "A": {
+      "B_GBs": 4.769126902973324,
+      "C_ms": 59.95133403175858,
+      "V_MB": 285.91552,
+      "nql": 1735,
+      "total_length_k": 200.0
+    },
+    "B": {
+      "B_GBs": 4.300700174274767,
+      "C_ms": 4.996604071248399,
+      "V_MB": 21.488896,
+      "nql": 1122,
+      "total_length_k": 16
+    },
+    "S": 1,
+    "group": "B_bandwidth_and_y_matched",
+    "id": "XY12_16",
+    "meets_single_A_block": true,
+    "note": "S1，A长度均200K；B需求约4.3GB/s，调整A的NQL使y约12，以比较x从6.4到13.3；所有非原始NQL插值，B低于32K还需长度外推。",
+    "profile_A": {
+      "B_gib_s": 4.441595545945059,
+      "compute_us": 59951.334031758575,
+      "constructed_profile": true,
+      "nql": 1735,
+      "profile_construction": {
+        "anchors": [
+          {
+            "compute_us": 35442.950937563524,
+            "nql": 1024,
+            "seq_len_k": 200,
+            "weight": 0.3056640625
+          },
+          {
+            "compute_us": 70740.53784115809,
+            "nql": 2048,
+            "seq_len_k": 200,
+            "weight": 0.6943359375
+          }
+        ],
+        "compute_scale": 1.0,
+        "extrapolated": false,
+        "kv_formula": "exact hit prefix tokens * 1408 / 2**30; partial final block",
+        "method": "bilinear_interpolation_length_nql",
+        "source": "data"
+      },
+      "read_gib": 0.26627957820892334,
+      "ssd_prefix_tokens": 203065,
+      "total_length_k": 200.0,
+      "total_tokens": 204800
+    },
+    "profile_B": {
+      "B_gib_s": 4.005339158954813,
+      "compute_us": 4996.604071248399,
+      "constructed_profile": true,
+      "nql": 1122,
+      "profile_construction": {
+        "anchors": [
+          {
+            "compute_us": 7257.231579079756,
+            "nql": 1024,
+            "seq_len_k": 32,
+            "weight": 1.80859375
+          },
+          {
+            "compute_us": 14369.102622125,
+            "nql": 2048,
+            "seq_len_k": 32,
+            "weight": 0.19140625
+          },
+          {
+            "compute_us": 9941.586459040689,
+            "nql": 1024,
+            "seq_len_k": 48,
+            "weight": -0.904296875
+          },
+          {
+            "compute_us": 19737.809881246598,
+            "nql": 2048,
+            "seq_len_k": 48,
+            "weight": -0.095703125
+          }
+        ],
+        "compute_scale": 1,
+        "extrapolated": true,
+        "kv_formula": "exact hit prefix tokens * 1408 / 2**30; partial final block",
+        "method": "bilinear_length_extrapolation_nql_interpolation",
+        "source": "data"
+      },
+      "read_gib": 0.020013093948364258,
+      "ssd_prefix_tokens": 15262,
+      "total_length_k": 16,
+      "total_tokens": 16384
+    },
+    "single_A_block_ratio": 1.4305492086376386,
+    "strict_any_composition_underload": true,
+    "strict_peak_GBs": 38.15301522378659,
+    "strict_peak_rho": 0.9538253805946647,
+    "x": 13.305267985847202,
+    "y": 11.998415959497821
+  },
+  "seed": 7,
+  "ssu": 2,
+  "window_ms": [
+    10,
+    100
+  ]
+}
